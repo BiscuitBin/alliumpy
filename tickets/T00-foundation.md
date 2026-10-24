@@ -1,7 +1,7 @@
 ---
 id: T00
 title: "Foundation: a shape-complete skeleton that passes `just check` and builds a wheel on its first commit"
-status: open
+status: done
 depends_on: []
 parallel_with: []
 branch: ticket/t00-foundation
@@ -491,13 +491,167 @@ Quote each command's output in the hand-back notes, and the fresh clone's offlin
 
 ## Hand-back notes
 
-To be written by the executing agent, as P `tickets/T00-foundation.md`'s are: the
-toolchain and pyo3 pins used and the lints each forced; the outcome of every
-`CONVENTIONS.md` §12 claim this ticket owns (1, 3, 6, 8, 9, 13 to 17, 19 to 21), one row
-each; deviations from P beyond the stated deltas; the lines removed from P's dotfiles; the
-review record for each of the three checkpoints (`CONVENTIONS.md` §14); what was handed
-back to which lane; the Verification block's output at its commit; the fresh clone's and
-the secondary worktree's output.
+Implemented the two-crate tracer, Python package, wheel/console path, twenty-two-gate
+runner, tool/environment locks, CI stub, handbook and agent stubs. Evidence below was
+collected on base `708d170fbec4744b7f93ab94737ab90f99cca1e1` with the uncommitted T00
+implementation, before the first implementation commit. Fresh-clone evidence is recorded
+separately below against that commit; all prescribed proofs have now passed.
+
+### Pins, source facts and deviations
+
+The newest stable channel metadata selected Rust `1.99.1`; `rust-version = "1.99"`.
+The binding uses pyo3 `0.30.1`, `abi3-py311`, without `extension-module`. Both crates retain
+P's lint table without relaxations. Const getters satisfy the current clippy suggestions;
+`create_exception!` receives its docstring in the fourth argument; the non-exhaustive
+core severity match in the bindings needs a fallback. No macro lint allowance or fallback pin was
+needed. The solved local interpreter is Python `3.14.9`; maturin is `1.15.0`, uv `0.13.5`.
+
+Read the registry's `SourceMap::line_col` and upstream v3.6.1 `main.rs`:
+coordinates are zero-based and the CLI adds one to both. The core's syntax-error test
+asserts line 2, column 1 for `-- allium: 1` followed by `?`. The upstream parser produces
+a missing-version warning for an empty string, so the clean test uses a versioned empty
+module. Smoke fixtures retain upstream's version-header syntax and MIT attribution.
+
+Beyond the prescribed P deltas, Python lint configuration scopes its exceptions to the
+specified API order, stub documentation/representation, fixed console subprocess and
+formatter conventions. Copyright headers satisfy Ruff's full rule set. The stub includes
+the native module's generated `__all__` so stubtest checks the actual pyo3 surface. No
+frozen recipe or manifest was weakened. All seven carried decisions retain both P and L
+origin numbers; citations in Cargo comments, skills and `tools-source.txt` use this
+repository's renumbered decisions.
+
+The exact P dotfile removals were: `.gitattributes`' vendored-reference rule;
+`.gitignore`'s `!.claude/settings.json` exception and obsolete pinned-binary comment;
+only the vendored-reference entry from markdownlint's `ignores`, lychee's `exclude_path`
+and typos' `extend-exclude`. Other exclusions remain. Python indentation, wheel/native
+artifacts and caches were added; the parity-fixture typos exclusion is retained for T13.
+No other dotfile line was removed. The prescribed configuration grep prints nothing.
+
+### Owned claim outcomes
+
+| §12 claim | Observed result |
+| --- | --- |
+| 1 | maturin builds `alliumpy-3.6.1-cp311-abi3-macosx_11_0_arm64.whl`; scratch `.post1` builds `alliumpy-3.6.1.post1-cp311-abi3-macosx_11_0_arm64.whl`, while Cargo stays 3.6.1. Both version checks exit 0; restored 3.6.1 wheel rebuilt. |
+| 3 | `just clippy` exits 0 on both crates with P's unchanged lint table. |
+| 6 | nextest runs 6 core tests, exit 0; removing the test module makes it report `no tests to run`, exit 4. Restored bytes before subsequent checks. |
+| 8 | frozen/eq/hash pyo3 class builds under `forbid(unsafe_code)` and the lint table; clippy and editable build exit 0. |
+| 9 | `env -u VIRTUAL_ENV -u CONDA_PREFIX just py-develop` exits 0: `Found CPython 3.14`, `Installed alliumpy-3.6.1`; recipe supplies the pixi CONDA_PREFIX. |
+| 13 | coverage reports 56/56 core lines, 100.00%, exit 0, with no bindings-crate line. |
+| 14 | hostname curl fails 6 and direct-IP/no-proxy curl fails 7 under the same OS network-denial policy; lint, py-test (including editable install) and wheel-smoke each exit 0 under denial. Exact prescribed offline uv flags work. |
+| 15 | `pixi lock` exits 0 and locks the specified Python 3.14 tool pins for linux-64 and osx-arm64; local locked installation succeeds. |
+| 16 | snapshots-check exits 0 with no snapshots or insta dependency; a staged scratch orphan `.snap` makes it fail with `unreferenced snapshots`, exit 1. Removed and unstaged the scratch file. This uses step 12's staged-tree approach rather than making an intermediate scratch commit. |
+| 17 | `just metrics` exits 0, including rustqual 1.8.3 on both crates; no pyo3 finding or table exception. |
+| 19 | wheel listing contains both `alliumpy-3.6.1.dist-info/licenses/LICENSE` and `alliumpy-3.6.1.dist-info/licenses/LICENSE-allium-tools`; exit 0. |
+| 20 | ordinary Ruff/mypy gates exit 0; removing F401 alone, E501 alone, or mypy's deliberate type error each makes its gate exit 1 with its positive-control message. Saved bytes restored and compared. |
+| 21 | stubtest imports the editable native module and passes, exit 0; deliberate `wrong_line` stub property fails, exit 1; restored stub passes. |
+
+### Review record and handoffs
+
+All three checkpoints used independent conformance and breakage reviewers with separate
+triage, at the base revision plus the staged implementation. Reports and verdicts are in
+ignored `ai_tmp/review/T00-{1,2,3}/`; they are local evidence, not shipped artifacts.
+
+1. Freeze checkpoint: two valid medium findings restored the retained markdownlint and
+   lychee exclusions. Independent triage compared repaired files to pinned P after only
+   the authorized removal; equality checks exit 0. Breakage review found no defect.
+2. Wheel checkpoint: no actionable implementation defect. Triage verified raw offline
+   and post-release evidence and exact manifest equality with §9. Incidental Python
+   bytecode in the wheel is a nonblocking packaging observation handed to T03/future
+   packaging design; excluding it would require changing the frozen manifest contract.
+3. Whole-tree/code review: no breakage defect; one valid low finding restored P's
+   decision-index opening explanation, adapted for T07/T13. The carried P/L decision origin numbers
+   were also checked against §8. Final reviewer `just check` exits 0 with
+   `All checks passed and the worktree is unchanged.` No high finding required a second
+   round, and no valid in-scope finding remains outstanding.
+
+The remaining implementation belongs to the lanes already named by each stub: T02 core
+and bindings, T03 Python surface, T05 agent text, T07 handbook/decisions, T13 command
+parity and decision 0014, and later release/matrix verification in T14. Linux lock solve
+is demonstrated; Linux/Windows runtime and release publishing remain their assigned work.
+
+### Verification transcript excerpts
+
+Each row quotes the material stdout/stderr from the named command and its actual exit
+status. Full pre-commit control output is retained locally in
+`ai_tmp/evidence/controls.txt`; full gate output in `check-worktree.txt`. Initial sandbox
+cache-permission failures were rerun with approved access, without changing recipes.
+
+| Command | Output excerpt | Exit |
+| --- | --- | --- |
+| `rustup show active-toolchain` | `1.99.1-aarch64-apple-darwin (overridden by .../rust-toolchain.toml)` | 0 |
+| `just check` | 22 gates passed; `All checks passed and the worktree is unchanged.` | 0 |
+| `cargo nextest run --workspace --exclude alliumpy --locked` | `6 tests run: 6 passed, 0 skipped` | 0 |
+| `cargo test --doc --workspace --exclude alliumpy --locked` | `1 passed; 0 failed` | 0 |
+| `cargo llvm-cov report --show-missing-lines` | core: `56`, missed `0`, `100.00%`; total `100.00%` | 0 |
+| `just py-test` | `4 passed` | 0 |
+| `just py-stubtest` | `Success: no issues found in 1 module` | 0 |
+| `just py-lint` | `All checks passed!`; both expected fixture codes detected | 0 |
+| `just py-typecheck` | `Success: no issues found in 6 source files`; fixture type error detected | 0 |
+| `just wheel-smoke` and wheel inventory | one `alliumpy-3.6.1-cp311-abi3-macosx_11_0_arm64.whl`; smoke passes | 0 |
+| `python -I -m zipfile -l dist/*.whl` | both `licenses/LICENSE` and `licenses/LICENSE-allium-tools` | 0 |
+| isolated smoke-venv import | `3.6.1 3.6.1` | 0 |
+| smoke-venv `allium --version` and `allium -V` | each: `allium 3.6.1 (language versions: 1, 2, 3)` | 0 each |
+| smoke-venv `allium check x` | stderr: `allium: commands arrive with T13; only --version and -V are available` | 2 |
+| `just version-check` | `version-check: all five versions agree: 3.6.1` | 0 |
+| scratch Rust version 3.6.2, version-check | names mismatched `3.6.1` and `3.6.2` | 1 |
+| `just check-agents`, ordinary and with untracked scheduled lock | each: `Validated AGENTS.md, 2 adapters, and 7 skills.` | 0 each |
+| denied hostname curl | `Could not resolve host: static.rust-lang.org` | 6 |
+| denied direct-IP curl | `Failed to connect to 1.1.1.1 port 443` | 7 |
+| denied `just lint` | all lint hooks passed | 0 |
+| denied `just py-test` | editable install succeeds; `4 passed` | 0 |
+| denied `just wheel-smoke` | local release wheel built and installed; smoke passes | 0 |
+| MIT `rg -c` | `1` | 0 |
+| initializer `rg -n -w allium` | no output | 1 |
+| prescribed dotfile/configuration `rg` | no output | 1 |
+| `git status --short` before commit | only the scoped staged foundation paths and this ticket | 0 |
+
+The acceptance grep permits the seven decision provenance sentences, this index's
+explicit source attribution, and AGENTS.md's required `docs/specs/` invariant. These
+explain the only retained source-project mentions outside excluded ticket/scratch paths.
+The final fresh-clone acceptance grep is recorded below.
+
+### Committed-tree proof
+
+Implementation commit: `5f149e3` (`Build T00 foundation and verified wheel tracer`).
+The final pre-commit gate exited 0 with `All checks passed and the worktree is
+unchanged.` after all review fixes; only transcript wording was corrected afterwards.
+The following proof used a new `git clone --no-local . ai_tmp/fresh` of that exact
+commit, with no copied build, environment or tools directories. Commands used rustup's
+cargo proxy first on PATH. Initialization was the allowed network-provisioning phase.
+
+| Checkout and command | Quoted output/result | Exit |
+| --- | --- | --- |
+| Fresh clone, `git rev-parse HEAD` | `5f149e3` (full revision in local transcript) | 0 |
+| Fresh clone, `just initialize` | `Installed Git hook at .git/hooks/pre-commit`; `Ready. Next: just check.` | 0 |
+| Fresh clone, denied hostname curl | `Could not resolve host: static.rust-lang.org` | 6 |
+| Fresh clone, denied direct-IP/no-proxy curl | `Failed to connect to 1.1.1.1 port 443` | 7 |
+| Fresh clone, denied `just lint` | all hooks `Passed` | 0 |
+| Fresh clone, denied `just py-test` | editable native build and install succeeded; `4 passed` | 0 |
+| Fresh clone, denied `just wheel-smoke` | release wheel built from the new target directory; `allium 3.6.1 (language versions: 1, 2, 3)` | 0 |
+| Fresh clone, `just check` | 22 gates; `All checks passed and the worktree is unchanged.` | 0 |
+| Fresh clone, `git status --short` | no output | 0 |
+| Fresh clone, acceptance grep with the exact listed directory exclusions | nine justified lines described below | 0 |
+| `git -C ai_tmp/fresh worktree add ../fresh-2` | new branch `fresh-2`, HEAD at `5f149e3` | 0 |
+| Secondary worktree, `just initialize` | `Secondary worktree: skipping install-hooks.`; `Ready. Next: just check.` | 0 |
+| Secondary worktree, `just lint` | all hooks `Passed` | 0 |
+| Secondary worktree, `git status --short` | no output | 0 |
+
+The authoritative fresh-clone grep printed exactly the seven `Carried from pachinko`
+provenance sentences at line 13 of decisions 0002–0008, the decision index's line 19
+`pachinko's decision index.`, and AGENTS.md line 52's required invariant
+`for other repositories and keeps none under a docs/specs/ of its own.` (the actual
+path is code-formatted). No unjustified source-project residue was found. The inventory
+and reviews found every required path present and no extra deliverable outside the
+Files touched table; the ticket itself records the required execution notes.
+
+The secondary initializer preserved the primary hook's SHA-256
+`ee3dd3a6020b4fc7836d07dcbcab33c9059b4c1e0ef2ecb0ae8cf0f1488aaa9c` and its exact
+modification time. It did not run a second `install-hooks`. Both disposable checkouts
+were removed after verification; raw local logs remain in
+`ai_tmp/evidence/fresh-initialize.txt`, `fresh-proof.txt` and `secondary-proof.txt`.
+These results establish the committed first implementation is independently usable.
+This follow-up commit changes only ticket status and evidence, leaving that tested
+implementation intact.
 
 ## Open points
 

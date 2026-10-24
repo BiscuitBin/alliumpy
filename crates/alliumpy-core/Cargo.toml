@@ -1,0 +1,28 @@
+[package]
+name = "alliumpy-core"
+version.workspace = true
+description = "The Allium parser conversion core"
+keywords = ["allium", "parser", "python"]
+categories = ["development-tools"]
+readme = "README.md"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[lib]
+name = "alliumpy_core"
+
+[dependencies]
+allium-parser = { workspace = true }
