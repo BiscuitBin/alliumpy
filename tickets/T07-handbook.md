@@ -1,7 +1,7 @@
 ---
 id: T07
 title: "Handbook: every page, and decision records 0001 to 0013"
-status: open
+status: done
 depends_on: [T00]
 parallel_with: [T01, T02, T03, T05, S01]
 branch: ticket/t07-handbook
@@ -449,13 +449,74 @@ The pre-review full gate and check-docs exited 0. Recipe and gate verification f
 43 recipes and 22 gates in order, exit 0. The post-fix full gate result follows in
 the next part's evidence.
 
+Part-2 post-fix verification at `3eebe73` with uncommitted reviewed documentation:
+`just check-docs` and `just check` both exit 0; the full gate ends
+`All checks passed and the worktree is unchanged.` Committed as `f8a44bb`.
+`git fetch origin` exited 0; `origin/main` remains `5b76af6`, the branch ancestor.
+The existing T11 inventory also applies to decision 0008's T01 Pages design,
+0005/0007's T02 lint/metrics rules, 0001's S01 route and 0012's T14 matrix.
+
+### Part 3 and acceptance evidence
+
+At `f8a44bb` with the decision records uncommitted, `just check-docs` exited 0
+(`Validated 39 pages and 40 canonical topics.`); `just check` exited 0, ending
+`All checks passed and the worktree is unchanged.` No production code changed.
+
+The structural verification commands ran with explicit exit assertions and positive
+controls (`ai_tmp/acceptance.log`, ignored). `just --list` and `just --summary` exited 0;
+the summary contained 43 recipes and the missing-recipe loop printed nothing. The gate
+loop printed these twenty-two names with increasing line numbers (exit 0):
+
+```text
+check-toolchain lock-check lint fmt-check toml-check clippy metrics features
+test-doc coverage doc deny deps-unused py-lint py-typecheck py-test py-stubtest
+wheel-smoke version-check check-docs check-agents snapshots-check
+```
+
+The carried-record search printed seven nonzero counts, each 1 (exit 0), for records
+0002 through 0008. The project/tutorial/how-to negative search printed nothing (exit 1).
+The explanation/reference/operations search printed only agent-contract's required phrase
+list (exit 0). The decision negative search printed nothing (exit 1). The URL search
+printed exactly these paths (exit 0):
+
+```text
+docs/reference/api.md
+docs/how-to/deploy-to-github-pages.md
+docs/how-to/install-and-run.md
+```
+
+The carried-file listing printed seven paths (exit 0); its missing-chain search printed
+nothing (exit 1). The new-file listing printed six paths (exit 0); its carried-chain
+search printed nothing (exit 1). The record-0014 listing printed its one path (exit 0);
+`git diff --exit-code origin/main -- docs/decisions/0014-cli-strategy.md` printed nothing
+(exit 0), against the fetched `origin/main` at `5b76af6`. `git diff --check` exited 0.
+The verification wrapper ended `All T07 structural acceptance checks passed.` (exit 0).
+
+Part-3 review used fresh-context Codex `gpt-6-astra` subagents for conformance and
+breakage, and a separate `gpt-6-astra` triage agent. B3-01 (feature powerset scope)
+valid: decision 0005 now includes both crates. B3-02 (dependency inheritance scope)
+valid: decision 0004 distinguishes third-party inheritance from the local core path.
+B3-03/C3-01 (wheel consumers resolve Cargo dependencies) valid duplicate: decision 0004
+now says wheels ship the locked build; alternative resolution is a future Cargo-consumer
+risk. All fixes landed sequentially, none was high, and no second round was needed.
+Raw review and verdict files remain ignored under `ai_tmp/review/T07-3/`.
+
+All 23 pages and the 14 assigned decision files are complete. There were no manifest
+metadata mismatches. Terminology deliberately omits moving upstream diagnostic-code
+lists. Record 0014, the manifest and the documentation map remain unchanged.
+
+Post-review verification at `f8a44bb` with reviewed records and hand-back notes
+uncommitted: structural acceptance exit 0; `just check-docs` exit 0 with
+`Validated 39 pages and 40 canonical topics.`; `just check` exit 0, last line
+`All checks passed and the worktree is unchanged.` An initial notes-only MD012 blank-line
+failure was corrected before this successful rerun. The final committed tree is checked
+again before hand-back; no push or publication is part of this ticket execution.
+
 ## Open points
 
 - Hand back B-01/B-02 enforcement gaps as frozen-file follow-ups under §11: a `main`
   change to `Justfile` could compare the selected toolchain with the repository pin;
   a change to `scripts/version_check.py` could validate member version inheritance or
   resolved member versions. Neither frozen file was edited by T07.
-- If a page's manifest title or audience proves wrong while writing it, hand the change
-  back as a T00 follow-up on `main` rather than editing `docs/manifest.yml` here.
-- Whether `terminology.md` should name upstream's diagnostic codes. Recommend not: they
-  are upstream's and move between releases; the page points at upstream's documentation.
+- T11 must reconcile the wave-1 design-dependent statements in the table above with
+  the merged lane evidence; the pending CLI and sdist decisions remain owned by S01.

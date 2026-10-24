@@ -8,15 +8,14 @@ requires: []
 
 # Architecture decisions
 
-This is a T00 stub; T07 replaces it.
+A record of what was chosen, what it cost, and what would have to change for the choice
+to be revisited. Each entry is numbered and never renumbered; a decision that is
+superseded is marked rather than deleted, because the reasoning is what makes the
+successor legible.
 
-This index will be the record of what was chosen for this repository, what it cost, and
-what would have to change for each choice to be revisited. The series is this
-repository's own and starts at 0001; records carried from the repository it was adapted
-from say so under their heading and keep the topic slug they had. Lane T07 writes the
-full index and records 0001 to 0013; T13 writes record 0014 from S01's decision. Until
-then each record is a stub that names what it will say. This index is reshaped from
-pachinko's decision index.
+These are decisions about how this repository is built and distributed. Upstream decides
+parser and command behaviour; unresolved packaging choices live in their spike or ticket
+until evidence supports a decision.
 
 ## The record
 
@@ -37,5 +36,27 @@ pachinko's decision index.
 | [0013](0013-no-spec-gate-no-allium-skills.md) | No specification gate and no Allium skills in this repository |
 | [0014](0014-cli-strategy.md) | How the `allium` command gets into the wheel |
 
-Records from 0015 onwards are written by wave-2 tickets, which register their
-new pages and add a row here when the corresponding decision is taken.
+Records 0015, 0016 and 0017 are written by T14, T15 and T17 respectively, which register
+their new pages and add rows when those decisions are taken. Record 0014 remains S01's
+draft for T13 to land; this lane leaves its stub untouched.
+
+## The numbering
+
+This series is the repository's own and starts at 0001. Records 0002 to 0008 carry the
+chain from the pinned source repositories and keep their topic slugs. Each opening names
+both source commits so its argument can be checked. New records have no carried-from
+chain. [Decision 0006](0006-tool-manager.md) replaces the older installation details
+behind [decision 0002](0002-hook-runner-and-checkers.md), while keeping its choice of
+runner and shared checkers.
+
+## Writing a new one
+
+Copy the shape of an existing entry: context, the decision, the consequences including
+the ones that hurt, and what would reopen it. Add the file, add a manifest entry, add a
+row above. A decision nobody can find is not recorded. Follow-up tickets own additions
+outside this lane's frozen inventory.
+
+## Related pages
+
+- [Documentation map](../README.md)
+- [Architecture](../explanation/architecture.md)
