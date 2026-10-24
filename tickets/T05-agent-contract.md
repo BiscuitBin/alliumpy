@@ -447,6 +447,20 @@ committed separately and receives a final full-gate run.
 
 No push, pull request, tag, publishing action or edit to another repository occurred.
 
+### PR review follow-up
+
+At `29f32355ed9fd22e0098f1de210a646765ec4075`, the untouched PR worktree passed
+`just check`: `All checks passed and the worktree is unchanged.` (exit 0).
+The shell needed rustup's cargo first on `PATH` and permission to use the shared
+tool cache, as at the original baseline. GitHub Actions CI run `40068047067`
+also completed successfully for that commit.
+
+Review comment `4366196181` is valid: `.humanlayer/tasks/pr-4/description.md`
+is generated PR metadata outside T05's deliverables and violates §11's scratch rule.
+Moved it to ignored `ai_tmp/pr-4/description.md`; the same content already exists
+in the PR body. The follow-up removes the tracked copy and records this verdict.
+The contract, skills, adapters, bridges and runtime behaviour require no change.
+
 ## Open points
 
 - Invariant 7 already says "every cargo gate" passes `--locked`, so the Python gates
