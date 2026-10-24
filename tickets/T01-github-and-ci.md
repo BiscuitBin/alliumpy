@@ -692,8 +692,30 @@ release matrix's manylinux target is T14's to choose; this is noted for it.
 
 ### Pages after the merge (step 13)
 
-Pending: step 13 runs after the maintainer merges, and its evidence lands as a
-notes-only follow-up pull request under its own authorisation.
+At `844e9b6`, `main` after the maintainer merged the pull request (21:01:06Z), on top
+of `5c46a20`. The notes follow-up was authorised by the maintainer.
+
+```console
+$ gh run view 40132356384 --repo BiscuitBin/alliumpy --json jobs --jq '.jobs[] | [.name, .conclusion]'
+["build","success"]
+["deploy","success"]
+```
+
+The run's event is `push`, so `deploy`'s `if:` was true on a public repository. Its log
+shows `Created deployment for 844e9b64c6447bfa5d9ce27db1161540f57bd88d`, `Reported
+success!` and `Evaluated environment url: https://biscuitbin.github.io/alliumpy/`.
+`gh api repos/BiscuitBin/alliumpy/pages` still reads `build_type: workflow`.
+
+Each page fetched from the site answered HTTP 200 with the expected `<title>`:
+
+| Path | `<title>` |
+| --- | --- |
+| `/` | `alliumpy: API reference`, linking `alliumpy_core/index.html` and `alliumpy/index.html` |
+| `/alliumpy_core/index.html` | `alliumpy_core - Rust`, version 3.6.1 |
+| `/alliumpy/index.html` | `alliumpy - Rust`, version 3.6.1 |
+
+The CI run on the same push (40132356469) passed all seven jobs: `check` and its six
+`needs`. The skip on a private repository stays T11's, as handed back below.
 
 ### Review records (CONVENTIONS.md §14)
 
