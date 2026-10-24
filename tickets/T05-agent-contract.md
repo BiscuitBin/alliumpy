@@ -395,8 +395,39 @@ Parity positive control: 3 inline references and 1 wrapped reference, all T13-ma
 review-docs equals P at bf51e0d; git diff --check. [pass]
 ```
 
-The original Verification block and supplemental checks will also be run at the clean
-implementation commit; its recorded commit and exit statuses follow below.
+### Verification at the clean implementation commit
+
+At `9dfb293694e5695aa1d4e8d390edb730dc3520db` with no uncommitted changes, the
+Verification block ran with shell pipefail enabled (exit 0), followed by the
+supplemental direct-read checks (exit 0). Its results were:
+
+```text
+just check-agents:
+  Validated AGENTS.md, 2 adapters, and 7 skills. [exit 0]
+acceptance rg: the four Provenance lines quoted above. [exit 0]
+important-block count: 7. [exit 0]
+core extraction and six-phrase loop: no findings. [exit 0]
+22-gate dispatch loop: no findings. [exit 0]
+named and defined recipe lists: both nonempty. [exit 0]
+comm: comm exit 0; extras are install-parity-reference and parity.
+filter extras: no output, exit 1.
+parity-marker filter: no output, exit 1 (supplemented for B2).
+git fetch origin: no output. [exit 0]
+frozen inventory: 16; frozen diff: no output, exit 0.
+seven frontmatter comparisons: no output. [exit 0]
+just check: All checks passed and the worktree is unchanged. [exit 0]
+git status --short: no output. [exit 0]
+supplemental checks: all assertions pass. [exit 0]
+```
+
+B2's independent positive control saved three successful inline references before
+filtering; `rg -v T13 ai_tmp/parity-references.txt` printed nothing and exited 1.
+A separate normalized read verified the line-wrapped invariant reference and its
+T13 qualifier. Checked subprocess reads verified recipe discovery and frontmatter
+sources, so a failed producer cannot masquerade as a successful empty result.
+`origin/main` remained `5b76af6`; all implementation and acceptance evidence above
+is tied to the commit actually tested. This final ticket-only evidence update is
+committed separately and receives a final full-gate run.
 
 ### Handed back
 
