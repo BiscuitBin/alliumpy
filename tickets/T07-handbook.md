@@ -348,13 +348,67 @@ and exit 1; the third `ls` must list the one file (its positive control), and th
 
 ## Hand-back notes
 
-To be written by the executing agent: the baseline; the tutorial transcript; the API
-lines of step 4 and their output; each sentence kept from L that needed a fact checked and
-how it was checked; every sentence written to the design that another lane's outcome
-could change (S01's route, T01's `pages.yml`, visibility ruling and Pages URL, T02's lint
-tables, T03's configuration and `_alliumpy.pyi`, T05's skills), for T11; for each carried
-record, what was removed and why; the review record for each checkpoint (`CONVENTIONS.md`
-§14); and anything handed back.
+### Part 1 evidence
+
+Baseline: commit `5b76af6` (untouched), `PATH="$HOME/.cargo/bin:$PATH" just check`,
+exit 0, last line `All checks passed and the worktree is unchanged.` The initial shell
+resolved pixi's global cargo; putting rustup first fixed that environment issue. The
+sandbox initially denied prek's existing cache; the same check passed with approved
+cache access. No gate was weakened.
+
+Tutorial: detached worktree created with `git worktree add --detach ai_tmp/tutorial HEAD`
+at `5b76af6`; `just initialize` exited 0 and printed `Secondary worktree: skipping
+install-hooks.` Commands below used rustup first on PATH. All edits were confined to
+the scratch worktree, and logs remain ignored under `ai_tmp/`.
+
+| Command and state | Observed output | Exit |
+| --- | --- | --- |
+| `just check`, untouched scratch | `All checks passed and the worktree is unchanged.` | 0 |
+| `just test`, new core assertion only | `error[E0609]: no field end_col on type Diagnostic` | 101 |
+| `just test`, core field and span-end conversion | 7 core tests passed, 1 doctest passed | 0 |
+| `just py-test`, new Python assertion only | `AttributeError: ... Diagnostic ... has no attribute 'end_col'` | 1 |
+| `just py-test`, getter and repr updated | 6 passed | 0 |
+| `just py-stubtest`, runtime ahead of stub | `Diagnostic.end_col is not present in stub` | 1 |
+| `just py-stubtest`, documented property added | `Success: no issues found in 1 module` | 0 |
+| `just check`, initial final run | Ruff PLR2004 on literal expected column | 1 |
+| `just check`, expected column named as in final tutorial | `All checks passed and the worktree is unchanged.` | 0 |
+
+The existing binding stores the core diagnostic rather than copying fields through a
+From impl; the tutorial explains that actual shape and what a later From impl requires.
+The expected exclusive end column 2 was verified against the pinned parser by the test.
+The full tutorial gate measured 100% core lines. The worktree was removed with
+`git worktree remove --force --force ai_tmp/tutorial` (exit 0); the second force was
+needed for Supacode's automatic lock. No experimental field remains in deliverables.
+
+API proof at `5b76af6` with uncommitted documentation: `just py-develop`, exit 0, then:
+
+```sh
+.pixi/envs/default/bin/python -I -c 'import alliumpy
+diagnostics = alliumpy.parse("-- allium: 1\n?\n")
+first = diagnostics[0]
+print(first.line, first.col, first.severity)
+print(alliumpy.ALLIUM_VERSION)'
+```
+
+Output (exit 0):
+
+```text
+2 1 error
+3.6.1
+```
+
+The rendered example adds the formatter-required blank line after the import; there
+are five executable statements. Part-1 check-docs exited 0. An early full gate caught
+that blank line; another run correctly detected an edit made while checking. Both were
+rerun against a stable tree. Final part-1 gate evidence is recorded with its commit below.
+
+Part-1 review: fresh-context Codex subagents, `gpt-6-astra`, separate conformance and
+breakage lenses. C1/B2 (Python described as exact) valid: Python uses a patch range;
+C2 (old decision label) valid: label now 0004; B1 (offline check detects moved remote tag)
+valid: local consistency cannot observe remote changes. A separate `gpt-6-astra` triage
+agent checked pinned L source and local recipes and applied these three fixes sequentially.
+No high findings, no second round needed. Raw findings/verdicts are under
+`ai_tmp/review/T07-1/`, outside deliverables.
 
 ## Open points
 
