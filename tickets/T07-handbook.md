@@ -539,3 +539,24 @@ wheel smoke and documentation validation passed. Ignored transcripts are
 is checked again before pushing; the PR description records that exact tested commit.
 Historical tutorial replay and review evidence above remains tied to its original
 baseline rather than being relabelled as a replay on the merged lanes.
+
+## PR review correction and tutorial replay
+
+Reviewed PR #6's finding on the tutorial's expected repr at head `fc48a56`. Valid:
+following the instruction literally creates a 109-character test line, and the pinned
+Ruff reports E501 against its 100-character limit. The tutorial now gives the complete
+assertion using adjacent strings, preserving the expected value and fixture column.
+The proposed test edit passes both Ruff lint and format checks without suppression.
+
+Replayed the corrected tutorial in a disposable secondary worktree at `fc48a56`,
+with only the corrected tutorial copied in before setup. `just initialize` exited 0
+and skipped shared hooks; baseline `just check` exited 0. Expected red stages were
+core E0609 (exit 101), Python AttributeError (exit 1), and missing `end_col` in the
+stub (exit 1). Each corresponding green stage exited 0. The exercise's final
+`just check` exited 0 with seven Rust tests, one doctest, 18 Python tests, 100 percent
+core coverage, passing stubtest and installed-wheel smoke, ending
+`All checks passed and the worktree is unchanged.` Ignored transcripts are
+`ai_tmp/review-replay-{initialize,baseline,core-red,core-green,python-red,python-green,stub-red,stub-green,final}.log`.
+Only the tutorial and these notes ship; the exercise's `end_col` implementation stays
+in the disposable worktree. The final documentation commit is checked separately
+before pushing, and its exact hash is recorded in the PR description.

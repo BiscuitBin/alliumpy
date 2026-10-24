@@ -113,10 +113,19 @@ const fn end_col(&self) -> u32 {
 
 Append `, end_col={}` immediately before `)` in the Rust `__repr__` format string and
 append `self.end_col()` after `code` in its argument list, with a comma after `code`.
-In `TestDiagnostic.test_repr`, append `, end_col=10` before the closing parenthesis
-in the expected string. That test uses the broken fixture, whose `?` starts at byte
-column 9 and ends at column 10. Keep the separate new test above, which checks column 2
-for its smaller input.
+In `TestDiagnostic.test_repr`, replace the assertion with adjacent strings to stay
+within the 100-character Python line limit:
+
+```python
+assert repr(broken_diagnostic()) == (
+    f"Diagnostic(line=5, col=9, severity='error', message={BROKEN_MESSAGE!r}, "
+    "code=None, end_col=10)"
+)
+```
+
+Keep the method's existing indentation. That test uses the broken fixture, whose `?`
+starts at byte column 9 and ends at column 10. Keep the separate new test above, which
+checks column 2 for its smaller input.
 
 Run `just py-test` again: all tests pass. Then run `just py-stubtest`, which rebuilds
 through `py-develop` and reports `Diagnostic.end_col` missing from the stub.
