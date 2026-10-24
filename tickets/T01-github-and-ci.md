@@ -370,15 +370,312 @@ expected result and is quoted as such.
 
 ## Hand-back notes
 
-To be written by the executing agent, as P `tickets/T01-github-and-ci.md`'s are: the
-state before, with every HTTP status; the maintainer's step 3 decision, quoted and timed;
-the dry run (or why it could not run); each authorisation, when, and what ran; the state
-after, and `CONVENTIONS.md` §12 claims 10, 11 and 22 each marked holds, fails or deferred
-with the evidence; every action pin as a table of action, tag and commit, the two new
-pins marked; the delta list of step 8 as built, including the `check-clean` steps; the
-pull request, its run URLs and the merge commit the run tested; the `wheel-smoke-py311`
-quotes; the `pages.yml` result after the merge; the review record for each checkpoint
-(`CONVENTIONS.md` §14); what was handed back to which lane.
+Times are UTC. The settings evidence ran against the live repository between
+2026-10-24T05:39Z and 06:24Z at `5b76af6` (the worktree clean, `origin/main` the same
+commit). The workflow evidence ran at `5b76af6` with the step 8 changes uncommitted
+(staged), and again at `463076e`, the commit that lands them after the rebase onto `a2dd325`. The branch is
+`ticket/T01-github-and-ci`, the worktree tool's casing of the `branch:` field's
+`ticket/t01-github-and-ci`.
+
+### Baseline
+
+`just check` on the untouched worktree, `5b76af6`, 05:59:44Z to 06:00:52Z: `All checks
+passed and the worktree is unchanged.`, exit 0; `git status --short` printed nothing.
+
+### Step 1: `check` on `main`
+
+`gh api repos/BiscuitBin/alliumpy/commits/main/check-runs --jq '.check_runs[] | [.name,
+.conclusion, .app.id]'` at 05:39:31Z printed `["check",null,15368]`: the merge's run
+`https://github.com/BiscuitBin/alliumpy/actions/runs/40066796921` (push, `5b76af6`) was
+still in progress. After `gh run watch` exited 0 it printed `["check","success",15368]`,
+exit 0. That run's log (job `check`, saved as `ai_tmp/stub-run.log`):
+
+- `Removing credentials config
+  '/home/runner/work/_temp/git-credentials-3d501599-eb5b-453e-a2bf-5ef6efe4cf31.config'`
+  (05:34:46.46Z), the checkout's last line before the setup action.
+- setup-pixi: `Restoring project cache` / `Cache miss` (05:34:49.66Z), then `pixi
+  install --locked ...` and `✔ The default environment has been installed.`
+  (05:34:57.08Z). `pixi list --locked` lists `biscuit_games_tooling 0.3.0 pypi`. The
+  setup action passes setup-pixi no token, and `pixi.lock` pins
+  `git+https://github.com/steven-cutting/biscuit_games_tooling?tag=v0.3.0#6c5c07f6bec86e86b3930dfa41392e4b440e8c85`,
+  with no credential in the URL.
+- `just check` ended `All checks passed and the worktree is unchanged.` (05:40:32Z).
+
+### State before (step 2, 2026-10-24T05:39:47Z, private)
+
+| Read | Result |
+| --- | --- |
+| `.permissions.admin` | `true`, exit 0 |
+| `orgs/BiscuitBin` | `{"members_can_create_pages":true,"plan":"free"}`, exit 0 |
+| `{visibility, private}` | `{"private":true,"visibility":"private"}`, exit 0 |
+| `gh repo view` | private, default `main`, `deleteBranchOnMerge: false`, merge, squash and rebase allowed, `hasWikiEnabled: false`, `hasProjectsEnabled: true` |
+| protection | exit 1; HTTP 403, `Upgrade to GitHub Pro or make this repository public to enable this feature.` No before file. |
+| Pages | HTTP 404 `Not Found`, exit 1 (no site; the read names no plan) |
+| private vulnerability reporting | HTTP 404 `Not Found`, exit 1 |
+
+The protection 403 is the protection half of claim 11's first half, and it holds. The
+Pages read answered 404, not a plan message, so the Pages half is not shown by a read
+here.
+
+T's dry run at 05:40:11Z, while private, stopped at its step 2, as claim 22 predicted:
+`gh: Upgrade to GitHub Pro or make this repository public to enable this feature. (HTTP
+403)`, then `gh api repos/BiscuitBin/alliumpy/branches/main/protection --jq [...]
+failed`, exit 1, nothing announced.
+
+### Step 3: the maintainer's decision
+
+Asked at about 05:41Z with the private reads above and three choices (defer, make
+public, paid plan). The answer, recorded at 2026-10-24T05:55:21Z, was in the
+maintainer's words: "it is public now". The maintainer ran the visibility change; this
+ticket did not.
+
+Step 2 rerun (05:55:21Z, public): admin `true`; plan `free`,
+`members_can_create_pages: true`; `{"private":false,"visibility":"public"}`; `gh repo
+view` as before except `visibility: PUBLIC`; Pages HTTP 404 `Not Found`; private
+vulnerability reporting `false`, exit 0. The protection line of that rerun is void:
+zsh's `noclobber` refused the redirect (`file exists: ai_tmp/protection-err.txt`), so
+`gh` never ran and the block printed the private read's stale stderr. Reread at
+05:55:31Z with the old files removed: exit 1, `{"message":"Branch not
+protected",...,"status":"404"}` and `gh: Branch not protected (HTTP 404)`. That is the
+before state; there is no `protection-before.json`.
+
+### Dry run (step 4, 05:55:36Z)
+
+`sh ai_tmp/bootstrap_repo.sh BiscuitBin/alliumpy --checks check --hygiene --no-pages`,
+T's script at `2283589` copied into `ai_tmp/` (byte-identical to the pin). Three
+changes, exit 0, as P's:
+
+- 2: `state: not protected (HTTP 404)`, `wanted: false check false false false false
+  false`, `would: gh api -X PUT .../branches/main/protection --input -` with
+  `strict: false`, `checks: [{context: check}]`, `enforce_admins: false`, reviews and
+  restrictions null, force pushes and deletions false.
+- 4: `state: false`, `would: gh api -X PUT .../private-vulnerability-reporting`.
+- 6: `state: false false true`, `would: gh repo edit BiscuitBin/alliumpy
+  --delete-branch-on-merge --enable-wiki=false --enable-projects=false`.
+- 3 skipped (no Chromatic token); 5 prints instructions only. `changed: 0 (dry run; 3
+  would change)`.
+
+The repository was public by then, so three, not two, as the ticket expects for a
+public repository.
+
+### Authorisations
+
+| Action | Authorised | Ran |
+| --- | --- | --- |
+| Step 3: visibility | maintainer's own action, reported 05:55:21Z | not run by this ticket |
+| Step 4: `--apply` with the dry run's flags | 06:23:17Z | `changed: 3`, exit 0 |
+| Step 6: `gh api -X POST repos/BiscuitBin/alliumpy/pages -f build_type=workflow` | 06:24:15Z | returned the Pages object, exit 0 |
+| Step 11: push, open the pull request, one follow-up evidence push | pending | pending |
+
+Step 5 did not apply (protection was available, so the script applied hygiene).
+
+### State after (step 7, 06:23:31Z) and claims 11 and 22
+
+The second dry run (06:23:21Z, same flags) reported `already` for steps 2, 4 and 6 and
+`changed: 0 (dry run; 0 would change)`, exit 0.
+
+From `ai_tmp/protection-after.json` (`gh api ... | jq -S .`, both exits 0):
+
+```text
+{"checks":[{"app_id":15368,"context":"check"}],"strict":false,"contexts":["check"],
+ "enforce_admins":false,"lock_branch":false,"fp":false,"del":false,"linear":false,
+ "sigs":false,"conv":false,"block_creations":false,"fork_sync":false,
+ "reviews":null,"restr":null}
+```
+
+- `required_status_checks --jq '[.checks[] | {context, app_id}]'`:
+  `[{"app_id":15368,"context":"check"}]`, exit 0. `15368` is the app step 1 printed
+  for `check` (GitHub Actions, the same as P's run).
+- There is no diff: the before state was the 404 `Branch not protected`, so `diff`
+  exits 2 for the missing before file. Every field the protection object now holds is
+  either one the dry run announced or at GitHub's default; `lock_branch`, signatures,
+  linear history, conversation resolution, `block_creations` and fork syncing all read
+  false, and reviews and restrictions are absent. Nothing blocks a merge.
+- Private vulnerability reporting: `true`, exit 0.
+- `gh repo view`: `deleteBranchOnMerge: true`, `hasWikiEnabled: false`,
+  `hasProjectsEnabled: false`; merge, squash and rebase still allowed; `PUBLIC`.
+  Hygiene was applied by T's script, not by hand.
+- Pages (06:24:15Z): `build_type: workflow`, `html_url:
+  https://biscuitbin.github.io/alliumpy/`, `public: true`, `https_enforced: true`. The
+  `github-pages` environment's deployment branch policy is custom.
+
+Claim 22 holds in both halves: T's script fails at its step 2 on a private free-plan
+repository, in the way the dry run showed, and on the public repository it applies
+and reruns with no change. Claim 11: the protection half of the first half holds (the
+403 while private); the Pages half was not shown by a read (404 while private); the
+second half (the skipped deploy) cannot be shown, because the repository is now
+public. The deploy's private-repository branch is therefore untested by a run.
+
+### Workflows (step 8) as built
+
+- `action.yml`: `name:` already read `Set up the alliumpy toolchain`, and the
+  description's allium sentence was already gone (T00). The `.tools` comment names
+  cargo-hack and rustqual only (T00 had dropped the allium clause but left one long
+  line; it is rewrapped). The `PREK_HOME` comment reads `PREK_HOME is prek 0.5.3's
+  cache variable.` Nothing else differs from P.
+- `ci.yml`: `rust`'s `- run: just effects` is gone; its steps are §10's list. New
+  `python` (`cache-key: python`, `timeout-minutes: 30`): `py-lint`, `py-typecheck`,
+  `py-test`, `py-stubtest`, `wheel-smoke`, `version-check`, then `upload-artifact`
+  `wheel-linux` from `dist/*.whl`, `if-no-files-found: error`, seven days. New
+  `wheel-smoke-py311` (`needs: [python]`, `timeout-minutes: 10`): checkout without
+  credentials, setup-python `3.11`, download-artifact `wheel-linux` into `dist`, one
+  plain-shell step. That step carries `venv/bin/python --version`, which §10 lists
+  and the ticket's step 8 omits; §10 wins where the two differ, so the log also shows
+  `Python 3.11.x` from the venv. `documents` runs `lint`, `check-docs`,
+  `check-agents`. Each of `rust`, `python`, `coverage`, `deny` and `documents` ends
+  with `- run: just check-clean` (in `python` and `coverage`, after the upload). The
+  comment above `jobs:` was rewritten: two crates and a wheel, six gate jobs, and why
+  `wheel-smoke-py311` is off the setup action. `check.needs` is `[rust, python,
+  wheel-smoke-py311, coverage, deny, documents]`.
+- `pages.yml`: P's, except `deploy`'s `if:` is `github.ref == 'refs/heads/main' &&
+  github.event.repository.private == false`, with a comment citing §1 fact 6. Which
+  field, as step 8 asks: the GitHub contexts page documents `github.event` only as
+  "The full event webhook payload", so the payload was read from GitHub's OpenAPI
+  description (`github/rest-api-description` at `755ee33`). `webhook-push` requires
+  `repository`, whose schema requires both `private` and `visibility`;
+  `webhook-workflow-dispatch` requires `repository` (`repository-webhooks`), which
+  requires `private` but only lists `visibility` (default `public`). So
+  `github.event.repository.visibility` is not confirmed present on
+  `workflow_dispatch`, and the ticket's equivalent, `private == false`, is used. The
+  first draft used `visibility == 'public'`, chosen because GitHub's loose `==`
+  coerces `null` and `false` both to 0, so `private == false` reads an absent field
+  as public. Review finding T01-2 c1 showed the trade: `visibility` can be false on a
+  public repository's manual dispatch, while `private` is required on both events, so
+  its absent-field case is outside the schema. The fix was applied in triage.
+- `audit.yml`: P's, verbatim.
+- Permissions equal P's: `contents: read` at the top of each workflow, and `pages:
+  write` plus `id-token: write` only on `pages.yml`'s `deploy`. The new jobs add none:
+  `download-artifact` within a run needs no `actions: read`.
+
+### Action pins (step 9), read 2026-10-24T05:56:40Z
+
+| Action | Tag | Commit |
+| --- | --- | --- |
+| `actions/checkout` | v7.0.1 | `3d3c42e5aac5ba805825da76410c181273ba90b1` |
+| `actions/upload-artifact` | v7.0.1 | `043fb46d1a93c77aae656e7c1c64a875d1fc6a0a` |
+| `actions/upload-pages-artifact` | v5.0.0 | `fc324d3547104276b827a68afc52ff2a11cc49c9` |
+| `actions/deploy-pages` | v5.0.1 | `368f82528645a54fb793d4d04e342629a3f51346` |
+| `prefix-dev/setup-pixi` | v0.10.2 | `d3f436a425481402e6a95a1d1fc10331c708cd9e` |
+| `Swatinem/rust-cache` | v2.9.2 (annotated `63fed3e2…`) | `6323deb102c322ba6fcbdcafc7e3dddab59af2b6` |
+| `actions/cache` | v6.1.0 | `55cc8345863c7cc4c66a329aec7e433d2d1c52a9` |
+| `actions/setup-python` (new) | v7.1.0, `releases/latest` | `6d4fd22b20465ccc0f7354476588e8df7c9ca0e0` |
+| `actions/download-artifact` (new) | v8.0.2, `releases/latest` | `9000827ccba6bdab643e8b6fd33ac0654aef8333` |
+
+P's seven are unchanged and none is withdrawn. Every tag but rust-cache's is
+lightweight; rust-cache's was dereferenced through `git/tags/63fed3e2…`.
+download-artifact v8 errors on a digest mismatch by default and no longer unzips a
+non-zip download; the `wheel-linux` artefact is an ordinary zipped upload from
+upload-artifact v7, and the PR run is the proof that the two interoperate.
+
+### Verification (step 10)
+
+`just lint` at `5b76af6` with the step 8 changes staged: exit 0, with `Lint GitHub
+Actions workflow files....Passed`. The two new workflow files were untracked at first,
+so `prek --all-files` could not see them; they were staged and actionlint rerun.
+Positive control: `needs.nonexistent.result` added to `pages.yml`'s `deploy` `if:` made
+actionlint exit 1 (`property "nonexistent" is not defined in object type {build: ...}
+[expression]`); with the file restored it passed. `just check` at `5b76af6` with the
+changes staged (06:26Z), and again after the review fix (10:00Z): `All checks passed
+and the worktree is unchanged.`, exit 0.
+
+`git fetch origin` then showed `origin/main` at `a2dd325` (T02, T03 and T05 merged;
+none touches `.github/` or this ticket). The workflow commit was rebased onto it as
+`463076e`. `main`'s own `check` on `a2dd325` reads `["check","success",15368]`.
+
+At `463076e`, clean, 2026-10-24T10:00:56Z to 10:01:19Z:
+
+```text
+$ just check
+All checks passed and the worktree is unchanged.                          exit 0
+$ git status --short
+(nothing)
+$ gh api orgs/BiscuitBin --jq '{plan: .plan.name, members_can_create_pages}'
+{"members_can_create_pages":true,"plan":"free"}                           exit 0
+$ gh api repos/BiscuitBin/alliumpy --jq '{visibility, private, permissions}'   (admin shown)
+{"admin":true,"private":false,"visibility":"public"}                      exit 0
+$ gh api repos/BiscuitBin/alliumpy/branches/main/protection   (fields shown)
+{"checks":[{"app_id":15368,"context":"check"}],"enforce_admins":false,"lock_branch":false,"strict":false}  exit 0
+$ gh api .../protection/required_status_checks --jq '[.checks[] | {context, app_id}]'
+[{"app_id":15368,"context":"check"}]                                      exit 0
+$ diff ai_tmp/protection-before.json ai_tmp/protection-after.json
+(no before file: the before state was the 404 Branch not protected)       exit 2
+$ gh api repos/BiscuitBin/alliumpy/pages   (fields shown)
+{"build_type":"workflow","html_url":"https://biscuitbin.github.io/alliumpy/"}  exit 0
+$ gh repo view BiscuitBin/alliumpy --json deleteBranchOnMerge,...,hasProjectsEnabled
+{"deleteBranchOnMerge":true,"hasProjectsEnabled":false,"hasWikiEnabled":false,
+ "mergeCommitAllowed":true,"rebaseMergeAllowed":true,"squashMergeAllowed":true}  exit 0
+$ sh ai_tmp/bootstrap_repo.sh BiscuitBin/alliumpy --checks check --hygiene --no-pages
+changed: 0 (dry run; 0 would change)                                      exit 0
+$ rg -n 'uses: ' .github > ai_tmp/uses.txt; echo "exit $?"; wc -l < ai_tmp/uses.txt
+exit 0, 25
+$ rg -v 'uses: \./' ai_tmp/uses.txt | rg -v '@[0-9a-f]{40} # v[0-9]+\.[0-9]+\.[0-9]+$'
+(nothing)                                                                 exit 1
+$ rg -c '^\s*- run: just check-clean\s*$' .github/workflows/ci.yml
+5
+$ awk ... .github/workflows/ci.yml   (on: keys ignored)
+rust:       - run: just check-clean
+python:       - run: just check-clean
+wheel-smoke-py311:       - run: |
+coverage:       - run: just check-clean
+deny:       - run: just check-clean
+documents:       - run: just check-clean
+check:       - if: ${{ contains(needs.*.result, 'failure') || ... }}
+```
+
+### Pull request (steps 11 and 12)
+
+Pending: the push waits on its own authorisation, and the run's evidence lands as a
+follow-up commit to this file on this branch.
+
+### Pages after the merge (step 13)
+
+Pending: step 13 runs after the maintainer merges, and its evidence lands as a
+notes-only follow-up pull request under its own authorisation.
+
+### Review records (CONVENTIONS.md §14)
+
+For both checkpoints the harness was codex-cli 0.163.0, running `codex exec -m
+gpt-6-astra -s read-only`. One conformance reviewer and one breakage reviewer ran in
+parallel, then a separate Claude Code subagent (Opus 5.5) triaged. Raw files are under
+`ai_tmp/review/T01-<n>/`.
+
+**Checkpoint 1, the dry run, before the step 4 apply request.** The live state was read
+at 05:55Z and the worktree was at `5b76af6`. No file was involved.
+
+| id | Verdict | Reason |
+| --- | --- | --- |
+| c1 | valid, low | The 05:55:21Z protection line was a `noclobber` failure printing stale stderr. Action: the 05:55:31Z 404 is quoted as the before state (above). |
+| c2 | valid, low | The artefact lacked its commit heading. Action: the evidence is headed `5b76af6`, and the script copy is stated identical to T `2283589`. |
+| b1 | valid, medium | The PUT names no `app_id` and the "already" compare reads names only. Action: step 7 asserted `[{"app_id":15368,"context":"check"}]`. |
+| b2 | valid, low | The compare and the PUT omit `lock_branch` and the other lockout fields. Action: step 7 asserted each of them false. |
+| b3 | valid, low | Any 404 from vulnerability reporting reads as "private". Action: step 7 required `enabled: true`. |
+
+All five changed the authorisation request and the read-back, not a file. None was
+high, so there was no second round.
+
+**Checkpoint 2, the workflows, before step 11.** The changes were staged on
+`5b76af6`. The first launch hung on stdin and produced nothing; it was killed and rerun
+at about 09:56Z.
+
+| id | Verdict | Reason |
+| --- | --- | --- |
+| c1 | valid, medium; applied | `visibility` is required on `push` but not on `workflow_dispatch`, so a public repository's manual deploy could be skipped. Action: `deploy`'s `if:` now reads `private == false`, the ticket's named equivalent, with the comment rewritten. |
+| (breakage) | no findings | All nine pins match their tags' commits, rust-cache's annotated tag dereferenced. No delta from P beyond step 8. `check.needs` is complete. No wheel substitution and no checkout import. Permissions equal P's. `check-clean` is last in all five recipe jobs. |
+
+The triage subagent applied c1 and reran `just lint`, which exited 0. Nothing was
+high, so there was no second round. Afterwards `just check` was rerun at `5b76af6`
+(staged) and at `463076e`, as above.
+
+### Handed back
+
+- To T07 and T11: the repository is public and the Pages URL is
+  `https://biscuitbin.github.io/alliumpy/` (`build_type: workflow`), for T07's
+  `deploy-to-github-pages.md` and decision 0008.
+- To T11: claim 11's private-repository deploy skip was not exercised, because the
+  repository became public before `pages.yml` landed.
+- Actions minutes: the repository is public, so standard runners are not metered
+  (§13's concern applied to the private repository); the first full run's duration is
+  recorded with the pull request as a baseline.
 
 ## Open points
 
@@ -395,3 +692,22 @@ quotes; the `pages.yml` result after the merge; the review record for each check
   becomes a problem before T14's release matrix lands, the maintainer decides between a
   paid plan and a public repository, and this ticket's hand-back notes record the
   minutes the first full run consumed as the baseline.
+- The final code review (`/code-review` at medium effort over `origin/main...HEAD`, at
+  `da101b6`) found no correctness defect in the deltas. It raised seven points that lie
+  in P's design, which step 8 carries "and nothing else", so they are recorded here for
+  T11 and the maintainer instead of being changed:
+  - `audit.yml` runs the full setup action (tool installs, hook clones, lychee) when
+    `just audit` needs only cargo-deny and the lockfile, so unrelated fetches can fail
+    it.
+  - `check-toolchain` runs only in `rust`; `python` and `coverage` build on their own
+    runners without that proof.
+  - The setup action's "After this step no step reaches the network" holds for the gate
+    recipes but not for `audit`'s RustSec fetch.
+  - `py-test` and `py-stubtest` each run `py-develop`, so the `python` job runs
+    `maturin develop` twice before the release build.
+  - `snapshots-check` depends on `lock-check`, so `rust` runs it twice, and the nextest
+    suite runs in both `rust` and `coverage`.
+  - Seven rust-cache keys, three of them for jobs that compile nothing, share the
+    repository's 10 GB cache.
+  - Neither `upload-artifact` step sets `overwrite: true`, so a "re-run failed jobs" may
+    conflict with the first attempt's artefact (unverified).
