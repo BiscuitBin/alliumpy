@@ -1,7 +1,7 @@
 ---
 id: T07
 title: "Handbook: every page, and decision records 0001 to 0013"
-status: open
+status: done
 depends_on: [T00]
 parallel_with: [T01, T02, T03, T05, S01]
 branch: ticket/t07-handbook
@@ -348,17 +348,215 @@ and exit 1; the third `ls` must list the one file (its positive control), and th
 
 ## Hand-back notes
 
-To be written by the executing agent: the baseline; the tutorial transcript; the API
-lines of step 4 and their output; each sentence kept from L that needed a fact checked and
-how it was checked; every sentence written to the design that another lane's outcome
-could change (S01's route, T01's `pages.yml`, visibility ruling and Pages URL, T02's lint
-tables, T03's configuration and `_alliumpy.pyi`, T05's skills), for T11; for each carried
-record, what was removed and why; the review record for each checkpoint (`CONVENTIONS.md`
-§14); and anything handed back.
+### Part 1 evidence
+
+Baseline: commit `5b76af6` (untouched), `PATH="$HOME/.cargo/bin:$PATH" just check`,
+exit 0, last line `All checks passed and the worktree is unchanged.` The initial shell
+resolved pixi's global cargo; putting rustup first fixed that environment issue. The
+sandbox initially denied prek's existing cache; the same check passed with approved
+cache access. No gate was weakened.
+
+Tutorial: detached worktree created with `git worktree add --detach ai_tmp/tutorial HEAD`
+at `5b76af6`; `just initialize` exited 0 and printed `Secondary worktree: skipping
+install-hooks.` Commands below used rustup first on PATH. All edits were confined to
+the scratch worktree, and logs remain ignored under `ai_tmp/`.
+
+| Command and state | Observed output | Exit |
+| --- | --- | --- |
+| `just check`, untouched scratch | `All checks passed and the worktree is unchanged.` | 0 |
+| `just test`, new core assertion only | `error[E0609]: no field end_col on type Diagnostic` | 101 |
+| `just test`, core field and span-end conversion | 7 core tests passed, 1 doctest passed | 0 |
+| `just py-test`, new Python assertion only | `AttributeError: ... Diagnostic ... has no attribute 'end_col'` | 1 |
+| `just py-test`, getter and repr updated | 6 passed | 0 |
+| `just py-stubtest`, runtime ahead of stub | `Diagnostic.end_col is not present in stub` | 1 |
+| `just py-stubtest`, documented property added | `Success: no issues found in 1 module` | 0 |
+| `just check`, initial final run | Ruff PLR2004 on literal expected column | 1 |
+| `just check`, expected column named as in final tutorial | `All checks passed and the worktree is unchanged.` | 0 |
+
+The existing binding stores the core diagnostic rather than copying fields through a
+From impl; the tutorial explains that actual shape and what a later From impl requires.
+The expected exclusive end column 2 was verified against the pinned parser by the test.
+The full tutorial gate measured 100% core lines. The worktree was removed with
+`git worktree remove --force --force ai_tmp/tutorial` (exit 0); the second force was
+needed for Supacode's automatic lock. No experimental field remains in deliverables.
+
+API proof at `5b76af6` with uncommitted documentation: `just py-develop`, exit 0, then:
+
+```sh
+.pixi/envs/default/bin/python -I -c 'import alliumpy
+diagnostics = alliumpy.parse("-- allium: 1\n?\n")
+first = diagnostics[0]
+print(first.line, first.col, first.severity)
+print(alliumpy.ALLIUM_VERSION)'
+```
+
+Output (exit 0):
+
+```text
+2 1 error
+3.6.1
+```
+
+The rendered example adds the formatter-required blank line after the import; there
+are five executable statements. Part-1 check-docs exited 0. An early full gate caught
+that blank line; another run correctly detected an edit made while checking. Both were
+rerun against a stable tree. Final part-1 gate: `just check` at `5b76af6` with the reviewed documentation
+uncommitted, exit 0, last line `All checks passed and the worktree is unchanged.`
+Committed as `3eebe73`.
+
+Part-1 review: fresh-context Codex subagents, `gpt-6-astra`, separate conformance and
+breakage lenses. C1/B2 (Python described as exact) valid: Python uses a patch range;
+C2 (old decision label) valid: label now 0004; B1 (offline check detects moved remote tag)
+valid: local consistency cannot observe remote changes. A separate `gpt-6-astra` triage
+agent checked pinned L source and local recipes and applied these three fixes sequentially.
+No high findings, no second round needed. Raw findings/verdicts are under
+`ai_tmp/review/T07-1/`, outside deliverables.
+
+### Part 2 reconciliation inventory
+
+T11 must compare these design-dependent statements with the merged wave-1 evidence:
+
+| Lane | Pages and statements | Evidence to compare |
+| --- | --- | --- |
+| T01 | `reference/quality-gates.md` CI job names, aggregate failure rules, Python 3.11 smoke and Pages conditions; `reference/configuration.md` workflow inventory; `explanation/packaging.md` CI ABI-floor proof | Merged setup action, workflows and successful CI/conditional deployment runs. |
+| T02 | `explanation/architecture.md` diagnostic wrapper representation; `reference/configuration.md` lint-table and pyo3 exception statements; `reference/testing.md` Rust test coverage | Core/bindings source, both lint tables and T02's coverage and macro-lint evidence. |
+| T03 | `reference/api.md` native properties, repr, exceptions and exports; `reference/testing.md` Python cases and allowlist; `reference/configuration.md` ruff and mypy descriptions; `reference/quality-gates.md` Python controls | Merged canonical stub, native implementation, tests, allowlist, ruff/mypy settings and deliberate-failure evidence. |
+| T05 | `reference/agent-contract.md` seven skill triggers and replacement of procedure stubs | Merged `AGENTS.md`, canonical skill bodies and agent-validation output. |
+| S01 | `explanation/architecture.md` open command route and prospective core CLI location; `explanation/packaging.md` pending sdist ruling | S01's route/parity evidence and drafted decision 0014; keep T13 implementation and T14 publication distinct from the decision. |
+
+These page paths are relative to `docs/`. The existing part-1 tutorial also depends on
+T02's wrapper representation and T03's API/tests; reconcile it alongside these pages.
+
+Part-2 independent triage validated all four review findings against the ticket,
+conventions and local implementations. C1 (missing reconciliation inventory) is valid:
+the table above supplies it. C2 (missing planned configuration files) is valid:
+configuration now lists T14/T15/T17 paths, retaining the conditional mutant file.
+B-01 (toolchain proof overstated) is valid: quality-gates now describes the path check
+and printed selection, with override guidance. B-02 (member-version proof overstated)
+is valid: packaging and quality-gates now identify the root workspace comparison and
+the script's assumption of member inheritance. Fixes were applied sequentially; none
+was high severity. Raw verdicts are in `ai_tmp/review/T07-2/verdicts.md`.
+
+Triage evidence at `3eebe73` plus uncommitted part-2 documentation:
+`PATH="$HOME/.cargo/bin:$PATH" RUSTUP_TOOLCHAIN=1.98.1 RUSTUP_AUTO_INSTALL=0 just check-toolchain`
+exited 0 and printed `1.98.1-aarch64-apple-darwin (overridden by environment variable RUSTUP_TOOLCHAIN)`
+against the 1.99.1 repository pin. Source inspection of `scripts/version_check.py`
+confirmed that it reads no member manifest; both members currently inherit the version.
+A Python filesystem assertion confirmed all five planned configuration paths absent
+(exit 0). `git diff --check` exited 0. Part-2 reviewers were fresh-context Codex `gpt-6-astra` subagents with separate
+conformance and breakage lenses; a third `gpt-6-astra` agent performed triage.
+The pre-review full gate and check-docs exited 0. Recipe and gate verification found
+43 recipes and 22 gates in order, exit 0. The post-fix full gate result follows in
+the next part's evidence.
+
+Part-2 post-fix verification at `3eebe73` with uncommitted reviewed documentation:
+`just check-docs` and `just check` both exit 0; the full gate ends
+`All checks passed and the worktree is unchanged.` Committed as `f8a44bb`.
+`git fetch origin` exited 0; `origin/main` remains `5b76af6`, the branch ancestor.
+The existing T11 inventory also applies to decision 0008's T01 Pages design,
+0005/0007's T02 lint/metrics rules, 0001's S01 route and 0012's T14 matrix.
+
+### Part 3 and acceptance evidence
+
+At `f8a44bb` with the decision records uncommitted, `just check-docs` exited 0
+(`Validated 39 pages and 40 canonical topics.`); `just check` exited 0, ending
+`All checks passed and the worktree is unchanged.` No production code changed.
+
+The structural verification commands ran with explicit exit assertions and positive
+controls (`ai_tmp/acceptance.log`, ignored). `just --list` and `just --summary` exited 0;
+the summary contained 43 recipes and the missing-recipe loop printed nothing. The gate
+loop printed these twenty-two names with increasing line numbers (exit 0):
+
+```text
+check-toolchain lock-check lint fmt-check toml-check clippy metrics features
+test-doc coverage doc deny deps-unused py-lint py-typecheck py-test py-stubtest
+wheel-smoke version-check check-docs check-agents snapshots-check
+```
+
+The carried-record search printed seven nonzero counts, each 1 (exit 0), for records
+0002 through 0008. The project/tutorial/how-to negative search printed nothing (exit 1).
+The explanation/reference/operations search printed only agent-contract's required phrase
+list (exit 0). The decision negative search printed nothing (exit 1). The URL search
+printed exactly these paths (exit 0):
+
+```text
+docs/reference/api.md
+docs/how-to/deploy-to-github-pages.md
+docs/how-to/install-and-run.md
+```
+
+The carried-file listing printed seven paths (exit 0); its missing-chain search printed
+nothing (exit 1). The new-file listing printed six paths (exit 0); its carried-chain
+search printed nothing (exit 1). The record-0014 listing printed its one path (exit 0);
+`git diff --exit-code origin/main -- docs/decisions/0014-cli-strategy.md` printed nothing
+(exit 0), against the fetched `origin/main` at `5b76af6`. `git diff --check` exited 0.
+The verification wrapper ended `All T07 structural acceptance checks passed.` (exit 0).
+
+Part-3 review used fresh-context Codex `gpt-6-astra` subagents for conformance and
+breakage, and a separate `gpt-6-astra` triage agent. B3-01 (feature powerset scope)
+valid: decision 0005 now includes both crates. B3-02 (dependency inheritance scope)
+valid: decision 0004 distinguishes third-party inheritance from the local core path.
+B3-03/C3-01 (wheel consumers resolve Cargo dependencies) valid duplicate: decision 0004
+now says wheels ship the locked build; alternative resolution is a future Cargo-consumer
+risk. All fixes landed sequentially, none was high, and no second round was needed.
+Raw review and verdict files remain ignored under `ai_tmp/review/T07-3/`.
+
+All 23 pages and the 14 assigned decision files are complete. There were no manifest
+metadata mismatches. Terminology deliberately omits moving upstream diagnostic-code
+lists. Record 0014, the manifest and the documentation map remain unchanged.
+
+Post-review verification at `f8a44bb` with reviewed records and hand-back notes
+uncommitted: structural acceptance exit 0; `just check-docs` exit 0 with
+`Validated 39 pages and 40 canonical topics.`; `just check` exit 0, last line
+`All checks passed and the worktree is unchanged.` An initial notes-only MD012 blank-line
+failure was corrected before this successful rerun. The final committed tree is checked
+again before hand-back. A later explicit request authorizes pushing the branch and
+opening a visual pull request.
 
 ## Open points
 
-- If a page's manifest title or audience proves wrong while writing it, hand the change
-  back as a T00 follow-up on `main` rather than editing `docs/manifest.yml` here.
-- Whether `terminology.md` should name upstream's diagnostic codes. Recommend not: they
-  are upstream's and move between releases; the page points at upstream's documentation.
+- Hand back B-01/B-02 enforcement gaps as frozen-file follow-ups under §11: a `main`
+  change to `Justfile` could compare the selected toolchain with the repository pin;
+  a change to `scripts/version_check.py` could validate member version inheritance or
+  resolved member versions. Neither frozen file was edited by T07.
+- T11 must reconcile the wave-1 design-dependent statements in the table above with
+  the merged lane evidence; the pending CLI and sdist decisions remain owned by S01.
+
+## Pull request preparation after wave-1 merges
+
+Rebased the three handbook commits onto `origin/main` at `8cb8706` (the merged T02
+and T03 gates), producing head `ca295ac`. Reconciled the tutorial's repr-test name
+and expected fixture column with T03, and replaced the obsolete pickle-test claim
+with the current Python cases and comment-only stubtest allowlist. No runtime code
+or gate configuration changed.
+
+At `ca295ac` with these documentation corrections uncommitted, structural acceptance
+exited 0 (`All T07 structural acceptance checks passed.`), and `just check` exited 0
+(`All checks passed and the worktree is unchanged.`). The gate ran six Rust tests,
+one doctest and 17 Python tests; core coverage was 100 percent. stubtest, installed
+wheel smoke and documentation validation passed. Ignored transcripts are
+`ai_tmp/pr-acceptance.log` and `ai_tmp/pr-check.log`. The corrected committed tree
+is checked again before pushing; the PR description records that exact tested commit.
+Historical tutorial replay and review evidence above remains tied to its original
+baseline rather than being relabelled as a replay on the merged lanes.
+
+## PR review correction and tutorial replay
+
+Reviewed PR #6's finding on the tutorial's expected repr at head `fc48a56`. Valid:
+following the instruction literally creates a 109-character test line, and the pinned
+Ruff reports E501 against its 100-character limit. The tutorial now gives the complete
+assertion using adjacent strings, preserving the expected value and fixture column.
+The proposed test edit passes both Ruff lint and format checks without suppression.
+
+Replayed the corrected tutorial in a disposable secondary worktree at `fc48a56`,
+with only the corrected tutorial copied in before setup. `just initialize` exited 0
+and skipped shared hooks; baseline `just check` exited 0. Expected red stages were
+core E0609 (exit 101), Python AttributeError (exit 1), and missing `end_col` in the
+stub (exit 1). Each corresponding green stage exited 0. The exercise's final
+`just check` exited 0 with seven Rust tests, one doctest, 18 Python tests, 100 percent
+core coverage, passing stubtest and installed-wheel smoke, ending
+`All checks passed and the worktree is unchanged.` Ignored transcripts are
+`ai_tmp/review-replay-{initialize,baseline,core-red,core-green,python-red,python-green,stub-red,stub-green,final}.log`.
+Only the tutorial and these notes ship; the exercise's `end_col` implementation stays
+in the disposable worktree. The final documentation commit is checked separately
+before pushing, and its exact hash is recorded in the PR description.

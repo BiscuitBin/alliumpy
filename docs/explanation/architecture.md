@@ -8,9 +8,61 @@ requires: []
 
 # Architecture
 
-This is a T00 stub; T07 replaces it.
+This workspace packages upstream behaviour through an interpreter-independent core and
+a thin Python boundary. The parser remains upstream's; conversion and distribution are
+this repository's responsibility. [Decision 0001](../decisions/0001-one-wheel-two-crates.md)
+records why the tested core and the binding are separate crates.
 
-This document will describe Architecture for the two-crate workspace and its Python
-wheel. It is rewritten from P's `explanation/architecture.md` at `bf51e0d`. The owning lane will supply the operational details,
-examples, rationale and verification evidence when its ticket is implemented.
-Until then this text records the intended scope and ownership of the document.
+## Workspace
+
+The root `Cargo.toml` is a virtual manifest: it names the members, the package fields
+every crate inherits, the dependency table every crate draws from, and the
+`[workspace.lints]` table. `Cargo.lock` beside it is the pin.
+
+| Layer | Responsibility |
+| --- | --- |
+| `allium-parser` | Upstream parser at an exact dependency pin; see [decision 0011](../decisions/0011-exact-pin-on-allium-parser.md). |
+| `crates/alliumpy-core` | Converts upstream byte spans through `SourceMap` into one-based locations, preserves diagnostics, and exposes version constants. Rust unit tests, doctests and the coverage floor live here. |
+| `crates/alliumpy` | Thin pyo3 cdylib with its own lint table, native functions and frozen classes. Python tests exercise the built module. |
+| `crates/alliumpy/python/alliumpy` | Public imports, canonical native stub, package metadata version, and the `allium` console shim. |
+
+## What goes where
+
+Anything that can be unit-tested without an interpreter lives in the core. The bindings
+crate holds only `#[pymodule]`, `#[pyclass]`, `#[pyfunction]` and conversions into pyo3
+types. The current diagnostic pyclass stores a core diagnostic and exposes getters.
+Its wrapper is separate from the non-exhaustive core type: adding a core field does not
+make it a Python attribute. The tutorial demonstrates each boundary independently.
+
+The core depends on upstream and the binding depends on the core;
+[Layering](layering.md) owns the direction. [Python packaging](packaging.md) owns the
+wheel argument, manifests, versions, ABI coverage and licences.
+
+## What crosses each boundary
+
+The Python API returns converted diagnostic values in upstream order. Errors reaching
+Python use stable Rust `Display` text as the message of `AlliumError`, a `ValueError`
+subclass. There is no fallible parse path yet. Public core values are
+`Send + Sync + 'static`, `Clone` and `Debug`; public structs and enums are
+`#[non_exhaustive]`. Python diagnostics are frozen, comparable and hashable.
+
+## The command route remains open
+
+The console shim answers `-V` and `--version` only. S01 compares vendoring upstream's
+CLI modules into the core, bundling a crates.io-built binary behind an exec shim, and
+an upstream pull request exposing `run(args)`. [Record 0014](../decisions/0014-cli-strategy.md)
+remains open until that evidence selects a route. Vendored code, if selected, belongs
+in `crates/alliumpy-core/src/cli/` under the core's quality requirements.
+
+T13 adds the remaining command behaviour and byte-for-byte CLI parity.
+T14 adds the release process and first PyPI publication.
+T15 adds mutation testing, benchmarks and fuzzing; [Testing](../reference/testing.md)
+will carry their evidence.
+T17 adds Renovate and the upstream-bump runbook; [Maintenance](../operations/maintenance.md)
+will carry that routine. None of these future deliverables is present here yet.
+
+## Related pages
+
+- [Repository map](../project/repository-map.md)
+- [Security model](security-model.md)
+- [API reference](../reference/api.md)

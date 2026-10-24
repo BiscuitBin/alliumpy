@@ -8,9 +8,33 @@ requires: []
 
 # Purpose and scope
 
-This is a T00 stub; T07 replaces it.
+`alliumpy` packages the upstream Allium parser for Python code and provides the
+`allium` command for uv users. The repository is Apache-2.0; upstream's MIT text ships
+beside it. The [architecture](../explanation/architecture.md) describes the two crates;
+[Python packaging](../explanation/packaging.md) explains the one wheel they build.
 
-This document will describe Purpose and scope for the two-crate workspace and its Python
-wheel. It is rewritten from P's `project/purpose-and-scope.md` at `bf51e0d`. The owning lane will supply the operational details,
-examples, rationale and verification evidence when its ticket is implemented.
-Until then this text records the intended scope and ownership of the document.
+## What it does
+
+Python callers can parse source into immutable diagnostics. The conversion preserves
+upstream messages, severities and order, translating byte spans into one-based source
+locations. The console script currently answers `-V` and `--version` only; T13 adds the
+upstream command behaviour. T14 publishes the first wheel to PyPI.
+
+## What it deliberately does not do
+
+This repository does not define the Allium language, reinterpret parser results or
+maintain a competing parser. Upstream decides behaviour; a difference is a defect here
+unless a decision record says otherwise. The handbook documents packaging and engineering,
+rather than teaching the language. A source distribution ruling remains with S01.
+
+## Who it is for
+
+Python applications consume the bindings; uv users consume the console script.
+Contributors maintain the conversion and packaging boundary and test it against upstream.
+Neither consumer needs to choose a separate parser version.
+
+## Related pages
+
+- [Install and run](../how-to/install-and-run.md)
+- [Repository map](repository-map.md)
+- [Terminology](terminology.md)
