@@ -8,9 +8,85 @@ requires: []
 
 # Documentation contract
 
-This is a T00 stub; T07 replaces it.
+Enforced by `bg-validate-docs`, a console script of the `biscuit-games-tooling` package,
+run by `just check-docs` and by a pre-commit hook. It reports every violation at once
+rather than stopping at the first.
 
-This document will describe Documentation contract for the two-crate workspace and its Python
-wheel. It is rewritten from P's `reference/documentation-contract.md` at `bf51e0d`. The owning lane will supply the operational details,
-examples, rationale and verification evidence when its ticket is implemented.
-Until then this text records the intended scope and ownership of the document.
+The contract exists so documentation cannot quietly rot: every page is registered once,
+owns its topics, repeats its metadata in frontmatter, and is reachable from the index.
+
+## The manifest
+
+`docs/manifest.yml` is the index, and it is parsed as strict JSON despite the extension —
+JSON is a subset of YAML. No trailing commas, no comments.
+
+```json
+{"path": "reference/commands.md", "title": "Commands", "kind": "reference",
+ "audience": ["contributor", "maintainer", "operator", "agent"],
+ "canonical_for": ["command_reference"], "requires": []}
+```
+
+Every entry carries exactly those six keys — extra keys fail as loudly as missing ones.
+
+## Frontmatter
+
+Every page carries exactly five keys, and each must equal the manifest entry.
+
+```markdown
+---
+title: "Commands"
+kind: "reference"
+audience: [contributor, maintainer, operator, agent]
+canonical_for: [command_reference]
+requires: []
+---
+```
+
+Two things catch people out. Lists must be inline (`[a, b]`), because the parser is
+hand-rolled and does not accept block sequences. And the comparison is **order-sensitive**
+— `[maintainer, contributor]` against a manifest saying `["contributor", "maintainer"]`
+fails.
+
+## The rules
+
+| Field | Constraint |
+| --- | --- |
+| `kind` | One of `project`, `tutorial`, `how-to`, `explanation`, `reference`, `operations`, `decision`. |
+| `audience` | Non-empty subset of `user`, `contributor`, `maintainer`, `operator`, `agent`. |
+| `canonical_for` | At least one topic, and every topic is owned by exactly one page across the whole tree. |
+| `requires` | Feature predicates. This project defines none, so every page carries `[]`. |
+
+Beyond the fields:
+
+- The body's **first heading is level one and its text equals the `title`** exactly.
+- The body has at least **forty words**.
+- No unresolved template delimiters, no unfinished markers, no placeholder prose.
+- Every relative link resolves, with **exact case** — which is what catches mistakes on a
+  case-insensitive filesystem — and any `#fragment` matches a real heading anchor.
+- Every page is **reachable from `docs/README.md`** by following links. Adding a page
+  without linking it in fails, even when everything else is correct.
+- Nothing under `docs/` may exist unregistered, and nothing registered may be absent.
+
+Only `docs/**/*.md` is in scope.
+
+## Links that leave the repository
+
+Three pages point outward: [API reference](api.md),
+[Deploy to GitHub Pages](../how-to/deploy-to-github-pages.md), and
+[Install and run](../how-to/install-and-run.md). Every such link is to a whole page,
+never to a heading: nothing checks fragments across that boundary.
+The validator and offline link checker skip HTTPS targets, so nothing in `just check`
+resolves them. `just check-links-online` does, by hand and monthly.
+
+## Outside the contract
+
+`README.md`, `SECURITY.md`, `CHANGELOG.md`, `AGENTS.md` and `CLAUDE.md` at the repository
+root carry no frontmatter and are not in the manifest. They are still checked by
+markdownlint, `typos` and the link checker. `AGENTS.md` has its own validator; see
+[Agent contract](agent-contract.md).
+
+## Related pages
+
+- [Agent contract](agent-contract.md)
+- [Quality gates](quality-gates.md)
+- [Documentation map](../README.md)

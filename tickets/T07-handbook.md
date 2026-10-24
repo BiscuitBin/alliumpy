@@ -400,7 +400,9 @@ Output (exit 0):
 The rendered example adds the formatter-required blank line after the import; there
 are five executable statements. Part-1 check-docs exited 0. An early full gate caught
 that blank line; another run correctly detected an edit made while checking. Both were
-rerun against a stable tree. Final part-1 gate evidence is recorded with its commit below.
+rerun against a stable tree. Final part-1 gate: `just check` at `5b76af6` with the reviewed documentation
+uncommitted, exit 0, last line `All checks passed and the worktree is unchanged.`
+Committed as `3eebe73`.
 
 Part-1 review: fresh-context Codex subagents, `gpt-6-astra`, separate conformance and
 breakage lenses. C1/B2 (Python described as exact) valid: Python uses a patch range;
@@ -410,8 +412,49 @@ agent checked pinned L source and local recipes and applied these three fixes se
 No high findings, no second round needed. Raw findings/verdicts are under
 `ai_tmp/review/T07-1/`, outside deliverables.
 
+### Part 2 reconciliation inventory
+
+T11 must compare these design-dependent statements with the merged wave-1 evidence:
+
+| Lane | Pages and statements | Evidence to compare |
+| --- | --- | --- |
+| T01 | `reference/quality-gates.md` CI job names, aggregate failure rules, Python 3.11 smoke and Pages conditions; `reference/configuration.md` workflow inventory; `explanation/packaging.md` CI ABI-floor proof | Merged setup action, workflows and successful CI/conditional deployment runs. |
+| T02 | `explanation/architecture.md` diagnostic wrapper representation; `reference/configuration.md` lint-table and pyo3 exception statements; `reference/testing.md` Rust test coverage | Core/bindings source, both lint tables and T02's coverage and macro-lint evidence. |
+| T03 | `reference/api.md` native properties, repr, exceptions and exports; `reference/testing.md` Python cases and allowlist; `reference/configuration.md` ruff and mypy descriptions; `reference/quality-gates.md` Python controls | Merged canonical stub, native implementation, tests, allowlist, ruff/mypy settings and deliberate-failure evidence. |
+| T05 | `reference/agent-contract.md` seven skill triggers and replacement of procedure stubs | Merged `AGENTS.md`, canonical skill bodies and agent-validation output. |
+| S01 | `explanation/architecture.md` open command route and prospective core CLI location; `explanation/packaging.md` pending sdist ruling | S01's route/parity evidence and drafted decision 0014; keep T13 implementation and T14 publication distinct from the decision. |
+
+These page paths are relative to `docs/`. The existing part-1 tutorial also depends on
+T02's wrapper representation and T03's API/tests; reconcile it alongside these pages.
+
+Part-2 independent triage validated all four review findings against the ticket,
+conventions and local implementations. C1 (missing reconciliation inventory) is valid:
+the table above supplies it. C2 (missing planned configuration files) is valid:
+configuration now lists T14/T15/T17 paths, retaining the conditional mutant file.
+B-01 (toolchain proof overstated) is valid: quality-gates now describes the path check
+and printed selection, with override guidance. B-02 (member-version proof overstated)
+is valid: packaging and quality-gates now identify the root workspace comparison and
+the script's assumption of member inheritance. Fixes were applied sequentially; none
+was high severity. Raw verdicts are in `ai_tmp/review/T07-2/verdicts.md`.
+
+Triage evidence at `3eebe73` plus uncommitted part-2 documentation:
+`PATH="$HOME/.cargo/bin:$PATH" RUSTUP_TOOLCHAIN=1.98.1 RUSTUP_AUTO_INSTALL=0 just check-toolchain`
+exited 0 and printed `1.98.1-aarch64-apple-darwin (overridden by environment variable RUSTUP_TOOLCHAIN)`
+against the 1.99.1 repository pin. Source inspection of `scripts/version_check.py`
+confirmed that it reads no member manifest; both members currently inherit the version.
+A Python filesystem assertion confirmed all five planned configuration paths absent
+(exit 0). `git diff --check` exited 0. Part-2 reviewers were fresh-context Codex `gpt-6-astra` subagents with separate
+conformance and breakage lenses; a third `gpt-6-astra` agent performed triage.
+The pre-review full gate and check-docs exited 0. Recipe and gate verification found
+43 recipes and 22 gates in order, exit 0. The post-fix full gate result follows in
+the next part's evidence.
+
 ## Open points
 
+- Hand back B-01/B-02 enforcement gaps as frozen-file follow-ups under §11: a `main`
+  change to `Justfile` could compare the selected toolchain with the repository pin;
+  a change to `scripts/version_check.py` could validate member version inheritance or
+  resolved member versions. Neither frozen file was edited by T07.
 - If a page's manifest title or audience proves wrong while writing it, hand the change
   back as a T00 follow-up on `main` rather than editing `docs/manifest.yml` here.
 - Whether `terminology.md` should name upstream's diagnostic codes. Recommend not: they
