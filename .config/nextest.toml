@@ -1,11 +1,15 @@
+# Keep profile semantics tied to the runner pinned by pixi.
 nextest-version = "0.9.146"
 
 [profile.default]
+# Local feedback stops at the first failure.
 fail-fast = true
 
 [profile.ci]
+# CI collects every failure in one run; retries must not hide flaky tests.
 fail-fast = false
 retries = 0
 
 [profile.ci.junit]
+# Relative to nextest's profile output directory for CI artifact collection.
 path = "junit.xml"

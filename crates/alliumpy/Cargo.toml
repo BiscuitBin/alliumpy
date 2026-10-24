@@ -1,3 +1,4 @@
+# Local descriptive metadata complements the shared workspace packaging fields.
 [package]
 name = "alliumpy"
 version.workspace = true
@@ -13,12 +14,19 @@ homepage.workspace = true
 authors.workspace = true
 publish.workspace = true
 
+# Cargo cannot combine workspace lint inheritance with member overrides. Keep this
+# copy equal to workspace.lints unless a proven pyo3 macro diagnostic needs an exception.
+# T02 found none on Rust 1.99.1 / pyo3 0.30.1, including missing_docs at warn.
 [lints.rust]
+# Forbid unsafe code even in the bindings; pyo3 emits its own trusted macro internals.
 unsafe_code = "forbid"
+# Keep identifiers portable and avoid visually confusable names.
 non_ascii_idents = "forbid"
+# Public Rust API needs docs and Debug; idiom checks keep edition transitions clean.
 missing_docs = "warn"
 missing_debug_implementations = "warn"
 rust_2018_idioms = { level = "warn", priority = -1 }
+# Expose only reachable, nameable API and remove redundant qualification and casts.
 unreachable_pub = "warn"
 unnameable_types = "warn"
 unused_qualifications = "warn"
@@ -26,16 +34,20 @@ trivial_casts = "warn"
 trivial_numeric_casts = "warn"
 
 [lints.rustdoc]
+# Treat broken or private API links as errors, and keep crate prose well formed.
 broken_intra_doc_links = "deny"
 private_intra_doc_links = "deny"
 missing_crate_level_docs = "warn"
 unescaped_backticks = "warn"
 
 [lints.clippy]
+# Apply the full pedantic and Cargo policy, allowing individual levels to override groups.
 pedantic = { level = "warn", priority = -1 }
 cargo = { level = "warn", priority = -1 }
+# Keep const-capable functions and self references idiomatic.
 missing_const_for_fn = "warn"
 use_self = "warn"
+# Production code propagates errors and avoids panic paths, placeholders and debug I/O.
 unwrap_used = "warn"
 expect_used = "warn"
 panic = "warn"
@@ -45,16 +57,21 @@ unimplemented = "warn"
 dbg_macro = "warn"
 print_stdout = "warn"
 print_stderr = "warn"
+# Leave public data types extensible across upstream parser upgrades.
 exhaustive_enums = "warn"
 exhaustive_structs = "warn"
+# Suppressions must be reasoned expect attributes, so stale exceptions are detected.
 allow_attributes = "warn"
 allow_attributes_without_reason = "warn"
+# Colocate unit tests in test modules and use the flat Rust module file layout.
 tests_outside_test_module = "warn"
 mod_module_files = "warn"
+# Keep output order deterministic and avoid implicit string allocation or lossy floats.
 iter_over_hash_type = "warn"
 str_to_string = "warn"
 lossy_float_literal = "warn"
 float_cmp_const = "warn"
+# Inherent and trait methods should not silently compete under one name.
 same_name_method = "warn"
 # A restriction lint, so the pedantic group does not enable it; clippy.toml sets its threshold.
 cognitive_complexity = "warn"
@@ -64,12 +81,15 @@ module_name_repetitions = "allow"
 # cargo-deny's bans.multiple-versions owns this check.
 multiple_crate_versions = "allow"
 
+# Document the complete public surface on a representative wheel target; docsrs
+# matches the local doc gate and allows documentation-specific configuration.
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 targets = ["x86_64-unknown-linux-gnu"]
 
 [lib]
+# Python loads the native module as a shared library; Rust tests live in the core.
 crate-type = ["cdylib"]
 
 [dependencies]
