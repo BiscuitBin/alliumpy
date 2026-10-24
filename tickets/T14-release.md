@@ -120,11 +120,18 @@ alliumpy==3.6.1 allium check tests/fixtures/smoke/ok.allium` exits 0. Decision 0
    private repository need GitHub Enterprise and the repository is private on a
    non-Enterprise plan, `CONVENTIONS.md` §12 claim 5 is settled as failing from that
    reading, dated and quoted, and step 3 omits the `actions/attest` step with a comment
-   saying why; the rehearsal then confirms nothing else needed it. `[ "$(curl -sS -o
-   /dev/null -w '%{http_code}' https://pypi.org/pypi/alliumpy/json)" = 404 ]; echo "exit
-   $?"` must print `exit 0` (no `-f`: with it curl exits non-zero on the 404 it is meant
-   to see; `CONVENTIONS.md` §12 claim 7; any other code stops the ticket and goes to the
-   maintainer). Read the Actions billing state with `gh api
+   saying why; the rehearsal then confirms nothing else needed it. For this first
+   publication, require HTTP 404 from `https://pypi.org/pypi/alliumpy/json`
+   (`CONVENTIONS.md` §12 claim 7); HTTP 200 means the name is already taken and stops
+   this ticket for the maintainer. The reusable release procedure in step 4 instead
+   expects HTTP 200 for the existing project after the first publication. For every
+   release, also require HTTP 404 from
+   `https://pypi.org/pypi/alliumpy/<version>/json`: HTTP 200 means that version is
+   already published and stops the release. For each URL use
+   `status=$(curl -sS -o /dev/null -w '%{http_code}' "$url") || exit 1`, print the
+   status, then `test "$status" = "$expected" || exit 1`, with `url` and `expected`
+   set as above. Do not use `-f`, because 404 is expected; a transport failure or any
+   unexpected HTTP status stops the step. Read the Actions billing state with `gh api
    orgs/BiscuitBin/settings/billing/actions` (`BiscuitBin` is an organisation,
    `CONVENTIONS.md` §13; if the REST reference on the day has replaced it with a usage
    endpoint, such as `gh api /organizations/BiscuitBin/settings/billing/usage`, use that);
@@ -203,7 +210,12 @@ alliumpy==3.6.1 allium check tests/fixtures/smoke/ok.allium` exits 0. Decision 0
      per-release edit), and whose second word must equal `[project] version` with any
      `.postN` stripped; `allium check tests/fixtures/smoke/ok.allium` must exit 0 and
      `allium check tests/fixtures/smoke/broken.allium` must exit 1, each exit code read
-     explicitly (`echo "exit $?"` on the next line), which on Windows is
+     explicitly and asserted: for each command, `status=0`, then
+     `<venv-allium> check <fixture> || status=$?`, `echo "exit $status"`, and
+     `test "$status" -eq <expected>` (0 for `ok.allium`, 1 for `broken.allium`). Use
+     the venv's platform-specific command path above. The `||` captures the expected
+     failure under Actions' `bash -e -o pipefail`; unexpected statuses fail the test.
+     This on Windows is
      `CONVENTIONS.md` §12 claim 18, together with a byte check of the redirected stdout:
      `allium check tests/fixtures/smoke/ok.allium > out.json`, then `python -c "import
      sys; sys.exit(1 if b'\r' in open('out.json', 'rb').read() else 0)"` (bash redirects
@@ -282,7 +294,10 @@ alliumpy==3.6.1 allium check tests/fixtures/smoke/ok.allium` exits 0. Decision 0
    rehearsal dispatch when the matrix or the workflow changed; `git tag -a v<version>
    -m 'alliumpy <version>'` on the merge commit; the tag push; the deployment approval,
    which is the publish; the proof), marking which steps are local, which CI does, and
-   which are separately authorised. `docs/operations/maintenance.md` gains "Cut a
+   which are separately authorised. Distinguish first publication's project-level 404
+   from later releases' project-level 200, and require the target version's endpoint
+   to return 404 in both cases, using step 2's fail-closed status checks.
+   `docs/operations/maintenance.md` gains "Cut a
    release", three lines pointing at the how-to. `docs/explanation/packaging.md` gains
    the matrix as built, the sdist as ruled and attestation as settled. `SECURITY.md`'s
    "Supported versions": the newest release on PyPI, tracking upstream, no backports.
@@ -462,9 +477,14 @@ alliumpy==3.6.1 allium check tests/fixtures/smoke/ok.allium` exits 0. Decision 0
   and `gh release create` steps skipped by their `if`, and its artefact listing shows an
   abi3 wheel for each of decision 6's five targets plus the two musllinux wheels, the
   `cp314t` wheels or a stated reason, and the sdist or S01's ruling.
+- The reusable release procedure distinguishes first-publication name availability
+  from an existing project and refuses an already published target version; transport
+  failures and unexpected HTTP responses stop its pre-flight.
 - The smoke log of every job whose wheel its runner can install (`linux` x86_64, both
   `macos`, `windows`) shows the version line, exit 0 for `ok.allium`, exit 1 for
-  `broken.allium`, and both `licenses/` entries; each musllinux and aarch64 wheel shows
+  `broken.allium`, and both `licenses/` entries; the workflow explicitly asserts both
+  statuses and captures expected failures without terminating the shell early.
+  Each musllinux and aarch64 wheel shows
   the same from its container smoke or is listed as built and never imported, with the
   reason.
 - `release-pypi.yml` passes actionlint; only the `release` job has `id-token: write`,

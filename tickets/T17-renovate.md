@@ -306,7 +306,15 @@ and what stays manual; decision 0017 records it; and the wave-2 outcomes of
       --glob '!docs/decisions/**'` lists what is left: prose under `docs/` and
       `README.md` naming the version the wheel wraps is edited to `<new>`, and
       `tests/fixtures/parity/` is step 5's; any other match is a copy this step missed,
-      and is edited or explained.
+      and is edited or explained. After all manifest edits, refresh local package
+      versions in both lockfiles: `cargo update --workspace --offline`, then
+      `cargo update --workspace --offline --manifest-path fuzz/Cargo.toml`. Review
+      both lockfile diffs: each recorded `alliumpy` or `alliumpy-core` entry must now
+      have `<new>`, and registry dependencies must stay at the versions already
+      reviewed in steps 2 and 3.
+      An offline resolution failure or an unrelated dependency change is handed back,
+      not hidden by a broad update. `just lock-check` must pass before step 5 rebuilds
+      with the locked manifests.
    5. Rebuild and compare. Nothing more to edit: `just wheel-smoke` must now pass (it
       rebuilds the wheel and the venv at the new pin and version with step 4's copies;
       `parity` and `version-check` both read that venv; a `smoke.py` failure here is a
@@ -371,8 +379,9 @@ and what stays manual; decision 0017 records it; and the wave-2 outcomes of
   detected-dependencies listing and the `cargo info allium-parser` reading are quoted;
   if no newer `allium-parser` existed on the day, the hand-back notes say the exclusion
   is unexercised and name the check that closes it.
-- The app is installed on this repository only, and its permissions are in the security
-  model.
+- The app is installed on this repository only, proved by the dated maintainer
+  read-back from installation settings described in Verification, and its permissions
+  are in the security model.
 - `renovate.json` validates: no `Action Required: Fix Renovate Configuration` issue
   exists and the dashboard issue shows no configuration error, both quoted in the
   hand-back notes.
@@ -380,6 +389,8 @@ and what stays manual; decision 0017 records it; and the wave-2 outcomes of
   that runs a command names the command and what its output must show, and a step with
   no command (the CHANGELOG edit, the `.postN` contrast) says so; `just check-docs` is
   green.
+- The runbook refreshes both lockfiles after changing local crate versions and requires
+  `just lock-check` before the locked wheel build.
 - `CONVENTIONS.md` §12 claims 2, 4, 5, 7, 12 and 18 have outcomes, each citing the ticket
   whose hand-back notes hold the evidence.
 - `just check` is green.
@@ -389,8 +400,6 @@ and what stays manual; decision 0017 records it; and the wave-2 outcomes of
 ## Verification
 
 ```sh
-gh api orgs/BiscuitBin/installations --jq '.installations[] | select(.app_slug == "renovate") | {id, repository_selection}'
-gh api user/installations/<id>/repositories --jq '{total_count, repos: [.repositories[].full_name]}'
 gh pr list --repo BiscuitBin/alliumpy --author 'app/renovate' --state all --json number,title,headRefName
 rg -n 'allium-parser' renovate.json
 rg -n 'allium-parser' Cargo.toml
@@ -399,17 +408,19 @@ just check-docs
 just check
 ```
 
-The two `gh api` reads need an organisation owner's token (`GET /orgs/{org}/installations`
-is documented "The authenticated user must be an organization owner", and the repositories
-read lists only what the caller can access): if the agent's `gh` token is not an owner's,
-the maintainer runs them and the output is quoted in the hand-back notes. Expected output:
-exactly one object from the first read (the `select` keeps only the installation whose
-`app_slug` is `renovate`; other apps on the organisation are not counted), with
-`repository_selection` `selected`; then, with that installation's `id`, `total_count` `1`
-and the single repository `BiscuitBin/alliumpy`. An empty listing or any error (a missing
-scope included) is a stop under `CONVENTIONS.md` §11, not absence; a `total_count` above
-`1` or `repository_selection` `all` fails the acceptance criterion "installed on this
-repository only".
+For the repository-scope proof, the maintainer opens BiscuitBin's organisation
+Settings, GitHub Apps, and Configure for the installed Renovate app. Read back the
+organisation, app name, installation id and settings URL, then the Repository access
+section: it must say "Only select repositories" and list solely
+`BiscuitBin/alliumpy`. Quote the dated read-back and who performed it in the hand-back
+notes, along with the permissions shown. "All repositories", an additional repository,
+or missing access to the settings view fails this proof and stops the step; a view
+filtered to repositories the caller can access is not a substitute for installation
+settings. GitHub's procedure is
+`https://docs.github.com/en/apps/using-github-apps/reviewing-and-modifying-installed-github-apps`.
+Do not ask for an owner's OAuth token or personal access token to read
+`/user/installations/{id}/repositories`: that endpoint requires a GitHub App user
+access token for Renovate, and an owner's ordinary `gh` login does not satisfy it.
 
 The first `rg` must match the exclusion rule and nothing else; the second must show
 `=3.6.1` (or the version T13 left) in `Cargo.toml`; the third must print, per lockfile
@@ -420,7 +431,8 @@ by a `version` line equal to the pin, before and after Renovate's first runs.
 
 To be written by the executing agent: the inventory, the dashboard's config-validation
 state, the private repository check and the authorisation with who performed the
-installation, the per-manager evidence with the two exclusion proofs, the maturin-range
+installation, the dated installation-settings read-back with its repository list and
+permissions, the per-manager evidence with the two exclusion proofs, the maturin-range
 decision and its outcome, the review record for each checkpoint (`CONVENTIONS.md` §14),
 and where this ticket departed from P `tickets/T17-renovate.md` and L's draft.
 

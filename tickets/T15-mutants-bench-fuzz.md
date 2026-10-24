@@ -168,12 +168,13 @@ it compiling, decision 0016 says why, and `just check` stays green.
 5. **The fuzz crate.** Apply L's fuzzing draft: the `tools.txt` line, then
    `just install-tools` (network, authorised); `cargo fuzz init --target parse` at the
    root (L's form; it writes files only, and the generated `[[bin]]` reads
-   `name = "parse"`, `path = "fuzz_targets/parse.rs"`), then
+   `name = "parse"`, `path = "fuzz_targets/parse.rs"`). Before resolving dependencies,
+   change the path dependency to `../crates/alliumpy-core`, add
+   `exclude = ["fuzz"]` in the root `[workspace]`, set `libfuzzer-sys` as a full caret
+   range with the decision-0004 note, and add the repeated `forbid` lint table and
+   `publish = false`. Only after those manifest edits, run
    `cargo generate-lockfile --manifest-path fuzz/Cargo.toml` and `just sync` (network,
-   authorised); the path dependency changed to `../crates/alliumpy-core`,
-   `exclude = ["fuzz"]` in the root `[workspace]`, `libfuzzer-sys` as a full caret range
-   with the decision-0004 note, the repeated `forbid` lint table, the committed
-   `fuzz/Cargo.lock`. The target
+   authorised); commit `fuzz/Cargo.lock`. The target
    `fuzz_targets/parse.rs`: `std::str::from_utf8(data)` and, when it is valid,
    `alliumpy_core::parse(s)`; assert every diagnostic's `line >= 1` and `col >= 1`
    (one-based by `CONVENTIONS.md` §9) and that none of the span conversions panics. The
@@ -257,6 +258,8 @@ it compiling, decision 0016 says why, and `just check` stays green.
   no timed-out mutant, and exit status 0 (L S03 (d): 2 means missed, 3 a timeout, 4 a
   failing baseline). The `src/cli/` exclusion, if any, is quoted with S01's ruling.
 - `just bench` and `just fuzz parse 60` outputs are quoted; `just fuzz-build` exits 0.
+- The fuzz manifest and root workspace are corrected before the first fuzz lockfile
+  generation and `just sync`; `fuzz/Cargo.lock` is committed.
 - The planted `panic!()` run is quoted: a non-zero exit status and a file under
   `fuzz/artifacts/parse/`, both since removed.
 - `just fuzz` ran on the pinned stable: `rustup toolchain list` lists no nightly,

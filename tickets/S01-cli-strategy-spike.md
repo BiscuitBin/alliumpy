@@ -284,14 +284,17 @@ No other path. `ai_tmp/` holds the prototypes and is never committed.
    root copied to `crates/alliumpy/python/alliumpy/_bin/allium`; `_cli.py` resolves it
    with `importlib.resources`, on POSIX `os.execv`s it with `sys.argv`, and the Windows
    branch (designed, written, not run) uses `subprocess.run` and exits with its
-   `returncode`. Confirm maturin includes `_bin/allium` with its executable bit in the
+   `returncode`. Run `just wheel-smoke` after these edits, rebuilding the wheel and
+   installing it into the smoke venv before inspecting its archive. Confirm maturin
+   includes `_bin/allium` with its executable bit in the freshly built
    wheel (`.pixi/envs/default/bin/python -I -m zipfile -l dist/*.whl` for the entry,
    then
    `.pixi/envs/default/bin/python -I -c 'import sys, zipfile; i = zipfile.ZipFile(sys.argv[1]).getinfo("alliumpy/_bin/allium"); print(oct(i.external_attr >> 16))' dist/*.whl`,
    which must print a mode with the execute bits, such as `0o100755`; `-l` lists names,
-   dates and sizes only, not modes), `just wheel-smoke`, then the harness, run the same
-   way. Record the wheel size against (a)'s, what the release matrix would have
-   to add (a `cargo install allium-cli` per target before `maturin build`, the musllinux
+   dates and sizes only, not modes), then the harness against that smoke venv's
+   installed command, run the same way. Record the wheel size against (a)'s, what the
+   release matrix would have to add (a `cargo install allium-cli` per target before
+   `maturin build`, the musllinux
    case under maturin-action's container), and that the parity result is trivially
    exact because candidate and reference are the same build, which is why it still runs.
 
@@ -390,6 +393,8 @@ No other path. `ai_tmp/` holds the prototypes and is never committed.
   line quoted and headed by the commit the prototype worktree was at
   (`git rev-parse --short HEAD` there) plus `with uncommitted changes`
   (`CONVENTIONS.md` §11); the stderr differences, if any, listed.
+- Prototype (b)'s archive listing and execute-mode check inspect the wheel rebuilt by
+  `just wheel-smoke` after the bundle edits; its harness uses that installed wheel.
 - Both halves of `CONVENTIONS.md` §12 claim 12 are answered: the
   `cargo install allium-cli@3.6.1 --locked` build's exit status, the reference's
   `--version` output quoted beside the `ALLIUM_VERSION_STRING` literal in
