@@ -1,7 +1,7 @@
 ---
 id: T05
 title: "Agent contract: AGENTS.md, seven house skills, the bridges"
-status: open
+status: done
 depends_on: [T00]
 parallel_with: [T01, T02, T03, T07, S01]
 branch: ticket/t05-agent-contract
@@ -282,14 +282,139 @@ comparison. The recipe pattern anchors on a backtick and a leading letter, so
 
 ## Hand-back notes
 
-To be written by the executing agent: the baseline `just check` line at its commit; each
-line the acceptance `rg` printed and why it stays; the word count of `AGENTS.md` and of
-its core outside the blocks; the facts T11 needs to reconcile T07's
-`docs/reference/agent-contract.md` (the order of `AGENTS.md`'s sections, the seven blocks
-and the skill each names, the exact network-recipe list, the two recipes marked "from
-T13"); the review record for the checkpoint (`CONVENTIONS.md` §14); any wording of §7 that
-the files could not carry verbatim, handed back as a `CONVENTIONS.md` change; the
-Verification block's output at its commit.
+### Baseline and environment
+
+At `5b76af67aa84d1725f1bab0c20c6bf81dbd2d857`, on the untouched ticket worktree,
+`just check` ended with `All checks passed and the worktree is unchanged.` (exit 0).
+`git fetch origin` exited 0; `origin/main` was the same commit.
+
+`just initialize` exited 0 after putting rustup's `~/.cargo/bin` first on `PATH`.
+The initial attempt selected pixi's cargo and failed `check-toolchain` (exit 2).
+The initial sandboxed baseline then failed at `lint` because the shared prek log was
+not writable (exit 2); rerunning with tool-cache access passed. No gate or config was
+changed. Initialization skipped hook installation in this secondary worktree.
+All subsequent gates used rustup's cargo proxy first on `PATH` and shared-cache access.
+
+### Settled contract and T11 reconciliation
+
+The nine invariants are carried verbatim from §7, including wrapping. No change to
+`CONVENTIONS.md` is needed for the wording delivered here. `AGENTS.md` is 1342 words,
+925 outside its task blocks. As in P, the authority rules, project map and explicit
+routing account for exceeding the approximate 1000-word target.
+
+The section order is identity and untrusted-data rules, Project map, Invariants
+(including authority, change workflow and hand-back), seven task blocks, then
+Provenance. The blocks, in order, are:
+
+1. Rust under `crates/`: `rust-change` and `review-change`.
+2. Python under the package, pytest, root tests or scripts: `python-change`.
+3. Upstream pin or version: release policy and `version-check`; T17's runbook does not
+   exist yet, and the block says so. No separate release skill is invented.
+4. A handbook page: `review-docs`.
+5. Agent surface: frozen frontmatter and thin bridges, `check-agents`.
+6. Failing gate or hand-back: `fix-quality` and `project-check`.
+7. Picking up a ticket: `plan-change`.
+
+The exact network-recipe list is `initialize`, `install-toolchain`, `install-tools`,
+`sync`, `lock`, `lock-upgrade`, `install-hooks`, `audit`, `check-links-online` and
+`install-parity-reference` (from T13). The two future recipes are `parity` and
+`install-parity-reference`, each marked from T13. Release tags and Pages pushes are
+conditional on T14 and the deployment setup; the contract claims neither exists now.
+Destructive actions inside the worktree retain P's explicit-authorization rule.
+
+All seven frontmatters, fourteen bridges and two adapters are unchanged from T00.
+`review-docs` is byte-identical to P at `bf51e0d`; the other five carried skills have
+the specified packaging adaptations and `python-change` is new. The snapshot repair
+route additionally reflects the actual read-only gate: generate candidate changes
+with `snapshots-accept`, then review the diff, with authorization for orphan deletion.
+
+The acceptance search prints only these four lines (exit 0):
+
+```text
+AGENTS.md:155:The toolchain, gates, handbook and agent machinery were carried by hand from pachinko
+AGENTS.md:156:(`BiscuitBin/pachinko`) at `bf51e0d`, which carried libpawdoku
+AGENTS.md:157:(`steven-cutting/libpawdoku`) at `ccdd001`. The tickets record what was carried and adapted.
+AGENTS.md:163:under a `docs/specs/` of its own.
+```
+
+The first three retain the required pinned provenance; the fourth truthfully states
+where this repository does not keep specifications. No inapplicable source rule remains.
+
+### Adversarial review, checkpoint 1
+
+Two fresh-context Codex reviewers used `gpt-6-astra`, one per lens, over `5b76af6` plus
+the uncommitted lane diff. A third fresh-context `gpt-6-astra` agent independently
+triaged all findings and applied fixes sequentially. Scratch reports are under
+`ai_tmp/review/T05-1/`, outside the deliverables.
+
+The preferred alternate Claude CLI was available, but automatic approval review
+rejected invoking it because of possible private-content transmission to an unverified
+external service. No external review ran. Review used §14's permitted in-session
+fresh-context alternative instead. The requested generic `code-review` skill was not
+installed; the repository's `review-change` checklist and the two adversarial lenses
+provided review. No code or pre-agreed TDD seam changed; existing acceptance checks
+and the full gate supplied validation.
+
+| Id | Severity | Verdict | Action |
+| --- | --- | --- | --- |
+| C1 | low | valid, fixed | Future runbook is absent, not a stub; say T17 writes it |
+| B1 | medium | valid, fixed | Snapshot gate writes no pending candidate; repair dispatch now generates and reviews the diff |
+| B2 | medium | valid, handed back | Inherited Verification pipelines can hide failed producers and miss wrapped recipe references; supplemental evidence below checks successful reads and logical references |
+| B3 | medium | valid, handed back | Frozen version checker reads workspace, wheel, parser pin, core constant and console, but not either crate manifest; T00 follow-up must enforce inheritance or compare resolved crate versions |
+
+There were no high findings, so §14 requires no second review round. The author's
+proposed frontmatter-extraction correction was withdrawn: independent reproduction
+showed the original sed range correctly extracts both frontmatter lines. The inherited
+Verification block is unchanged.
+
+### Verification of the implementation
+
+At `5b76af6` with uncommitted T05 changes, including the reviewed fixes and these notes:
+
+```text
+just check-agents: Validated AGENTS.md, 2 adapters, and 7 skills. [exit 0]
+just check-docs: Validated 39 pages and 40 canonical topics. [exit 0]
+just check: All checks passed and the worktree is unchanged. [exit 0]
+```
+
+The full gate exercises all 22 configured recipes, including Python typechecking,
+stubtest and the installed release wheel. Core coverage is 100%; six core tests and
+five pytest cases pass. Cargo deny prints six pre-existing nonfatal unmatched-licence
+allowance warnings, also present at baseline; licenses, bans and sources pass.
+
+For B2, supplemental scratch verification uses checked subprocess reads and direct
+file reads, compares all seven frontmatters against `origin/main`, and normalizes
+whitespace before extracting recipe names. It checks the wrapped invariant recipe
+explicitly, and saves a nonempty successful parity extraction before filtering:
+
+```text
+Nine verbatim invariants; seven blocks; six phrases outside blocks. [pass]
+Seven unchanged frontmatters; 22 dispatch gates; 16 frozen adapters/bridges. [pass]
+30 named recipes; only parity and install-parity-reference undefined. [pass]
+Parity positive control: 3 inline references and 1 wrapped reference, all T13-marked. [pass]
+review-docs equals P at bf51e0d; git diff --check. [pass]
+```
+
+The original Verification block and supplemental checks will also be run at the clean
+implementation commit; its recorded commit and exit statuses follow below.
+
+### Handed back
+
+- **T00: version enforcement (B3).** `scripts/version_check.py` is frozen in this lane.
+  It must validate each crate's inherited or explicit version; reading the workspace
+  version alone does not prove invariant 9 for both crate manifests. Both crates
+  currently inherit the correct version, so this is an enforcement gap, not present
+  version drift. Preserve the required invariant text while T00 fixes the checker.
+- **Ticket verification (B2).** The inherited parity filter can return its expected
+  exit 1 after the producer failed, and the inline recipe regex misses the wrapped
+  invariant reference. The supplemental successful-read and normalized-reference
+  checks above close this lane's evidence gap. A future verification template should
+  split producers from filters, check exit codes and retain nonempty positive controls.
+- **Invariant 7: cargo shear.** As already noted in Open points, `deps-unused` cannot
+  pass `--locked`. Snapshot recipes instead check locks before running offline.
+  The nine invariants stay verbatim; any general wording repair belongs on `main`.
+
+No push, pull request, tag, publishing action or edit to another repository occurred.
 
 ## Open points
 
