@@ -510,7 +510,8 @@ uncommitted: structural acceptance exit 0; `just check-docs` exit 0 with
 `Validated 39 pages and 40 canonical topics.`; `just check` exit 0, last line
 `All checks passed and the worktree is unchanged.` An initial notes-only MD012 blank-line
 failure was corrected before this successful rerun. The final committed tree is checked
-again before hand-back; no push or publication is part of this ticket execution.
+again before hand-back. A later explicit request authorizes pushing the branch and
+opening a visual pull request.
 
 ## Open points
 
@@ -520,3 +521,21 @@ again before hand-back; no push or publication is part of this ticket execution.
   resolved member versions. Neither frozen file was edited by T07.
 - T11 must reconcile the wave-1 design-dependent statements in the table above with
   the merged lane evidence; the pending CLI and sdist decisions remain owned by S01.
+
+## Pull request preparation after wave-1 merges
+
+Rebased the three handbook commits onto `origin/main` at `8cb8706` (the merged T02
+and T03 gates), producing head `ca295ac`. Reconciled the tutorial's repr-test name
+and expected fixture column with T03, and replaced the obsolete pickle-test claim
+with the current Python cases and comment-only stubtest allowlist. No runtime code
+or gate configuration changed.
+
+At `ca295ac` with these documentation corrections uncommitted, structural acceptance
+exited 0 (`All T07 structural acceptance checks passed.`), and `just check` exited 0
+(`All checks passed and the worktree is unchanged.`). The gate ran six Rust tests,
+one doctest and 17 Python tests; core coverage was 100 percent. stubtest, installed
+wheel smoke and documentation validation passed. Ignored transcripts are
+`ai_tmp/pr-acceptance.log` and `ai_tmp/pr-check.log`. The corrected committed tree
+is checked again before pushing; the PR description records that exact tested commit.
+Historical tutorial replay and review evidence above remains tied to its original
+baseline rather than being relabelled as a replay on the merged lanes.

@@ -31,13 +31,13 @@ Expected values come from a worked upstream example, not a second copy of the co
 `just py-test` rebuilds the native module through `py-develop` and runs pytest under
 `crates/alliumpy/tests/`. Tests import the built extension, never the stub. Current cases
 cover valid and invalid source, locations, equality and hashing, exact Python repr,
-versions and exception pickle identity. Runtime changes therefore need both asserting
-pytest cases and the matching native implementation.
+versions, exports, argument conversion and the public exception. Runtime changes need
+both asserting pytest cases and the matching native implementation.
 
 `just py-stubtest` also rebuilds, then imports `alliumpy._alliumpy` and compares it with
-`_alliumpy.pyi`, the canonical native API description. Its allowlist is reviewed in T03;
-an entry hides a discrepancy and must remain narrow. A deliberate runtime/stub mismatch
-must fail. mypy checks declared types; it does not prove the native module implements them.
+`_alliumpy.pyi`, the canonical native API description. Its current allowlist contains no
+discrepancies; an entry hides a discrepancy and must have a named, ticketed reason. A
+deliberate runtime/stub mismatch must fail. mypy checks declared types; it does not prove the native module implements them.
 
 ## Installed wheel smoke
 

@@ -113,11 +113,10 @@ const fn end_col(&self) -> u32 {
 
 Append `, end_col={}` immediately before `)` in the Rust `__repr__` format string and
 append `self.end_col()` after `code` in its argument list, with a comma after `code`.
-In `test_diagnostic_value_semantics`, replace the last expected representation fragment:
-
-```python
-f"message={first.message!r}, code={first.code!r}, end_col={first.end_col})"
-```
+In `TestDiagnostic.test_repr`, append `, end_col=10` before the closing parenthesis
+in the expected string. That test uses the broken fixture, whose `?` starts at byte
+column 9 and ends at column 10. Keep the separate new test above, which checks column 2
+for its smaller input.
 
 Run `just py-test` again: all tests pass. Then run `just py-stubtest`, which rebuilds
 through `py-develop` and reports `Diagnostic.end_col` missing from the stub.
