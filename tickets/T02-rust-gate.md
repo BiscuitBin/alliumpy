@@ -1,7 +1,7 @@
 ---
 id: T02
 title: "Rust quality gate: tool configs, the bindings crate's lint table, metrics"
-status: open
+status: done
 depends_on: [T00]
 parallel_with: [T01, T03, T05, T07, S01]
 branch: ticket/t02-rust-gate
@@ -235,16 +235,242 @@ git status --short
 
 ## Hand-back notes
 
-To be written by the executing agent: the baseline `just check` line; each lint the pin
-added and what was done about it; for each `allow` in the bindings crate's table that
-differs from the workspace table, the macro, the lint and the clippy output from the
-`warn` run, or the note that it was returned to the workspace table's entry; the
-outcome of `CONVENTIONS.md` §12 claims 3,
-8, 13, 16 and 17; the licences `cargo deny --locked list` reported and which allow-list
-entry admits each; the offline `just deny` run with its negative controls; the review
-record (`CONVENTIONS.md` §14); any `Justfile` or frozen-file change handed back; the
-sentences T11 should carry into `docs/reference/configuration.md` about the two lint
-tables (T07 writes that page to the design in parallel; T11 reconciles).
+### Baseline and scope
+
+At `5b76af6`, untouched tree, `PATH="$HOME/.cargo/bin:$PATH" just check`, exit 0:
+
+```text
+All checks passed and the worktree is unchanged.
+```
+
+The first shell attempt resolved Cargo to `/Users/scutting/.pixi/bin/cargo` and
+exited 2 at `check-toolchain`. Prepending rustup's proxies corrected the environment;
+no repository change was needed. The agent sandbox also blocked prek's cache log
+and caused taplo's macOS system-configuration access to panic. The affected commands
+were rerun outside that sandbox, preserving the recipes and existing tool caches.
+
+The implementation changes comments only. The manifests, lint levels, dependency
+requirements, profiles and tool thresholds remain equal to T00's. No Rust API,
+lockfile, frozen file or other lane's file changed. No T00 follow-up is needed.
+The temporary snapshot was committed only for its rejection proof and is absent
+from the delivered tree. Raw logs and review artifacts remain under `ai_tmp/`.
+
+### Lint policy: claims 3 and 8
+
+Evidence at `cc13efa` with uncommitted T02 configuration comments, exit 0:
+
+```text
+$ just clippy
+    Checking alliumpy-core v3.6.1
+    Checking alliumpy v3.6.1
+    Finished `dev` profile [unoptimized + debuginfo]
+$ comparison of parsed TOML tables against P bf51e0d:Cargo.toml
+workspace.lints == P bf51e0d workspace.lints == bindings lints; unsafe_code = forbid; missing_docs = warn
+No core-specific lint-level changes and no pyo3-specific exceptions.
+```
+
+The fetched Clippy changelog's 1.99 section adds `assert_is_empty` and
+`manual_bit_width` to pedantic. Both remain enabled through the group and pass.
+Its new restriction lints, `definition_in_module_root`,
+`rest_pattern_accessible_field` and `unnecessary_rest_pattern`, are not members of
+any restriction lint named in our table, so no additional opt-in is made. There is
+no new cargo lint in that section. No named restriction lint was removed or renamed;
+`float_cmp_const` gained an `assert_eq!` fix. No pin-specific exception is needed.
+All configured `clippy.toml` keys were accepted by Clippy 1.99.1.
+
+For each bindings `allow`, the entry was changed to `warn` in turn, formatted with
+taplo, and `just clippy` run before restoring the entry. At `cc13efa` with
+uncommitted changes:
+
+```text
+module_name_repetitions:
+$ just clippy
+    Checking alliumpy v3.6.1
+    Finished `dev` profile [unoptimized + debuginfo]
+exit 0
+multiple_crate_versions:
+$ just clippy
+    Checking alliumpy v3.6.1
+    Finished `dev` profile [unoptimized + debuginfo]
+exit 0
+```
+
+Both silent probes return to the workspace's own `allow` entries, as step 2
+requires. Neither is a pyo3 exception. No differing allowance remains, so there is
+no macro diagnostic to quote. `missing_docs` stays `warn`: `create_exception!`
+already has its fourth documentation argument, and the hand-written public items
+are documented. `#[pyclass]`, `#[pymethods]`, `#[pyfunction]`, `#[pymodule]` and
+`create_exception!` compile with `unsafe_code = "forbid"` and the full table.
+
+`rg -n 'version' crates/*/Cargo.toml`, exit 0, found the inherited version and
+rust-version keys, the allowed core path dependency's `version = "3.6.1"`, the
+existing lint `multiple_crate_versions`, and prose containing “conversion”. There
+is no member registry dependency version. Parsed workspace dependencies are still
+`allium-parser = "=3.6.1"` and pyo3 `0.30.1` with `abi3-py311`, once each.
+
+### Core coverage: claim 13
+
+At `cc13efa` with uncommitted configuration comments, `just coverage` and
+`cargo llvm-cov report --show-missing-lines` both exited 0. Full report:
+
+```text
+Filename                                                                                          Regions    Missed Regions     Cover   Functions  Missed Functions  Executed       Lines      Missed Lines     Cover    Branches   Missed Branches     Cover
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/Users/scutting/.supacode/repos/alliumpy/ticket/T02-rust-gate/crates/alliumpy-core/src/lib.rs          66                 0   100.00%           9                 0   100.00%          56                 0   100.00%           0                 0         -
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+TOTAL                                                                                                  66                 0   100.00%           9                 0   100.00%          56                 0   100.00%           0                 0         -
+```
+
+The only file is under `crates/alliumpy-core/src/`, with 56 measured lines and zero
+missing lines. The missing-lines listing is empty; there is no bindings row. No
+additional test or floor adjustment was necessary. `just test`, exit 0, also reports
+`6 tests run: 6 passed, 0 skipped` and `1 passed; 0 failed` for the doctest.
+
+### Snapshot rejection without insta: claim 16
+
+At scratch commit `cc13efa`, with the tracked control at
+`crates/alliumpy-core/src/snapshots/stray.snap`:
+
+```text
+$ just snapshots-check; echo "exit $?"
+insta not found in cargo metadata; defaulting to 1.0.0
+     Summary [   0.011s] 6 tests run: 6 passed, 0 skipped
+warning: encountered unreferenced snapshots:
+  /Users/scutting/.supacode/repos/alliumpy/ticket/T02-rust-gate/crates/alliumpy-core/src/snapshots/stray.snap
+error: aborting because of unreferenced snapshots
+error: recipe `snapshots-check` failed on line 118 with exit code 1
+exit 1
+```
+
+The clean-tree baseline and final gate both accept `--workspace --exclude alliumpy`
+and report `info: no unreferenced snapshots found` and `info: no snapshots to review`.
+No insta dependency was added. The first ticket taking a real snapshot must add it
+with the decision-0004 dependency note.
+
+### Metrics: claim 17
+
+At `5b76af6`, before edits, and again with T02 comments in the complete gate,
+`just metrics`, exit 0, core first and bindings second:
+
+```text
+::notice::Quality score: 100.0% (8 functions analyzed)
+::notice::Quality score: 100.0% (8 functions analyzed)
+```
+
+There is no finding on a pyo3-wrapped function, no suppression pin and no threshold
+change. Keep measuring both crates until T13 supplies evidence to reconsider it.
+The header already names both crates and decision 0007; comments now explain the
+retained thresholds and disabled dimensions without P's crate names.
+
+### Licenses and network denial
+
+At `5b76af6`, `cargo deny --locked list --threshold 0.9`, exit 0:
+
+```text
+Apache-2.0 (20): alliumpy@3.6.1, alliumpy-core@3.6.1, heck@0.5.0, itoa@1.0.18, libc@0.2.191, once_cell@1.21.4, proc-macro2@1.0.107, pyo3@0.30.1, pyo3-build-config@0.30.1, pyo3-ffi@0.30.1, pyo3-macros@0.30.1, pyo3-macros-backend@0.30.1, quote@1.0.47, regex-lite@0.1.9, serde@1.0.229, serde_core@1.0.229, serde_derive@1.0.229, serde_json@1.0.154, syn@3.0.9, unicode-ident@1.0.27
+Apache-2.0 WITH LLVM-exception (1): target-lexicon@0.13.5
+MIT (21): allium-parser@3.6.1, heck@0.5.0, itoa@1.0.18, libc@0.2.191, memchr@2.8.3, once_cell@1.21.4, proc-macro2@1.0.107, pyo3@0.30.1, pyo3-build-config@0.30.1, pyo3-ffi@0.30.1, pyo3-macros@0.30.1, pyo3-macros-backend@0.30.1, quote@1.0.47, regex-lite@0.1.9, serde@1.0.229, serde_core@1.0.229, serde_derive@1.0.229, serde_json@1.0.154, syn@3.0.9, unicode-ident@1.0.27, zmij@1.0.23
+Unicode-3.0 (1): unicode-ident@1.0.27
+Unlicense (1): memchr@2.8.3
+```
+
+Each reported expression is already an allow-list entry: `Apache-2.0`,
+`Apache-2.0 WITH LLVM-exception`, `MIT`, `Unicode-3.0`, and `Unlicense`.
+MIT alone admits upstream `allium-parser`; pyo3 offers MIT or Apache-2.0.
+The allow-list is unchanged, including unused P allowances. `just deny` warns about
+six unused entries (`0BSD`, `BSD-2-Clause`, `BSD-3-Clause`, `CC0-1.0`, `ISC`, `Zlib`)
+and exits 0. These are informational findings, not missing-license exceptions.
+The seven targets exactly match step 7, now with a wheel-matrix comment.
+
+At `5b76af6`, with warm caches, all three commands ran under the same successful
+macOS OS-level denial `(version 1)(allow default)(deny network*)`:
+
+```text
+$ sandbox-exec -p "$denial" curl -fsS --max-time 10 https://static.rust-lang.org
+curl: (6) Could not resolve host: static.rust-lang.org
+hostname probe exit 6
+$ sandbox-exec -p "$denial" curl --noproxy '*' -fsS --max-time 10 https://1.1.1.1
+curl: (7) Failed to connect to 1.1.1.1 port 443 after 1 ms: Couldn't connect to server
+direct IP probe exit 7
+$ sandbox-exec -p "$denial" just deny
+bans ok, licenses ok, sources ok
+deny exit 0
+```
+
+No cache synchronization was needed. The tool execution itself was escalated so
+`sandbox-exec` could launch; the child commands remained under the network denial.
+
+### Release cost and integration
+
+At `cc13efa` with uncommitted configuration comments, on this Apple Silicon host,
+`cargo clean --release` then `/usr/bin/time -p just wheel`, exit 0:
+
+```text
+    Finished `release` profile [optimized] target(s) in 18.46s
+real 19.01
+user 26.07
+sys 3.32
+```
+
+Then a one-line comment appended to the core, `/usr/bin/time -p just wheel`, exit 0:
+
+```text
+    Finished `release` profile [optimized] target(s) in 4.84s
+real 5.41
+user 3.80
+sys 0.64
+```
+
+The temporary source edit was restored byte for byte. Both wheels use the unchanged
+fat LTO and single codegen unit. The complete warm `just check` at `cc13efa`
+with uncommitted configuration comments exited 0 in 22.99 seconds and ended with
+`All checks passed and the worktree is unchanged.` The 5.41-second incremental
+wheel build is about 24% of that run, so it does not dominate the gate.
+Retain the release settings: changing the gate's LTO would stop smoking the shipped
+artifact. Any future optimization of the shipped profile is a maintainer decision.
+
+The twelve goal recipes pass: `fmt-check`, `toml-check`, `clippy`, `metrics`,
+`features`, `test`, `test-doc`, `coverage`, `doc`, `deny`, `deps-unused` and
+`snapshots-check`. `just test` ran separately; the complete gate runs the other
+recipes plus Python, wheel, documentation, agent and worktree checks.
+Taplo's unfiltered file listing includes both `pyproject.toml` and
+`crates/alliumpy/pyproject.toml`; `tests/fixtures/**` remains excluded.
+
+### Adversarial review and final verification
+
+At `cc13efa` with uncommitted T02 changes, two fresh-context Codex reviewers using
+`gpt-6-astra` ran the conformance and breakage lenses in parallel. Both returned
+`No findings.` A third fresh-context `gpt-6-astra` triage agent independently checked
+the diff scope, parsed TOML equality, equal lint tables and proof logs, and accepted
+both verdicts. No fixes or out-of-scope hand-backs were required; no second round
+was needed. Raw findings and verdicts are in `ai_tmp/review/T02-1/`.
+
+The other harness was available and its `--help` checked, but automatic approval
+review rejected the Claude model calls because of private-repository data egress.
+No call ran; the reviews used the same-session alternative §14 explicitly permits.
+The requested `code-review` skill was unavailable; the repository's `review-change`
+guidance and the required §14 review supplied the review procedure.
+
+Final verification at `cc13efa` with uncommitted T02 changes, after review:
+`just check`, exit 0, ending with:
+
+```text
+All checks passed and the worktree is unchanged.
+```
+
+The final configuration's network-denial proof was also rerun: hostname control
+exit 6, direct-IP control exit 7, `just deny` exit 0. The final license listing
+exited 0 and matched the quoted baseline byte for byte. All twelve goal recipes
+passed, `git diff --check` exited 0, and only Files-touched deliverables differ
+from `5b76af6`. The commit folds away the temporary snapshot control; a clean-tree
+`just check` is run again after committing.
+
+For T11's `docs/reference/configuration.md`: the core inherits the workspace lint
+table; the bindings crate maintains an equal local copy because Cargo cannot mix
+workspace inheritance with member overrides. No pyo3-specific allowance is needed
+on Rust 1.99.1 / pyo3 0.30.1; `unsafe_code = "forbid"` and `missing_docs = "warn"`
+remain active. Future exceptions require a `warn` probe naming the emitting pyo3
+macro, and may not conceal a hand-written-line diagnostic.
 
 ## Open points
 

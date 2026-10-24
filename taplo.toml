@@ -1,13 +1,19 @@
+# Cover both the tooling pyproject.toml and maturin's nested manifest.
 include = ["**/*.toml"]
+# Generated environments, build output and scratch files have other owners;
+# fixtures are input data, including deliberately invalid TOML in later lanes.
 exclude = ["target/**", ".tools/**", ".pixi/**", "ai_tmp/**", "tests/fixtures/**"]
 
 [formatting]
+# Match rustfmt's width and use compact two-space TOML nesting.
 column_width = 100
 indent_string = "  "
+# Stable small diffs: no padding churn, and preserve explanatory key/array order.
 align_entries = false
 reorder_keys = false
 reorder_arrays = false
 
+# Dependency tables alone are alphabetical, so additions have a predictable home.
 [[rule]]
 include = ["Cargo.toml", "crates/*/Cargo.toml"]
 keys = ["dependencies", "dev-dependencies", "build-dependencies", "workspace.dependencies"]

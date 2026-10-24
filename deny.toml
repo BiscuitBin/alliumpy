@@ -1,8 +1,11 @@
 [graph]
+# Audit the graph shipped by every enabled feature, rather than defaults alone.
 all-features = true
 # Dev-dependencies are outside the graph: they serve the tests only, and the bans
 # below are on what ships, not on the test harness.
 exclude-dev = true
+# The seven wheel targets: glibc and musl Linux on both architectures,
+# both macOS architectures, and Windows x86_64 (CONVENTIONS.md §1 decision 6).
 targets = [
   "x86_64-unknown-linux-gnu",
   "aarch64-unknown-linux-gnu",
@@ -15,11 +18,15 @@ targets = [
 
 # Network: `just audit`, never `just check`.
 [advisories]
+# Refuse withdrawn releases and flag unmaintained workspace packages during audit.
 yanked = "deny"
 unmaintained = "workspace"
+# No advisory exceptions are accepted in advance.
 ignore = []
 
 [licenses]
+# Carry P's permissive allow-list unchanged; MIT admits allium-parser.
+# The pyo3 tree also uses Apache-2.0, the LLVM exception, Unicode-3.0 and Unlicense.
 allow = [
   "Apache-2.0",
   "Apache-2.0 WITH LLVM-exception",
@@ -33,16 +40,22 @@ allow = [
   "Unlicense",
   "CC0-1.0",
 ]
+# Require a strong license-text match instead of accepting the list command's 0.8 default.
 confidence-threshold = 0.9
+# These unpublished workspace crates carry their license in package metadata.
 private = { ignore = true }
 
 [bans]
+# Surface duplicate versions without banning otherwise compatible transitive trees.
 multiple-versions = "warn"
+# Dependency requirements must constrain a release series.
 wildcards = "deny"
+# Show every route to a duplicate version so the parent to update is visible.
 highlight = "all"
 deny = [{ crate = "openssl-sys", reason = "no native TLS anywhere in this workspace" }]
 
 [sources]
+# Only crates.io sources are accepted; no alternate registries or git exceptions.
 unknown-registry = "deny"
 unknown-git = "deny"
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
