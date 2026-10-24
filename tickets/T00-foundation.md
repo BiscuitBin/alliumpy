@@ -1,7 +1,7 @@
 ---
 id: T00
 title: "Foundation: a shape-complete skeleton that passes `just check` and builds a wheel on its first commit"
-status: open
+status: done
 depends_on: []
 parallel_with: []
 branch: ticket/t00-foundation
@@ -495,7 +495,7 @@ Implemented the two-crate tracer, Python package, wheel/console path, twenty-two
 runner, tool/environment locks, CI stub, handbook and agent stubs. Evidence below was
 collected on base `708d170fbec4744b7f93ab94737ab90f99cca1e1` with the uncommitted T00
 implementation, before the first implementation commit. Fresh-clone evidence is recorded
-separately after that commit; the ticket remains open until that proof completes.
+separately below against that commit; all prescribed proofs have now passed.
 
 ### Pins, source facts and deviations
 
@@ -503,7 +503,7 @@ The newest stable channel metadata selected Rust `1.99.1`; `rust-version = "1.99
 The binding uses pyo3 `0.30.1`, `abi3-py311`, without `extension-module`. Both crates retain
 P's lint table without relaxations. Const getters satisfy the current clippy suggestions;
 `create_exception!` receives its docstring in the fourth argument; the non-exhaustive
-upstream severity match needs a fallback. No macro lint allowance or fallback pin was
+core severity match in the bindings needs a fallback. No macro lint allowance or fallback pin was
 needed. The solved local interpreter is Python `3.14.9`; maturin is `1.15.0`, uv `0.13.5`.
 
 Read the registry's `SourceMap::line_col` and upstream v3.6.1 `main.rs`:
@@ -539,7 +539,7 @@ No other dotfile line was removed. The prescribed configuration grep prints noth
 | 13 | coverage reports 56/56 core lines, 100.00%, exit 0, with no bindings-crate line. |
 | 14 | hostname curl fails 6 and direct-IP/no-proxy curl fails 7 under the same OS network-denial policy; lint, py-test (including editable install) and wheel-smoke each exit 0 under denial. Exact prescribed offline uv flags work. |
 | 15 | `pixi lock` exits 0 and locks the specified Python 3.14 tool pins for linux-64 and osx-arm64; local locked installation succeeds. |
-| 16 | snapshots-check exits 0 with no snapshots or insta dependency; a staged scratch orphan `.snap` makes it fail with `unreferenced snapshot`, exit 1. Removed and unstaged the scratch file. This uses step 12's staged-tree approach rather than making an intermediate scratch commit. |
+| 16 | snapshots-check exits 0 with no snapshots or insta dependency; a staged scratch orphan `.snap` makes it fail with `unreferenced snapshots`, exit 1. Removed and unstaged the scratch file. This uses step 12's staged-tree approach rather than making an intermediate scratch commit. |
 | 17 | `just metrics` exits 0, including rustqual 1.8.3 on both crates; no pyo3 finding or table exception. |
 | 19 | wheel listing contains both `alliumpy-3.6.1.dist-info/licenses/LICENSE` and `alliumpy-3.6.1.dist-info/licenses/LICENSE-allium-tools`; exit 0. |
 | 20 | ordinary Ruff/mypy gates exit 0; removing F401 alone, E501 alone, or mypy's deliberate type error each makes its gate exit 1 with its positive-control message. Saved bytes restored and compared. |
@@ -612,8 +612,46 @@ The final fresh-clone acceptance grep is recorded below.
 
 ### Committed-tree proof
 
-Pending the implementation commit and the prescribed fresh clone/secondary worktree
-verification. This is an explicit remaining step, not a passing acceptance claim.
+Implementation commit: `5f149e3` (`Build T00 foundation and verified wheel tracer`).
+The final pre-commit gate exited 0 with `All checks passed and the worktree is
+unchanged.` after all review fixes; only transcript wording was corrected afterwards.
+The following proof used a new `git clone --no-local . ai_tmp/fresh` of that exact
+commit, with no copied build, environment or tools directories. Commands used rustup's
+cargo proxy first on PATH. Initialization was the allowed network-provisioning phase.
+
+| Checkout and command | Quoted output/result | Exit |
+| --- | --- | --- |
+| Fresh clone, `git rev-parse HEAD` | `5f149e3` (full revision in local transcript) | 0 |
+| Fresh clone, `just initialize` | `Installed Git hook at .git/hooks/pre-commit`; `Ready. Next: just check.` | 0 |
+| Fresh clone, denied hostname curl | `Could not resolve host: static.rust-lang.org` | 6 |
+| Fresh clone, denied direct-IP/no-proxy curl | `Failed to connect to 1.1.1.1 port 443` | 7 |
+| Fresh clone, denied `just lint` | all hooks `Passed` | 0 |
+| Fresh clone, denied `just py-test` | editable native build and install succeeded; `4 passed` | 0 |
+| Fresh clone, denied `just wheel-smoke` | release wheel built from the new target directory; `allium 3.6.1 (language versions: 1, 2, 3)` | 0 |
+| Fresh clone, `just check` | 22 gates; `All checks passed and the worktree is unchanged.` | 0 |
+| Fresh clone, `git status --short` | no output | 0 |
+| Fresh clone, acceptance grep with the exact listed directory exclusions | nine justified lines described below | 0 |
+| `git -C ai_tmp/fresh worktree add ../fresh-2` | new branch `fresh-2`, HEAD at `5f149e3` | 0 |
+| Secondary worktree, `just initialize` | `Secondary worktree: skipping install-hooks.`; `Ready. Next: just check.` | 0 |
+| Secondary worktree, `just lint` | all hooks `Passed` | 0 |
+| Secondary worktree, `git status --short` | no output | 0 |
+
+The authoritative fresh-clone grep printed exactly the seven `Carried from pachinko`
+provenance sentences at line 13 of decisions 0002–0008, the decision index's line 19
+`pachinko's decision index.`, and AGENTS.md line 52's required invariant
+`for other repositories and keeps none under a docs/specs/ of its own.` (the actual
+path is code-formatted). No unjustified source-project residue was found. The inventory
+and reviews found every required path present and no extra deliverable outside the
+Files touched table; the ticket itself records the required execution notes.
+
+The secondary initializer preserved the primary hook's SHA-256
+`ee3dd3a6020b4fc7836d07dcbcab33c9059b4c1e0ef2ecb0ae8cf0f1488aaa9c` and its exact
+modification time. It did not run a second `install-hooks`. Both disposable checkouts
+were removed after verification; raw local logs remain in
+`ai_tmp/evidence/fresh-initialize.txt`, `fresh-proof.txt` and `secondary-proof.txt`.
+These results establish the committed first implementation is independently usable.
+This follow-up commit changes only ticket status and evidence, leaving that tested
+implementation intact.
 
 ## Open points
 
