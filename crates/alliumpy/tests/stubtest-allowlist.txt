@@ -1,1 +1,1 @@
-# Every entry needs a reason beside it.
+# No discrepancies: keep this comment-only unless a named, ticketed reason is established.

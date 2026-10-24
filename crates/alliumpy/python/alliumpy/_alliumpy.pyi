@@ -6,7 +6,9 @@ from typing import final
 __all__ = ["ALLIUM_VERSION", "ALLIUM_VERSION_STRING", "AlliumError", "Diagnostic", "parse"]
 
 ALLIUM_VERSION: str
+"""Version of the wrapped upstream parser."""
 ALLIUM_VERSION_STRING: str
+"""Complete upstream console version line."""
 
 class AlliumError(ValueError):
     """An Allium operation failed."""
@@ -34,7 +36,7 @@ class Diagnostic:
         """Compare diagnostic values."""
     def __hash__(self) -> int:
         """Hash the diagnostic value."""
-    def __repr__(self) -> str:
+    def __repr__(self) -> str:  # noqa: PYI029 - CONVENTIONS §9 specifies the representation.
         """Represent every field using Python quoting."""
 
 def parse(source: str) -> list[Diagnostic]:

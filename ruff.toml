@@ -1,28 +1,47 @@
+# Match the wheel's minimum Python, rather than the tooling interpreter.
 target-version = "py311"
+# Match rustfmt's house line width.
 line-length = 100
-extend-exclude = ["tests/fixtures/py-lint-violation", "ai_tmp", ".pixi", ".tools", "target", "dist"]
+# Normal discovery skips deliberately broken controls; generated paths are gitignored.
+extend-exclude = ["tests/fixtures/py-lint-violation"]
+# Leave force-exclude at its false default: explicitly named positive controls must run.
 
 [lint]
+# Check every rule so new Python code cannot silently escape a rule family.
 select = ["ALL"]
 ignore = [
-  "D203",   # D211 owns class spacing.
-  "D213",   # D212 owns multiline summaries.
-  "COM812", # The formatter owns trailing commas.
-  "ISC001", # The formatter owns string layout.
-  "INP001", # Tests and scripts are standalone files, not importable packages.
-  "S101",   # Assertions express test and smoke contracts.
-  "T201",   # The console entry point and version checker produce user output.
+  "COM812", # Conflicts with the formatter's trailing-comma handling.
+  "ISC001", # Conflicts with the formatter's string layout.
 ]
 
-[format]
+[lint.pydocstyle]
+# Google convention chooses compatible docstring spacing and summary rules.
+convention = "google"
 
 [lint.per-file-ignores]
-"crates/alliumpy/python/alliumpy/__init__.py" = ["RUF022"] # The API contract fixes __all__ order.
+"crates/alliumpy/tests/**" = [
+  "S101",    # Assertions express the public API test contract.
+  "INP001",  # Tests are discovered without an importable test package.
+  "PLR2004", # Reference diagnostic positions are independent integer literals.
+]
 "crates/alliumpy/python/alliumpy/_alliumpy.pyi" = [
-  "PYI021", # The stub is the canonical API description and requires docstrings.
-  "PYI029", # The diagnostic representation is part of the public contract.
+  "PYI021", # CONVENTIONS §9 makes this documented stub the canonical API description.
+]
+"tests/fixtures/smoke/**" = [
+  "INP001", # The isolated wheel smoke is a standalone script.
+  "S101",   # CONVENTIONS §9 specifies assertions as the smoke contract.
+]
+"scripts/**" = [
+  "INP001", # Repository scripts are standalone, not an importable package.
+  "T201",   # The version checker prints its verdict.
+  "S603",   # The version checker executes a fixed console-script path without a shell.
 ]
 "scripts/version_check.py" = [
-  "S603",    # Executes the fixed wheel-smoke console-script path, with no shell.
-  "PLR2004", # A version line needs the command name and version: two words.
+  "PLR2004", # The frozen version checker requires two version-output words.
 ]
+"crates/alliumpy/python/alliumpy/_cli.py" = [
+  "T201", # The console entry point prints its user-facing output.
+]
+
+# All formatter settings retain their defaults.
+[format]
