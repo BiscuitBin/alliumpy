@@ -1,7 +1,7 @@
 ---
 id: T01
 title: "GitHub repository and CI: settings, branch protection, workflows, the abi3 floor"
-status: open
+status: done
 depends_on: [T00]
 parallel_with: [T02, T03, T05, T07, S01]
 branch: ticket/t01-github-and-ci
@@ -465,7 +465,7 @@ public repository.
 | Step 3: visibility | maintainer's own action, reported 05:55:21Z | not run by this ticket |
 | Step 4: `--apply` with the dry run's flags | 06:23:17Z | `changed: 3`, exit 0 |
 | Step 6: `gh api -X POST repos/BiscuitBin/alliumpy/pages -f build_type=workflow` | 06:24:15Z | returned the Pages object, exit 0 |
-| Step 11: push, open the pull request, one follow-up evidence push | pending | pending |
+| Step 11: push, open the pull request, one follow-up evidence push | 2026-10-24T10:07:34Z | PR #7, this commit the follow-up |
 
 Step 5 did not apply (protection was available, so the script applied hygiene).
 
@@ -624,8 +624,71 @@ check:       - if: ${{ contains(needs.*.result, 'failure') || ... }}
 
 ### Pull request (steps 11 and 12)
 
-Pending: the push waits on its own authorisation, and the run's evidence lands as a
-follow-up commit to this file on this branch.
+PR: `https://github.com/BiscuitBin/alliumpy/pull/7`, head `e6cdbe4`. GitHub tested the
+merge commit `da88305` (`HEAD is now at da88305 Merge e6cdbe4... into a2dd325...` in each
+job's checkout). CI run `https://github.com/BiscuitBin/alliumpy/actions/runs/40084672655`
+(10:07:39Z to 10:09:03Z, `run_duration_ms: 84000`); Audit run
+`https://github.com/BiscuitBin/alliumpy/actions/runs/40084672650`.
+
+```text
+$ gh pr checks 7 --repo BiscuitBin/alliumpy
+audit              pass  29s   .../actions/runs/40084672650/job/120845043409
+check              pass   3s   .../actions/runs/40084672655/job/120845288781
+coverage           pass  39s   .../actions/runs/40084672655/job/120845043722
+deny               pass  34s   .../actions/runs/40084672655/job/120845043723
+documents          pass  59s   .../actions/runs/40084672655/job/120845043563
+python             pass  1m0s  .../actions/runs/40084672655/job/120845043684
+rust               pass  59s   .../actions/runs/40084672655/job/120845043736
+wheel-smoke-py311  pass  12s   .../actions/runs/40084672655/job/120845243463
+exit 0
+$ gh pr checks 7 --repo BiscuitBin/alliumpy --required
+check              pass   3s   .../actions/runs/40084672655/job/120845288781
+exit 0
+```
+
+`audit` ran and is not required. The job step lists match step 8. `rust` runs
+`check-toolchain`, `lock-check`, `fmt-check`, `toml-check`, `clippy`, `metrics`,
+`features`, `test`, `snapshots-check`, `doc`, `deps-unused`, `check-clean`; `documents`
+runs `lint`, `check-docs`, `check-agents`, `check-clean`. Each of `rust`, `python`,
+`coverage`, `deny` and `documents` printed `The Git worktree is clean.` at its last
+step, so the setup action leaves nothing git sees. `coverage` printed `TOTAL ...
+100.00%` under the 90% floor.
+
+`python` (job `120845043684`):
+
+- `📦 Built wheel for abi3 Python ≥ 3.11 to
+  dist/alliumpy-3.6.1-cp311-abi3-manylinux_2_34_x86_64.whl` (10:08:37.49Z).
+- `version-check: all five versions agree: 3.6.1` (10:08:37.81Z).
+- `With the provided path, there will be 1 file uploaded`, then `Artifact wheel-linux
+  has been successfully uploaded! Final size is 303974 bytes. Artifact ID is
+  12556492915`.
+
+`wheel-smoke-py311` (job `120845243463`), read from the unfiltered log:
+
+- `Successfully set up CPython (3.11.17)` (10:08:47.43Z).
+- download-artifact: `wheel-linux (ID: 12556492915, Size: 303974, Expected Digest:
+  sha256:c969a9d2…)`, then `SHA256 digest of downloaded artifact is c969a9d2…` and
+  `Total of 1 artifact(s) downloaded`. This is the artefact `python` uploaded, so
+  download-artifact v8.0.2 reads upload-artifact v7.0.1's artefact.
+- `venv/bin/pip install --no-index --no-deps dist/*.whl`, `Python 3.11.17`, `Processing
+  ./dist/alliumpy-3.6.1-cp311-abi3-manylinux_2_34_x86_64.whl`, `Successfully installed
+  alliumpy-3.6.1`.
+- `allium 3.6.1 (language versions: 1, 2, 3)` (10:08:54.55Z).
+
+Claim 10's evidence is step 1's stub run, where setup-pixi's cache missed and B's git
+dependency was fetched with no credential (quoted above). In this run `python`'s
+checkout printed `Removing credentials config
+'/home/runner/work/_temp/git-credentials-3935855a-....config'`, then `Cache hit for:
+pixi-linux-64-62307468e2b4...` and `✔ The default environment has been installed.`.
+That is `main`'s cache, so B was not fetched here, and this line is not the proof.
+Claim 10 holds on the stub run.
+
+Billable minutes: `actions/runs/40084672655/timing` reports `total_ms: 0` for the seven
+Ubuntu jobs. The repository is public, so standard runners are not billed; the run took
+84 s of wall-clock time.
+
+The wheel is tagged `manylinux_2_34`, the glibc floor of the runner that built it. The
+release matrix's manylinux target is T14's to choose; this is noted for it.
 
 ### Pages after the merge (step 13)
 
@@ -674,8 +737,10 @@ high, so there was no second round. Afterwards `just check` was rerun at `5b76af
 - To T11: claim 11's private-repository deploy skip was not exercised, because the
   repository became public before `pages.yml` landed.
 - Actions minutes: the repository is public, so standard runners are not metered
-  (§13's concern applied to the private repository); the first full run's duration is
-  recorded with the pull request as a baseline.
+  (§13's concern applied to the private repository); the first full run reported
+  `total_ms: 0` billable and 84 s wall-clock.
+- To T14: the CI wheel is `manylinux_2_34`, the build runner's glibc; the release
+  matrix decides the published floor.
 
 ## Open points
 
