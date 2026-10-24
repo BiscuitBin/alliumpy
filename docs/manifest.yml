@@ -1,0 +1,563 @@
+{
+  "schema_version": 1,
+  "pages": [
+    {
+      "path": "README.md",
+      "title": "Documentation map",
+      "kind": "project",
+      "audience": [
+        "user",
+        "contributor",
+        "maintainer",
+        "operator",
+        "agent"
+      ],
+      "canonical_for": [
+        "documentation_navigation"
+      ],
+      "requires": []
+    },
+    {
+      "path": "project/purpose-and-scope.md",
+      "title": "Purpose and scope",
+      "kind": "project",
+      "audience": [
+        "user",
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "project_purpose",
+        "project_non_goals"
+      ],
+      "requires": []
+    },
+    {
+      "path": "project/repository-map.md",
+      "title": "Repository map",
+      "kind": "project",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "repository_layout"
+      ],
+      "requires": []
+    },
+    {
+      "path": "project/terminology.md",
+      "title": "Terminology",
+      "kind": "project",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "operator",
+        "agent"
+      ],
+      "canonical_for": [
+        "project_terminology"
+      ],
+      "requires": []
+    },
+    {
+      "path": "tutorials/first-change.md",
+      "title": "Make your first change",
+      "kind": "tutorial",
+      "audience": [
+        "contributor",
+        "agent"
+      ],
+      "canonical_for": [
+        "first_change_tutorial"
+      ],
+      "requires": []
+    },
+    {
+      "path": "how-to/install-and-run.md",
+      "title": "Install and run",
+      "kind": "how-to",
+      "audience": [
+        "user",
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "install_and_run"
+      ],
+      "requires": []
+    },
+    {
+      "path": "how-to/develop-locally.md",
+      "title": "Develop locally",
+      "kind": "how-to",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "local_development"
+      ],
+      "requires": []
+    },
+    {
+      "path": "how-to/test-and-debug.md",
+      "title": "Test and debug",
+      "kind": "how-to",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "test_workflow"
+      ],
+      "requires": []
+    },
+    {
+      "path": "how-to/maintain-dependencies.md",
+      "title": "Maintain dependencies",
+      "kind": "how-to",
+      "audience": [
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "dependency_maintenance"
+      ],
+      "requires": []
+    },
+    {
+      "path": "how-to/deploy-to-github-pages.md",
+      "title": "Deploy to GitHub Pages",
+      "kind": "how-to",
+      "audience": [
+        "maintainer",
+        "operator",
+        "agent"
+      ],
+      "canonical_for": [
+        "deployment_procedure"
+      ],
+      "requires": []
+    },
+    {
+      "path": "explanation/packaging.md",
+      "title": "Python packaging",
+      "kind": "explanation",
+      "audience": [
+        "user",
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "python_packaging"
+      ],
+      "requires": []
+    },
+    {
+      "path": "explanation/architecture.md",
+      "title": "Architecture",
+      "kind": "explanation",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "operator",
+        "agent"
+      ],
+      "canonical_for": [
+        "system_architecture"
+      ],
+      "requires": []
+    },
+    {
+      "path": "explanation/layering.md",
+      "title": "Layering and dependency direction",
+      "kind": "explanation",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "dependency_boundaries"
+      ],
+      "requires": []
+    },
+    {
+      "path": "explanation/security-model.md",
+      "title": "Security model",
+      "kind": "explanation",
+      "audience": [
+        "user",
+        "contributor",
+        "maintainer",
+        "operator",
+        "agent"
+      ],
+      "canonical_for": [
+        "security_model"
+      ],
+      "requires": []
+    },
+    {
+      "path": "explanation/quality-philosophy.md",
+      "title": "Quality philosophy",
+      "kind": "explanation",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "quality_philosophy"
+      ],
+      "requires": []
+    },
+    {
+      "path": "reference/commands.md",
+      "title": "Commands",
+      "kind": "reference",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "operator",
+        "agent"
+      ],
+      "canonical_for": [
+        "command_reference"
+      ],
+      "requires": []
+    },
+    {
+      "path": "reference/configuration.md",
+      "title": "Configuration",
+      "kind": "reference",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "operator",
+        "agent"
+      ],
+      "canonical_for": [
+        "configuration_reference"
+      ],
+      "requires": []
+    },
+    {
+      "path": "reference/testing.md",
+      "title": "Testing",
+      "kind": "reference",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "testing_reference"
+      ],
+      "requires": []
+    },
+    {
+      "path": "reference/quality-gates.md",
+      "title": "Quality gates",
+      "kind": "reference",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "quality_gate_reference"
+      ],
+      "requires": []
+    },
+    {
+      "path": "reference/documentation-contract.md",
+      "title": "Documentation contract",
+      "kind": "reference",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "documentation_contract"
+      ],
+      "requires": []
+    },
+    {
+      "path": "reference/agent-contract.md",
+      "title": "Agent contract",
+      "kind": "reference",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "agent_contract"
+      ],
+      "requires": []
+    },
+    {
+      "path": "reference/api.md",
+      "title": "API reference",
+      "kind": "reference",
+      "audience": [
+        "user",
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "api_reference"
+      ],
+      "requires": []
+    },
+    {
+      "path": "operations/maintenance.md",
+      "title": "Maintenance",
+      "kind": "operations",
+      "audience": [
+        "maintainer",
+        "operator",
+        "agent"
+      ],
+      "canonical_for": [
+        "maintenance_routine"
+      ],
+      "requires": []
+    },
+    {
+      "path": "operations/troubleshooting.md",
+      "title": "Troubleshooting",
+      "kind": "operations",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "operator",
+        "agent"
+      ],
+      "canonical_for": [
+        "troubleshooting"
+      ],
+      "requires": []
+    },
+    {
+      "path": "decisions/README.md",
+      "title": "Architecture decisions",
+      "kind": "decision",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_index"
+      ],
+      "requires": []
+    },
+    {
+      "path": "decisions/0001-one-wheel-two-crates.md",
+      "title": "Decision 0001: One wheel from two crates: a thin pyo3 crate over a tested core",
+      "kind": "decision",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_one_wheel"
+      ],
+      "requires": []
+    },
+    {
+      "path": "decisions/0002-hook-runner-and-checkers.md",
+      "title": "Decision 0002: Hook runner and checkers",
+      "kind": "decision",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_python_toolchain"
+      ],
+      "requires": []
+    },
+    {
+      "path": "decisions/0003-apache-2-0-with-upstream-mit.md",
+      "title": "Decision 0003: Apache-2.0 for this repository, upstream's MIT shipped beside it",
+      "kind": "decision",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_license"
+      ],
+      "requires": []
+    },
+    {
+      "path": "decisions/0004-dependency-policy.md",
+      "title": "Decision 0004: Dependency policy: caret ranges and `Cargo.lock`",
+      "kind": "decision",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_dependency_policy"
+      ],
+      "requires": []
+    },
+    {
+      "path": "decisions/0005-rust-quality-gate.md",
+      "title": "Decision 0005: The Rust quality gate",
+      "kind": "decision",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_rust_gate"
+      ],
+      "requires": []
+    },
+    {
+      "path": "decisions/0006-tool-manager.md",
+      "title": "Decision 0006: Tool manager",
+      "kind": "decision",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_tool_manager"
+      ],
+      "requires": []
+    },
+    {
+      "path": "decisions/0007-metrics-gate.md",
+      "title": "Decision 0007: The metrics gate",
+      "kind": "decision",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_metrics_gate"
+      ],
+      "requires": []
+    },
+    {
+      "path": "decisions/0008-api-reference-on-github-pages.md",
+      "title": "Decision 0008: The API reference on GitHub Pages, when the repository's visibility allows it",
+      "kind": "decision",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_api_reference_on_pages"
+      ],
+      "requires": []
+    },
+    {
+      "path": "decisions/0009-pypi-name-alliumpy.md",
+      "title": "Decision 0009: PyPI name `alliumpy`, console script `allium`",
+      "kind": "decision",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_pypi_name"
+      ],
+      "requires": []
+    },
+    {
+      "path": "decisions/0010-version-tracks-upstream.md",
+      "title": "Decision 0010: The wheel version tracks upstream, with `.postN` for packaging fixes",
+      "kind": "decision",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_version_policy"
+      ],
+      "requires": []
+    },
+    {
+      "path": "decisions/0011-exact-pin-on-allium-parser.md",
+      "title": "Decision 0011: An exact pin on `allium-parser`",
+      "kind": "decision",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_upstream_pin"
+      ],
+      "requires": []
+    },
+    {
+      "path": "decisions/0012-abi3-wheels-and-platforms.md",
+      "title": "Decision 0012: `abi3-py311` wheels and the five platforms",
+      "kind": "decision",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_wheel_platforms"
+      ],
+      "requires": []
+    },
+    {
+      "path": "decisions/0013-no-spec-gate-no-allium-skills.md",
+      "title": "Decision 0013: No specification gate and no Allium skills in this repository",
+      "kind": "decision",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_no_spec_gate"
+      ],
+      "requires": []
+    },
+    {
+      "path": "decisions/0014-cli-strategy.md",
+      "title": "Decision 0014: How the `allium` command gets into the wheel",
+      "kind": "decision",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_cli_strategy"
+      ],
+      "requires": []
+    }
+  ]
+}

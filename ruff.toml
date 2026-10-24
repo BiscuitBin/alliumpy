@@ -1,0 +1,28 @@
+target-version = "py311"
+line-length = 100
+extend-exclude = ["tests/fixtures/py-lint-violation", "ai_tmp", ".pixi", ".tools", "target", "dist"]
+
+[lint]
+select = ["ALL"]
+ignore = [
+  "D203",   # D211 owns class spacing.
+  "D213",   # D212 owns multiline summaries.
+  "COM812", # The formatter owns trailing commas.
+  "ISC001", # The formatter owns string layout.
+  "INP001", # Tests and scripts are standalone files, not importable packages.
+  "S101",   # Assertions express test and smoke contracts.
+  "T201",   # The console entry point and version checker produce user output.
+]
+
+[format]
+
+[lint.per-file-ignores]
+"crates/alliumpy/python/alliumpy/__init__.py" = ["RUF022"] # The API contract fixes __all__ order.
+"crates/alliumpy/python/alliumpy/_alliumpy.pyi" = [
+  "PYI021", # The stub is the canonical API description and requires docstrings.
+  "PYI029", # The diagnostic representation is part of the public contract.
+]
+"scripts/version_check.py" = [
+  "S603",    # Executes the fixed wheel-smoke console-script path, with no shell.
+  "PLR2004", # A version line needs the command name and version: two words.
+]
