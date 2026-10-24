@@ -50,11 +50,12 @@ runs:
         save-if: ${{ github.ref == 'refs/heads/main' }}
         cache-bin: false
     # .tools holds what pixi cannot: cargo-hack from tools.txt, rustqual
-    # built from source from tools-source.txt. Keyed on both pin lists: a bumped line in either is a new
-    # key, and cargo-binstall skips a matching version already present on a
-    # hit. A key that missed a list would hit the old cache on a bump, and
-    # the new version would be installed, rustqual rebuilt, on every run and
-    # never saved, since a hit writes nothing back.
+    # built from source from tools-source.txt. Keyed on both pin lists: a
+    # bumped line in either is a new key, and cargo-binstall skips a
+    # matching version already present on a hit. A key that missed a list
+    # would hit the old cache on a bump, and the new version would be
+    # installed, rustqual rebuilt, on every run and never saved, since a hit
+    # writes nothing back.
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: .tools
@@ -74,7 +75,7 @@ runs:
     - run: just sync
       shell: bash
     # prek's cache outside the workspace, so check-clean's snapshot never
-    # sees it. PREK_HOME is the variable T03 confirms on prek 0.5.3.
+    # sees it. PREK_HOME is prek 0.5.3's cache variable.
     - run: echo "PREK_HOME=${{ runner.temp }}/prek" >> "$GITHUB_ENV"
       shell: bash
     # The seven hook clones, the Go, Node and rustup toolchains and the
