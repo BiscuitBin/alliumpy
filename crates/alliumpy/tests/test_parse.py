@@ -1,6 +1,7 @@
 # Copyright 2026 Steven Cutting
 """Exercise the public Python API over the smoke inputs."""
 
+import pickle
 from pathlib import Path
 
 import alliumpy
@@ -38,3 +39,12 @@ def test_version_constants() -> None:
     """Identify the wrapped release independently of package metadata."""
     assert alliumpy.ALLIUM_VERSION == "3.6.1"
     assert alliumpy.__version__.startswith(alliumpy.ALLIUM_VERSION)
+
+
+def test_exception_pickle_round_trip() -> None:
+    """Transport the public exception through its importable package."""
+    error = alliumpy.AlliumError("failure")
+    restored = pickle.loads(pickle.dumps(error))  # noqa: S301 - Only locally generated test data.
+    assert type(restored) is alliumpy.AlliumError
+    assert isinstance(restored, ValueError)
+    assert restored.args == error.args

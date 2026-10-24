@@ -4,7 +4,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyString;
 
 pyo3::create_exception!(
-    _alliumpy,
+    alliumpy,
     AlliumError,
     pyo3::exceptions::PyValueError,
     "An Allium operation failed."
