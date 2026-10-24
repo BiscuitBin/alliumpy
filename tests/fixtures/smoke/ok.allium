@@ -1,2 +1,8 @@
--- allium: 1
--- Smallest versioned module, per juxt/allium-tools v3.6.1 parser.rs (MIT).
+-- allium: 3
+-- Reference allium-cli 3.6.1 check: diagnostics [], exit 0.
+-- Original fixture written here; contains no upstream text; no attribution needed.
+entity Parcel {}
+rule SendParcel {
+    when: parcel: Parcel.created
+    ensures: Parcel.created()
+}

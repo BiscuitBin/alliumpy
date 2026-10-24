@@ -1,7 +1,7 @@
 ---
 id: T03
 title: "Python quality gate: ruff, mypy, the stub, pytest, the smoke fixtures"
-status: open
+status: done
 depends_on: [T00]
 parallel_with: [T01, T02, T05, T07, S01]
 branch: ticket/t03-python-gate
@@ -379,14 +379,249 @@ failing output (steps 3 to 6), headed by the commit it ran at.
 
 ## Hand-back notes
 
-To be written by the executing agent: the ruff and mypy versions seen; every `ruff.toml`
-ignore and its reason; the pydocstyle convention chosen; every stubtest discrepancy found
-and what was done with it (stub fixed, allowlisted with reason, or handed to T02); the
-reference's `--version` line and the diagnostics step 2 recorded from its `allium check`
-for each fixture and the empty file; the outcome of `CONVENTIONS.md` §12 claims 20 and
-21; each scratch-copy experiment and its output; the
-review record for each checkpoint (`CONVENTIONS.md` §14); anything handed back to T00's
-follow-up (a recipe flag, an unignored path) or to T02 (a module shape).
+### Evidence at `5b76af6` with uncommitted T03 changes
+
+Implemented on `ticket/T03-python-gate`. All output below belongs to this base
+commit plus the T03 diff, not to a claimed later commit. The untouched baseline at
+`5b76af6` exited 0, ending:
+
+```text
+All checks passed and the worktree is unchanged.
+```
+
+The initial shell selected pixi's cargo proxy; putting rustup's bin first on PATH
+resolved that environment issue. The sandbox denied the existing prek cache, so
+baseline and full-gate runs used approved cache access. Python experiments used
+`UV_CACHE_DIR=ai_tmp/uv-cache` (absolute) to keep installer writes in the worktree.
+No frozen file, dependency, Rust API or other lane's file changed.
+
+### Configuration and API decisions
+
+Google pydocstyle convention; formatter settings retain defaults. The only global
+ignores are COM812 (formatter trailing commas) and ISC001 (formatter string layout).
+Per-file ignores, all with inline reasons in `ruff.toml`:
+
+- `crates/alliumpy/tests/**`: S101 (test assertions), INP001 (discovered test files),
+  PLR2004 (independent reference positions).
+- `_alliumpy.pyi`: PYI021 (canonical API docstrings required by §9).
+- `tests/fixtures/smoke/**`: INP001 (standalone script), S101 (smoke assertions).
+- `scripts/**`: INP001 (standalone scripts), T201 (verdict output), S603 (fixed
+  console-script subprocess, without a shell).
+- `scripts/version_check.py`: PLR2004 (frozen script checks two output words).
+  Step 3's general requirement to scope rules in frozen files applies to this
+  existing T00 exception; moving it into global ignore would hide real violations.
+- `_cli.py`: T201 (console output).
+
+Every `noqa` in the four checked roots:
+
+- `__init__.py`: RUF022, the exact `__all__` order is fixed by §9.
+- `_alliumpy.pyi`: PYI029, §9 explicitly specifies `Diagnostic.__repr__`.
+- `test_parse.py`: three PT027 exceptions, one on each standard-library
+  `assertRaises`; the ticket forbids importing pytest in tests.
+- `smoke.py`: S301, only a locally generated exception is unpickled (retained
+  from T00).
+
+Two precise mypy ignores deliberately cross the boundary: non-string `parse`
+argument (`arg-type`) and read-only `line` assignment (`misc`); unused ignores
+remain errors. No `force-exclude` or `ignore_missing_imports` setting exists.
+
+The stub retains read-only properties and exact signatures. Added version-constant
+docstrings. `inspect.signature` reports `parse(source)` and comparison
+`(self, value, /)`, matching the stub's keyword acceptance and positional-only
+comparison. Initial stubtest found no discrepancy. The final allowlist has zero
+entries, so nothing can hide a mismatch or match an empty string. No T02 hand-back.
+The 17 pytest cases use only alliumpy and standard-library imports; smoke cases
+are parameterized with `unittest.TestCase.subTest`. Five separate runtime type
+assertions cover descriptor types stubtest cannot infer.
+
+### Independent reference
+
+Read pinned L S04 lines 299–440 and 1005–1130; fetched U's module list,
+`v3-lifecycle.allium`, `parser.rs` and CLI `main.rs` at `v3.6.1` into `ai_tmp/upstream/`.
+Built with `cargo install allium-cli@3.6.1 --locked --root ai_tmp/reference` (exit 0).
+The reference root was never on PATH. Both committed modules are original text;
+comments state that they contain no upstream text and need no attribution.
+
+```text
+$ ai_tmp/reference/bin/allium --version
+allium 3.6.1 (language versions: 1, 2, 3)
+exit 0
+$ ai_tmp/reference/bin/allium check tests/fixtures/smoke/ok.allium
+diagnostics: []
+exit 0
+$ ai_tmp/reference/bin/allium check tests/fixtures/smoke/broken.allium
+location.line: 5; location.col: 9; severity: error; code: null
+message: expected declaration (entity, rule, enum, value, config, surface, actor, given, default, variant, deferred, use, open question, contract, invariant), found '?'
+exit 1
+$ ai_tmp/reference/bin/allium parse tests/fixtures/smoke/broken.allium
+one parse diagnostic, severity Error, same message; span 360..361
+exit 1
+$ ai_tmp/reference/bin/allium check ai_tmp/empty.allium
+location.line: 1; location.col: 1; severity: warning; code: null
+message: missing version marker; expected '-- allium: 1' as the first line
+exit 1
+$ ai_tmp/reference/bin/allium parse ai_tmp/empty.allium
+one parse diagnostic, severity Warning, same message; span 0..0
+exit 0
+```
+
+The reference ran over finished fixtures including comments; parser diagnostic
+counts establish which leading check entries are parser results. Expected tuples
+and repr are independent reference values, never obtained from the bindings.
+The initial new fixture test failed against T00's fixture at `(3, 1)` instead of
+`(5, 5)`; replacing the fixture made it pass.
+
+### Gate outputs and discovery
+
+Outputs quoted below are the decisive lines; complete local transcripts are under
+`ai_tmp/verify-*.log`. Producer exit statuses were captured before filtering.
+
+```text
+$ .pixi/envs/default/bin/ruff --version
+ruff 0.17.2
+exit 0
+$ .pixi/envs/default/bin/mypy --version
+mypy 2.4.0 (compiled: yes)
+exit 0
+$ just py-lint
+All checks passed!
+89 files already formatted
+exit 0
+$ just py-typecheck
+Success: no issues found in 6 source files
+mypy.py:2: error: Incompatible types in assignment (expression has type "str", variable has type "int") [assignment]
+mypy.py:10: error: Argument 1 to "needs_integer" has incompatible type "str"; expected "int" [arg-type]
+exit 0 (these two findings are the required positive control)
+$ just py-test
+17 passed
+exit 0
+$ just py-stubtest
+Success: no issues found in 1 module
+exit 0
+$ just wheel-smoke
++ alliumpy==3.6.1
+allium 3.6.1 (language versions: 1, 2, 3)
+exit 0
+$ just version-check
+version-check: all five versions agree: 3.6.1
+exit 0
+$ .pixi/envs/default/bin/ruff check --show-files
+crates/alliumpy/python/alliumpy/__init__.py
+crates/alliumpy/python/alliumpy/_alliumpy.pyi
+crates/alliumpy/python/alliumpy/_cli.py
+crates/alliumpy/tests/test_parse.py
+scripts/version_check.py
+tests/fixtures/smoke/smoke.py
+exit 0 (repository prefix omitted; also lists TOML configuration files)
+$ .pixi/envs/default/bin/mypy -v
+LOG:  Found source:           BuildSource(path='crates/alliumpy/python/alliumpy/_alliumpy.pyi', module='alliumpy._alliumpy', has_text=False, base_dir='/Users/scutting/.supacode/repos/alliumpy/ticket/T03-python-gate/crates/alliumpy/python', followed=False)
+LOG:  Metadata fresh for alliumpy._alliumpy: file crates/alliumpy/python/alliumpy/_alliumpy.pyi
+exit 0
+allowlist non-comment entries: 0; empty-string regex matches: 0; validation exit 0
+force-exclude assignment: absent; ignore_missing_imports assignment: absent
+```
+
+Programmatic discovery compared every `.py`/`.pyi` under all four roots against
+ruff's output and rejected any positive-control path. Mypy checked all six source
+files; the worktree stub was explicitly present in verbose output. No source escapes.
+
+### Scratch-copy failures (claims 20 and 21)
+
+Each experiment saved the original in `ai_tmp/scratch/`, edited the real worktree
+file, and restored it in a `finally` block. `cmp` exited 0 for every restored file.
+Complete output is in `ai_tmp/experiments.log`; decisive output follows.
+
+```text
+remove F401 alone; just py-lint:
+py-lint: the positive control did not fire (exit 1 naming F401 and E501)
+exit 1
+remove E501 alone; just py-lint:
+py-lint: the positive control did not fire (exit 1 naming F401 and E501)
+exit 1
+real unused import in __init__.py; just py-lint:
+F401 `os` imported but unused
+crates/alliumpy/python/alliumpy/__init__.py
+exit 1
+remove both mypy fixture errors; just py-typecheck:
+py-typecheck: the positive control did not fire
+exit 1
+str assigned to int in test_parse.py; just py-typecheck:
+crates/alliumpy/tests/test_parse.py: error: Incompatible types in assignment
+exit 1
+delete col property from stub; just py-stubtest:
+error: alliumpy._alliumpy.Diagnostic.col is not present in stub
+exit 1
+add exact missing-col allowlist entry; just py-stubtest:
+Success: no issues found in 1 module
+exit 0
+restore col with allowlist entry still present; just py-stubtest:
+note: unused allowlist entry alliumpy._alliumpy.Diagnostic.col
+exit 1
+swap both fixture names in test_parse.py; just py-test:
+TestParsing.test_fixtures (fixture='broken.allium')
+AssertionError: assert [(5, 9, 'error', ...)] == []
+TestParsing.test_fixtures (fixture='ok.allium')
+AssertionError: assert [] == [(5, 9, 'error', ...)]
+exit 1
+```
+
+Claim 20 is proved in both directions for both gates; claim 21 is proved by the
+missing-property, exact-entry and unused-entry sequence. None failed because of a
+missing tool or environment.
+
+### Review checkpoints
+
+Checkpoint 1: fresh-context Codex subagents on `gpt-6-astra`, separate conformance
+and breakage lenses; separate triage subagent checked both findings. C1 valid:
+filtered evidence could hide a producer failure; status-first subprocess capture
+fixed it, mypy and ruff exited 0 independently. BR-1 valid: global S101/T201/INP001
+could hide package violations; scoped exceptions fixed it and triage reproduced
+package S101 and T201 errors. No high-severity findings; no second round required.
+
+The recipe rebuilds into emptied dist, requires exactly one existing wheel, installs
+into a fresh venv offline, and executes smoke with `-I`. Empty dist or two wheels fail
+its cardinality check. Fixtures never modify import search paths; isolated imports
+resolve the installed wheel. No frozen recipe fix or unignored generated path found.
+
+Checkpoint 2: fresh-context Codex reviewers on `gpt-6-astra`, separate lenses;
+separate triage. B2-01 and C2-1 valid duplicates: symmetric `(5, 5)` and `(1, 1)`
+locations let swapped line/column fields pass. Triage changed only the broken
+fixture's indentation and coordinate comment and the expected tuple/repr; the
+independent reference on the finished fixture now gives `(5, 9)`, error, same
+message, code null, exit 1; parse reports exactly one error, span 360..361, exit 1.
+This distinguishes swapped fields and duplicated coordinates. All scratch
+experiments and six Python/wheel gates were rerun successfully after this fix;
+original files restored with `cmp`. No high-severity finding, no extra round or
+hand-back needed. The conformance review's initial whole-ticket read inadvertently
+included the hand-back section; it disclosed that exposure and based its finding
+on source and raw evidence. The independent breakage review found the same defect.
+
+`review-change` is this repository's review skill; applied after implementation
+alongside the ticket's adversarial procedure. No frozen-file change was required.
+The first full run found only unformatted `ruff.toml`; taplo fixed that file.
+After triage, EditorConfig rejected six-space fixture indentation; eight spaces
+now satisfy its four-space rule and the independent reference confirms `(5, 9)`.
+A subsequent full run exited 0, ending with the line below. After the coordinate
+fix, the complete gate is rerun before commit; any failure blocks completion.
+
+```text
+$ just check
+All checks passed and the worktree is unchanged.
+exit 0
+```
+
+An additional `target/wheel-smoke/venv/bin/python -I` assertion checked both
+`alliumpy.__file__` and the native module's `__file__` are beneath the fresh venv:
+
+```text
+target/wheel-smoke/venv/lib/python3.14/site-packages/alliumpy/__init__.py
+target/wheel-smoke/venv/lib/python3.14/site-packages/alliumpy/_alliumpy.abi3.so
+exit 0 (absolute worktree prefix omitted)
+```
+
+No outstanding findings or hand-backs. Raw review, triage, reference and verification
+logs remain untracked in `ai_tmp/`. The committed tree receives a final `just check`
+and clean-status check; the final response identifies that tested commit.
 
 ## Open points
 

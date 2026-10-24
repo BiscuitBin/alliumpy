@@ -1,5 +1,5 @@
 # Copyright 2026 Steven Cutting
-"""Exercise the installed wheel with isolated Python."""
+"""Check parsing and version compatibility in the isolated installed wheel."""
 
 import pickle
 from pathlib import Path
