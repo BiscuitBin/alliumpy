@@ -2529,9 +2529,9 @@ Re-run after the fixes: self-tests `24 passed`; `ruff check`, `ruff format --che
   tables and `clippy.toml` are unchanged. Two gate configuration changes are stated by
   the gate ruling with their reasons: `rustqual.toml` gains `exclude_files` for the
   three vendored files, and `.editorconfig` lifts `indent_size` for the same three.
-  T13's own agent may change only its ticket's `status:` and hand-back notes, so before
-  T13 is picked up a pull request to `main` amends `tickets/T13-cli-in-the-wheel.md`'s
-  Files touched with these rows:
+  T13's own agent may change only its ticket's `status:` and hand-back notes, so, at the
+  maintainer's direction, this ticket's pull request amends
+  `tickets/T13-cli-in-the-wheel.md`'s Files touched with these rows:
 
   | Path | Class | Content |
   | --- | --- | --- |
@@ -2540,18 +2540,21 @@ Re-run after the fixes: self-tests `24 passed`; `ruff check`, `ruff format --che
   | `crates/alliumpy/tests/test_run_cli.py` | new | the `_run_cli` binding's own pytest case (S01 route step 5) |
   | `docs/decisions/0007-metrics-gate.md` | shared, own lines | one line pointing to 0014's `exclude_files` |
 
-  The same pull request can fix two lines in T13's Verification block that call bare
-  `python` from the agent's shell (the empty-corpus harness run and the
-  `env -u ALLIUMPY_SMOKE_BIN` pytest line): they need `.pixi/envs/default/bin/python`,
-  as S01's Verification block has. One question is the maintainer's: whether
-  `vendor_cli.py`, which generates the committed `src/cli/` files, is committed by T13
-  (as `scripts/vendor_cli.py`, which `ruff` and `mypy` would then gate) rather than left
-  to T17's runbook; S01 drafts it as a scratch script in `ai_tmp/` and hands the choice
-  to T17.
-- **To T13.** The drafted steps above. Its Files touched gains the rows under "To the
+  The same amendment names that content in T13's steps 4 (the two configuration sections
+  and `test_run_cli.py` among what the route's steps end with), 5 (the three edges under
+  "Rulings", with the SIGINT case's timing as S01 measured it) and 9 (0007's line), adds
+  the three edges to the `test_cli.py` row, names the new `src/cli.rs` and `src/cli/`
+  files in the `crates/alliumpy-core/**` row, and fixes two lines in T13's Verification
+  block that called bare `python` from the agent's shell (the empty-corpus harness run
+  and the `env -u ALLIUMPY_SMOKE_BIN` pytest line): they now name
+  `.pixi/envs/default/bin/python`, as S01's Verification block does. One question is the
+  maintainer's: whether `vendor_cli.py`, which generates the committed `src/cli/` files,
+  is committed by T13 (as `scripts/vendor_cli.py`, which `ruff` and `mypy` would then
+  gate) rather than left to T17's runbook; S01 drafts it as a scratch script in
+  `ai_tmp/` and hands the choice to T17.
+- **To T13.** The drafted steps above. Its Files touched holds the rows under "To the
   maintainer" (`test_run_cli.py` is separate from `test_cli.py` because T13's
-  `test_cli.py` imports nothing from `alliumpy`); if they are absent when T13 opens, T13
-  stops at step 4 and hands back. Its corpus gains the attributed
+  `test_cli.py` imports nothing from `alliumpy`). Its corpus gains the attributed
   cross-module pair the design names; if T13 also adds a broken-import file there,
   `alliumpy/` sorts before `crates/` and becomes the named positive control (S01's
   supplementary run named `alliumpy/xmod/app/broken_import.allium`), so T13's quoted
@@ -2611,6 +2614,16 @@ Re-run after the fixes: self-tests `24 passed`; `ruff check`, `ruff format --che
 - One `cat`/`wc` read ran with `ai_tmp/upstream/` as the working directory; nothing was
   executed from it.
 - The `/dev/full` case is not measured (macOS).
+- After the pull request opened, the maintainer directed that it also amend
+  `tickets/T13-cli-in-the-wheel.md` (the four Files touched rows and the edits under
+  "Handed back"), rather than a separate pull request to `main`; this ticket's Files
+  touched, Goal and `git status --porcelain` criterion name only this file. The
+  amendment changes ticket text only, so the Verification block below was not rerun (the
+  prototype worktrees were already removed); `just check` was rerun on the amended tree
+  and is quoted at the end of Verification, headed by that state. A two-lens review of
+  the amendment (one finder per lens, two skeptics per finding) found two valid
+  findings, one medium and one low, both fixed: this bullet claimed a quote that did not
+  yet exist, and T13 step 5 did not say how S01 timed the SIGINT case.
 
 ### Open points settled
 
@@ -2668,6 +2681,16 @@ negative control: candidate forced to exit 0, check <corpus>/crates/allium-parse
 `parity-reference`. `just check`, last line:
 
 ```text
+All checks passed and the worktree is unchanged.
+```
+
+After the T13 amendment (Deviations), at `fdf12f4` with uncommitted changes (this file
+and `tickets/T13-cli-in-the-wheel.md`), `git status --short`, then `just check`'s last
+line:
+
+```text
+ M tickets/S01-cli-strategy-spike.md
+ M tickets/T13-cli-in-the-wheel.md
 All checks passed and the worktree is unchanged.
 ```
 
