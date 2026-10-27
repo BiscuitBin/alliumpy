@@ -51,8 +51,8 @@ the repository pin. Remove an unintended override before running the gate.
 A ruff run over nothing can pass, so py-lint requires the package in `--show-files`.
 Its fixture must exist and fail with status 1 naming both F401 and E501; a tool error or
 a different rule is insufficient. mypy's deliberate assignment error must return 1,
-rather than status 2 for a usage error. stubtest's allowlist stays short: each entry
-hides a discrepancy. T03 reviews it and tests a deliberate stub error.
+rather than status 2 for a usage error. stubtest's allowlist is empty: each entry
+would hide a discrepancy, and a deliberate stub error fails py-stubtest.
 
 The wheel smoke empties dist, requires one real wheel and installs only that artefact
 with offline, no-index and no-deps flags. Python runs with `-I`. The core's small
@@ -76,17 +76,16 @@ own environment cannot find shellcheck. Review multi-line workflow shell explici
 
 ## Continuous integration
 
-T01 replaces the foundation's one-job workflow with six gate jobs: `rust`, `python`,
-`wheel-smoke-py311`, `coverage`, `deny` and `documents`. The aggregate `check` job must
-fail if any dependency fails, is cancelled or skipped. The Python job uploads the Linux
-wheel and the Python 3.11 job installs that same artefact. The Rust job runs test where
-the local aggregate runs test-doc and coverage. These are the designed T01 job names;
-T11 reconciles them with the merged workflow.
+CI runs six gate jobs: `rust`, `python`, `wheel-smoke-py311`, `coverage`, `deny` and
+`documents`. The aggregate `check` job fails if any dependency fails, is cancelled or
+skipped. The Python job uploads the Linux wheel and the Python 3.11 job installs that
+same artefact. The Rust job runs test where the local aggregate runs test-doc and
+coverage.
 
 Audit and online links need network services and sit outside the gate. Pages also sits
-outside it: a deployment failure blocks no merge, and deployment runs only for main on
-a public repository. Branch protection depends on visibility and plan; this page does
-not claim the initially private free-plan repository already has it.
+outside it: a deployment failure blocks no merge, and deployment runs only for main
+while the repository is public (`github.event.repository.private == false`). The
+repository is public, and branch protection on main requires the `check` job alone.
 
 ## Related pages
 
