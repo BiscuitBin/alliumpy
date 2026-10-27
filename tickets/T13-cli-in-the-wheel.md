@@ -72,8 +72,11 @@ whole `--version` string; decision 0014 is landed; the pages say what exists.
 | `crates/alliumpy/python/alliumpy/_cli.py` | final | the route's shim, POSIX and Windows branches |
 | `crates/alliumpy/python/alliumpy/_alliumpy.pyi`, `__init__.py` | shared, own lines | whatever the route exposes (for example `_run_cli`) |
 | `crates/alliumpy/LICENSE-allium-tools` | shared, own lines | the header paragraph's route sentence: which upstream version's code and fixtures the wheel carries and under which route (`CONVENTIONS.md` §9 "Licences"; T00 wrote it as pending S01) |
-| `crates/alliumpy/tests/test_cli.py` | new | exit codes 0, 1 and 2 by fixture, `-V`, broken pipe, flush order |
-| `crates/alliumpy-core/**`, `crates/alliumpy/src/lib.rs`, `Cargo.toml` | shared, own lines | the route's Rust, if any (route-specific steps) |
+| `crates/alliumpy/tests/test_cli.py` | new | exit codes 0, 1 and 2 by fixture, `-V`, broken pipe, flush order, an argument that is not UTF-8, a closed stdout, SIGINT |
+| `crates/alliumpy/tests/test_run_cli.py` | new | the `_run_cli` binding's own pytest case (S01 route step 5) |
+| `crates/alliumpy-core/**`, `crates/alliumpy/src/lib.rs`, `Cargo.toml` | shared, own lines | the route's Rust, if any (route-specific steps; under route (a), the new `crates/alliumpy-core/src/cli.rs` and the three vendored files under `crates/alliumpy-core/src/cli/` of S01 route steps 2 and 3) |
+| `rustqual.toml` | shared, own lines | `exclude_files` for the three vendored files (S01 route step 4; decision 0014) |
+| `.editorconfig` | shared, own lines | `indent_size = unset` for the three vendored files (S01 route step 4; decision 0014) |
 | `Cargo.lock` | shared, regenerated | by cargo, after the rebase, if the route adds a dependency (`CONVENTIONS.md` §11) |
 | `crates/alliumpy/pyproject.toml` | shared, own lines | a `[tool.maturin]` key, only if the route's drafted steps need one (`CONVENTIONS.md` §2); `[project]` untouched |
 | `Justfile` | shared, own lines | `install-parity-reference`, `parity`; `allium check` in `wheel-smoke`; the `coverage` scope line only if S01's gate ruling says so |
@@ -83,6 +86,7 @@ whole `--version` string; decision 0014 is landed; the pages say what exists.
 | `.github/workflows/ci.yml` | shared, own lines | the `parity` job; `check`'s `needs`; one `allium check` line in `wheel-smoke-py311` |
 | `docs/decisions/0014-cli-strategy.md` | stub -> final | S01's draft |
 | `docs/decisions/README.md` | shared, own lines | 0014's row |
+| `docs/decisions/0007-metrics-gate.md` | shared, own lines | one line pointing to 0014's `exclude_files` |
 | `docs/explanation/architecture.md`, `docs/how-to/install-and-run.md`, `docs/reference/commands.md`, `docs/reference/testing.md`, `docs/reference/quality-gates.md` | shared, own lines | the command, the two recipes, the parity test |
 | `docs/explanation/quality-philosophy.md`, `docs/explanation/security-model.md` | shared, own lines | parity and the reference in the present tense (T07 named them as arriving with T13) |
 | `CHANGELOG.md` | shared, own lines | one `[Unreleased]` line |
@@ -166,13 +170,14 @@ whole `--version` string; decision 0014 is landed; the pages say what exists.
    S01, route <letter>)`, then execute them. They end with `_cli.py` final, the
    `__init__.py` and `.pyi` lines the route needs, the Rust the route needs (vendored
    modules with attribution, `serde` and `serde_json` with the decision-0004 notes, and
-   the Rust unit tests or `coverage` scope line and the `#[expect]` attributes S01's gate
-   ruling names, under (a); the binary as package data and its executable bit under (b);
-   the dependency bump under (c)), and `just check` green. If a step cannot be executed
-   as drafted, stop and hand back: the fix is a pull request to `main` amending S01's
-   drafted steps in `tickets/S01-cli-strategy-spike.md`, never another route chosen
-   here. A red `clippy`, `metrics` or `coverage` gate on
-   the vendored code that the ruling did not foresee is such a step.
+   the Rust unit tests or `coverage` scope line, the `#[expect]` attributes and the
+   `rustqual.toml` and `.editorconfig` sections S01's gate ruling names, and the
+   binding's `test_run_cli.py`, under (a); the binary as package data and its executable
+   bit under (b); the dependency bump under (c)), and `just check` green. If a step
+   cannot be executed as drafted, stop and hand back: the fix is a pull request to
+   `main` amending S01's drafted steps in `tickets/S01-cli-strategy-spike.md`, never
+   another route chosen here. A red `clippy`, `metrics` or `coverage` gate on the
+   vendored code that the ruling did not foresee is such a step.
 
 5. **The behaviours beyond the corpus.** `crates/alliumpy/tests/test_cli.py`, through
    `subprocess` against the smoke venv's `allium` (the test takes the path from an
@@ -188,7 +193,15 @@ whole `--version` string; decision 0014 is landed; the pages say what exists.
    head -c 1` ends with the exit status and stderr S01 recorded for the reference, and
    never a Python traceback; writing to `/dev/full` ends as the reference does on Linux
    (the test carries `@pytest.mark.skipif(sys.platform != "linux", reason=...)` because
-   `/dev/full` does not exist on macOS, and runs in the `parity` CI job); when both
+   `/dev/full` does not exist on macOS, and runs in the `parity` CI job); an argument
+   that is not UTF-8, stdout closed (`>&-`) and SIGINT during a blocked read each end as
+   S01 recorded for the reference, never with a Python traceback (the SIGINT case runs
+   `check` on a FIFO made with `os.mkfifo` under `tmp_path` and sends the signal 2 s
+   after the child starts, as S01 did, because `_cli.py` restores `SIG_DFL` only once
+   `main()` runs and an earlier signal meets Python's handler and its traceback; the
+   child must end within 6 s of the signal with `returncode == -signal.SIGINT` and empty
+   stderr, and the test opens the FIFO for writing in a `finally` so that a child that
+   survives is released); when both
    streams are written, their order on a pseudo-terminal matches the reference's (S01's
    finding). Each expectation cites the S01 note it comes from. The module imports
    nothing from `alliumpy`: the `parity` recipe and its CI job never run `py-develop`, so
@@ -266,8 +279,9 @@ whole `--version` string; decision 0014 is landed; the pages say what exists.
 
 9. **The record and the pages.** `docs/decisions/0014-cli-strategy.md` from S01's draft
    (replacing T00's stub; frontmatter equal to the manifest entry); 0014's row in
-   `docs/decisions/README.md`; the pages in Files touched, own lines; the `CHANGELOG.md`
-   line. `just check-docs`.
+   `docs/decisions/README.md`; in `docs/decisions/0007-metrics-gate.md`, one line
+   pointing to 0014's `exclude_files`; the pages in Files touched, own lines; the
+   `CHANGELOG.md` line. `just check-docs`.
 
 10. `just check`, then the final adversarial review, `just check` again if fixes landed,
     then commit.
@@ -326,11 +340,11 @@ just install-parity-reference
 just wheel-smoke; echo "exit $?"
 target/wheel-smoke/venv/bin/allium --version; echo "exit $?"
 just parity; echo "exit $?"
-mkdir -p ai_tmp/empty-corpus && python -I tests/parity/run.py --reference "$PWD/.tools/parity/bin/allium" --candidate "$PWD/target/wheel-smoke/venv/bin/allium" --corpus ai_tmp/empty-corpus; echo "exit $?"   # must be nonzero, with the harness's empty-corpus message, not a missing directory or an identical candidate
+mkdir -p ai_tmp/empty-corpus && .pixi/envs/default/bin/python -I tests/parity/run.py --reference "$PWD/.tools/parity/bin/allium" --candidate "$PWD/target/wheel-smoke/venv/bin/allium" --corpus ai_tmp/empty-corpus; echo "exit $?"   # must be nonzero, with the harness's empty-corpus message, not a missing directory or an identical candidate
 just version-check; echo "exit $?"
 cp crates/alliumpy-core/src/lib.rs ai_tmp/lib.rs.orig && sed -i.bak 's/language versions: 1/language versions: 9/' crates/alliumpy-core/src/lib.rs && just version-check; echo "exit $?"   # must be nonzero; adapt the pattern if the string is derived
 mv ai_tmp/lib.rs.orig crates/alliumpy-core/src/lib.rs && rm -f crates/alliumpy-core/src/lib.rs.bak && just version-check; echo "exit $?"   # must be 0 again
-env -u ALLIUMPY_SMOKE_BIN python -m pytest crates/alliumpy/tests/test_cli.py -rs; echo "exit $?"   # exit 0; every line is SKIPPED with the reason: ALLIUMPY_SMOKE_BIN unset; run just parity
+env -u ALLIUMPY_SMOKE_BIN .pixi/envs/default/bin/python -m pytest crates/alliumpy/tests/test_cli.py -rs; echo "exit $?"   # exit 0; every line is SKIPPED with the reason: ALLIUMPY_SMOKE_BIN unset; run just parity
 just --evaluate PATH; echo "exit $?"   # must print the PATH and exit 0: the positive control for the next line
 just --evaluate PATH | tr ':' '\n' | grep parity; echo "exit $?"   # must be 1: the reference root is off PATH
 rg -n 'from T13' AGENTS.md .agents; echo "exit $?"   # must be 1
@@ -339,6 +353,10 @@ find tests/fixtures/parity -name '*.allium' -empty | wc -l   # must be 0
 gh pr checks <number> --repo BiscuitBin/alliumpy
 just check
 ```
+
+The empty-corpus harness line and the `env -u` pytest line name the worktree's pixi
+interpreter by path because they run from the agent's shell, where nothing puts `python`
+on `PATH`; inside `just parity` the bare `python` is the same interpreter.
 
 ## Hand-back notes
 
