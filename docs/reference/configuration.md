@@ -67,7 +67,7 @@ stay on the recipe.
 | `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md` | Canonical agent instructions and fixed adapters. |
 | `.agents/skills/`, `.claude/skills/`, `.codex/skills/` | Seven canonical procedures and fourteen fixed bridges. |
 | `.github/actions/setup/action.yml` | T01's shared pinned setup and cache preparation. |
-| `.github/workflows/ci.yml` | CI gate layout; T01 replaces the foundation stub. |
+| `.github/workflows/ci.yml` | CI gate layout: six gate jobs and the required `check` aggregate. |
 | `.github/workflows/audit.yml`, `.github/workflows/pages.yml` | T01's scheduled advisory checks and conditional API deployment. |
 
 ### Planned configuration
@@ -83,10 +83,12 @@ These files are assigned by the repository plan and do not exist yet:
 
 ### The lint tables
 
-The core opts into `[workspace.lints]`. The binding owns a copy under its own `[lints]`
-tables because a member cannot lower a workspace forbid for macro output. Both keep
-`unsafe_code = "forbid"`. T02 settles any documented pyo3 macro exceptions there,
-without weakening the core. Pedantic and cargo groups warn; clippy turns warnings into
+The core opts into `[workspace.lints]`. The binding keeps an equal copy under its own
+`[lints]` tables, because Cargo cannot combine workspace lint inheritance with member
+overrides. Both keep `unsafe_code = "forbid"` and `missing_docs = "warn"`. No pyo3 macro
+exception is needed on Rust 1.99.1 and pyo3 0.30.1; a future exception needs a `warn`
+probe naming the pyo3 macro that emits it, and must not hide a diagnostic on a
+hand-written line. Pedantic and cargo groups warn; clippy turns warnings into
 errors. Missing public documentation, exhaustive public types, panic-prone production
 calls and undocumented suppression are checked. At call sites use
 `#[expect(lint, reason = "...")]`, so an obsolete suppression warns itself.
