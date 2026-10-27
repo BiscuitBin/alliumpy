@@ -34,7 +34,7 @@ for phrases the validator requires but this repository does not otherwise use; t
 The gate is the same gate the other house repositories run, from the same pinned
 package. A fix to a checker arrives as a pin move rather than a local fork. Both
 contracts are enforced mechanically from the foundation, which lets later lanes replace
-registered stubs under a green gate.
+registered pages, records and skills under a green gate.
 
 The cost is a Python tooling environment even for a Rust-only edit, and interim agent
 contract wording for a checker shared with other stacks. Python is also the delivered
