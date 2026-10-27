@@ -71,7 +71,8 @@ A snapshot has two purposes and no other:
 A snapshot never verifies correctness. The first one records what the code printed
 that day, not an independently proved answer. Each behaviour keeps its own asserting
 test. Add snapshots after those tests are green, never as the red test in a TDD loop.
-The insta dependency arrives with the first snapshot; no snapshot harness exists yet.
+No snapshot harness exists yet; the first ticket that takes a snapshot adds the insta
+dependency with its decision-0004 note.
 
 Use `snapshot_` names and fixed inputs. Render pictures from public values in test code;
 add no production API just to feed a snapshot. Small values can use Debug or a serialized
