@@ -12,16 +12,15 @@ The API reference comes from both crates' rustdoc, built from main. T01 supplies
 Pages workflow under `.github/workflows/pages.yml`. The build uploads `target/doc`;
 nothing is committed to a deployment branch.
 
-The expected project address is <https://biscuitbin.github.io/alliumpy/>. Confirm it
-with `gh api repos/BiscuitBin/alliumpy/pages --jq .html_url` once Pages exists.
-This handbook does not claim a site has been deployed.
+The project address is <https://biscuitbin.github.io/alliumpy/>; read it back with
+`gh api repos/BiscuitBin/alliumpy/pages --jq .html_url`. The site is deployed from main.
 
 ## One-time setup
 
 Read the repository visibility and organisation plan before changing settings.
-The repository starts private on a free organisation plan, where Pages is unavailable.
-T01 resolves this with the maintainer; changing visibility or plan needs separate
-authorization. The deploy job must run only for main when the repository is public.
+On a free organisation plan Pages needs a public repository. The maintainer made the
+repository public on 2026-10-24 (T01); changing visibility or plan needs separate
+authorization. The deploy job runs only for main while the repository is public.
 A skipped deployment on a private repository is expected.
 
 When visibility permits, set the Pages source to GitHub Actions and restrict the
