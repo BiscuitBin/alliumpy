@@ -40,8 +40,8 @@ here, which stays until the tooling package makes the list configurable.
 
 ## What a skill must be
 
-This repository carries seven canonical house skills with fourteen bridges. T05 replaces
-the foundation procedure stubs. The expected triggers are:
+This repository carries seven canonical house skills with fourteen bridges, and
+`AGENTS.md` routes to them through its task blocks. Their triggers are:
 
 | Skill | Trigger |
 | --- | --- |
