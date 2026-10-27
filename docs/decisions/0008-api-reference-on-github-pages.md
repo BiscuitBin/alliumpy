@@ -14,8 +14,9 @@ Carried from pachinko's decision 0013 at `bf51e0d`, which carried libpawdoku's d
 
 The API reference is the one rustdoc generates, and reading it locally takes a clone and
 `just doc`. Both crates are `publish = false`, so docs.rs holds nothing. The repository
-is private. On a free organisation plan, Pages needs public visibility; a suitable paid
-plan is the alternative. T01 must resolve that with the maintainer first.
+started private. On a free organisation plan, Pages needs public visibility; a suitable
+paid plan is the alternative. T01 put that to the maintainer, who made the repository
+public on 2026-10-24, and Pages now deploys from `main`.
 
 ## Decision
 
