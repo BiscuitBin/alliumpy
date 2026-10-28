@@ -37,8 +37,8 @@ until evidence supports a decision.
 | [0014](0014-cli-strategy.md) | How the `allium` command gets into the wheel |
 
 Records 0015, 0016 and 0017 are written by T14, T15 and T17 respectively, which register
-their new pages and add rows when those decisions are taken. Record 0014 remains S01's
-draft for T13 to land; this lane leaves its stub untouched.
+their new pages and add rows when those decisions are taken. S01 drafted record 0014,
+and T13 lands it in place of the stub.
 
 ## The numbering
 

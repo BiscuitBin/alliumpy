@@ -47,9 +47,9 @@ outside stable llvm-cov's floor, so core unit tests also exercise the conversion
 ## Hosted reference
 
 `just site` empties target/doc, runs doc and writes an index linking both crates.
-The expected Pages address is <https://biscuitbin.github.io/alliumpy/>; confirm it once
-Pages exists. Deployment is conditional on public visibility and main, and does not
-establish that a PyPI release exists. Both Cargo crates are `publish = false`; crates.io
+The reference is published at <https://biscuitbin.github.io/alliumpy/>. Deployment
+runs for main while the repository is public, and does not establish that a PyPI release
+exists. Both Cargo crates are `publish = false`; crates.io
 and docs.rs publication are not targets.
 
 ## What the core API promises

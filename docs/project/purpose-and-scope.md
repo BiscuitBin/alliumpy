@@ -25,7 +25,8 @@ upstream command behaviour. T14 publishes the first wheel to PyPI.
 This repository does not define the Allium language, reinterpret parser results or
 maintain a competing parser. Upstream decides behaviour; a difference is a defect here
 unless a decision record says otherwise. The handbook documents packaging and engineering,
-rather than teaching the language. A source distribution ruling remains with S01.
+rather than teaching the language. S01 recommends keeping the source distribution;
+T13 records decision 0014.
 
 ## Who it is for
 

@@ -21,7 +21,7 @@ Allium term, upstream is right and this glossary is corrected.
 | Bindings crate | `alliumpy`, the thin pyo3 Cargo member; use bindings crate, not Python package. |
 | Python package | The importable `alliumpy` tree; use package, not crate, for Python imports. |
 | Wheel | The built `.whl` installation artefact; use wheel, not sdist or binary, for it. |
-| Sdist | A source distribution requiring a build; use sdist, not wheel; S01's shipping ruling is pending. |
+| Sdist | A source distribution requiring a build; use sdist, not wheel; S01 recommends shipping it (decision 0014, T13). |
 | abi3 | CPython's stable ABI used from the declared Python floor; use abi3, not universal, for its compatibility. |
 | Console script | The installed `allium` entry point; use command or console script, not package name, when invoking it. |
 | Upstream | `juxt/allium-tools`, which defines parser and command behaviour; use upstream, not this repository, for that authority. |
