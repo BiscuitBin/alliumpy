@@ -25,13 +25,13 @@ snapshot.
 
 | Id | Title | File | Depends on | Parallel with | Status |
 | --- | --- | --- | --- | --- | --- |
-| T00 | Foundation: a shape-complete skeleton that passes `just check` and builds a wheel on its first commit | `T00-foundation.md` | none | none | open |
-| T01 | GitHub repository and CI: settings, branch protection, workflows, the abi3 floor | `T01-github-and-ci.md` | T00 | T02, T03, T05, T07, S01 | open |
-| T02 | Rust quality gate: tool configs, the bindings crate's lint table, metrics | `T02-rust-gate.md` | T00 | T01, T03, T05, T07, S01 | open |
-| T03 | Python quality gate: ruff, mypy, the stub, pytest, the smoke fixtures | `T03-python-gate.md` | T00 | T01, T02, T05, T07, S01 | open |
-| S01 | Spike: how the `allium` command gets into the wheel, with a parity harness | `S01-cli-strategy-spike.md` | T00 | T01, T02, T03, T05, T07 | open |
-| T05 | Agent contract: AGENTS.md, seven house skills, the bridges | `T05-agent-contract.md` | T00 | T01, T02, T03, T07, S01 | open |
-| T07 | Handbook: every page, and decision records 0001 to 0013 | `T07-handbook.md` | T00 | T01, T02, T03, T05, S01 | open |
+| T00 | Foundation: a shape-complete skeleton that passes `just check` and builds a wheel on its first commit | `T00-foundation.md` | none | none | done |
+| T01 | GitHub repository and CI: settings, branch protection, workflows, the abi3 floor | `T01-github-and-ci.md` | T00 | T02, T03, T05, T07, S01 | done |
+| T02 | Rust quality gate: tool configs, the bindings crate's lint table, metrics | `T02-rust-gate.md` | T00 | T01, T03, T05, T07, S01 | done |
+| T03 | Python quality gate: ruff, mypy, the stub, pytest, the smoke fixtures | `T03-python-gate.md` | T00 | T01, T02, T05, T07, S01 | done |
+| S01 | Spike: how the `allium` command gets into the wheel, with a parity harness | `S01-cli-strategy-spike.md` | T00 | T01, T02, T03, T05, T07 | done |
+| T05 | Agent contract: AGENTS.md, seven house skills, the bridges | `T05-agent-contract.md` | T00 | T01, T02, T03, T07, S01 | done |
+| T07 | Handbook: every page, and decision records 0001 to 0013 | `T07-handbook.md` | T00 | T01, T02, T03, T05, S01 | done |
 | T11 | Integration: the first green `just check` from a fresh clone and in CI, protection read back | `T11-integration.md` | T01, T02, T03, T05, T07, S01 | none | open |
 | T13 | The `allium` command in the wheel: S01's decision built, with parity proved | `T13-cli-in-the-wheel.md` | S01, T11 | T15 | open |
 | T12 | Maintainer docs: README, CHANGELOG, SECURITY, the crate READMEs | `T12-maintainer-docs.md` | T11, T13 | T15 | open |
