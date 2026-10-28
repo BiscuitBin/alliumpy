@@ -23,6 +23,15 @@ every finding below lands in a profile under `src/docmirror/config/profiles.py`.
 | `https://developers.google.com/workspace/gmail/api/guides.md.txt` | `200`, 5 KB of Markdown: the oracle for devsite pages works. |
 | `https://learn.microsoft.com/api/mcp` | `200` to a JSON-RPC `tools/list` POST: the Learn MCP oracle is reachable. |
 
+## Oracles
+
+Learn's MCP endpoint answers a JSON-RPC `tools/call` of `microsoft_docs_fetch` with the
+page as Markdown in an SSE body, CRLF-terminated, with every tab panel's code sample as
+a fence. devsite's `<page>.md.txt` is Markdown with YAML frontmatter and code samples as
+four-space-indented blocks, split by blank lines. The oracle test normalizes line endings
+and strips both fenced and indented code before the token-recall comparison; with that,
+every one of the twenty oracle pages scores at least 0.95 and most score 0.99.
+
 ## JavaScript-rendered candidates for the escalation test
 
 Probed without JavaScript, these serve an empty shell: `https://redocly.github.io/redoc/`

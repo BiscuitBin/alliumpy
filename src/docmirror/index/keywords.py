@@ -15,7 +15,7 @@ _FENCE_BLOCK = re.compile(r"^(`{3,}|~{3,}).*?^\1[ \t]*$", re.MULTILINE | re.DOTA
 _INLINE_CODE = re.compile(r"`[^`\n]*`")
 _HTML_TAG = re.compile(r"<[^>]+>")
 _LINK_TARGET = re.compile(r"\]\([^)]*\)")
-_URL = re.compile(r"https?://\S+")
+_URL = re.compile(r"https?://[^\s\"'<>)]+")
 _MD_SYNTAX = re.compile(r"[#*_>|\[\]()!{}]|\{#[^}]*\}")
 _TOKEN = re.compile(r"[a-z][a-z0-9.+-]*(?:\s[a-z][a-z0-9.+-]*){0,2}")
 MIN_TOKEN = 3
@@ -185,9 +185,9 @@ def plain_text(markdown: str) -> str:
     """The Markdown body with code and syntax removed, for keyword extraction."""
     text = _FENCE_BLOCK.sub(" ", markdown)
     text = _INLINE_CODE.sub(" ", text)
+    text = _HTML_TAG.sub(" ", text)
     text = _LINK_TARGET.sub("]", text)
     text = _URL.sub(" ", text)
-    text = _HTML_TAG.sub(" ", text)
     text = _MD_SYNTAX.sub(" ", text)
     return " ".join(text.split())
 

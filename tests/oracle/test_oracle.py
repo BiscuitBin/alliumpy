@@ -44,8 +44,23 @@ DEVSITE_PAGES = [
 MIN_RECALL = 0.95
 
 
+_INDENTED_CODE = re.compile(r"(?:^|\n)\n((?:(?: {4}|\t).*\n?)+)")
+
+
+def _oracle_text(markdown: str) -> str:
+    """The oracle's prose: LF line endings, fenced and indented code removed."""
+    text = markdown.replace("\r\n", "\n")
+    while True:
+        # Blank lines inside an indented block split it into chunks; strip until none is left.
+        stripped = _INDENTED_CODE.sub("\n\n", text)
+        if stripped == text:
+            break
+        text = stripped
+    return plain_text(text)
+
+
 def _recall(oracle_markdown: str, ours: str) -> float:
-    needed = words(plain_text(oracle_markdown))
+    needed = words(_oracle_text(oracle_markdown))
     have: dict[str, int] = {}
     for token in words(plain_text(ours)):
         have[token] = have.get(token, 0) + 1
