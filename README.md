@@ -158,7 +158,7 @@ the highest tier does no better. No proxies, no CAPTCHA services, no paid unbloc
 
 ## What is lossy
 
-Measured against the 39 captured fixture pages and the 200-page acceptance crawls; see
+Measured against the 40 captured fixture pages and the 200-page acceptance crawls; see
 `docs/site-notes.md` for the site-by-site record.
 
 - **Complex tables stay HTML.** A table with `rowspan`, `colspan` or block content in a
@@ -174,6 +174,11 @@ Measured against the 39 captured fixture pages and the 200-page acceptance crawl
   `interactive_omitted`.
 - **Images are not downloaded.** Alt text and absolute image URLs are kept; an empty
   `alt` borrows the title or figure caption.
+- **Fallback extraction loses extension-less images.** When no profile selector
+  matches and Trafilatura takes over, an `<img>` whose URL does not look like an image
+  file keeps its place but loses its source; the `images` gate reports it.
+- **Header-less tables stay HTML.** A pipe table needs a header row, so a table with
+  none, or with row headers down the first column, is kept as HTML.
 - **Generated panels are stripped.** devsite's "Page Summary" takeaways panel and Learn's
   "Summarize this article" controls are chrome, not content.
 - **Heading anchors are an extension.** `## Heading {#id}` preserves the source id in a

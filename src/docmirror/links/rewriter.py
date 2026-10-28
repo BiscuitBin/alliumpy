@@ -9,11 +9,12 @@ anchors.
 
 from __future__ import annotations
 
+import html
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import unquote, urljoin, urlsplit
 
 from docmirror.convert.frontmatter import body_sha256, render_frontmatter, split_frontmatter
 from docmirror.links.paths import relative_path
@@ -111,6 +112,7 @@ class LinkRewriter:
         if target.startswith(("mailto:", "tel:", "javascript:", "data:")):
             return target
         if target.startswith("#"):
+            self._check_fragment(current, target[1:], outcome, target)
             return target
         parts = urlsplit(target)
         if not parts.scheme:
@@ -134,7 +136,9 @@ class LinkRewriter:
         if alias:
             normalized = alias
         if normalized == current.normalized_url:
-            outcome.links.append((normalized, fragment, "internal", current.path))
+            # A self-link is no edge of the graph, exactly as a bare `#fragment` is not,
+            # so the counts do not change once it has been rewritten to one.
+            self._check_fragment(current, fragment, outcome, target)
             return f"#{fragment}" if fragment else target
         known = self.by_url.get(normalized)
         if known is not None and not known.tombstoned:
@@ -152,7 +156,7 @@ class LinkRewriter:
     def _check_fragment(
         self, known: PageRow, fragment: str, outcome: RewriteOutcome, target: str
     ) -> None:
-        if fragment and fragment not in self.anchors_of(known):
+        if fragment and not has_anchor(self.anchors_of(known), fragment):
             outcome.flags.add("unresolved_fragment")
             outcome.broken.append((target, f"fragment #{fragment} not found in {known.path}"))
 
@@ -198,6 +202,27 @@ class LinkRewriter:
             )
             out.append(rewritten)
         return "\n".join(out), outcome
+
+
+def _canonical(fragment: str) -> str:
+    return html.unescape(unquote(fragment))
+
+
+def has_anchor(anchors: set[str], fragment: str) -> bool:
+    """Whether a page carries the fragment, as written, percent-decoded or HTML-unescaped.
+
+    A javadoc anchor holds spaces and angle brackets: the href carries `%20` and
+    `&lt;`, the heading suffix carries the raw characters.
+
+    >>> has_anchor({"apply(a, b)"}, "apply(a,%20b)")
+    True
+    >>> has_anchor({"get(Optional<Q>)"}, "get(Optional&lt;Q&gt;)")
+    True
+    """
+    if fragment in anchors:
+        return True
+    wanted = _canonical(fragment)
+    return any(_canonical(anchor) == wanted for anchor in anchors)
 
 
 def _join_path(current_path: str, relative: str) -> str:

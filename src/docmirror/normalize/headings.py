@@ -28,6 +28,35 @@ def _lift_container_ids(content: html.HtmlElement) -> None:
             first.set("id", identifier)
 
 
+def _named_anchors(content: html.HtmlElement, anchors: list[str], islands: Islands) -> None:
+    """Keep the id of an `<a name>`/`<a id>` without href: a javadoc-style anchor.
+
+    The anchor directly before an id-less heading lends it its id; any other travels
+    as an empty `<a id>` island, since every converter drops a link without href.
+    """
+    for anchor in list(content.iter("a")):
+        if anchor.get("href"):
+            continue
+        identifier = anchor.get("id") or anchor.get("name")
+        if not identifier:
+            continue
+        anchors.append(identifier)
+        following = anchor.getnext()
+        if (
+            following is not None
+            and following.tag in HEADINGS
+            and not following.get("id")
+            and not anchor.text_content().strip()
+        ):
+            following.set("id", identifier)
+            anchor.drop_tree()
+            continue
+        anchor.tag = "span"
+        for name in list(anchor.attrib):
+            del anchor.attrib[name]
+        anchor.text = islands.register(f'<a id="{identifier}"></a>') + (anchor.text or "")
+
+
 def normalize_headings(
     content: html.HtmlElement,
     profile: Profile,
@@ -39,6 +68,7 @@ def normalize_headings(
 ) -> None:
     """Emit `{#id}` (attr style) or an `<a id>` before (inline style); demote to keep one H1."""
     _lift_container_ids(content)
+    _named_anchors(content, anchors, islands)
     headings = list(content.iter(*HEADINGS))
     h1s = [h for h in headings if h.tag == "h1"]
     if not h1s and title:

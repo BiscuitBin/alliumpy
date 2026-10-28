@@ -112,6 +112,8 @@ def test_code_language_sources_and_aliases() -> None:
     assert detect_language(pre, PROFILE.code_lang_attrs) == "bash"
     pre = html.fromstring('<pre>{"kind": "x"}</pre>')
     assert detect_language(pre, PROFILE.code_lang_attrs) == "json"
+    pre = html.fromstring("<pre>node .</pre>")
+    assert detect_language(pre, PROFILE.code_lang_attrs) == "bash"
 
 
 def test_code_block_keeps_whitespace_and_strips_gutters_and_links() -> None:
@@ -164,6 +166,28 @@ def test_complex_table_is_sanitized_html() -> None:
     assert counts["table_cells"] == 2
 
 
+def test_single_row_headerless_table_stays_html() -> None:
+    fragment = "<table><tr><td><a href='/i'>Impl</a></td><td>Description</td></tr></table>"
+    out = run(fragment)
+    assert out.startswith("<table>")
+    assert counts_of(fragment)["html_tables"] == 1
+
+
+def test_row_header_table_stays_html() -> None:
+    fragment = (
+        "<table><tr><th>base</th><td>x</td></tr><tr><th>description</th><td>y</td></tr></table>"
+    )
+    assert run(fragment).startswith("<table>")
+    column_headers = "<table><tr><th>a</th><th>b</th></tr><tr><td>1</td><td>2</td></tr></table>"
+    assert run(column_headers).startswith("| a | b |")
+
+
+def test_newline_runs_in_text_collapse_outside_code() -> None:
+    fragment = "<ul><li>Install the\n      \n      Node.js <a href='/l'>library</a>.</li></ul>"
+    assert run(fragment) == "- Install the Node.js [library](https://h/l).\n"
+    assert run("<pre><code>a\n\nb</code></pre>") == "```\na\n\nb\n```\n"
+
+
 def test_layout_table_is_unwrapped() -> None:
     assert run("<table><tr><td><p>Only content</p></td></tr></table>") == "Only content\n"
 
@@ -193,6 +217,17 @@ def test_headings_keep_ids_and_single_h1() -> None:
     assert run("<h2 id='create_the_script'>Create</h2>") == "## Create {#create_the_script}\n"
     inline = Profile(heading_anchor_style="inline")
     assert run("<h2 id='x'>X</h2>", inline) == '<a id="x"></a>\n\n## X\n'
+
+
+def test_named_anchors_survive() -> None:
+    # javadoc-style: an empty `<a name>` before the heading lends it the id.
+    out = run("<a name='shutdown()'></a><h4>shutdown()</h4><p>x</p>")
+    assert out == "#### shutdown() {#shutdown()}\n\nx\n"
+    # A heading with its own id keeps it; the anchor travels as an `<a id>` island.
+    out = run("<a name='m()'></a><h4 id='own'>m</h4>")
+    assert out == '<a id="m()"></a>\n\n#### m {#own}\n'
+    out = run("<p>See <a name='here'>this point</a> later.</p>")
+    assert out == 'See <a id="here"></a>this point later.\n'
 
 
 def test_inline_html_elements_are_kept() -> None:
@@ -231,6 +266,16 @@ def test_interactive_placeholders() -> None:
     assert "> [!NOTE] Interactive content omitted: https://x/embed" in out
     assert "> [!NOTE] Interactive content omitted: div" in out
     assert "> [!NOTE] Interactive content omitted: https://h/v.mp4" in out
+
+
+def test_forms_keep_their_text_and_links() -> None:
+    fragment = (
+        "<form method='get' action='https://s/search'><input type='text' name='q'>"
+        "<p><button type='submit'>Search existing</button> "
+        "<a class='button' href='/ask'>Ask a new question</a></p></form><p>After.</p>"
+    )
+    assert run(fragment) == "Search existing [Ask a new question](https://h/ask)\n\nAfter.\n"
+    assert run(fragment, backend="markdownify") == run(fragment)
 
 
 def test_quality_measures_every_gate() -> None:

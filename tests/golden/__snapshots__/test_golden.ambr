@@ -3,22 +3,15 @@
   '''
   # Manifests for Editor add-ons
   
-  An add-on uses a *manifest* file
-  to configure certain details about the app and its operation.
+  An add-on uses a *manifest* file to configure certain details about the app and its operation.
   
-  This documentation covers the details of configuring a manifest for a
-  Editor Add-on.
+  This documentation covers the details of configuring a manifest for a Editor Add-on.
   
   ## Manifest structure for Editor add-ons {#manifest-structure-for-editor-add-ons}
   
-  The Google Apps Script manifest structure doesn't include any properties that
-  are specific to Editor add-ons. However,
-  Editor add-on manifests can define the general
-  properties that are common to all Apps Script projects, such as
-  OAuth scopes and library dependencies.
+  The Google Apps Script manifest structure doesn't include any properties that are specific to Editor add-ons. However, Editor add-on manifests can define the general properties that are common to all Apps Script projects, such as OAuth scopes and library dependencies.
   
-  See [Manifest structure](https://developers.google.com/apps-script/manifest) for a full list of potential
-  manifest properties that Editor add-ons can use.
+  See [Manifest structure](https://developers.google.com/apps-script/manifest) for a full list of potential manifest properties that Editor add-ons can use.
   
   '''
 # ---
@@ -26,38 +19,25 @@
   '''
   # Choose Gmail API scopes
   
-  This document contains Gmail API-specific authorization and
-  authentication information. Before reading this document, be sure to read the
-  Google Workspace's general authentication and authorization information at [Learn about authentication and authorization](https://developers.google.com/workspace/guides/auth-overview).
+  This document contains Gmail API-specific authorization and authentication information. Before reading this document, be sure to read the Google Workspace's general authentication and authorization information at [Learn about authentication and authorization](https://developers.google.com/workspace/guides/auth-overview).
   
   ## Configure OAuth 2.0 for authorization {#configure-oauth}
   
-  [Configure the OAuth consent screen and choose scopes](https://developers.google.com/workspace/guides/configure-oauth-consent) to define what information is displayed to users and app reviewers, and register
-  your app so that you can publish it later.
+  [Configure the OAuth consent screen and choose scopes](https://developers.google.com/workspace/guides/configure-oauth-consent) to define what information is displayed to users and app reviewers, and register your app so that you can publish it later.
   
   ## Gmail API scopes {#gmail-scopes}
   
-  To define the level of access granted to your app, you need to identify and
-  declare *authorization scopes*. An authorization scope is an OAuth 2.0 URI string
-  that contains the Google Workspace app name, what kind of data it accesses, and
-  the level of access. Scopes are your app's requests to work with Google Workspace data, including
-  users' Google Account data.
+  To define the level of access granted to your app, you need to identify and declare *authorization scopes*. An authorization scope is an OAuth 2.0 URI string that contains the Google Workspace app name, what kind of data it accesses, and the level of access. Scopes are your app's requests to work with Google Workspace data, including users' Google Account data.
   
-  When your app is installed, a user is asked to validate the scopes used
-  by the app. Generally, you should choose the most narrowly focused scope
-  possible and avoid requesting scopes that your app doesn't require. Users more
-  readily grant access to limited, clearly described scopes.
+  When your app is installed, a user is asked to validate the scopes used by the app. Generally, you should choose the most narrowly focused scope possible and avoid requesting scopes that your app doesn't require. Users more readily grant access to limited, clearly described scopes.
   
-  Whenever possible, use non-sensitive scopes to narrow access to only the
-  specific features needed by an app.
+  Whenever possible, use non-sensitive scopes to narrow access to only the specific features needed by an app.
   
   > [!WARNING]
   >
   > **unverified app**
   >
-  > If your public application uses scopes that permit access to
-  > certain user data, it must complete a verification process. If you see on the screen when testing your application, you must submit a
-  > verification request to remove it. Find out more about [unverified apps](https://support.google.com/cloud/answer/7454865) and get answers to [frequently asked questions about app verification](https://support.google.com/cloud/answer/9110914) in the Help Center.
+  > If your public application uses scopes that permit access to certain user data, it must complete a verification process. If you see on the screen when testing your application, you must submit a verification request to remove it. Find out more about [unverified apps](https://support.google.com/cloud/answer/7454865) and get answers to [frequently asked questions about app verification](https://support.google.com/cloud/answer/9110914) in the Help Center.
   
   ### Non-sensitive scopes {#nonsensitive-scopes}
   
@@ -89,13 +69,9 @@
   <tbody>
   <tr>
   <td><code>https://mail.google.com/</code></td>
-  <td>Read, compose, send, and permanently delete all your email from Gmail.
+  <td>Read, compose, send, and permanently delete all your email from Gmail. <br>
   <br>
-  <br>
-  <strong>Note:</strong> Request this scope only if your application needs
-  to immediately and permanently delete threads and messages, bypassing the
-  trash. You can perform all other actions using less permissive scopes.
-  </td>
+  <strong>Note:</strong> Request this scope only if your application needs to immediately and permanently delete threads and messages, bypassing the trash. You can perform all other actions using less permissive scopes. </td>
   </tr>
   <tr>
   <td><code>https://www.googleapis.com/auth/gmail.readonly</code></td>
@@ -111,14 +87,11 @@
   </tr>
   <tr>
   <td><code>https://www.googleapis.com/auth/gmail.modify</code></td>
-  <td>Read, compose, and send emails from your Gmail account. This scope
-  does not allow immediate, permanent deletion of threads and messages,
-  bypassing the trash.</td>
+  <td>Read, compose, and send emails from your Gmail account. This scope does not allow immediate, permanent deletion of threads and messages, bypassing the trash.</td>
   </tr>
   <tr>
   <td><code>https://www.googleapis.com/auth/gmail.metadata</code></td>
-  <td>View your email message metadata such as labels and headers, but not
-  the email body.</td>
+  <td>View your email message metadata such as labels and headers, but not the email body.</td>
   </tr>
   <tr>
   <td><code>https://www.googleapis.com/auth/gmail.settings.basic</code></td>
@@ -126,48 +99,32 @@
   </tr>
   <tr>
   <td><code>https://www.googleapis.com/auth/gmail.settings.sharing</code></td>
-  <td>Manage your sensitive mail settings, including who can manage your mail.
+  <td>Manage your sensitive mail settings, including who can manage your mail. <br>
   <br>
-  <br>
-  <strong>Note:</strong> Operations guarded by this scope are restricted to
-  administrative use only. They are only available to Google Workspace
-  customers using a service account with domain-wide delegation.
-  </td>
+  <strong>Note:</strong> Operations guarded by this scope are restricted to administrative use only. They are only available to Google Workspace customers using a service account with domain-wide delegation. </td>
   </tr>
   </tbody>
   </table>
   
-  The scopes in the preceding tables indicate their sensitivity, according to the
-  following definitions:
+  The scopes in the preceding tables indicate their sensitivity, according to the following definitions:
   
-  - **Non-sensitive**: These scopes provide the smallest scope of authorization
-    and only require basic [OAuth App Verification](https://support.google.com/cloud/answer/13463073). For more
-    information, see [Verification requirements](https://support.google.com/cloud/answer/13464321).
+  - **Non-sensitive**: These scopes provide the smallest scope of authorization and only require basic [OAuth App Verification](https://support.google.com/cloud/answer/13463073). For more information, see [Verification requirements](https://support.google.com/cloud/answer/13464321).
   
-  - **Sensitive**: These scopes provide access to specific Google user data that
-    users authorize for your app. They require additional [OAuth App Verification](https://support.google.com/cloud/answer/13463073). For more
-    information, see [Sensitive and Restricted Scope Requirements](https://support.google.com/cloud/answer/13464321#ss-rs-requirements).
+  - **Sensitive**: These scopes provide access to specific Google user data that users authorize for your app. They require additional [OAuth App Verification](https://support.google.com/cloud/answer/13463073). For more information, see [Sensitive and Restricted Scope Requirements](https://support.google.com/cloud/answer/13464321#ss-rs-requirements).
   
-  - **Restricted**: These scopes provide wide access to Google user data and
-    require restricted scope [OAuth App Verification](https://support.google.com/cloud/answer/13463073). For more
-    information, see [Google API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy) and [Additional Requirements for Specific API Scopes](https://developers.google.com/terms/api-services-user-data-policy#additional-requirements-for-specific-api-scopes).
+  - **Restricted**: These scopes provide wide access to Google user data and require restricted scope [OAuth App Verification](https://support.google.com/cloud/answer/13463073). For more information, see [Google API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy) and [Additional Requirements for Specific API Scopes](https://developers.google.com/terms/api-services-user-data-policy#additional-requirements-for-specific-api-scopes).
   
-    If you store restricted scope data on servers (or transmit), then you must
-    go through a security assessment.
+    If you store restricted scope data on servers (or transmit), then you must go through a security assessment.
   
-  For more information about what governs your use of and access to the
-  Gmail API when you request access to user data, see the [Google Workspace user data and developer policy](https://developers.google.com/workspace/workspace-api-user-data-developer-policy).
+  For more information about what governs your use of and access to the Gmail API when you request access to user data, see the [Google Workspace user data and developer policy](https://developers.google.com/workspace/workspace-api-user-data-developer-policy).
   
-  If your app requires access to any other Google APIs, you can add those scopes
-  as well. For more information about Google API scopes, see [Using OAuth 2.0 to Access Google APIs](https://developers.google.com/identity/protocols/oauth2).
+  If your app requires access to any other Google APIs, you can add those scopes as well. For more information about Google API scopes, see [Using OAuth 2.0 to Access Google APIs](https://developers.google.com/identity/protocols/oauth2).
   
   For more information about specific OAuth 2.0 scopes, see [OAuth 2.0 Scopes for Google APIs](https://developers.google.com/identity/protocols/oauth2/scopes).
   
   ## OAuth verification {#oauth-verification}
   
-  Using certain sensitive OAuth scopes might require your app to complete [Google's OAuth verification process](https://support.google.com/cloud/answer/13463073).
-  The [OAuth App Verification FAQ](https://support.google.com/cloud/answer/13463817) can help you determine if
-  this is necessary and what type of verification you need.
+  Using certain sensitive OAuth scopes might require your app to complete [Google's OAuth verification process](https://support.google.com/cloud/answer/13463073). The [OAuth App Verification FAQ](https://support.google.com/cloud/answer/13463817) can help you determine if this is necessary and what type of verification you need.
   
   '''
 # ---
@@ -175,12 +132,9 @@
   '''
   # Google Drive API overview
   
-  The Google Drive API lets you create apps that use Google Drive cloud storage.
-  You can develop applications that integrate with Drive, and
-  create robust functionality in your application using the Drive API.
+  The Google Drive API lets you create apps that use Google Drive cloud storage. You can develop applications that integrate with Drive, and create robust functionality in your application using the Drive API.
   
-  This diagram shows the flow between your Drive-integrated app,
-  the Drive API, and Drive:
+  This diagram shows the flow between your Drive-integrated app, the Drive API, and Drive:
   
   ![Figure 1. A Drive-integrated app uses the Drive API and OAuth 2.0 to interact with files in My Drive and shared drives.](https://developers.google.com/static/workspace/drive/images/localized/drive-intro/en.svg)
   
@@ -213,34 +167,22 @@
   
   You can use the Drive API to:
   
-  - [Download files](https://developers.google.com/workspace/drive/api/guides/manage-downloads) from Drive
-    and [upload files](https://developers.google.com/workspace/drive/api/guides/manage-uploads) to Drive.
-  - [Search for files and folders](https://developers.google.com/workspace/drive/api/guides/search-files) stored in
-    Drive. Create complex search queries that return any of the
-    file metadata fields in the [`files`](https://developers.google.com/workspace/drive/api/reference/rest/v3/files) resource.
+  - [Download files](https://developers.google.com/workspace/drive/api/guides/manage-downloads) from Drive and [upload files](https://developers.google.com/workspace/drive/api/guides/manage-uploads) to Drive.
+  - [Search for files and folders](https://developers.google.com/workspace/drive/api/guides/search-files) stored in Drive. Create complex search queries that return any of the file metadata fields in the [`files`](https://developers.google.com/workspace/drive/api/reference/rest/v3/files) resource.
   - Let users [share files, folders, and drives](https://developers.google.com/workspace/drive/api/guides/manage-sharing) to collaborate on content.
-  - Combine with the [Google Picker API](https://developers.google.com/workspace/drive/picker/guides/overview) to search all files in Drive, then return the filename, URL,
-    last modified date, and user.
-  - [Create third-party shortcuts](https://developers.google.com/workspace/drive/api/guides/third-party-shortcuts) that
-    are external links to data stored outside of Drive, in a
-    different datastore or cloud storage system.
-  - Create a dedicated Drive folder to [store application-specific data](https://developers.google.com/workspace/drive/api/guides/appdata) so the app cannot access
-    all the user's content stored in Drive.
+  - Combine with the [Google Picker API](https://developers.google.com/workspace/drive/picker/guides/overview) to search all files in Drive, then return the filename, URL, last modified date, and user.
+  - [Create third-party shortcuts](https://developers.google.com/workspace/drive/api/guides/third-party-shortcuts) that are external links to data stored outside of Drive, in a different datastore or cloud storage system.
+  - Create a dedicated Drive folder to [store application-specific data](https://developers.google.com/workspace/drive/api/guides/appdata) so the app cannot access all the user's content stored in Drive.
   - Monitor or respond to file activity using [Google Drive events](https://developers.google.com/workspace/events/guides/events-drive).
-  - Integrate your Drive-integrated app with the [Drive UI](https://developers.google.com/workspace/drive/api/guides/about-apps) using the Google Drive
-    UI. It's Google's standard web UI that you can use to create, organize,
-    discover, and share Drive files.
-  - Apply [labels](https://developers.google.com/workspace/drive/api/guides/about-labels) to Drive files,
-    set label field values, read label field values on files, and search for
-    files using label metadata terms defined by the custom label taxonomy.
+  - Integrate your Drive-integrated app with the [Drive UI](https://developers.google.com/workspace/drive/api/guides/about-apps) using the Google Drive UI. It's Google's standard web UI that you can use to create, organize, discover, and share Drive files.
+  - Apply [labels](https://developers.google.com/workspace/drive/api/guides/about-labels) to Drive files, set label field values, read label field values on files, and search for files using label metadata terms defined by the custom label taxonomy.
   
   <table>
   <tr>
   <td><img src="https://fonts.gstatic.com/s/i/productlogos/youtube/v9/192px.svg"></td>
   <td>
   <div>Want to see the Google Drive API in action?</div>
-  <div>The Google Workspace Developers channel offers videos about tips,
-  tricks, and the latest features.</div>
+  <div>The Google Workspace Developers channel offers videos about tips, tricks, and the latest features.</div>
   <div><a href="https://www.youtube.com/channel/UCUcg6az6etU_gRtZVAhBXaw">Subscribe now</a>
   </div>
   </td>
@@ -249,8 +191,7 @@
   
   ## Related topics {#related-topics}
   
-  - To learn about developing with Google Workspace APIs, including handling
-    authentication and authorization, see [Develop on Google Workspace](https://developers.google.com/workspace/guides/getstarted-overview).
+  - To learn about developing with Google Workspace APIs, including handling authentication and authorization, see [Develop on Google Workspace](https://developers.google.com/workspace/guides/getstarted-overview).
   
   - To learn how to configure and run a Drive API app, read the [Quickstarts](https://developers.google.com/workspace/drive/api/quickstart/js).
   
@@ -260,11 +201,9 @@
   '''
   # Batch requests
   
-  This document shows how to batch API calls together to reduce the number of HTTP connections
-  your client has to make.
+  This document shows how to batch API calls together to reduce the number of HTTP connections your client has to make.
   
-  This document is specifically about making a batch request by sending an
-  HTTP request. If, instead, you're using a Google client library to make a batch request, see the [client library's documentation](https://developers.google.com/api-client-library/).
+  This document is specifically about making a batch request by sending an HTTP request. If, instead, you're using a Google client library to make a batch request, see the [client library's documentation](https://developers.google.com/api-client-library/).
   
   ## Overview {#overview}
   
@@ -281,8 +220,7 @@
   
   **Note**: The batch system for the Gmail API uses the same syntax as the [OData batch processing](http://www.odata.org/documentation/odata-version-3-0/batch-processing/) system, but the semantics differ.
   
-  **Note:** Larger batch sizes are likely to trigger rate
-  limiting. We recommend sending batches of no more than 50 requests.
+  **Note:** Larger batch sizes are likely to trigger rate limiting. We recommend sending batches of no more than 50 requests.
   
   ## Batch details {#details}
   
@@ -419,8 +357,7 @@
   '''
   # Google Sheets API Overview
   
-  The Google Sheets API is a RESTful interface that lets you read and modify a
-  spreadsheet's data. The Sheets API lets you:
+  The Google Sheets API is a RESTful interface that lets you read and modify a spreadsheet's data. The Sheets API lets you:
   
   - Create spreadsheets
   - Read and write spreadsheet cell values
@@ -431,46 +368,24 @@
   
   <dl>
   <dt id="spreadsheet"><em>Spreadsheet</em></dt>
-  <dd><p>The primary object in Google Sheets. It can contain multiple <code>Sheets</code>, each
-  with structured information contained in <code>Cells</code>. The
-  <a href="https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets"><code>spreadsheets</code></a>
-  resource represents a spreadsheet. It contains a unique <code>spreadsheetId</code>
-  value.</p>
+  <dd><p>The primary object in Google Sheets. It can contain multiple <code>Sheets</code>, each with structured information contained in <code>Cells</code>. The <a href="https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets"><code>spreadsheets</code></a> resource represents a spreadsheet. It contains a unique <code>spreadsheetId</code> value.</p>
   <dl>
   <dt id="spreadsheet-id"><em>Spreadsheet ID</em></dt>
-  <dd>The unique identifier for a spreadsheet. It's a particular string
-  containing letters, numbers, and some special characters that reference a
-  spreadsheet and it can be derived from the spreadsheet's URL. Spreadsheet
-  IDs are stable, even if the spreadsheet name changes.</dd>
+  <dd>The unique identifier for a spreadsheet. It's a particular string containing letters, numbers, and some special characters that reference a spreadsheet and it can be derived from the spreadsheet's URL. Spreadsheet IDs are stable, even if the spreadsheet name changes.</dd>
   </dl>
   <div></div><div><pre><code>https://docs.google.com/spreadsheets/d/<var>SPREADSHEET_ID</var>/edit?gid=<var>SHEET_ID</var>#gid=<var>SHEET_ID</var>
   </code></pre></div></dd>
   <dt id="sheet"><em>Sheet</em></dt>
-  <dd><p>A page or tab within a spreadsheet. The
-  <a href="https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/sheets"><code>Sheets</code></a> resource
-  represents a sheet. It contains a unique numeric <code>sheetId</code> value and sheet
-  <code>title</code> as part of the
-  <a href="https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/sheets#sheetproperties"><code>SheetProperties</code></a>
-  object.</p>
+  <dd><p>A page or tab within a spreadsheet. The <a href="https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/sheets"><code>Sheets</code></a> resource represents a sheet. It contains a unique numeric <code>sheetId</code> value and sheet <code>title</code> as part of the <a href="https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/sheets#sheetproperties"><code>SheetProperties</code></a> object.</p>
   <dl>
   <dt id="sheet-id"><em>Sheet ID</em></dt>
-  <dd>The unique identifier for a specific sheet within a spreadsheet. It's a
-  particular integer containing numbers that reference a sheet and it can be
-  derived from the spreadsheet's URL. Sheet IDs are stable, even if the sheet
-  name changes. For an example, see <a href="https://developers.google.com/workspace/sheets/api/guides/concepts#spreadsheet-id">Spreadsheet ID</a>.</dd>
+  <dd>The unique identifier for a specific sheet within a spreadsheet. It's a particular integer containing numbers that reference a sheet and it can be derived from the spreadsheet's URL. Sheet IDs are stable, even if the sheet name changes. For an example, see <a href="https://developers.google.com/workspace/sheets/api/guides/concepts#spreadsheet-id">Spreadsheet ID</a>.</dd>
   </dl></dd>
   <dt id="cell"><em>Cell</em></dt>
-  <dd><p>An individual field of text or data within a sheet. Cells are arranged in rows
-  and columns, and can be grouped as a range of cells. The
-  <a href="https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/cells"><code>Cells</code></a>
-  resource represents each cell, but it doesn't have a unique ID value.
-  Instead, row and column coordinates identify the cells.</p>
+  <dd><p>An individual field of text or data within a sheet. Cells are arranged in rows and columns, and can be grouped as a range of cells. The <a href="https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/cells"><code>Cells</code></a> resource represents each cell, but it doesn't have a unique ID value. Instead, row and column coordinates identify the cells.</p>
   <dl>
   <dt id="a1-notation"><em>A1 notation</em></dt>
-  <dd>A syntax used to define a cell or range of cells with a string that
-  contains the sheet name plus the starting and ending cell coordinates using
-  column letters and row numbers. This method is the most common and useful
-  when referencing an absolute range of cells.</dd>
+  <dd>A syntax used to define a cell or range of cells with a string that contains the sheet name plus the starting and ending cell coordinates using column letters and row numbers. This method is the most common and useful when referencing an absolute range of cells.</dd>
   </dl>
   <section>
   <ul>
@@ -489,11 +404,7 @@
   </section>
   <dl>
   <dt id="r1c1-notation"><em>R1C1 notation</em></dt>
-  <dd>A syntax used to define a cell or range of cells with a string that
-  contains the sheet name plus the starting and ending cell coordinates using
-  row numbers and column numbers. This method is less common than A1 notation,
-  but can be useful when referencing a range of cells relative to a given
-  cell's position.</dd>
+  <dd>A syntax used to define a cell or range of cells with a string that contains the sheet name plus the starting and ending cell coordinates using row numbers and column numbers. This method is less common than A1 notation, but can be useful when referencing a range of cells relative to a given cell's position.</dd>
   </dl>
   <section>
   <ul>
@@ -504,21 +415,15 @@
   </section>
   <dl>
   <dt id="named-range"><em>Named range</em></dt>
-  <dd>A defined cell or range of cells with a custom name to simplify references
-  throughout an application. A
-  <a href="https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/sheets#filterview"><code>FilterView</code></a>
-  resource represents a named range.</dd>
+  <dd>A defined cell or range of cells with a custom name to simplify references throughout an application. A <a href="https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/sheets#filterview"><code>FilterView</code></a> resource represents a named range.</dd>
   <dt id="protected-range"><em>Protected range</em></dt>
-  <dd>A defined cell or range of cells that cannot be modified. A
-  <a href="https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/sheets#protectedrange"><code>ProtectedRange</code></a>
-  resource represents a protected range.</dd>
+  <dd>A defined cell or range of cells that cannot be modified. A <a href="https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/sheets#protectedrange"><code>ProtectedRange</code></a> resource represents a protected range.</dd>
   </dl></dd>
   </dl>
   
   ## Related topics {#related-topics}
   
-  - To learn about developing with Google Workspace APIs, including handling
-    authentication and authorization, refer to [Develop on Google Workspace](https://developers.google.com/workspace/guides/get-started).
+  - To learn about developing with Google Workspace APIs, including handling authentication and authorization, refer to [Develop on Google Workspace](https://developers.google.com/workspace/guides/get-started).
   
   - To learn how to configure and run a Sheets API app, try the [JavaScript quickstart](https://developers.google.com/workspace/sheets/api/quickstart/js).
   
@@ -530,30 +435,16 @@
   
   > [!NOTE] Interactive content omitted: iframe
   
-  Imagine an app that helps users find the best hiking routes. By adding the
-  hiking plan as a calendar event, the users get a lot of help in staying
-  organized automatically. Google Calendar helps them to share the plan and
-  reminds them about it so they can get prepared with no stress. Also, thanks to
-  seamless integration of Google products, Google Now pings them about the time to
-  leave and Google Maps direct them to the meeting spot on time.
+  Imagine an app that helps users find the best hiking routes. By adding the hiking plan as a calendar event, the users get a lot of help in staying organized automatically. Google Calendar helps them to share the plan and reminds them about it so they can get prepared with no stress. Also, thanks to seamless integration of Google products, Google Now pings them about the time to leave and Google Maps direct them to the meeting spot on time.
   
-  This article explains how to create calendar events and add them to your users'
-  calendars.
+  This article explains how to create calendar events and add them to your users' calendars.
   
   ## Add an event {#add_an_event}
   
-  To create an event, call the [`events.insert()`](https://developers.google.com/workspace/calendar/v3/reference/events/insert) method providing at
-  least these parameters:
+  To create an event, call the [`events.insert()`](https://developers.google.com/workspace/calendar/v3/reference/events/insert) method providing at least these parameters:
   
-  - `calendarId` is the calendar identifier and can either be the email address
-    of the calendar on which to create the event or a special keyword `'primary'` which will use the primary calendar of the logged in user. If
-    you don't know the email address of the calendar you would like to use, you
-    can check it either in the calendar's settings of the Google Calendar web
-    UI (in the section "Calendar Address") or you can look for it
-    in the result of the [`calendarList.list()`](https://developers.google.com/workspace/calendar/v3/reference/calendarList/list) call.
-  - `event` is the event to create with all the necessary details such as start
-    and end. The only two required fields are the `start` and `end` times. See the [`event` reference](https://developers.google.com/workspace/calendar/v3/reference/events) for the full set of event
-    fields.
+  - `calendarId` is the calendar identifier and can either be the email address of the calendar on which to create the event or a special keyword `'primary'` which will use the primary calendar of the logged in user. If you don't know the email address of the calendar you would like to use, you can check it either in the calendar's settings of the Google Calendar web UI (in the section "Calendar Address") or you can look for it in the result of the [`calendarList.list()`](https://developers.google.com/workspace/calendar/v3/reference/calendarList/list) call.
+  - `event` is the event to create with all the necessary details such as start and end. The only two required fields are the `start` and `end` times. See the [`event` reference](https://developers.google.com/workspace/calendar/v3/reference/events) for the full set of event fields.
   
     > [!NOTE]
     >
@@ -561,15 +452,12 @@
   
   In order to successfully create events, you need to:
   
-  - Set your OAuth scope to `https://www.googleapis.com/auth/calendar` so that
-    you have edit access to the user's calendar.
+  - Set your OAuth scope to `https://www.googleapis.com/auth/calendar` so that you have edit access to the user's calendar.
   - Ensure the authenticated user has write access to the calendar with the `calendarId` you provided (for example by calling [`calendarList.get()`](https://developers.google.com/workspace/calendar/v3/reference/calendarList/get) for the `calendarId` and checking the `accessRole`).
   
   ### Add event metadata {#metadata}
   
-  You can optionally add event metadata when you create a calendar event. If you
-  choose not to add metadata during creation, you can update many fields using the [`events.update()`](https://developers.google.com/workspace/calendar/v3/reference/events/update); however, some fields,
-  such as the event ID, can only be set during an [`events.insert()`](https://developers.google.com/workspace/calendar/v3/reference/events/insert) operation.
+  You can optionally add event metadata when you create a calendar event. If you choose not to add metadata during creation, you can update many fields using the [`events.update()`](https://developers.google.com/workspace/calendar/v3/reference/events/update); however, some fields, such as the event ID, can only be set during an [`events.insert()`](https://developers.google.com/workspace/calendar/v3/reference/events/insert) operation.
   
   **Location**
       Adding an address into the location field enables features such as "time to leave" or displaying a map with the directions.
@@ -882,21 +770,14 @@
   
   ### Add Drive attachments to events {#attachments}
   
-  You can attach [Google Drive](https://drive.google.com) files such as meeting notes in Docs, budgets in
-  Sheets, presentations in Slides, or any other
-  relevant Google Drive files to your calendar events. You can add the
-  attachment when you create an event with [`events.insert()`](https://developers.google.com/workspace/calendar/v3/reference/events/insert) or later as part of an
-  update such as with [`events.patch()`](https://developers.google.com/workspace/calendar/v3/reference/events/patch)
+  You can attach [Google Drive](https://drive.google.com) files such as meeting notes in Docs, budgets in Sheets, presentations in Slides, or any other relevant Google Drive files to your calendar events. You can add the attachment when you create an event with [`events.insert()`](https://developers.google.com/workspace/calendar/v3/reference/events/insert) or later as part of an update such as with [`events.patch()`](https://developers.google.com/workspace/calendar/v3/reference/events/patch)
   
   The two parts of attaching a Google Drive file to an event are:
   
-  1. Get the file `alternateLink` URL, `title`, and `mimeType` from the [Drive API Files resource](https://developers.google.com/workspace/drive/v3/reference/files),
-     typically with the [`files.get()`](https://developers.google.com/workspace/drive/v3/reference/files/get) method.
-  2. Create or update an event with the `attachments` fields set in the request
-     body and the `supportsAttachments` parameter set to `true`.
+  1. Get the file `alternateLink` URL, `title`, and `mimeType` from the [Drive API Files resource](https://developers.google.com/workspace/drive/v3/reference/files), typically with the [`files.get()`](https://developers.google.com/workspace/drive/v3/reference/files/get) method.
+  2. Create or update an event with the `attachments` fields set in the request body and the `supportsAttachments` parameter set to `true`.
   
-  The following code example demonstrates how to update an existing event to add
-  an attachment:
+  The following code example demonstrates how to update an existing event to add an attachment:
   
   **Java**
   
@@ -971,37 +852,23 @@
   
   > [!IMPORTANT]
   >
-  > You must perform a [full sync](https://developers.google.com/workspace/calendar/v3/sync#initial_full_sync) of all events before enabling the `supportsAttachments` parameter for event
-  > modifications when adding attachments support into your existing app that stores
-  > events locally. If you do not perform a sync first, you may inadvertently remove
-  > existing attachments from user's events.
+  > You must perform a [full sync](https://developers.google.com/workspace/calendar/v3/sync#initial_full_sync) of all events before enabling the `supportsAttachments` parameter for event modifications when adding attachments support into your existing app that stores events locally. If you do not perform a sync first, you may inadvertently remove existing attachments from user's events.
   
   ### Add video and phone conferences to events {#conferencing}
   
-  You can associate events with [Hangouts](https://hangouts.google.com) and [Google Meet](https://meet.google.com) conferences to
-  allow your users to meet remotely via a phone call or a video call.
+  You can associate events with [Hangouts](https://hangouts.google.com) and [Google Meet](https://meet.google.com) conferences to allow your users to meet remotely via a phone call or a video call.
   
-  The [`conferenceData`](https://developers.google.com/workspace/calendar/v3/reference/events#conferenceData) field can
-  be used to read, copy, and clear existing conference details; it can also be
-  used to request generation of new conferences. To allow creation and
-  modification of conference details, set the `conferenceDataVersion` request
-  parameter to `1`.
+  The [`conferenceData`](https://developers.google.com/workspace/calendar/v3/reference/events#conferenceData) field can be used to read, copy, and clear existing conference details; it can also be used to request generation of new conferences. To allow creation and modification of conference details, set the `conferenceDataVersion` request parameter to `1`.
   
   There are three types of `conferenceData` currently supported, as denoted by the `conferenceData.conferenceSolution.key.type`:
   
   1. Hangouts for consumers (`eventHangout`)
-  2. Classic Hangouts for Google Workspace users
-     (deprecated; `eventNamedHangout`)
+  2. Classic Hangouts for Google Workspace users (deprecated; `eventNamedHangout`)
   3. Google Meet (`hangoutsMeet`)
   
-  You can learn which conference type is supported for any given calendar of a
-  user by looking at the `conferenceProperties.allowedConferenceSolutionTypes` in
-  the [`calendars`](https://developers.google.com/workspace/calendar/v3/reference/calendars) and [`calendarList`](https://developers.google.com/workspace/calendar/v3/reference/calendarList) collections. You can also
-  learn whether the user prefers to have Hangouts created for all their newly
-  created events by checking the `autoAddHangouts` setting in the [`settings`](https://developers.google.com/workspace/calendar/v3/reference/settings) collection.
+  You can learn which conference type is supported for any given calendar of a user by looking at the `conferenceProperties.allowedConferenceSolutionTypes` in the [`calendars`](https://developers.google.com/workspace/calendar/v3/reference/calendars) and [`calendarList`](https://developers.google.com/workspace/calendar/v3/reference/calendarList) collections. You can also learn whether the user prefers to have Hangouts created for all their newly created events by checking the `autoAddHangouts` setting in the [`settings`](https://developers.google.com/workspace/calendar/v3/reference/settings) collection.
   
-  Besides the `type`, the `conferenceSolution` also provides the `name` and the `iconUri` fields that you can use to represent the conference solution as shown
-  below:
+  Besides the `type`, the `conferenceSolution` also provides the `name` and the `iconUri` fields that you can use to represent the conference solution as shown below:
   
   **JavaScript**
   
@@ -1017,10 +884,7 @@
   content.appendChild(text);
   ```
   
-  You can create a new conference for an event by providing a `createRequest` with
-  a newly generated `requestId` which can be a random `string`. Conferences are
-  created asynchronously, but you can always check the status of your request to
-  let your users know what’s happening.
+  You can create a new conference for an event by providing a `createRequest` with a newly generated `requestId` which can be a random `string`. Conferences are created asynchronously, but you can always check the status of your request to let your users know what’s happening.
   
   For example, to request conference generation for an existing event:
   
@@ -1044,25 +908,15 @@
   });
   ```
   
-  The immediate response to this call might not yet contain the fully-populated `conferenceData`; this is indicated by a status code of `pending` in the [status](https://developers.google.com/workspace/calendar/v3/reference/events#conferenceData.createRequest.status) field. The status code changes to `success` after the conference information is
-  populated. The `entryPoints` field contains information about which video and
-  phone URIs are available for your users to dial in.
+  The immediate response to this call might not yet contain the fully-populated `conferenceData`; this is indicated by a status code of `pending` in the [status](https://developers.google.com/workspace/calendar/v3/reference/events#conferenceData.createRequest.status) field. The status code changes to `success` after the conference information is populated. The `entryPoints` field contains information about which video and phone URIs are available for your users to dial in.
   
-  If you wish to schedule multiple Calendar events with the same
-  conference details, you can copy the entire `conferenceData` from one event to
-  another.
+  If you wish to schedule multiple Calendar events with the same conference details, you can copy the entire `conferenceData` from one event to another.
   
-  Copying is useful in certain situations. For example, suppose you are developing
-  a recruiting application that sets up separate events for the candidate and the
-  interviewer—you want to protect the interviewer’s identity, but you also
-  want to make sure all participants join the same conference call.
+  Copying is useful in certain situations. For example, suppose you are developing a recruiting application that sets up separate events for the candidate and the interviewer—you want to protect the interviewer’s identity, but you also want to make sure all participants join the same conference call.
   
   > [!IMPORTANT]
   >
-  > You must perform a [full sync](https://developers.google.com/workspace/calendar/v3/sync#initial_full_sync) of all events before enabling the conference data support (by setting of the `conferenceDataVersion` request parameter to `1` for event modifications) when
-  > adding conference support into your existing app that stores events locally. If
-  > you do not perform a sync first, you may inadvertently remove existing
-  > conferences from users' events.
+  > You must perform a [full sync](https://developers.google.com/workspace/calendar/v3/sync#initial_full_sync) of all events before enabling the conference data support (by setting of the `conferenceDataVersion` request parameter to `1` for event modifications) when adding conference support into your existing app that stores events locally. If you do not perform a sync first, you may inadvertently remove existing conferences from users' events.
   
   '''
 # ---
@@ -1072,14 +926,9 @@
   
   This document explains how to query and find messages using the Gmail API.
   
-  You can search or filter files using the [`messages.list`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/list) and [`threads.list`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/list) methods. These methods accept the `q` query parameter, which supports most of the
-  same [advanced search syntax](https://support.google.com/mail/answer/7190) as
-  the Gmail web interface. For a list of search and filter differences
-  between the Gmail UI and Gmail API, see [Differences from the Gmail UI](https://developers.google.com/workspace/gmail/api/guides/filtering#differences).
+  You can search or filter files using the [`messages.list`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/list) and [`threads.list`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/list) methods. These methods accept the `q` query parameter, which supports most of the same [advanced search syntax](https://support.google.com/mail/answer/7190) as the Gmail web interface. For a list of search and filter differences between the Gmail UI and Gmail API, see [Differences from the Gmail UI](https://developers.google.com/workspace/gmail/api/guides/filtering#differences).
   
-  This advanced search syntax lets you use queries to filter messages by
-  properties such as the sender, date, or label. For example, the following `messages.list` method query retrieves all messages sent by the user in January
-  2014:
+  This advanced search syntax lets you use queries to filter messages by properties such as the sender, date, or label. For example, the following `messages.list` method query retrieves all messages sent by the user in January 2014:
   
   ```text
   GET https://www.googleapis.com/gmail/v1/users/me/messages?q=in:sent after:2014/01/01 before:2014/02/01
@@ -1087,33 +936,21 @@
   
   > [!CAUTION]
   >
-  > All dates used in the search query are interpreted as midnight on that
-  > date in the PST timezone. To specify accurate dates for other timezones pass the
-  > value in seconds instead:
-  >
+  > All dates used in the search query are interpreted as midnight on that date in the PST timezone. To specify accurate dates for other timezones pass the value in seconds instead:
   >
   > ```text
   > ?q=in:sent after:1388552400 before:1391230800
   > ```
   
-  In addition to search queries, you can also filter messages and threads by label
-  with the `labelIds[]` parameter. This lets you search for messages and threads
-  with the specified system or user labels applied. For more information, see the `messages.list` and `threads.list` methods. For more information on labels, see [Manage labels](https://developers.google.com/workspace/gmail/api/guides/labels).
+  In addition to search queries, you can also filter messages and threads by label with the `labelIds[]` parameter. This lets you search for messages and threads with the specified system or user labels applied. For more information, see the `messages.list` and `threads.list` methods. For more information on labels, see [Manage labels](https://developers.google.com/workspace/gmail/api/guides/labels).
   
   ## Differences from the Gmail UI {#differences}
   
-  While the Gmail API supports most of the advanced search syntax used
-  in the Gmail UI, there are a few differences:
+  While the Gmail API supports most of the advanced search syntax used in the Gmail UI, there are a few differences:
   
-  - The Gmail UI performs *alias expansion*, which allows it to
-    infer an account alias from a Google Workspace account. For example,
-    suppose you have an account of `myprimary@cymbalgroup.com` and your
-    administrator sets up an alias for that account of `myalias@cymbalgroup.com`. If `myalias@cymbalgroup.com` sends an email, but
-    you search for "`from: myprimary@cymbalgroup.com`" the email sent by `myalias@cymbalgroup.com` appears in search results in the
-    Gmail UI, but not in the API response.
+  - The Gmail UI performs *alias expansion*, which allows it to infer an account alias from a Google Workspace account. For example, suppose you have an account of `myprimary@cymbalgroup.com` and your administrator sets up an alias for that account of `myalias@cymbalgroup.com`. If `myalias@cymbalgroup.com` sends an email, but you search for "`from: myprimary@cymbalgroup.com`" the email sent by `myalias@cymbalgroup.com` appears in search results in the Gmail UI, but not in the API response.
   
-  - The Gmail UI allows users to perform thread-wide searches,
-    but the API doesn't.
+  - The Gmail UI allows users to perform thread-wide searches, but the API doesn't.
   
   ## Related topics {#related-topics}
   
@@ -1125,28 +962,19 @@
   '''
   # Manage labels
   
-  This document explains how to manage labels on threads and messages using the
-  Gmail API.
+  This document explains how to manage labels on threads and messages using the Gmail API.
   
-  You can use labels to tag, organize, and categorize messages and threads in
-  Gmail. A label has a many-to-many relationship with messages and
-  threads: you can apply multiple labels to a single message or thread, and apply
-  a single label to multiple messages or threads.
+  You can use labels to tag, organize, and categorize messages and threads in Gmail. A label has a many-to-many relationship with messages and threads: you can apply multiple labels to a single message or thread, and apply a single label to multiple messages or threads.
   
-  For information on how to [create](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/create), [get](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/get), [list](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/list), [update](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/update), or [delete](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/delete) labels, see
-  the [`labels`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels) resource.
+  For information on how to [create](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/create), [get](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/get), [list](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/list), [update](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/update), or [delete](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/delete) labels, see the [`labels`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels) resource.
   
-  To manage labels, you must use the `https://www.googleapis.com/auth/gmail.labels` non-sensitive scope. For more
-  information about scopes, see [Choose Gmail API scopes](https://developers.google.com/workspace/gmail/api/auth/scopes).
+  To manage labels, you must use the `https://www.googleapis.com/auth/gmail.labels` non-sensitive scope. For more information about scopes, see [Choose Gmail API scopes](https://developers.google.com/workspace/gmail/api/auth/scopes).
   
   ## Types of labels {#label-types}
   
   Labels come in two varieties: reserved `SYSTEM` labels and custom `USER` labels.
   
-  System labels typically correspond to predefined elements in the
-  Gmail web interface such as `INBOX`. System label names are
-  reserved; no `USER` label can be created with the same name as any `SYSTEM` label. The following table lists several of the most common Gmail
-  system labels:
+  System labels typically correspond to predefined elements in the Gmail web interface such as `INBOX`. System label names are reserved; no `USER` label can be created with the same name as any `SYSTEM` label. The following table lists several of the most common Gmail system labels:
   
   <table>
   <thead>
@@ -1188,12 +1016,9 @@
   <tr>
   <td><code>SENT</code></td>
   <td>no</td>
-  <td>Applied automatically to messages that are:
-  <ul>
-  <li>sent with <a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/send"><code>drafts.send</code></a> or
-  <a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send"><code>messages.send</code></a>.</li>
-  <li>inserted with <a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/insert"><code>messages.insert</code></a>
-  and the user's email in the <code>From</code> header.</li>
+  <td>Applied automatically to messages that are: <ul>
+  <li>sent with <a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/send"><code>drafts.send</code></a> or <a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send"><code>messages.send</code></a>.</li>
+  <li>inserted with <a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/insert"><code>messages.insert</code></a> and the user's email in the <code>From</code> header.</li>
   <li>sent by the user through the web interface.</li>
   </ul>
   </td>
@@ -1201,76 +1026,59 @@
   <tr>
   <td><code>DRAFT</code></td>
   <td>no</td>
-  <td>Automatically applied to all
-  <a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts"><code>draft</code></a>
-  messages created with the Gmail API or Gmail interface.</td>
+  <td>Automatically applied to all <a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts"><code>draft</code></a> messages created with the Gmail API or Gmail interface.</td>
   </tr>
   <tr>
   <td><code>CATEGORY_PERSONAL</code></td>
   <td>yes</td>
-  <td>Corresponds to messages that are displayed in the Personal tab of
-  the Gmail interface.</td>
+  <td>Corresponds to messages that are displayed in the Personal tab of the Gmail interface.</td>
   </tr>
   <tr>
   <td><code>CATEGORY_SOCIAL</code></td>
   <td>yes</td>
-  <td>Corresponds to messages that are displayed in the Social tab of the
-  Gmail interface.</td>
+  <td>Corresponds to messages that are displayed in the Social tab of the Gmail interface.</td>
   </tr>
   <tr>
   <td><code>CATEGORY_PROMOTIONS</code></td>
   <td>yes</td>
-  <td>Corresponds to messages that are displayed in the Promotions tab of
-  the Gmail interface.</td>
+  <td>Corresponds to messages that are displayed in the Promotions tab of the Gmail interface.</td>
   </tr>
   <tr>
   <td><code>CATEGORY_UPDATES</code></td>
   <td>yes</td>
-  <td>Corresponds to messages that are displayed in the Updates tab of the
-  Gmail interface.</td>
+  <td>Corresponds to messages that are displayed in the Updates tab of the Gmail interface.</td>
   </tr>
   <tr>
   <td><code>CATEGORY_FORUMS</code></td>
   <td>yes</td>
-  <td>Corresponds to messages that are displayed in the Forums tab of the
-  Gmail interface.</td>
+  <td>Corresponds to messages that are displayed in the Forums tab of the Gmail interface.</td>
   </tr>
   </tbody>
   </table>
   
   > [!NOTE]
   >
-  > The preceding list isn't exhaustive and other reserved label names exist.
-  > Attempting to create a custom label with a name that conflicts with a reserved
-  > name results in an `HTTP 400 - Invalid label name` error.
+  > The preceding list isn't exhaustive and other reserved label names exist. Attempting to create a custom label with a name that conflicts with a reserved name results in an `HTTP 400 - Invalid label name` error.
   
   ## Manage labels on threads and messages {#manage-labels}
   
-  Labels only exist on messages. If you retrieve a list of labels on a thread, you
-  get a list of labels that exist on any message within the thread. A label might
-  not exist on every message within a thread.
+  Labels only exist on messages. If you retrieve a list of labels on a thread, you get a list of labels that exist on any message within the thread. A label might not exist on every message within a thread.
   
   You can't apply labels to draft messages.
   
   ### Add or remove labels on threads {#add-remove-thread-labels}
   
-  When you add or remove a label on a thread, you add or remove the specified
-  label on all existing messages in the thread.
+  When you add or remove a label on a thread, you add or remove the specified label on all existing messages in the thread.
   
-  If messages are added to a thread after you add a label, the new messages don't
-  inherit the existing label associated with the thread. To add the label to those
-  messages, add the label to the thread again.
+  If messages are added to a thread after you add a label, the new messages don't inherit the existing label associated with the thread. To add the label to those messages, add the label to the thread again.
   
   To add or remove the labels associated with a thread, use [`threads.modify`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/modify).
   
   ### Add or remove labels on messages {#add-remove-message-labels}
   
-  When you add a label to a message, the label is added to that message and
-  becomes associated with the thread to which the message belongs. The label isn't
-  added to other messages within the thread.
+  When you add a label to a message, the label is added to that message and becomes associated with the thread to which the message belongs. The label isn't added to other messages within the thread.
   
-  If you remove a label from a message and it was the only message in the thread
-  with that label, the label is also removed from the thread.
+  If you remove a label from a message and it was the only message in the thread with that label, the label is also removed from the thread.
   
   To add or remove the labels applied to a message, use [`messages.modify`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/modify).
   
@@ -1282,22 +1090,15 @@
   
   This document explains how to manage push notifications with the Gmail API.
   
-  The Gmail API provides server push notifications that let you watch
-  for changes to Gmail mailboxes. Use this feature to improve your
-  application's performance. It eliminates the extra network and compute costs of
-  polling resources to determine if they've changed. Whenever a mailbox changes,
-  the Gmail API notifies your backend server application.
+  The Gmail API provides server push notifications that let you watch for changes to Gmail mailboxes. Use this feature to improve your application's performance. It eliminates the extra network and compute costs of polling resources to determine if they've changed. Whenever a mailbox changes, the Gmail API notifies your backend server application.
   
   > [!NOTE]
   >
-  > For notifications to user-owned devices (for example, installed apps,
-  > mobile devices, or browsers), the poll-based [Synchronize clients with Gmail](https://developers.google.com/workspace/gmail/api/guides/sync) guide is still the recommended approach to retrieve updates.
+  > For notifications to user-owned devices (for example, installed apps, mobile devices, or browsers), the poll-based [Synchronize clients with Gmail](https://developers.google.com/workspace/gmail/api/guides/sync) guide is still the recommended approach to retrieve updates.
   
   ## Initial Cloud Pub/Sub setup {#pubsub-initial-setup}
   
-  The Gmail API uses the [Cloud Pub/Sub API](https://cloud.google.com/pubsub/docs/overview) to deliver push
-  notifications. This lets you receive notifications using various methods,
-  including webhooks and polling on a single subscription endpoint.
+  The Gmail API uses the [Cloud Pub/Sub API](https://cloud.google.com/pubsub/docs/overview) to deliver push notifications. This lets you receive notifications using various methods, including webhooks and polling on a single subscription endpoint.
   
   ### Prerequisites {#prereqs}
   
@@ -1305,43 +1106,27 @@
   
   ### Create a topic {#create-topic}
   
-  Using your Cloud Pub/Sub client, [create the topic](https://cloud.google.com/pubsub/docs/create-topic) that the
-  Gmail API should send notifications to. The topic name can be any name
-  you choose under your project (for example, matching `projects/myproject/topics/*`, where `myproject` is the project ID listed for
-  your project in the Google Cloud console).
+  Using your Cloud Pub/Sub client, [create the topic](https://cloud.google.com/pubsub/docs/create-topic) that the Gmail API should send notifications to. The topic name can be any name you choose under your project (for example, matching `projects/myproject/topics/*`, where `myproject` is the project ID listed for your project in the Google Cloud console).
   
   ### Create a subscription {#create-subscription}
   
-  To set up a subscription to the topic you created, follow the [Cloud Pub/Sub subscription type](https://cloud.google.com/pubsub/docs/subscriber) guide.
-  Configure the subscription type to be either a webhook push (that is, an HTTP
-  POST callback) or a pull (that is, initiated by your app). This is how your
-  application receives notifications for updates.
+  To set up a subscription to the topic you created, follow the [Cloud Pub/Sub subscription type](https://cloud.google.com/pubsub/docs/subscriber) guide. Configure the subscription type to be either a webhook push (that is, an HTTP POST callback) or a pull (that is, initiated by your app). This is how your application receives notifications for updates.
   
   ### Grant publish rights on your topic {#grant-publish}
   
-  Cloud Pub/Sub requires that you grant Gmail privileges to publish
-  notifications to your topic.
+  Cloud Pub/Sub requires that you grant Gmail privileges to publish notifications to your topic.
   
-  To do this, grant `publish` privileges to `gmail-api-push@system.gserviceaccount.com`. You can do this using the [Cloud Pub/Sub permissions console](https://console.cloud.google.com/project/_/cloudpubsub/topicList) in
-  the Google Cloud console
-  by following these [access control instructions](https://docs.cloud.google.com/pubsub/docs/access-control#console).
+  To do this, grant `publish` privileges to `gmail-api-push@system.gserviceaccount.com`. You can do this using the [Cloud Pub/Sub permissions console](https://console.cloud.google.com/project/_/cloudpubsub/topicList) in the Google Cloud console by following these [access control instructions](https://docs.cloud.google.com/pubsub/docs/access-control#console).
   
-  Your organization's [domain-restricted sharing](https://cloud.google.com/resource-manager/docs/organization-policy/domain-restricted-sharing#how-drs-works) configuration might prevent you from granting publish permissions. To resolve
-  this, you can [configure an exception](https://cloud.google.com/resource-manager/docs/organization-policy/restricting-domains#configure-exceptions) for this service account.
+  Your organization's [domain-restricted sharing](https://cloud.google.com/resource-manager/docs/organization-policy/domain-restricted-sharing#how-drs-works) configuration might prevent you from granting publish permissions. To resolve this, you can [configure an exception](https://cloud.google.com/resource-manager/docs/organization-policy/restricting-domains#configure-exceptions) for this service account.
   
   ## Get Gmail mailbox updates {#gmail-watch}
   
-  After you complete the initial Cloud Pub/Sub setup, configure
-  Gmail accounts to send notifications for mailbox updates.
+  After you complete the initial Cloud Pub/Sub setup, configure Gmail accounts to send notifications for mailbox updates.
   
   ### Watch request {#watch-request}
   
-  To configure Gmail accounts to send notifications to your Cloud
-  Pub/Sub topic, use your Gmail API client to call the [`watch`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/watch) method on the
-  Gmail user mailbox. This is similar to any other
-  Gmail API call. Provide the topic name you created and any other
-  options in your `watch` request, such as [`labels`](https://developers.google.com/workspace/gmail/api/guides/labels) to filter on. For example, use
-  the following request to be notified whenever a change occurs in the inbox:
+  To configure Gmail accounts to send notifications to your Cloud Pub/Sub topic, use your Gmail API client to call the [`watch`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/watch) method on the Gmail user mailbox. This is similar to any other Gmail API call. Provide the topic name you created and any other options in your `watch` request, such as [`labels`](https://developers.google.com/workspace/gmail/api/guides/labels) to filter on. For example, use the following request to be notified whenever a change occurs in the inbox:
   
   #### Protocol
   
@@ -1369,8 +1154,7 @@
   
   ### Watch response {#watch-response}
   
-  If the [`watch`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/watch) request is
-  successful, you receive a response like the following:
+  If the [`watch`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/watch) request is successful, you receive a response like the following:
   
   ```json
   {
@@ -1379,31 +1163,21 @@
   }
   ```
   
-  The response contains the current mailbox `historyId` for the user. Your client
-  receives notifications for all changes after that `historyId`. If you need to
-  process changes before this `historyId`, refer to [Synchronize clients with Gmail](https://developers.google.com/workspace/gmail/api/guides/sync).
+  The response contains the current mailbox `historyId` for the user. Your client receives notifications for all changes after that `historyId`. If you need to process changes before this `historyId`, refer to [Synchronize clients with Gmail](https://developers.google.com/workspace/gmail/api/guides/sync).
   
-  Additionally, a successful `watch` call immediately sends a notification to your
-  Cloud Pub/Sub topic.
+  Additionally, a successful `watch` call immediately sends a notification to your Cloud Pub/Sub topic.
   
-  If you receive an error from the `watch` call, the details should explain the
-  source of the problem. This is typically an issue with the setup of the Cloud
-  Pub/Sub topic and subscription. Refer to the [Cloud Pub/Sub documentation](https://cloud.google.com/pubsub/docs) to confirm that the setup
-  is correct and for help debugging topic and subscription issues.
+  If you receive an error from the `watch` call, the details should explain the source of the problem. This is typically an issue with the setup of the Cloud Pub/Sub topic and subscription. Refer to the [Cloud Pub/Sub documentation](https://cloud.google.com/pubsub/docs) to confirm that the setup is correct and for help debugging topic and subscription issues.
   
   ### Renew mailbox watch {#renew-mailbox}
   
-  You must call the [`watch`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/watch) method at least once every 7 days or you'll stop receiving updates for the user.
-  We recommend calling `watch` once per day. The `watch` method response also has
-  an [`expiration`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/watch#body.WatchResponse.FIELDS.expiration) field with the timestamp for the `watch` expiration.
+  You must call the [`watch`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/watch) method at least once every 7 days or you'll stop receiving updates for the user. We recommend calling `watch` once per day. The `watch` method response also has an [`expiration`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/watch#body.WatchResponse.FIELDS.expiration) field with the timestamp for the `watch` expiration.
   
   ## Receive notifications {#receive-notifications}
   
-  Whenever a mailbox update occurs that matches your `watch`, your application
-  receives a notification message describing the change.
+  Whenever a mailbox update occurs that matches your `watch`, your application receives a notification message describing the change.
   
-  If you configured a push subscription, a webhook notification to your server
-  conforms to a [`PubsubMessage`](https://cloud.google.com/pubsub/docs/reference/rest/v1/PubsubMessage):
+  If you configured a push subscription, a webhook notification to your server conforms to a [`PubsubMessage`](https://cloud.google.com/pubsub/docs/reference/rest/v1/PubsubMessage):
   
   ```bash
   POST https://yourserver.example.com/yourUrl
@@ -1426,10 +1200,7 @@
   }
   ```
   
-  The HTTP POST body is JSON and the actual Gmail notification
-  payload is in the `message.data` field. The `message.data` field is a
-  Base64URL-encoded string that decodes to a JSON object containing the email
-  address and the new mailbox history ID for the user:
+  The HTTP POST body is JSON and the actual Gmail notification payload is in the `message.data` field. The `message.data` field is a Base64URL-encoded string that decodes to a JSON object containing the email address and the new mailbox history ID for the user:
   
   ```json
   {"emailAddress": "user@example.com", "historyId": "9876543210"}
@@ -1437,31 +1208,21 @@
   
   You can then use the [`history.list`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.history/list) method to get the change details for the user since their *last known* `historyId`, as described in [Synchronize clients with Gmail](https://developers.google.com/workspace/gmail/api/guides/sync#partial-sync).
   
-  For example, use the [`history.list`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.history/list) method to identify changes that occurred between your initial [`watch`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/watch) request and the
-  receipt of the notification message shared in the previous example. Pass `1234567890` as the `startHistoryId` to `history.list`. Afterward, you can
-  persist `9876543210` as the *last known* `historyId` for future use cases.
+  For example, use the [`history.list`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.history/list) method to identify changes that occurred between your initial [`watch`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/watch) request and the receipt of the notification message shared in the previous example. Pass `1234567890` as the `startHistoryId` to `history.list`. Afterward, you can persist `9876543210` as the *last known* `historyId` for future use cases.
   
-  If you configured a pull subscription instead, refer to the code samples in the
-  Cloud Pub/Sub [pull subscriptions](https://cloud.google.com/pubsub/docs/pull) guide for more details on receiving messages.
+  If you configured a pull subscription instead, refer to the code samples in the Cloud Pub/Sub [pull subscriptions](https://cloud.google.com/pubsub/docs/pull) guide for more details on receiving messages.
   
   ### Respond to notifications {#respond-notifications}
   
-  You must acknowledge all notifications. If you use webhook [push delivery](https://cloud.google.com/pubsub/docs/push), then responding
-  successfully (for example, HTTP 200) acknowledges the notification.
+  You must acknowledge all notifications. If you use webhook [push delivery](https://cloud.google.com/pubsub/docs/push), then responding successfully (for example, HTTP 200) acknowledges the notification.
   
-  If you use pull delivery ([REST pull](https://cloud.google.com/pubsub/docs/reference/rest/v1/projects.subscriptions/pull), [RPC pull](https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#google.pubsub.v1.PullRequest),
-  or [RPC streaming pull](https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#streamingpullrequest)),
-  you must acknowledge messages using the [REST](https://cloud.google.com/pubsub/docs/reference/rest/v1/projects.subscriptions/acknowledge) or [RPC](https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#acknowledgerequest) acknowledge method. Refer to the code samples in Cloud Pub/Sub's [pull subscriptions](https://cloud.google.com/pubsub/docs/pull) guide for more details
-  on acknowledging messages either [asynchronously](https://cloud.google.com/pubsub/docs/pull#asynchronous_pull_mode) or [synchronously](https://cloud.google.com/pubsub/docs/pull#synchronous_pull_mode) using the official RPC-based client libraries.
+  If you use pull delivery ([REST pull](https://cloud.google.com/pubsub/docs/reference/rest/v1/projects.subscriptions/pull), [RPC pull](https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#google.pubsub.v1.PullRequest), or [RPC streaming pull](https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#streamingpullrequest)), you must acknowledge messages using the [REST](https://cloud.google.com/pubsub/docs/reference/rest/v1/projects.subscriptions/acknowledge) or [RPC](https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#acknowledgerequest) acknowledge method. Refer to the code samples in Cloud Pub/Sub's [pull subscriptions](https://cloud.google.com/pubsub/docs/pull) guide for more details on acknowledging messages either [asynchronously](https://cloud.google.com/pubsub/docs/pull#asynchronous_pull_mode) or [synchronously](https://cloud.google.com/pubsub/docs/pull#synchronous_pull_mode) using the official RPC-based client libraries.
   
-  If you don't acknowledge the notifications (for example, if your webhook
-  callback returns an error or times out), Cloud Pub/Sub retries the notification
-  at a later time.
+  If you don't acknowledge the notifications (for example, if your webhook callback returns an error or times out), Cloud Pub/Sub retries the notification at a later time.
   
   ## Stop mailbox updates {#stop-mailbox-updates}
   
-  To stop receiving updates on a mailbox, call the [`stop`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/stop) method. All new
-  notifications should stop within a few minutes.
+  To stop receiving updates on a mailbox, call the [`stop`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/stop) method. All new notifications should stop within a few minutes.
   
   ## Limitations {#limitations}
   
@@ -1469,18 +1230,11 @@
   
   ### Maximum notification rate {#max-rate}
   
-  Each Gmail user being watched has a maximum notification rate of
-  one event per second. The service drops any user notifications exceeding that
-  rate. When handling notifications, be careful not to trigger another
-  notification, which can start a notification loop.
+  Each Gmail user being watched has a maximum notification rate of one event per second. The service drops any user notifications exceeding that rate. When handling notifications, be careful not to trigger another notification, which can start a notification loop.
   
   ### Reliability {#reliability}
   
-  Typically, Cloud Pub/Sub delivers notifications within a few seconds. However,
-  in rare situations, notifications might be delayed or dropped. Handle this
-  possibility gracefully so that the application still syncs even if your app
-  doesn't receive push messages. For example, fall back to periodically calling
-  the [`history.list`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.history/list) method after a period with no notifications for a user.
+  Typically, Cloud Pub/Sub delivers notifications within a few seconds. However, in rare situations, notifications might be delayed or dropped. Handle this possibility gracefully so that the application still syncs even if your app doesn't receive push messages. For example, fall back to periodically calling the [`history.list`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.history/list) method after a period with no notifications for a user.
   
   ### Cloud Pub/Sub limitations {#pubsub-limits}
   
@@ -1492,8 +1246,7 @@
   '''
   # Create and send email messages
   
-  This document explains how to create and send email messages using the
-  Gmail API.
+  This document explains how to create and send email messages using the Gmail API.
   
   There are two ways to send email using the Gmail API:
   
@@ -1503,27 +1256,20 @@
   Gmail messages are sent as base64URL encoded strings within the [`raw`](https://developers.google.com/static/workspace/gmail/api/reference/rest/v1/users.messages#Message.FIELDS.raw) field of a [`messages`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages) resource. To send an email message:
   
   1. Create the email content and encode it as a base64URL string.
-  2. Create a new message resource and set its `raw` property to the base64URL
-     string you just created.
+  2. Create a new message resource and set its `raw` property to the base64URL string you just created.
   3. Call the [`messages.send`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send) method, or, if sending a draft, call the [`drafts.send`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/send) method, to send the message.
   
-  The details of this workflow can vary depending on your choice of client library
-  and programming language.
+  The details of this workflow can vary depending on your choice of client library and programming language.
   
   ## Create messages {#create-messages}
   
-  The Gmail API requires MIME email messages compliant with [RFC 2822](https://datatracker.ietf.org/doc/html/rfc2822) and encoded as base64URL
-  strings. Many programming languages have libraries or utilities that simplify
-  the process of creating and encoding MIME messages.
+  The Gmail API requires MIME email messages compliant with [RFC 2822](https://datatracker.ietf.org/doc/html/rfc2822) and encoded as base64URL strings. Many programming languages have libraries or utilities that simplify the process of creating and encoding MIME messages.
   
-  The following code samples show how to create a MIME message using Google API
-  client libraries for various languages:
+  The following code samples show how to create a MIME message using Google API client libraries for various languages:
   
   ### Java
   
-  Creating an email message can be simplified with the `MimeMessage` class in
-  the `javax.mail.internet` package. The following code sample shows how to
-  create the email message, including the headers:
+  Creating an email message can be simplified with the `MimeMessage` class in the `javax.mail.internet` package. The following code sample shows how to create the email message, including the headers:
   
   gmail/snippets/src/main/java/CreateEmail.java
   
@@ -1569,8 +1315,7 @@
   }
   ```
   
-  Next, encode the `MimeMessage`, instantiate a `messages` object, and set the
-  base64URL encoded message string as the value of the `raw` property.
+  Next, encode the `MimeMessage`, instantiate a `messages` object, and set the base64URL encoded message string as the value of the `raw` property.
   
   gmail/snippets/src/main/java/CreateMessage.java
   
@@ -1610,8 +1355,7 @@
   
   ### Python
   
-  The following code sample shows how to create a MIME message, encode it to a
-  base64URL string, and assign it to the `raw` field of the `messages` resource:
+  The following code sample shows how to create a MIME message, encode it to a base64URL string, and assign it to the `raw` field of the `messages` resource:
   
   gmail/snippet/send mail/create\_draft.py
   
@@ -1687,24 +1431,18 @@
   
   Replace the following:
   
-  - `ACCESS_TOKEN`: the access token that grants access to
-    the API.
-  - `MESSAGE`: the RFC 2822 formatted MIME message, encoded
-    as base64URL.
+  - `ACCESS_TOKEN`: the access token that grants access to the API.
+  - `MESSAGE`: the RFC 2822 formatted MIME message, encoded as base64URL.
   
   ## Create messages with attachments {#create-messages-attachments}
   
-  Creating a message with an attachment is like creating any other message, but
-  the process of uploading the file as a multi-part MIME message depends on the
-  programming language.
+  Creating a message with an attachment is like creating any other message, but the process of uploading the file as a multi-part MIME message depends on the programming language.
   
-  The following code samples show possible ways of creating a multi-part MIME
-  message with an attachment:
+  The following code samples show possible ways of creating a multi-part MIME message with an attachment:
   
   ### Java
   
-  The following code sample shows how to create a multi-part MIME message. The
-  encoding and assignment steps are the same as [create messages](https://developers.google.com/workspace/gmail/api/guides/sending#create-messages).
+  The following code sample shows how to create a multi-part MIME message. The encoding and assignment steps are the same as [create messages](https://developers.google.com/workspace/gmail/api/guides/sending#create-messages).
   
   gmail/snippets/src/main/java/CreateDraftWithAttachment.java
   
@@ -1824,8 +1562,7 @@
   
   ### Python
   
-  Similar to the [create messages](https://developers.google.com/workspace/gmail/api/guides/sending#create-messages) example, this example
-  also handles encoding the message to base64URL and assigning it to the `raw` field of the `messages` resource.
+  Similar to the [create messages](https://developers.google.com/workspace/gmail/api/guides/sending#create-messages) example, this example also handles encoding the message to base64URL and assigning it to the `raw` field of the `messages` resource.
   
   gmail/snippet/send mail/create\_draft\_with\_attachment.py
   
@@ -1948,15 +1685,12 @@
   
   Replace the following:
   
-  - `ACCESS_TOKEN`: the access token that grants access to
-    the API.
-  - `MESSAGE`: the RFC 2822 formatted MIME message
-    containing an attachment, encoded as base64URL.
+  - `ACCESS_TOKEN`: the access token that grants access to the API.
+  - `MESSAGE`: the RFC 2822 formatted MIME message containing an attachment, encoded as base64URL.
   
   ## Send messages {#send-messages}
   
-  Once you have created a message, you can send it by supplying it in the request
-  body of the [`messages.send`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send) method, as shown in the following examples:
+  Once you have created a message, you can send it by supplying it in the request body of the [`messages.send`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send) method, as shown in the following examples:
   
   ### Java
   
@@ -2125,10 +1859,8 @@
   
   Replace the following:
   
-  - `ACCESS_TOKEN`: the access token that grants access to
-    the API.
-  - `MESSAGE`: the RFC 2822 formatted MIME message, encoded
-    as base64URL.
+  - `ACCESS_TOKEN`: the access token that grants access to the API.
+  - `MESSAGE`: the RFC 2822 formatted MIME message, encoded as base64URL.
   
   If you're trying to send a reply and want the email to be grouped into a [thread](https://developers.google.com/workspace/gmail/api/guides/threads), make sure that:
   
@@ -2146,27 +1878,17 @@
   '''
   # Manage threads
   
-  This document explains how to retrieve thread messages and add messages to
-  threads using the Gmail API.
+  This document explains how to retrieve thread messages and add messages to threads using the Gmail API.
   
-  The Gmail API uses the [`threads`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads) resource to
-  group email replies with their original message into a single conversation or
-  thread. This lets you retrieve all messages in a conversation, in order, which
-  makes it easier to have context for a message or to refine search results.
+  The Gmail API uses the [`threads`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads) resource to group email replies with their original message into a single conversation or thread. This lets you retrieve all messages in a conversation, in order, which makes it easier to have context for a message or to refine search results.
   
-  Like the [`messages`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages) resource, threads can also have labels applied to them. However, unlike
-  messages, threads cannot be created, only deleted. Messages can, however, be
-  inserted into a thread.
+  Like the [`messages`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages) resource, threads can also have labels applied to them. However, unlike messages, threads cannot be created, only deleted. Messages can, however, be inserted into a thread.
   
   ## Retrieve threads {#retrieve-threads}
   
-  Threads provide a way of retrieving messages in a conversation, in order. By
-  listing a set of threads you can choose to group messages by conversation and
-  provide additional context. You can retrieve a list of threads using the [`threads.list`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/list) method, or retrieve a specific thread with the [`threads.get`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/get) method.
+  Threads provide a way of retrieving messages in a conversation, in order. By listing a set of threads you can choose to group messages by conversation and provide additional context. You can retrieve a list of threads using the [`threads.list`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/list) method, or retrieve a specific thread with the [`threads.get`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/get) method.
   
-  The following code sample shows how to use the `threads.get` and `threads.list` methods in a sample that retrieves the most chatty threads in your inbox. The `threads.list` method fetches all thread IDs, then `threads.get` grabs all
-  messages in each thread. For messages with three or more replies, we extract the `Subject` line and display the non-empty ones plus the number of messages in the
-  thread.
+  The following code sample shows how to use the `threads.get` and `threads.list` methods in a sample that retrieves the most chatty threads in your inbox. The `threads.list` method fetches all thread IDs, then `threads.get` grabs all messages in each thread. For messages with three or more replies, we extract the `Subject` line and display the non-empty ones plus the number of messages in the thread.
   
   ### Python
   
@@ -2225,35 +1947,25 @@
     show_chatty_threads()
   ```
   
-  You can also [filter threads](https://developers.google.com/workspace/gmail/api/guides/filtering) using the
-  same query parameters as those used for the [`messages`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages) resource. If
-  any message in a thread matches the query, the thread is returned in the result.
+  You can also [filter threads](https://developers.google.com/workspace/gmail/api/guides/filtering) using the same query parameters as those used for the [`messages`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages) resource. If any message in a thread matches the query, the thread is returned in the result.
   
   ## Add drafts and messages to threads {#add-drafts-messages-threads}
   
-  If you're sending or migrating messages that are a response to another email or
-  part of a conversation, your application should add that message to the related
-  thread. This makes it easier for Gmail users who are participating in
-  the conversation to keep the message in context.
+  If you're sending or migrating messages that are a response to another email or part of a conversation, your application should add that message to the related thread. This makes it easier for Gmail users who are participating in the conversation to keep the message in context.
   
-  A draft can be added to a thread as part of [creating](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/create), [updating](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/update), or [sending](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/send) a message
-  using the [`drafts`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts) resource.
+  A draft can be added to a thread as part of [creating](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/create), [updating](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/update), or [sending](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/send) a message using the [`drafts`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts) resource.
   
-  You can also add a message to a thread as part of [inserting](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/insert) or [sending](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send) a message
-  using the [`messages`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages) resource.
+  You can also add a message to a thread as part of [inserting](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/insert) or [sending](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send) a message using the [`messages`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages) resource.
   
   To be part of a thread, a draft or message must meet the following criteria:
   
   1. The requested [`threadId`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages#Message.FIELDS.thread_id) must be specified as part of the [`drafts.message`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts#Draft.FIELDS.message) or `messages` resource you supply with your request.
   
-  2. The `References` and `In-Reply-To` headers must be set in compliance with
-     the [RFC 2822](https://datatracker.ietf.org/doc/html/rfc2822#appendix-A.2) standard.
+  2. The `References` and `In-Reply-To` headers must be set in compliance with the [RFC 2822](https://datatracker.ietf.org/doc/html/rfc2822#appendix-A.2) standard.
   
   3. The `Subject` headers must match.
   
-  For code samples of how to use the `threadId`, see [Create drafts](https://developers.google.com/workspace/gmail/api/guides/drafts#create-drafts) or [Send messages](https://developers.google.com/workspace/gmail/api/guides/sending#send-messages). In both cases, you
-  need to include the target `threadId` within the `messages` resource of your
-  request.
+  For code samples of how to use the `threadId`, see [Create drafts](https://developers.google.com/workspace/gmail/api/guides/drafts#create-drafts) or [Send messages](https://developers.google.com/workspace/gmail/api/guides/sending#send-messages). In both cases, you need to include the target `threadId` within the `messages` resource of your request.
   
   ## Related topics {#related-topics}
   
@@ -2283,15 +1995,11 @@
   
   When you upload media, you use a special URI. In fact, methods that support media uploads have two URI endpoints:
   
-  - **The /upload URI, for the media.** The format of the upload endpoint is the
-    standard resource URI with an “/upload” prefix. Use this URI when
-    transferring the media data itself.
+  - **The /upload URI, for the media.** The format of the upload endpoint is the standard resource URI with an “/upload” prefix. Use this URI when transferring the media data itself.
   
     Example: `POST /upload/gmail/v1/users/userId/messages/send`
   
-  - **The standard resource URI, for the metadata.** If the resource contains any
-    data fields, those fields are used to store metadata describing the uploaded
-    file. You can use this URI when creating or updating metadata values.
+  - **The standard resource URI, for the metadata.** If the resource contains any data fields, those fields are used to store metadata describing the uploaded file. You can use this URI when creating or updating metadata values.
   
     Example: `POST /gmail/v1/users/userId/messages/send`
   
@@ -2302,8 +2010,7 @@
   - The file is small enough to upload again in its entirety if the connection fails.
   - There is no metadata to send. This might be true if you plan to send metadata for this resource in a separate request, or if no metadata is supported or available.
   
-  To use simple upload, make a `POST` or `PUT` request to
-  the method's **/upload** URI and add the query parameter `uploadType=media`. For example:
+  To use simple upload, make a `POST` or `PUT` request to the method's **/upload** URI and add the query parameter `uploadType=media`. For example:
   
   ```http
   POST https://www.googleapis.com/upload/gmail/v1/users/userId/messages/send?uploadType=media
@@ -2316,8 +2023,7 @@
   
   #### Example: Simple upload {#example:-simple-upload}
   
-  The following example shows the use of a simple upload request for the
-  Gmail API.
+  The following example shows the use of a simple upload request for the Gmail API.
   
   ```http
   POST /upload/gmail/v1/users/userId/messages/send?uploadType=media HTTP/1.1
@@ -2387,8 +2093,7 @@
   
   See the API [reference](https://developers.google.com/gmail/api/reference/rest) for each method's list of accepted media MIME types and size limits for uploaded files.
   
-  **Note:** To create or update the metadata portion
-  only, without uploading the associated data, simply send a `POST` or `PUT` request to the standard resource endpoint: `https://www.googleapis.com/gmail/v1/users/userId/messages/send`
+  **Note:** To create or update the metadata portion only, without uploading the associated data, simply send a `POST` or `PUT` request to the standard resource endpoint: `https://www.googleapis.com/gmail/v1/users/userId/messages/send`
   
   #### Example: Multipart upload {#example:-multipart-upload}
   
@@ -2747,16 +2452,11 @@
   '''
   # Python quickstart
   
-  Create a Python command-line application that makes requests to the
-  Gmail API.
+  Create a Python command-line application that makes requests to the Gmail API.
   
-  Quickstarts explain how to set up and run an app that calls a
-  Google Workspace API. This quickstart uses a
-  simplified authentication approach that is appropriate for a testing
-  environment. For a production environment, we recommend learning about [authentication and authorization](https://developers.google.com/workspace/guides/auth-overview) before [choosing the access credentials](https://developers.google.com/workspace/guides/create-credentials#choose_the_access_credential_that_is_right_for_you) that are appropriate for your app.
+  Quickstarts explain how to set up and run an app that calls a Google Workspace API. This quickstart uses a simplified authentication approach that is appropriate for a testing environment. For a production environment, we recommend learning about [authentication and authorization](https://developers.google.com/workspace/guides/auth-overview) before [choosing the access credentials](https://developers.google.com/workspace/guides/create-credentials#choose_the_access_credential_that_is_right_for_you) that are appropriate for your app.
   
-  This quickstart uses Google Workspace's recommended API client libraries
-  to handle some details of the authentication and authorization flow.
+  This quickstart uses Google Workspace's recommended API client libraries to handle some details of the authentication and authorization flow.
   
   ## Objectives {#objectives}
   
@@ -2781,8 +2481,7 @@
   
   ### Enable the API {#enable_the_api}
   
-  Before using Google APIs, you need to turn them on in a Google Cloud project.
-  You can turn on one or more APIs in a single Google Cloud project.
+  Before using Google APIs, you need to turn them on in a Google Cloud project. You can turn on one or more APIs in a single Google Cloud project.
   
   - In the Google Cloud console, enable the Gmail API.
   
@@ -2790,9 +2489,7 @@
   
   ### Configure the OAuth consent screen {#configure_the_oauth_consent_screen}
   
-  If you're using a new Google Cloud project to complete this quickstart, configure
-  the OAuth consent screen. If you've already
-  completed this step for your Cloud project, skip to the next section.
+  If you're using a new Google Cloud project to complete this quickstart, configure the OAuth consent screen. If you've already completed this step for your Cloud project, skip to the next section.
   
   1. In the Google API Console, go to Menu menu > **Google Auth platform** > **Branding**.
   
@@ -2810,17 +2507,11 @@
   8. Under **Finish**, review the [Google API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy) and if you agree, select **I agree to the Google API Services: User Data Policy**.
   9. Click **Continue**.
   10. Click **Create**.
-  3. For now, you can skip adding scopes.
-     In the future, when you create an app for use outside of your
-     Google Workspace organization, you must change the **User type** to **External**. Then
-     add the authorization scopes that your app requires. To learn more, see the full [Configure OAuth consent](https://developers.google.com/workspace/guides/configure-oauth-consent) guide.
+  3. For now, you can skip adding scopes. In the future, when you create an app for use outside of your Google Workspace organization, you must change the **User type** to **External**. Then add the authorization scopes that your app requires. To learn more, see the full [Configure OAuth consent](https://developers.google.com/workspace/guides/configure-oauth-consent) guide.
   
   ### Authorize credentials for a desktop application {#authorize_credentials_for_a_desktop_application}
   
-  To authenticate end users and access user data in your app, you need to
-  create one or more OAuth 2.0 Client IDs. A client ID is used to identify a
-  single app to Google's OAuth servers. If your app runs on multiple platforms,
-  you must create a separate client ID for each platform.
+  To authenticate end users and access user data in your app, you need to create one or more OAuth 2.0 Client IDs. A client ID is used to identify a single app to Google's OAuth servers. If your app runs on multiple platforms, you must create a separate client ID for each platform.
   
   1. In the Google Cloud Console, go to Menu menu > **Google Auth platform** > **Clients**.
   
@@ -2838,8 +2529,7 @@
   
      The newly created credential appears under "OAuth 2.0 Client IDs."
   
-  7. Save the downloaded JSON file as `credentials.json`, and move the
-     file to your working directory.
+  7. Save the downloaded JSON file as `credentials.json`, and move the file to your working directory.
   
   ## Install the Google client library {#install_the_google_client_library}
   
@@ -2927,14 +2617,12 @@
   
   2) The first time you run the sample, it prompts you to authorize access:
   
-     1. If you're not already signed in to your Google Account, sign in when prompted. If
-        you're signed in to multiple accounts, select one account to use for authorization.
+     1. If you're not already signed in to your Google Account, sign in when prompted. If you're signed in to multiple accounts, select one account to use for authorization.
      2. Click **Accept**.
   
      Your Python application runs and calls the Gmail API.
   
-     Authorization information is stored in the file system, so the next time you run the sample
-     code, you aren't prompted for authorization.
+     Authorization information is stored in the file system, so the next time you run the sample code, you aren't prompted for authorization.
   
   ## Next steps {#next_steps}
   
@@ -2955,28 +2643,21 @@
   >
   > **May 1, 2026**
   >
-  > As of , the usage limits for this API were updated. Google Cloud projects that made
-  > any use of this API between November 2025 and April 2026 will continue with their previously set usage
-  > quotas. Cloud projects created on or after May 1, 2026 are subject to the new API quotas.
+  > As of , the usage limits for this API were updated. Google Cloud projects that made any use of this API between November 2025 and April 2026 will continue with their previously set usage quotas. Cloud projects created on or after May 1, 2026 are subject to the new API quotas.
   >
   > For more information, including timelines, see [Google Workspace standardized model for agent tools and APIs](https://developers.google.com/workspace/tools-safety).
   >
   > For the full announcement, see [Agent tools and security updates for Google Workspace developers](http://workspaceupdates.googleblog.com/2026/05/agent-tools-and-security-updates-for-workspace-developers.html).
   
-  The Gmail API is subject to usage limits that restrict the rate at which you
-  can call API methods. Limits are defined in terms of [quota units](https://developers.google.com/workspace/gmail/api/reference/quota#per-method-quota), an abstract unit of measurement representing
-  Gmail resource usage.
+  The Gmail API is subject to usage limits that restrict the rate at which you can call API methods. Limits are defined in terms of [quota units](https://developers.google.com/workspace/gmail/api/reference/quota#per-method-quota), an abstract unit of measurement representing Gmail resource usage.
   
   ## Gmail API quotas {#quotas}
   
   The Gmail API enforces two types of quotas:
   
-  - **Per minute per project:** This is the number of quota units your
-    Google Cloud project can use in one minute.
+  - **Per minute per project:** This is the number of quota units your Google Cloud project can use in one minute.
   
-  - **Per minute per user per project:** This is the number of quota units any
-    one particular user can use in your Cloud project. This limit helps
-    ensure a fair distribution of usage among your users.
+  - **Per minute per user per project:** This is the number of quota units any one particular user can use in your Cloud project. This limit helps ensure a fair distribution of usage among your users.
   
   The following table details these limits:
   
@@ -2989,12 +2670,9 @@
   
   ## Daily billing threshold {#billing-threshold}
   
-  This **per day per project** limit defines the maximum number of quota units
-  your Google Cloud project can use within a 24-hour period before charges apply.
+  This **per day per project** limit defines the maximum number of quota units your Google Cloud project can use within a 24-hour period before charges apply.
   
-  Usage under this threshold doesn't incur extra charges and your Google Cloud
-  account isn't billed. Google will share full billing details later in 2026 with
-  at least 90 days' notice before any changes take effect.
+  Usage under this threshold doesn't incur extra charges and your Google Cloud account isn't billed. Google will share full billing details later in 2026 with at least 90 days' notice before any changes take effect.
   
   You can't request an increase on this daily threshold limit.
   
@@ -3008,9 +2686,7 @@
   
   ## Per-method quota usage {#per-method-quota}
   
-  The number of quota units that each request consumes varies depending on the
-  method you call and the query parameters. The following table outlines the
-  per-method quota unit usage:
+  The number of quota units that each request consumes varies depending on the method you call and the query parameters. The following table outlines the per-method quota unit usage:
   
   | Method                                | Quota units                                       |
   | ------------------------------------- | ------------------------------------------------- |
@@ -3074,73 +2750,44 @@
   | `threads.untrash`                     | 10                                                |
   | `watch`                               | 100                                               |
   
-  When using the Gmail API, there's also a limit of 500 recipients per
-  email message.
+  When using the Gmail API, there's also a limit of 500 recipients per email message.
   
   ## Resolve time-based quota errors {#exponential}
   
-  For all time-based errors (maximum of N requests per X minutes), we recommend
-  your code catches the exception and uses a *truncated exponential backoff* to make sure your
-  devices don't generate excessive load.
+  For all time-based errors (maximum of N requests per X minutes), we recommend your code catches the exception and uses a *truncated exponential backoff* to make sure your devices don't generate excessive load.
   
-  Exponential backoff is a standard error handling strategy for network applications. An
-  exponential backoff algorithm retries requests using exponentially increasing wait times
-  between requests, up to a maximum backoff time. If requests are still unsuccessful, it's
-  important that the delays between requests increase over time until the request is successful.
+  Exponential backoff is a standard error handling strategy for network applications. An exponential backoff algorithm retries requests using exponentially increasing wait times between requests, up to a maximum backoff time. If requests are still unsuccessful, it's important that the delays between requests increase over time until the request is successful.
   
   ### Example algorithm {#example-algorithm}
   
-  An exponential backoff algorithm retries requests exponentially, increasing the wait time
-  between retries up to a maximum backoff time. For example:
+  An exponential backoff algorithm retries requests exponentially, increasing the wait time between retries up to a maximum backoff time. For example:
   
   1. Make a request to Gmail API.
-  2. If the request fails, wait 1 + `random_number_milliseconds` and retry
-     the request.
-  3. If the request fails, wait 2 + `random_number_milliseconds` and retry
-     the request.
-  4. If the request fails, wait 4 + `random_number_milliseconds` and retry
-     the request.
+  2. If the request fails, wait 1 + `random_number_milliseconds` and retry the request.
+  3. If the request fails, wait 2 + `random_number_milliseconds` and retry the request.
+  4. If the request fails, wait 4 + `random_number_milliseconds` and retry the request.
   5. And so on, up to a `maximum_backoff` time.
-  6. Continue waiting and retrying up to some maximum number of retries, but don't increase the wait
-     period between retries.
+  6. Continue waiting and retrying up to some maximum number of retries, but don't increase the wait period between retries.
   
   where:
   
-  - The wait time is `min(((2^n)+random_number_milliseconds), maximum_backoff)`,
-    with `n` incremented by 1 for each iteration (request).
-  - `random_number_milliseconds` is a random number of milliseconds less than or
-    equal to 1,000. This helps to avoid cases in which many clients are synchronized by
-    some situation and all retry at once, sending requests in synchronized
-    waves. The value of `random_number_milliseconds` is recalculated after each
-    retry request.
-  - `maximum_backoff` is typically 32 or 64 seconds. The appropriate value
-    depends on the use case.
+  - The wait time is `min(((2^n)+random_number_milliseconds), maximum_backoff)`, with `n` incremented by 1 for each iteration (request).
+  - `random_number_milliseconds` is a random number of milliseconds less than or equal to 1,000. This helps to avoid cases in which many clients are synchronized by some situation and all retry at once, sending requests in synchronized waves. The value of `random_number_milliseconds` is recalculated after each retry request.
+  - `maximum_backoff` is typically 32 or 64 seconds. The appropriate value depends on the use case.
   
-  The client can continue retrying after it has reached the `maximum_backoff` time.
-  Retries after this point don't need to continue increasing backoff time. For
-  example, if a client uses a `maximum_backoff` time of 64 seconds, then after reaching
-  this value, the client can retry every 64 seconds. At some point,
-  clients should be prevented from retrying indefinitely.
+  The client can continue retrying after it has reached the `maximum_backoff` time. Retries after this point don't need to continue increasing backoff time. For example, if a client uses a `maximum_backoff` time of 64 seconds, then after reaching this value, the client can retry every 64 seconds. At some point, clients should be prevented from retrying indefinitely.
   
-  The wait time between retries and the number of retries depend on your use case
-  and network conditions.
+  The wait time between retries and the number of retries depend on your use case and network conditions.
   
   ## Pricing {#pricing}
   
-  All standard use of the Gmail API is available at no additional cost. Exceeding the quota
-  request limits is planned to incur charges to your Google Cloud billing account later in 2026.
-  For more information, see [Google Workspace standardized model for agent tools and APIs](https://developers.google.com/workspace/tools-safety).
+  All standard use of the Gmail API is available at no additional cost. Exceeding the quota request limits is planned to incur charges to your Google Cloud billing account later in 2026. For more information, see [Google Workspace standardized model for agent tools and APIs](https://developers.google.com/workspace/tools-safety).
   
   ## Request a quota increase {#increase}
   
-  Depending on your project's resource usage, you might want to request a quota
-  adjustment. API calls by a service account are considered to be using a
-  single account. Applying for an adjusted quota doesn't guarantee approval. Quota adjustment
-  requests that would significantly increase the quota value can take longer to be approved.
+  Depending on your project's resource usage, you might want to request a quota adjustment. API calls by a service account are considered to be using a single account. Applying for an adjusted quota doesn't guarantee approval. Quota adjustment requests that would significantly increase the quota value can take longer to be approved.
   
-  Not all projects have the same quotas. As you increasingly use Google Cloud over
-  time, your quota values might need to increase. If you expect a notable upcoming
-  increase in usage, you can proactively [request quota adjustments](https://docs.cloud.google.com/docs/quotas/view-manage#requesting_higher_quota) from the [Quotas & System Limits](https://console.cloud.google.com/iam-admin/quotas) page in the Google Cloud console.
+  Not all projects have the same quotas. As you increasingly use Google Cloud over time, your quota values might need to increase. If you expect a notable upcoming increase in usage, you can proactively [request quota adjustments](https://docs.cloud.google.com/docs/quotas/view-manage#requesting_higher_quota) from the [Quotas & System Limits](https://console.cloud.google.com/iam-admin/quotas) page in the Google Cloud console.
   
   To learn more, see the following resources:
   
@@ -3150,19 +2797,15 @@
   
   ## Gmail MCP server quotas {#gmail-mcp-server-quotas}
   
-  The Gmail MCP server uses a query cost allocation metric. The
-  following tables detail the query cost for each Gmail MCP
-  server method by section:
+  The Gmail MCP server uses a query cost allocation metric. The following tables detail the query cost for each Gmail MCP server method by section:
   
   ### Gmail MCP quotas {#gmail-mcp-quotas}
   
   The server enforces two types of quotas:
   
-  - **Per minute per project:** This is the query cost to your
-    Cloud project for one minute.
+  - **Per minute per project:** This is the query cost to your Cloud project for one minute.
   
-  - **Per minute per user per project:** This is the query cost to your
-    Cloud project for one minute that any one particular user can use.
+  - **Per minute per user per project:** This is the query cost to your Cloud project for one minute that any one particular user can use.
   
   The following table details these quotas:
   
@@ -3286,22 +2929,19 @@
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/getProfile">getProfile</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/profile</code> <br>
-  Gets the current user's Gmail profile.</td>
+  <code>GET /gmail/v1/users/{userId}/profile</code> <br> Gets the current user's Gmail profile.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/stop">stop</a></code></td>
   <td>
-  <code>POST /gmail/v1/users/{userId}/stop</code> <br>
-  Turn off push notification delivery for the given user mailbox.</td>
+  <code>POST /gmail/v1/users/{userId}/stop</code> <br> Turn off push notification delivery for the given user mailbox.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/watch">watch</a></code></td>
   <td>
-  <code>POST /gmail/v1/users/{userId}/watch</code> <br>
-  Set up or update a push notification watch on the given user mailbox.</td>
+  <code>POST /gmail/v1/users/{userId}/watch</code> <br> Set up or update a push notification watch on the given user mailbox.</td>
   </tr>
   </tbody>
   </table>
@@ -3324,45 +2964,39 @@
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/create">create</a></code></td>
   <td>
   <code>POST /gmail/v1/users/{userId}/drafts</code> <br>
-  <code>POST /upload/gmail/v1/users/{userId}/drafts</code> <br>
-  Creates a draft with the <code>DRAFT</code> label.</td>
+  <code>POST /upload/gmail/v1/users/{userId}/drafts</code> <br> Creates a draft with the <code>DRAFT</code> label.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/delete">delete</a></code></td>
   <td>
-  <code>DELETE /gmail/v1/users/{userId}/drafts/{id}</code> <br>
-  Immediately and permanently deletes the specified draft.</td>
+  <code>DELETE /gmail/v1/users/{userId}/drafts/{id}</code> <br> Immediately and permanently deletes the specified draft.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/get">get</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/drafts/{id}</code> <br>
-  Gets the specified draft.</td>
+  <code>GET /gmail/v1/users/{userId}/drafts/{id}</code> <br> Gets the specified draft.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/list">list</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/drafts</code> <br>
-  Lists the drafts in the user's mailbox.</td>
+  <code>GET /gmail/v1/users/{userId}/drafts</code> <br> Lists the drafts in the user's mailbox.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/send">send</a></code></td>
   <td>
   <code>POST /gmail/v1/users/{userId}/drafts/send</code> <br>
-  <code>POST /upload/gmail/v1/users/{userId}/drafts/send</code> <br>
-  Sends the specified, existing draft to the recipients in the <code>To</code>, <code>Cc</code>, and <code>Bcc</code> headers.</td>
+  <code>POST /upload/gmail/v1/users/{userId}/drafts/send</code> <br> Sends the specified, existing draft to the recipients in the <code>To</code>, <code>Cc</code>, and <code>Bcc</code> headers.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/update">update</a></code></td>
   <td>
   <code>PUT /gmail/v1/users/{userId}/drafts/{id}</code> <br>
-  <code>PUT /upload/gmail/v1/users/{userId}/drafts/{id}</code> <br>
-  Replaces a draft's content.</td>
+  <code>PUT /upload/gmail/v1/users/{userId}/drafts/{id}</code> <br> Replaces a draft's content.</td>
   </tr>
   </tbody>
   </table>
@@ -3384,8 +3018,7 @@
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.history/list">list</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/history</code> <br>
-  Lists the history of all changes to the given mailbox.</td>
+  <code>GET /gmail/v1/users/{userId}/history</code> <br> Lists the history of all changes to the given mailbox.</td>
   </tr>
   </tbody>
   </table>
@@ -3407,43 +3040,37 @@
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/create">create</a></code></td>
   <td>
-  <code>POST /gmail/v1/users/{userId}/labels</code> <br>
-  Creates a label.</td>
+  <code>POST /gmail/v1/users/{userId}/labels</code> <br> Creates a label.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/delete">delete</a></code></td>
   <td>
-  <code>DELETE /gmail/v1/users/{userId}/labels/{id}</code> <br>
-  Immediately and permanently deletes the specified label and removes it from any messages and threads that it's applied to.</td>
+  <code>DELETE /gmail/v1/users/{userId}/labels/{id}</code> <br> Immediately and permanently deletes the specified label and removes it from any messages and threads that it's applied to.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/get">get</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/labels/{id}</code> <br>
-  Gets the specified label.</td>
+  <code>GET /gmail/v1/users/{userId}/labels/{id}</code> <br> Gets the specified label.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/list">list</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/labels</code> <br>
-  Lists all labels in the user's mailbox.</td>
+  <code>GET /gmail/v1/users/{userId}/labels</code> <br> Lists all labels in the user's mailbox.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/patch">patch</a></code></td>
   <td>
-  <code>PATCH /gmail/v1/users/{userId}/labels/{id}</code> <br>
-  Patch the specified label.</td>
+  <code>PATCH /gmail/v1/users/{userId}/labels/{id}</code> <br> Patch the specified label.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/update">update</a></code></td>
   <td>
-  <code>PUT /gmail/v1/users/{userId}/labels/{id}</code> <br>
-  Updates the specified label.</td>
+  <code>PUT /gmail/v1/users/{userId}/labels/{id}</code> <br> Updates the specified label.</td>
   </tr>
   </tbody>
   </table>
@@ -3465,81 +3092,70 @@
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/batchDelete">batchDelete</a></code></td>
   <td>
-  <code>POST /gmail/v1/users/{userId}/messages/batchDelete</code> <br>
-  Deletes many messages by message ID.</td>
+  <code>POST /gmail/v1/users/{userId}/messages/batchDelete</code> <br> Deletes many messages by message ID.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/batchModify">batchModify</a></code></td>
   <td>
-  <code>POST /gmail/v1/users/{userId}/messages/batchModify</code> <br>
-  Modifies the labels on the specified messages.</td>
+  <code>POST /gmail/v1/users/{userId}/messages/batchModify</code> <br> Modifies the labels on the specified messages.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/delete">delete</a></code></td>
   <td>
-  <code>DELETE /gmail/v1/users/{userId}/messages/{id}</code> <br>
-  Immediately and permanently deletes the specified message.</td>
+  <code>DELETE /gmail/v1/users/{userId}/messages/{id}</code> <br> Immediately and permanently deletes the specified message.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/get">get</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/messages/{id}</code> <br>
-  Gets the specified message.</td>
+  <code>GET /gmail/v1/users/{userId}/messages/{id}</code> <br> Gets the specified message.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/import">import</a></code></td>
   <td>
   <code>POST /gmail/v1/users/{userId}/messages/import</code> <br>
-  <code>POST /upload/gmail/v1/users/{userId}/messages/import</code> <br>
-  Imports a message into only this user's mailbox, with standard email delivery scanning and classification similar to receiving via SMTP.</td>
+  <code>POST /upload/gmail/v1/users/{userId}/messages/import</code> <br> Imports a message into only this user's mailbox, with standard email delivery scanning and classification similar to receiving via SMTP.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/insert">insert</a></code></td>
   <td>
   <code>POST /gmail/v1/users/{userId}/messages</code> <br>
-  <code>POST /upload/gmail/v1/users/{userId}/messages</code> <br>
-  Directly inserts a message into only this user's mailbox similar to <code>IMAP APPEND</code>, bypassing most scanning and classification.</td>
+  <code>POST /upload/gmail/v1/users/{userId}/messages</code> <br> Directly inserts a message into only this user's mailbox similar to <code>IMAP APPEND</code>, bypassing most scanning and classification.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/list">list</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/messages</code> <br>
-  Lists the messages in the user's mailbox.</td>
+  <code>GET /gmail/v1/users/{userId}/messages</code> <br> Lists the messages in the user's mailbox.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/modify">modify</a></code></td>
   <td>
-  <code>POST /gmail/v1/users/{userId}/messages/{id}/modify</code> <br>
-  Modifies the labels on the specified message.</td>
+  <code>POST /gmail/v1/users/{userId}/messages/{id}/modify</code> <br> Modifies the labels on the specified message.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send">send</a></code></td>
   <td>
   <code>POST /gmail/v1/users/{userId}/messages/send</code> <br>
-  <code>POST /upload/gmail/v1/users/{userId}/messages/send</code> <br>
-  Sends the specified message to the recipients in the <code>To</code>, <code>Cc</code>, and <code>Bcc</code> headers.</td>
+  <code>POST /upload/gmail/v1/users/{userId}/messages/send</code> <br> Sends the specified message to the recipients in the <code>To</code>, <code>Cc</code>, and <code>Bcc</code> headers.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/trash">trash</a></code></td>
   <td>
-  <code>POST /gmail/v1/users/{userId}/messages/{id}/trash</code> <br>
-  Moves the specified message to the trash.</td>
+  <code>POST /gmail/v1/users/{userId}/messages/{id}/trash</code> <br> Moves the specified message to the trash.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/untrash">untrash</a></code></td>
   <td>
-  <code>POST /gmail/v1/users/{userId}/messages/{id}/untrash</code> <br>
-  Removes the specified message from the trash.</td>
+  <code>POST /gmail/v1/users/{userId}/messages/{id}/untrash</code> <br> Removes the specified message from the trash.</td>
   </tr>
   </tbody>
   </table>
@@ -3561,8 +3177,7 @@
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages.attachments/get">get</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/messages/{messageId}/attachments/{id}</code> <br>
-  Gets the specified message attachment.</td>
+  <code>GET /gmail/v1/users/{userId}/messages/{messageId}/attachments/{id}</code> <br> Gets the specified message attachment.</td>
   </tr>
   </tbody>
   </table>
@@ -3584,71 +3199,61 @@
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/getAutoForwarding">getAutoForwarding</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/settings/autoForwarding</code> <br>
-  Gets the auto-forwarding setting for the specified account.</td>
+  <code>GET /gmail/v1/users/{userId}/settings/autoForwarding</code> <br> Gets the auto-forwarding setting for the specified account.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/getImap">getImap</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/settings/imap</code> <br>
-  Gets IMAP settings.</td>
+  <code>GET /gmail/v1/users/{userId}/settings/imap</code> <br> Gets IMAP settings.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/getLanguage">getLanguage</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/settings/language</code> <br>
-  Gets language settings.</td>
+  <code>GET /gmail/v1/users/{userId}/settings/language</code> <br> Gets language settings.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/getPop">getPop</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/settings/pop</code> <br>
-  Gets POP settings.</td>
+  <code>GET /gmail/v1/users/{userId}/settings/pop</code> <br> Gets POP settings.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/getVacation">getVacation</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/settings/vacation</code> <br>
-  Gets vacation responder settings.</td>
+  <code>GET /gmail/v1/users/{userId}/settings/vacation</code> <br> Gets vacation responder settings.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/updateAutoForwarding">updateAutoForwarding</a></code></td>
   <td>
-  <code>PUT /gmail/v1/users/{userId}/settings/autoForwarding</code> <br>
-  Updates the auto-forwarding setting for the specified account.</td>
+  <code>PUT /gmail/v1/users/{userId}/settings/autoForwarding</code> <br> Updates the auto-forwarding setting for the specified account.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/updateImap">updateImap</a></code></td>
   <td>
-  <code>PUT /gmail/v1/users/{userId}/settings/imap</code> <br>
-  Updates IMAP settings.</td>
+  <code>PUT /gmail/v1/users/{userId}/settings/imap</code> <br> Updates IMAP settings.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/updateLanguage">updateLanguage</a></code></td>
   <td>
-  <code>PUT /gmail/v1/users/{userId}/settings/language</code> <br>
-  Updates language settings.</td>
+  <code>PUT /gmail/v1/users/{userId}/settings/language</code> <br> Updates language settings.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/updatePop">updatePop</a></code></td>
   <td>
-  <code>PUT /gmail/v1/users/{userId}/settings/pop</code> <br>
-  Updates POP settings.</td>
+  <code>PUT /gmail/v1/users/{userId}/settings/pop</code> <br> Updates POP settings.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/updateVacation">updateVacation</a></code></td>
   <td>
-  <code>PUT /gmail/v1/users/{userId}/settings/vacation</code> <br>
-  Updates vacation responder settings.</td>
+  <code>PUT /gmail/v1/users/{userId}/settings/vacation</code> <br> Updates vacation responder settings.</td>
   </tr>
   </tbody>
   </table>
@@ -3670,36 +3275,31 @@
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.identities/create">create</a></code></td>
   <td>
-  <code>POST /gmail/v1/users/{userId}/settings/cse/identities</code> <br>
-  Creates and configures a client-side encryption identity that's authorized to send mail from the user account.</td>
+  <code>POST /gmail/v1/users/{userId}/settings/cse/identities</code> <br> Creates and configures a client-side encryption identity that's authorized to send mail from the user account.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.identities/delete">delete</a></code></td>
   <td>
-  <code>DELETE /gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}</code> <br>
-  Deletes a client-side encryption identity.</td>
+  <code>DELETE /gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}</code> <br> Deletes a client-side encryption identity.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.identities/get">get</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}</code> <br>
-  Retrieves a client-side encryption identity configuration.</td>
+  <code>GET /gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}</code> <br> Retrieves a client-side encryption identity configuration.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.identities/list">list</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/settings/cse/identities</code> <br>
-  Lists the client-side encrypted identities for an authenticated user.</td>
+  <code>GET /gmail/v1/users/{userId}/settings/cse/identities</code> <br> Lists the client-side encrypted identities for an authenticated user.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.identities/patch">patch</a></code></td>
   <td>
-  <code>PATCH /gmail/v1/users/{userId}/settings/cse/identities/{emailAddress}</code> <br>
-  Associates a different key pair with an existing client-side encryption identity.</td>
+  <code>PATCH /gmail/v1/users/{userId}/settings/cse/identities/{emailAddress}</code> <br> Associates a different key pair with an existing client-side encryption identity.</td>
   </tr>
   </tbody>
   </table>
@@ -3721,43 +3321,37 @@
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.keypairs/create">create</a></code></td>
   <td>
-  <code>POST /gmail/v1/users/{userId}/settings/cse/keypairs</code> <br>
-  Creates and uploads a client-side encryption S/MIME public key certificate chain and private key metadata for the authenticated user.</td>
+  <code>POST /gmail/v1/users/{userId}/settings/cse/keypairs</code> <br> Creates and uploads a client-side encryption S/MIME public key certificate chain and private key metadata for the authenticated user.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.keypairs/disable">disable</a></code></td>
   <td>
-  <code>POST /gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:disable</code> <br>
-  Turns off a client-side encryption key pair.</td>
+  <code>POST /gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:disable</code> <br> Turns off a client-side encryption key pair.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.keypairs/enable">enable</a></code></td>
   <td>
-  <code>POST /gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:enable</code> <br>
-  Turns on a client-side encryption key pair that was turned off.</td>
+  <code>POST /gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:enable</code> <br> Turns on a client-side encryption key pair that was turned off.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.keypairs/get">get</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}</code> <br>
-  Retrieves an existing client-side encryption key pair.</td>
+  <code>GET /gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}</code> <br> Retrieves an existing client-side encryption key pair.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.keypairs/list">list</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/settings/cse/keypairs</code> <br>
-  Lists client-side encryption key pairs for an authenticated user.</td>
+  <code>GET /gmail/v1/users/{userId}/settings/cse/keypairs</code> <br> Lists client-side encryption key pairs for an authenticated user.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.keypairs/obliterate">obliterate</a></code></td>
   <td>
-  <code>POST /gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:obliterate</code> <br>
-  Deletes a client-side encryption key pair permanently and immediately.</td>
+  <code>POST /gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:obliterate</code> <br> Deletes a client-side encryption key pair permanently and immediately.</td>
   </tr>
   </tbody>
   </table>
@@ -3779,29 +3373,25 @@
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.delegates/create">create</a></code></td>
   <td>
-  <code>POST /gmail/v1/users/{userId}/settings/delegates</code> <br>
-  Adds a delegate with its verification status set directly to <code>accepted</code>, without sending any verification email.</td>
+  <code>POST /gmail/v1/users/{userId}/settings/delegates</code> <br> Adds a delegate with its verification status set directly to <code>accepted</code>, without sending any verification email.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.delegates/delete">delete</a></code></td>
   <td>
-  <code>DELETE /gmail/v1/users/{userId}/settings/delegates/{delegateEmail}</code> <br>
-  Removes the specified delegate (which can be of any verification status), and revokes any verification that may have been required for using it.</td>
+  <code>DELETE /gmail/v1/users/{userId}/settings/delegates/{delegateEmail}</code> <br> Removes the specified delegate (which can be of any verification status), and revokes any verification that may have been required for using it.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.delegates/get">get</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/settings/delegates/{delegateEmail}</code> <br>
-  Gets the specified delegate.</td>
+  <code>GET /gmail/v1/users/{userId}/settings/delegates/{delegateEmail}</code> <br> Gets the specified delegate.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.delegates/list">list</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/settings/delegates</code> <br>
-  Lists the delegates for the specified account.</td>
+  <code>GET /gmail/v1/users/{userId}/settings/delegates</code> <br> Lists the delegates for the specified account.</td>
   </tr>
   </tbody>
   </table>
@@ -3823,29 +3413,25 @@
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.filters/create">create</a></code></td>
   <td>
-  <code>POST /gmail/v1/users/{userId}/settings/filters</code> <br>
-  Creates a filter.</td>
+  <code>POST /gmail/v1/users/{userId}/settings/filters</code> <br> Creates a filter.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.filters/delete">delete</a></code></td>
   <td>
-  <code>DELETE /gmail/v1/users/{userId}/settings/filters/{id}</code> <br>
-  Immediately and permanently deletes the specified filter.</td>
+  <code>DELETE /gmail/v1/users/{userId}/settings/filters/{id}</code> <br> Immediately and permanently deletes the specified filter.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.filters/get">get</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/settings/filters/{id}</code> <br>
-  Gets a filter.</td>
+  <code>GET /gmail/v1/users/{userId}/settings/filters/{id}</code> <br> Gets a filter.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.filters/list">list</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/settings/filters</code> <br>
-  Lists the message filters of a Gmail user.</td>
+  <code>GET /gmail/v1/users/{userId}/settings/filters</code> <br> Lists the message filters of a Gmail user.</td>
   </tr>
   </tbody>
   </table>
@@ -3867,29 +3453,25 @@
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.forwardingAddresses/create">create</a></code></td>
   <td>
-  <code>POST /gmail/v1/users/{userId}/settings/forwardingAddresses</code> <br>
-  Creates a forwarding address.</td>
+  <code>POST /gmail/v1/users/{userId}/settings/forwardingAddresses</code> <br> Creates a forwarding address.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.forwardingAddresses/delete">delete</a></code></td>
   <td>
-  <code>DELETE /gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}</code> <br>
-  Deletes the specified forwarding address and revokes any verification that may have been required.</td>
+  <code>DELETE /gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}</code> <br> Deletes the specified forwarding address and revokes any verification that may have been required.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.forwardingAddresses/get">get</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}</code> <br>
-  Gets the specified forwarding address.</td>
+  <code>GET /gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}</code> <br> Gets the specified forwarding address.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.forwardingAddresses/list">list</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/settings/forwardingAddresses</code> <br>
-  Lists the forwarding addresses for the specified account.</td>
+  <code>GET /gmail/v1/users/{userId}/settings/forwardingAddresses</code> <br> Lists the forwarding addresses for the specified account.</td>
   </tr>
   </tbody>
   </table>
@@ -3911,50 +3493,43 @@
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs/create">create</a></code></td>
   <td>
-  <code>POST /gmail/v1/users/{userId}/settings/sendAs</code> <br>
-  Creates a custom "from" send-as alias.</td>
+  <code>POST /gmail/v1/users/{userId}/settings/sendAs</code> <br> Creates a custom "from" send-as alias.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs/delete">delete</a></code></td>
   <td>
-  <code>DELETE /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}</code> <br>
-  Deletes the specified send-as alias.</td>
+  <code>DELETE /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}</code> <br> Deletes the specified send-as alias.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs/get">get</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}</code> <br>
-  Gets the specified send-as alias.</td>
+  <code>GET /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}</code> <br> Gets the specified send-as alias.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs/list">list</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/settings/sendAs</code> <br>
-  Lists the send-as aliases for the specified account.</td>
+  <code>GET /gmail/v1/users/{userId}/settings/sendAs</code> <br> Lists the send-as aliases for the specified account.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs/patch">patch</a></code></td>
   <td>
-  <code>PATCH /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}</code> <br>
-  Patch the specified send-as alias.</td>
+  <code>PATCH /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}</code> <br> Patch the specified send-as alias.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs/update">update</a></code></td>
   <td>
-  <code>PUT /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}</code> <br>
-  Updates a send-as alias.</td>
+  <code>PUT /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}</code> <br> Updates a send-as alias.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs/verify">verify</a></code></td>
   <td>
-  <code>POST /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/verify</code> <br>
-  Sends a verification email to the specified send-as alias address.</td>
+  <code>POST /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/verify</code> <br> Sends a verification email to the specified send-as alias address.</td>
   </tr>
   </tbody>
   </table>
@@ -3976,36 +3551,31 @@
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs.smimeInfo/delete">delete</a></code></td>
   <td>
-  <code>DELETE /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}</code> <br>
-  Deletes the specified S/MIME config for the specified send-as alias.</td>
+  <code>DELETE /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}</code> <br> Deletes the specified S/MIME config for the specified send-as alias.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs.smimeInfo/get">get</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}</code> <br>
-  Gets the specified S/MIME config for the specified send-as alias.</td>
+  <code>GET /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}</code> <br> Gets the specified S/MIME config for the specified send-as alias.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs.smimeInfo/insert">insert</a></code></td>
   <td>
-  <code>POST /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo</code> <br>
-  Insert (upload) the given S/MIME config for the specified send-as alias.</td>
+  <code>POST /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo</code> <br> Insert (upload) the given S/MIME config for the specified send-as alias.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs.smimeInfo/list">list</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo</code> <br>
-  Lists S/MIME configs for the specified send-as alias.</td>
+  <code>GET /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo</code> <br> Lists S/MIME configs for the specified send-as alias.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs.smimeInfo/setDefault">setDefault</a></code></td>
   <td>
-  <code>POST /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}/setDefault</code> <br>
-  Sets the default S/MIME config for the specified send-as alias.</td>
+  <code>POST /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}/setDefault</code> <br> Sets the default S/MIME config for the specified send-as alias.</td>
   </tr>
   </tbody>
   </table>
@@ -4027,46 +3597,185 @@
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/delete">delete</a></code></td>
   <td>
-  <code>DELETE /gmail/v1/users/{userId}/threads/{id}</code> <br>
-  Immediately and permanently deletes the specified thread.</td>
+  <code>DELETE /gmail/v1/users/{userId}/threads/{id}</code> <br> Immediately and permanently deletes the specified thread.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/get">get</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/threads/{id}</code> <br>
-  Gets the specified thread.</td>
+  <code>GET /gmail/v1/users/{userId}/threads/{id}</code> <br> Gets the specified thread.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/list">list</a></code></td>
   <td>
-  <code>GET /gmail/v1/users/{userId}/threads</code> <br>
-  Lists the threads in the user's mailbox.</td>
+  <code>GET /gmail/v1/users/{userId}/threads</code> <br> Lists the threads in the user's mailbox.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/modify">modify</a></code></td>
   <td>
-  <code>POST /gmail/v1/users/{userId}/threads/{id}/modify</code> <br>
-  Modifies the labels applied to the thread.</td>
+  <code>POST /gmail/v1/users/{userId}/threads/{id}/modify</code> <br> Modifies the labels applied to the thread.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/trash">trash</a></code></td>
   <td>
-  <code>POST /gmail/v1/users/{userId}/threads/{id}/trash</code> <br>
-  Moves the specified thread to the trash.</td>
+  <code>POST /gmail/v1/users/{userId}/threads/{id}/trash</code> <br> Moves the specified thread to the trash.</td>
   </tr>
   <tr>
   <td>
   <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/untrash">untrash</a></code></td>
   <td>
-  <code>POST /gmail/v1/users/{userId}/threads/{id}/untrash</code> <br>
-  Removes the specified thread from the trash.</td>
+  <code>POST /gmail/v1/users/{userId}/threads/{id}/untrash</code> <br> Removes the specified thread from the trash.</td>
   </tr>
   </tbody>
   </table>
+  
+  '''
+# ---
+# name: test_markdown_snapshot[devsite/cloudsearch-sdk-statsmanager.resetstatsrule]
+  '''
+  # StatsManager.ResetStatsRule
+  
+  public static class **StatsManager.ResetStatsRule** extends Object
+  implements TestRule
+  
+  [`TestRule`](https://developers.google.com/workspace/cloud-search/docs/reference/sdk/org/junit/rules/TestRule) to reset static [`StatsManager`](https://developers.google.com/workspace/cloud-search/docs/reference/sdk/com/google/enterprise/cloudsearch/sdk/StatsManager) object for unit tests.
+  
+  ### Public Constructor Summary {#public-constructor-summary}
+  
+  <table id="pubctors">
+  <tr>
+  <td>
+  </td>
+  <td>
+  <div>
+  <span><a href="https://developers.google.com/workspace/cloud-search/docs/reference/sdk/com/google/enterprise/cloudsearch/sdk/StatsManager.ResetStatsRule#StatsManager.ResetStatsRule()">StatsManager.ResetStatsRule</a></span>() </div>
+  </td>
+  </tr>
+  </table>
+  
+  ### Public Method Summary {#public-method-summary}
+  
+  <table id="pubmethods">
+  <tr>
+  <td> Statement </td>
+  <td>
+  <div>
+  <span><a href="https://developers.google.com/workspace/cloud-search/docs/reference/sdk/com/google/enterprise/cloudsearch/sdk/StatsManager.ResetStatsRule#apply(org.junit.runners.model.Statement,%20org.junit.runner.Description)">apply</a></span>(Statement base, Description description) </div>
+  </td>
+  </tr>
+  </table>
+  
+  ### Inherited Method Summary {#inherited-method-summary}
+  
+  From class java.lang.Object
+  
+  <table>
+  <tr>
+  <td> boolean </td>
+  <td>
+  <div>
+  <span>equals</span>(Object arg0) </div>
+  </td>
+  </tr>
+  <tr>
+  <td> final Class&lt;?&gt; </td>
+  <td>
+  <div>
+  <span>getClass</span>() </div>
+  </td>
+  </tr>
+  <tr>
+  <td> int </td>
+  <td>
+  <div>
+  <span>hashCode</span>() </div>
+  </td>
+  </tr>
+  <tr>
+  <td> final void </td>
+  <td>
+  <div>
+  <span>notify</span>() </div>
+  </td>
+  </tr>
+  <tr>
+  <td> final void </td>
+  <td>
+  <div>
+  <span>notifyAll</span>() </div>
+  </td>
+  </tr>
+  <tr>
+  <td> String </td>
+  <td>
+  <div>
+  <span>toString</span>() </div>
+  </td>
+  </tr>
+  <tr>
+  <td> final void </td>
+  <td>
+  <div>
+  <span>wait</span>(long arg0, int arg1) </div>
+  </td>
+  </tr>
+  <tr>
+  <td> final void </td>
+  <td>
+  <div>
+  <span>wait</span>(long arg0) </div>
+  </td>
+  </tr>
+  <tr>
+  <td> final void </td>
+  <td>
+  <div>
+  <span>wait</span>() </div>
+  </td>
+  </tr>
+  </table>
+  
+  From interface org.junit.rules.TestRule
+  
+  <table>
+  <tr>
+  <td> abstract Statement </td>
+  <td>
+  <div>
+  <span>apply</span>(Statement arg0, Description arg1) </div>
+  </td>
+  </tr>
+  </table>
+  
+  ## Public Constructors {#public-constructors}
+  
+  <a id="StatsManager.ResetStatsRule()"></a>
+  
+  #### public **StatsManager.ResetStatsRule** () {#public-statsmanager.resetstatsrule}
+  
+  ## Public Methods {#public-methods}
+  
+  <a id="apply(org.junit.runners.model.Statement, org.junit.runner.Description)"></a>
+  
+  #### public Statement **apply** (Statement base, Description description) {#public-statement-apply-statement-base,-description-description}
+  
+  ##### Parameters {#parameters}
+  
+  <table>
+  <tr>
+  <th>base</th>
+  <td></td>
+  </tr>
+  <tr>
+  <th>description</th>
+  <td></td>
+  </tr>
+  </table>
+  
+  <a id="navbar_top"></a>
   
   '''
 # ---
@@ -4074,10 +3783,7 @@
   '''
   # Gmail API overview
   
-  The Gmail API is a RESTful API that lets you access Gmail
-  mailboxes and send mail. For most web applications, the Gmail API is
-  the best choice for authorized access to a user's Gmail data and
-  is suitable for various applications, such as:
+  The Gmail API is a RESTful API that lets you access Gmail mailboxes and send mail. For most web applications, the Gmail API is the best choice for authorized access to a user's Gmail data and is suitable for various applications, such as:
   
   - Read-only mail extraction, indexing, and backup
   - Automated or programmatic message sending
@@ -4091,84 +3797,37 @@
   
   <dl>
   <dt id="delegator-delegate"><em>Delegator and Delegate</em></dt>
-  <dd>A delegator is a Gmail user who grants mailbox access to
-  another user within the same Google Workspace organization. The user
-  receiving this access is the delegate. Delegates can read, send, and delete
-  messages, as well as view and add contacts on behalf of the delegator's
-  account. For more information, see <a href="https://developers.google.com/workspace/gmail/api/guides/delegate_settings">Manage
-  delegates</a>.</dd>
+  <dd>A delegator is a Gmail user who grants mailbox access to another user within the same Google Workspace organization. The user receiving this access is the delegate. Delegates can read, send, and delete messages, as well as view and add contacts on behalf of the delegator's account. For more information, see <a href="https://developers.google.com/workspace/gmail/api/guides/delegate_settings">Manage delegates</a>.</dd>
   <dt id="draft"><em>Draft</em></dt>
-  <dd>An unsent message. You can replace the message contained within the draft.
-  Sending a draft automatically deletes the draft and creates a message with
-  the <code>SENT</code> system label. The
-  <a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts"><code>drafts</code></a> resource
-  represents a draft. For more information, see <a href="https://developers.google.com/workspace/gmail/api/guides/drafts">Work with
-  drafts</a>.</dd>
+  <dd>An unsent message. You can replace the message contained within the draft. Sending a draft automatically deletes the draft and creates a message with the <code>SENT</code> system label. The <a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts"><code>drafts</code></a> resource represents a draft. For more information, see <a href="https://developers.google.com/workspace/gmail/api/guides/drafts">Work with drafts</a>.</dd>
   <dt id="filters"><em>Filters</em></dt>
-  <dd>Advanced rules configured for an account that evaluate incoming messages
-  against specific matching criteria (like sender, subject, or size). When a
-  message matches, filters automatically trigger actions such as adding or
-  removing labels, or forwarding the email to a specified address. For more
-  information, see <a href="https://developers.google.com/workspace/gmail/api/guides/filter_settings">Manage
-  filters</a>.</dd>
+  <dd>Advanced rules configured for an account that evaluate incoming messages against specific matching criteria (like sender, subject, or size). When a message matches, filters automatically trigger actions such as adding or removing labels, or forwarding the email to a specified address. For more information, see <a href="https://developers.google.com/workspace/gmail/api/guides/filter_settings">Manage filters</a>.</dd>
   <dt id="forwarding-addresses"><em>Forwarding addresses</em></dt>
-  <dd>Specific, verified email addresses configured to receive auto-forwarded
-  messages from a user's account. Before you can use an address in a
-  forwarding rule or filter, you must register and verify it to prove
-  ownership. For more information, see <a href="https://developers.google.com/workspace/gmail/api/guides/forwarding_settings">Manage
-  forwarding</a>.</dd>
+  <dd>Specific, verified email addresses configured to receive auto-forwarded messages from a user's account. Before you can use an address in a forwarding rule or filter, you must register and verify it to prove ownership. For more information, see <a href="https://developers.google.com/workspace/gmail/api/guides/forwarding_settings">Manage forwarding</a>.</dd>
   <dt id="label"><em>Label</em></dt>
-  <dd><p>A mechanism for organizing messages and threads. For example, you can create
-  the label "taxes" and apply it to all messages and threads related to taxes.
-  For more information, see <a href="https://developers.google.com/workspace/gmail/api/guides/labels">Manage
-  labels</a>.</p>
+  <dd><p>A mechanism for organizing messages and threads. For example, you can create the label "taxes" and apply it to all messages and threads related to taxes. For more information, see <a href="https://developers.google.com/workspace/gmail/api/guides/labels">Manage labels</a>.</p>
   <p>There are two types of labels:</p>
   <dl>
   <dt id="system-labels"><em>System labels</em></dt>
-  <dd>Internally created labels, such as <code>INBOX</code>, <code>TRASH</code>, or <code>SPAM</code>. You can't
-  delete or modify these labels. However, you can apply or remove some system
-  labels, such as <code>INBOX</code>, to or from messages and threads.</dd>
+  <dd>Internally created labels, such as <code>INBOX</code>, <code>TRASH</code>, or <code>SPAM</code>. You can't delete or modify these labels. However, you can apply or remove some system labels, such as <code>INBOX</code>, to or from messages and threads.</dd>
   <dt id="user-labels"><em>User labels</em></dt>
-  <dd>Labels created by a user. A user or an application can delete or modify
-  these labels. The
-  <a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels"><code>labels</code></a> resource
-  represents a user label.</dd>
+  <dd>Labels created by a user. A user or an application can delete or modify these labels. The <a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels"><code>labels</code></a> resource represents a user label.</dd>
   </dl></dd>
   <dt id="message"><em>Message</em></dt>
-  <dd><p>An email message containing the sender, recipients, subject, and body. After
-  you create a message, you can't change it. The
-  <a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages"><code>messages</code></a> resource
-  represents a message.</p></dd>
+  <dd><p>An email message containing the sender, recipients, subject, and body. After you create a message, you can't change it. The <a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages"><code>messages</code></a> resource represents a message.</p></dd>
   <dt id="push-notifications"><em>Push notifications</em></dt>
-  <dd><p>A server-side notification system integrating with Google Cloud Pub/Sub.
-  Applications can "watch" a mailbox, and the Gmail API sends
-  automatic webhooks or alerts whenever a change occurs (such as a new email
-  arriving). This eliminates the need for your app to poll the server for
-  updates. For more information, see <a href="https://developers.google.com/workspace/gmail/api/guides/push">Push
-  notifications</a>.</p></dd>
+  <dd><p>A server-side notification system integrating with Google Cloud Pub/Sub. Applications can "watch" a mailbox, and the Gmail API sends automatic webhooks or alerts whenever a change occurs (such as a new email arriving). This eliminates the need for your app to poll the server for updates. For more information, see <a href="https://developers.google.com/workspace/gmail/api/guides/push">Push notifications</a>.</p></dd>
   <dt id="smime-certificates"><em>S/MIME certificates</em></dt>
-  <dd><p>Digital certificates uploaded to specific send-as aliases. These certificates
-  let you send encrypted and digitally signed emails, ensuring message
-  security and sender authenticity. For more information, see <a href="https://developers.google.com/workspace/gmail/api/guides/smime_certs">Manage S/MIME
-  certificates</a>.</p></dd>
+  <dd><p>Digital certificates uploaded to specific send-as aliases. These certificates let you send encrypted and digitally signed emails, ensuring message security and sender authenticity. For more information, see <a href="https://developers.google.com/workspace/gmail/api/guides/smime_certs">Manage S/MIME certificates</a>.</p></dd>
   <dt id="send-as-aliases"><em>Send-as aliases</em></dt>
-  <dd><p>These represent the various email addresses from which an account is
-  authorized to send mail. Every account has at least one alias representing
-  the primary email address. Aliases correspond to the "Send mail as" feature
-  in the Gmail web interface and are also the basis for
-  configuring per-address email signatures. For more information, see <a href="https://developers.google.com/workspace/gmail/api/guides/alias_and_signature_settings">Manage
-  aliases</a>.</p></dd>
+  <dd><p>These represent the various email addresses from which an account is authorized to send mail. Every account has at least one alias representing the primary email address. Aliases correspond to the "Send mail as" feature in the Gmail web interface and are also the basis for configuring per-address email signatures. For more information, see <a href="https://developers.google.com/workspace/gmail/api/guides/alias_and_signature_settings">Manage aliases</a>.</p></dd>
   <dt id="thread"><em>Thread</em></dt>
-  <dd><p>A collection of related messages forming a conversation. In an email client,
-  a thread forms when one or more recipients respond to a message with their
-  own message. For more information, see <a href="https://developers.google.com/workspace/gmail/api/guides/threads">Manage
-  threads</a>.</p></dd>
+  <dd><p>A collection of related messages forming a conversation. In an email client, a thread forms when one or more recipients respond to a message with their own message. For more information, see <a href="https://developers.google.com/workspace/gmail/api/guides/threads">Manage threads</a>.</p></dd>
   </dl>
   
   ## Related topics {#related-topics}
   
-  - To learn about developing with Google Workspace APIs, including handling
-    authentication and authorization, refer to [Develop on Google Workspace](https://developers.google.com/workspace/guides/get-started).
+  - To learn about developing with Google Workspace APIs, including handling authentication and authorization, refer to [Develop on Google Workspace](https://developers.google.com/workspace/guides/get-started).
   
   - To learn how to configure and run a Gmail API app, read the [Quickstarts](https://developers.google.com/workspace/gmail/api/quickstart/js).
   
@@ -4560,68 +4219,57 @@
   <tr>
   <td>
   <h3 id="batchdelete"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/batchDelete">batchDelete</a></code></h3></td>
-  <td>
-  Deletes many messages by message ID.</td>
+  <td> Deletes many messages by message ID.</td>
   </tr>
   <tr>
   <td>
   <h3 id="batchmodify"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/batchModify">batchModify</a></code></h3></td>
-  <td>
-  Modifies the labels and the Classification Label values on the specified messages.</td>
+  <td> Modifies the labels and the Classification Label values on the specified messages.</td>
   </tr>
   <tr>
   <td>
   <h3 id="delete"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/delete">delete</a></code></h3></td>
-  <td>
-  Immediately and permanently deletes the specified message.</td>
+  <td> Immediately and permanently deletes the specified message.</td>
   </tr>
   <tr>
   <td>
   <h3 id="get"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/get">get</a></code></h3></td>
-  <td>
-  Gets the specified message.</td>
+  <td> Gets the specified message.</td>
   </tr>
   <tr>
   <td>
   <h3 id="import"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/import">import</a></code></h3></td>
-  <td>
-  Imports a message into only this user's mailbox, with standard email delivery scanning and classification similar to receiving via SMTP.</td>
+  <td> Imports a message into only this user's mailbox, with standard email delivery scanning and classification similar to receiving via SMTP.</td>
   </tr>
   <tr>
   <td>
   <h3 id="insert"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/insert">insert</a></code></h3></td>
-  <td>
-  Directly inserts a message into only this user's mailbox similar to <code>IMAP APPEND</code>, bypassing most scanning and classification.</td>
+  <td> Directly inserts a message into only this user's mailbox similar to <code>IMAP APPEND</code>, bypassing most scanning and classification.</td>
   </tr>
   <tr>
   <td>
   <h3 id="list"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/list">list</a></code></h3></td>
-  <td>
-  Lists the messages in the user's mailbox.</td>
+  <td> Lists the messages in the user's mailbox.</td>
   </tr>
   <tr>
   <td>
   <h3 id="modify"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/modify">modify</a></code></h3></td>
-  <td>
-  Modifies the labels and the Classification Label values on the specified message.</td>
+  <td> Modifies the labels and the Classification Label values on the specified message.</td>
   </tr>
   <tr>
   <td>
   <h3 id="send"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send">send</a></code></h3></td>
-  <td>
-  Sends the specified message to the recipients in the <code>To</code>, <code>Cc</code>, and <code>Bcc</code> headers.</td>
+  <td> Sends the specified message to the recipients in the <code>To</code>, <code>Cc</code>, and <code>Bcc</code> headers.</td>
   </tr>
   <tr>
   <td>
   <h3 id="trash"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/trash">trash</a></code></h3></td>
-  <td>
-  Moves the specified message to the trash.</td>
+  <td> Moves the specified message to the trash.</td>
   </tr>
   <tr>
   <td>
   <h3 id="untrash"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/untrash">untrash</a></code></h3></td>
-  <td>
-  Removes the specified message from the trash.</td>
+  <td> Removes the specified message from the trash.</td>
   </tr>
   </tbody>
   </table>
@@ -4703,8 +4351,7 @@
   <td><code>q</code></td>
   <td>
   <p><code>string</code></p>
-  <p>Only return messages matching the specified query. Supports the same query format as the Gmail search box. For example, <code>"from:someuser@example.com rfc822msgid:&lt;somemsgid@example.com&gt;
-  is:unread"</code>. Parameter cannot be used when accessing the api using the gmail.metadata scope.</p>
+  <p>Only return messages matching the specified query. Supports the same query format as the Gmail search box. For example, <code>"from:someuser@example.com rfc822msgid:&lt;somemsgid@example.com&gt; is:unread"</code>. Parameter cannot be used when accessing the api using the gmail.metadata scope.</p>
   </td>
   </tr>
   <tr id="body.QUERY_PARAMETERS.label_ids">
@@ -4793,9 +4440,9 @@
   Requires one of the following OAuth scopes:
   
   - `https://mail.google.com/`
-  - `           https://www.googleapis.com/auth/gmail.modify`
-  - `           https://www.googleapis.com/auth/gmail.readonly`
-  - `           https://www.googleapis.com/auth/gmail.metadata`
+  - ` https://www.googleapis.com/auth/gmail.modify`
+  - ` https://www.googleapis.com/auth/gmail.readonly`
+  - ` https://www.googleapis.com/auth/gmail.metadata`
   
   For more information, see the [Authorization guide](https://developers.google.com/workspace/guides/configure-oauth-consent).
   
@@ -4805,11 +4452,7 @@
   '''
   # Create a Google Cloud project
   
-  A Google Cloud project is required to use Google Workspace APIs and build
-  Google Workspace add-ons or apps. A Cloud project forms the
-  basis for creating, enabling, and using all Google Cloud services, including
-  managing APIs, enabling billing, adding and removing collaborators, and managing
-  permissions.
+  A Google Cloud project is required to use Google Workspace APIs and build Google Workspace add-ons or apps. A Cloud project forms the basis for creating, enabling, and using all Google Cloud services, including managing APIs, enabling billing, adding and removing collaborators, and managing permissions.
   
   ## Create a Cloud project {#project}
   
@@ -4821,32 +4464,24 @@
   
   2. In the **Project Name** field, enter a descriptive name for your project.
   
-     Optional: To edit the **Project ID**, click **Edit**. The project ID can't be changed
-     after the project is created, so choose an ID that meets your needs for the lifetime of the
-     project.
+     Optional: To edit the **Project ID**, click **Edit**. The project ID can't be changed after the project is created, so choose an ID that meets your needs for the lifetime of the project.
   
-  3. In the **Location** field, click **Browse** to display potential locations for your
-     project. Then, click **Select**.
+  3. In the **Location** field, click **Browse** to display potential locations for your project. Then, click **Select**.
   
      > [!CAUTION]
      >
      > **Caution: Can't find your Google Workspace organization?**
      >
      >
-     > This means you aren't signed in to a Google Workspace account. Some of the features
-     > described in Google Workspace developer documentation are only available to projects
-     > associated with an organization.
+     > This means you aren't signed in to a Google Workspace account. Some of the features described in Google Workspace developer documentation are only available to projects associated with an organization.
   
-  4. Click **Create**. The Google Cloud console navigates to the Dashboard page and your project is created
-     within a few minutes.
+  4. Click **Create**. The Google Cloud console navigates to the Dashboard page and your project is created within a few minutes.
   
   ### gcloud CLI
   
-  In one of the following development environments, access the Google Cloud
-  CLI (`gcloud`):
+  In one of the following development environments, access the Google Cloud CLI (`gcloud`):
   
-  - **Cloud Shell**: To use an online terminal with the gcloud CLI
-    already set up, activate Cloud Shell.
+  - **Cloud Shell**: To use an online terminal with the gcloud CLI already set up, activate Cloud Shell.
   [Activate Cloud Shell](https://console.cloud.google.com/?cloudshell=true)
   - **Local Shell**: To use a local development environment, [install](https://cloud.google.com/sdk/docs/install) and [initialize](https://cloud.google.com/sdk/docs/initializing) the gcloud CLI.
     To create a Cloud project, use the `gcloud projects create` command:
@@ -4861,13 +4496,11 @@
   
   ## Optional: Enable billing for your Cloud project {#billing}
   
-  Depending on the Google Workspace APIs and features that you want to
-  use, you might also need to enable billing for your Cloud project:
+  Depending on the Google Workspace APIs and features that you want to use, you might also need to enable billing for your Cloud project:
   
   > [!CAUTION]
   >
-  > If you're unable to link a billing account, you don't have the
-  > permissions needed to make this change. For more information, see [Permissions required to enable billing](https://cloud.google.com/billing/docs/how-to/modify-project#required-permissions-enable).
+  > If you're unable to link a billing account, you don't have the permissions needed to make this change. For more information, see [Permissions required to enable billing](https://cloud.google.com/billing/docs/how-to/modify-project#required-permissions-enable).
   
   ### Google Cloud console
   
@@ -4875,13 +4508,9 @@
   
      [Go to Billing for My Projects](https://console.cloud.google.com/billing/projects)
   
-  2. In **Select an organization**, choose the organization associated with
-     your Google Cloud project.
+  2. In **Select an organization**, choose the organization associated with your Google Cloud project.
   
-  3. In the project row, open the **Actions** menu
-     (more\_vert),
-     click **Change billing**, and choose the
-     Cloud Billing account.
+  3. In the project row, open the **Actions** menu (more\_vert), click **Change billing**, and choose the Cloud Billing account.
   
   4. Click **Set account**.
   
@@ -4901,10 +4530,8 @@
   
      Replace the following:
   
-     - `PROJECT_ID` is the **Project ID** for the
-       Cloud project for which you want to enable billing.
-     - `BILLING_ACCOUNT_ID` is the **billing account ID** to link with
-       the Google Cloud project.
+     - `PROJECT_ID` is the **Project ID** for the Cloud project for which you want to enable billing.
+     - `BILLING_ACCOUNT_ID` is the **billing account ID** to link with the Google Cloud project.
   
   For further information about billing, see [Enable, disable, or change billing for a project](https://cloud.google.com/billing/docs/how-to/modify-project) in the Google Cloud Billing documentation.
   
@@ -4931,8 +4558,7 @@
   
   For more information, see [addressing driveItems](https://learn.microsoft.com/en-us/graph/onedrive-addressing-driveitems).
   
-  **driveItem** resources have facets modeled as properties that provide data about the driveItem's identities and capabilities.
-  For example:
+  **driveItem** resources have facets modeled as properties that provide data about the driveItem's identities and capabilities. For example:
   
   - Folders have a [**folder facet**](https://learn.microsoft.com/en-us/graph/api/resources/folder?view=graph-rest-1.0)
   - Files have a [**file facet**](https://learn.microsoft.com/en-us/graph/api/resources/file?view=graph-rest-1.0).
@@ -5026,9 +4652,7 @@
   | webDavUrl            | String                                                                                                           | WebDAV compatible URL for the item.                                                                                                                                     |
   | webUrl               | String                                                                                                           | URL that displays the resource in the browser. Read-only.                                                                                                               |
   
-  > **Note:** The eTag and cTag properties work differently on containers (folders).
-  > The cTag value is modified when content or metadata of any descendant of the folder is changed.
-  > The eTag value is only modified when the folder's properties are changed, except for properties that are derived from descendants (like **childCount** or **lastModifiedDateTime**).
+  > **Note:** The eTag and cTag properties work differently on containers (folders). The cTag value is modified when content or metadata of any descendant of the folder is changed. The eTag value is only modified when the folder's properties are changed, except for properties that are derived from descendants (like **childCount** or **lastModifiedDateTime**).
   
   ## Relationships {#relationships}
   
@@ -5049,8 +4673,7 @@
   
   ## Instance Attributes {#instance-attributes}
   
-  Instance attributes are properties with special behaviors.
-  These properties are temporary and either define behavior the service should perform or provide short-term property values, like a download URL for an item that expires.
+  Instance attributes are properties with special behaviors. These properties are temporary and either define behavior the service should perform or provide short-term property values, like a download URL for an item that expires.
   
   | Property name                     | Type   | Description                                                                                                                                                                                              |
   | --------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -5060,8 +4683,7 @@
   
   > **Notes:** The parameter `@microsoft.graph.conflictBehavior` should be included in the URL instead of the body of the request.
   >
-  > The `@microsoft.graph.downloadUrl` value is a short-lived URL and can't be cached. The URL is invalidated after for a short period of time (1 hour).
-  > Removing file permissions for a user might not immediately invalidate the URL.
+  > The `@microsoft.graph.downloadUrl` value is a short-lived URL and can't be cached. The URL is invalidated after for a short period of time (1 hour). Removing file permissions for a user might not immediately invalidate the URL.
   >
   > Using the `@microsoft.graph.sourceUrl` property for file uploading is [not supported](https://learn.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_upload_url?view=odsp-graph-online#remarks&preserve-view=true) in OneDrive for Business, SharePoint Online, and SharePoint Server 2016.
   
@@ -10587,8 +10209,7 @@
   
   Namespace: microsoft.graph
   
-  Create a new [user](https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0).
-  The request body contains the user to create. At a minimum, you must specify the required properties for the user. You can optionally specify any other writable properties.
+  Create a new [user](https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0). The request body contains the user to create. At a minimum, you must specify the required properties for the user. You can optionally specify any other writable properties.
   
   > [!NOTE]
   >
@@ -12284,8 +11905,7 @@
   </tbody>
   </table>
   
-  The error response is a single JSON object that contains a single property
-  named **error**. This object includes all the details of the error. You can use the information returned here instead of or in addition to the HTTP status code. The following is an example of a full JSON error body.
+  The error response is a single JSON object that contains a single property named **error**. This object includes all the details of the error. You can use the information returned here instead of or in addition to the HTTP status code. The following is an example of a full JSON error body.
   
   ```json
   {
@@ -12335,21 +11955,13 @@
   
   The **code** property contains a machine-readable value that you can take a dependency on in your code.
   
-  The **innererror** object can recursively contain more **innererror** objects
-  with more specific error **codes** properties. When handling an error, apps
-  should loop through all the nested error codes that are available and use the most detailed
-  one that they understand.
+  The **innererror** object can recursively contain more **innererror** objects with more specific error **codes** properties. When handling an error, apps should loop through all the nested error codes that are available and use the most detailed one that they understand.
   
   The **message** property is a human-readable value that describes the error condition. Don't take any dependency on the content of this value in your code.
   
-  The **message** property at the root contains an error message intended for the
-  developer to read. Error messages aren't localized and shouldn't be displayed
-  directly to the user. When handling errors, your code shouldn't take any dependency on the **message** property values because they can change at any time, and they often contain
-  dynamic information specific to the failed request. You should only code
-  against error codes returned in **code** properties.
+  The **message** property at the root contains an error message intended for the developer to read. Error messages aren't localized and shouldn't be displayed directly to the user. When handling errors, your code shouldn't take any dependency on the **message** property values because they can change at any time, and they often contain dynamic information specific to the failed request. You should only code against error codes returned in **code** properties.
   
-  The **details** property is an optional array of error objects that have the same JSON format as the top-level error object.
-  If a request is composed of multiple operations, such as a bulk or batch operation, it is necessary to return an independent error for each operation. In this case, the **details** list is populated with these individual errors.
+  The **details** property is an optional array of error objects that have the same JSON format as the top-level error object. If a request is composed of multiple operations, such as a bulk or batch operation, it is necessary to return an independent error for each operation. In this case, the **details** list is populated with these individual errors.
   
   ---
   
@@ -24281,8 +23893,7 @@
   
   > [!TIP]
   >
-  > On the *beta* endpoint, the `$` prefix is optional. For example, you can use `filter` instead of `$filter`.
-  > On the *v1.0* endpoint, the `$` prefix is optional for only a subset of APIs. **For simplicity, always include `$` across all versions**.
+  > On the *beta* endpoint, the `$` prefix is optional. For example, you can use `filter` instead of `$filter`. On the *v1.0* endpoint, the `$` prefix is optional for only a subset of APIs. **For simplicity, always include `$` across all versions**.
   
   > [!NOTE] Interactive content omitted: https://www.youtube-nocookie.com/embed/7BuFv3yETi4
   
@@ -26169,8 +25780,7 @@
   
   ## Skip {#skip}
   
-  Use the `$skip` query parameter to set the number of items to skip at the start of a collection.
-  For example, the following request returns events for the user sorted by date created, starting with the 21st event in the collection:
+  Use the `$skip` query parameter to set the number of items to skip at the start of a collection. For example, the following request returns events for the user sorted by date created, starting with the 21st event in the collection:
   
   ### HTTP
   
@@ -26547,8 +26157,7 @@
   
   ## SDKs supportability {#sdks-supportability}
   
-  Microsoft Graph SDKs are open-source GitHub projects so if you have an issue with the SDK, submit it with all the needed information on the "issues" page. SDK authors and contributors should look into the issue and release a fix accordingly.
-  Microsoft CSS doesn't officially, support SDKs but Microsoft supports the HTTP request of the Microsoft Graph API call you're making.
+  Microsoft Graph SDKs are open-source GitHub projects so if you have an issue with the SDK, submit it with all the needed information on the "issues" page. SDK authors and contributors should look into the issue and release a fix accordingly. Microsoft CSS doesn't officially, support SDKs but Microsoft supports the HTTP request of the Microsoft Graph API call you're making.
   
   ## Related content {#related-content}
   
@@ -27326,6 +26935,34 @@
     ],
     "quality_score": 1.0,
     "title": "Gmail API"
+  }
+  '''
+# ---
+# name: test_quality_snapshot[devsite/cloudsearch-sdk-statsmanager.resetstatsrule]
+  '''
+  {
+    "counts": {
+      "code_blocks": 0,
+      "code_blocks_tagged": 0,
+      "headings": 9,
+      "html_tables": 5,
+      "images": 0,
+      "links": 4,
+      "list_items": 0,
+      "table_cells": 28,
+      "tables": 5
+    },
+    "extractor": "profile:devsite",
+    "failed": [],
+    "flags": [
+      "html_table_kept"
+    ],
+    "headings": [
+      "Public Constructors",
+      "Public Methods"
+    ],
+    "quality_score": 1.0,
+    "title": "StatsManager.ResetStatsRule"
   }
   '''
 # ---

@@ -75,6 +75,8 @@ the HTML holds.
 | Chrome inside `main` | `.page-metadata`, `#user-feedback`, `nav`, `[data-bi-name=feedback]` | Also the table-of-contents header, the "Exit editor mode" and "Summarize this article" buttons, an `[unauthorized-private-section]` notification (hidden) and `details.popover` menus. | All stripped; `button` is stripped wholesale. |
 | Last updated | `<time>` in the header | `<local-time datetime="…">` inside `ul.page-metadata`. | `local-time[datetime], time[datetime]`, read before the metadata is stripped. |
 | Query parameters | `view` meaningful, `tabs` not | Reference URLs 301 to `?view=graph-rest-1.0`; `tabs=` only selects a tab. | `view` is the version parameter; `tabs` is dropped. |
+| Conditional GETs | not given | A 304 answers with no body while the session jar still holds Akamai's `_abck` and `ak_bmsc` cookies. | A 304 is never classified; the "tiny body with a challenge cookie" signature applies to answers that carry a body. |
+| Fragments | not given | Some in-site links use stale fragments: `known-issues#non-admin-user-cant-…` against a heading id `nonadmin-user-cant-…`, `query-parameters#filter-parameter` against `#filter`. | Reported by `verify` as unresolved fragments; nothing guesses a nearby id. |
 
 ### devsite (developers.google.com, Google Workspace)
 
@@ -88,6 +90,12 @@ the HTML holds.
 | Chrome inside the article | `devsite-feedback`, `.devsite-article-meta`, `devsite-toc`, `.devsite-banner`, `devsite-page-rating` | Also `devsite-thumb-rating`, `devsite-recommendations-*`, `.nocontent`, `[data-nosnippet]` and the generated "Page Summary" panel `devsite-key-takeaways-panel`. | All stripped. |
 | Reference tables | plain tables | Parameter tables use `colspan` headers and block cells with `<p>`, nested `<table>` and `<pre>`, so they stay HTML; the JSON representations inside them cannot be fences. | `html_table_kept` on every REST reference page. |
 | Last updated | `<time>` | None in the HTML. | The `Last-Modified` header is used. |
+| Support pages | not given | The Stack Overflow search and the Issue Tracker links sit inside `<form>` elements with `<a class="button">`. | Forms are unwrapped so the links and button labels survive. |
+| Tiny pages | soft block = main text under 10% of the host median | The Gmail markup type reference (`gmail/markup/reference/types/*`) and the Drive picker enums are a heading and one sentence; rendering them adds no text. | The HTTP copy is kept with `soft_block_suspected`; the browser copy would need twice the text to replace it. |
+| Assets | not given | `/workspace/classroom/assets/*.pdf` is linked from guide pages with a 200 and `application/pdf`. | Skipped as not HTML at the HTTP tier; never sent to the browser. |
+| Newsletter issues | not given | `/workspace/newsletters/issues/*` is a bare Google Docs export: no `article.devsite-article`, layout tables with `border:none`, images on `lh*.googleusercontent.com` without a file extension. | Trafilatura fallback (`extractor_fallback`); the images lose their source and the `images` gate fails. |
+| Javadoc tables | not given | Summary tables are header-less single rows or `<th>`-per-row parameter tables. | Kept as HTML. |
+| Javadoc reference (Cloud Search SDK) | not given | Each member has an empty `<a name="shutdown()">` before an `<h4>` that carries its own generated id (`public-abstract-void-shutdown`); the summary table links to `#shutdown()` and to percent-encoded names such as `#apply(…,%20…)`. | A named anchor without href is kept: it lends an id-less heading its id, otherwise it stays as an empty `<a id>`; fragments are also matched percent-decoded. Fixture `cloudsearch-sdk-statsmanager.resetstatsrule`. |
 
 ## Related pages
 

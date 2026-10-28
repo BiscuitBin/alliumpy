@@ -74,8 +74,20 @@ def is_layout(table: html.HtmlElement) -> bool:
 
 
 def is_complex(table: html.HtmlElement) -> bool:
-    """Whether any cell spans or holds block-level content."""
-    for cell in _cells(table):
+    """Whether any cell spans or holds block-level content, or no row can be a header.
+
+    A pipe table needs a header row: a single row of `<td>` has none, and a converter
+    turns it into a bullet list or an empty header, so it stays HTML.
+    """
+    cells = _cells(table)
+    rows = [c.getparent() for c in cells if c.getparent() is not None]
+    first_row = rows[0] if rows else None
+    if len(set(rows)) == 1 and not any(c.tag == "th" for c in cells):
+        return True
+    if any(c.tag == "th" and c.getparent() is not first_row for c in cells):
+        # Row headers (`<th>` down the first column) have no pipe-table form either.
+        return True
+    for cell in cells:
         if cell.get("rowspan", "1") not in {"1", ""} or cell.get("colspan", "1") not in {"1", ""}:
             return True
         _unwrap_single_paragraphs(cell)

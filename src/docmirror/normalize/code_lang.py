@@ -103,7 +103,8 @@ def detect_language(pre: html.HtmlElement, attrs: list[str]) -> str:
 
 _SHELL_START = re.compile(
     r"^\s*(\$ |sudo |gem |pip3? |npm |npx |yarn |apt(-get)? |brew |gcloud |curl |wget |git |"
-    r"python3? -m |dotnet |mvn |gradle |go (get|run|install) |cargo |composer |pwsh )",
+    r"python3? -m |dotnet |mvn |gradle |go (get|run|install) |cargo |composer |pwsh |"
+    r"node |ruby |php |java |javac |docker |kubectl |make |mkdir |cd |ls |cat |echo |export |\./)",
     re.IGNORECASE,
 )
 

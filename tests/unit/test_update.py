@@ -136,6 +136,7 @@ def test_first_crawl_then_unchanged_update_is_byte_identical(
     report = _run(site, out)
     assert report.run.exit_code == ExitCode.OK
     assert report.totals.converted == 4
+    first_quality = report.quality_summary
     assert (
         sorted(report.changes.added) == ["a.md", "b.md", "c.md", "index.md"]
         or len(report.changes.added) == 4
@@ -147,6 +148,7 @@ def test_first_crawl_then_unchanged_update_is_byte_identical(
     assert report.run.exit_code == ExitCode.OK
     assert report.totals.skipped_unchanged == 4
     assert report.totals.converted == 0
+    assert report.quality_summary == first_quality
     assert all(
         etag is not None
         for path, etag in site.hits

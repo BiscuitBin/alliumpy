@@ -22,6 +22,10 @@ TIERS = ("http", "browser", "stealth")
 LARGE_RAW = 5 * 1024
 
 
+# A render after a soft block must grow the main text this much to replace the HTTP copy.
+SOFT_GAIN = 2.0
+
+
 @dataclass(slots=True)
 class LadderOutcome:
     """The result of walking the ladder for one URL."""
@@ -126,6 +130,7 @@ class FetchLadder:
         tier = self.start_tier(url, host_tier)
         index = order.index(tier) if tier in order else 0
         outcome: LadderOutcome | None = None
+        suspected: LadderOutcome | None = None
         first_reason = ""
         while index < len(order):
             tier = order[index]
@@ -150,9 +155,23 @@ class FetchLadder:
                 reason = needs_render(
                     extraction, result, self.profile, self.config.render.min_text_chars
                 )
-            escalate = bool(reason) or verdict.blocked
+            kind = result.headers.get("content-type", "")
+            not_html = bool(kind) and "html" not in kind and "xml" not in kind
+            # A PDF or an image is what it is at every tier: never rendered.
+            escalate = (bool(reason) or verdict.blocked) and not (result.ok and not_html)
             if reason and not first_reason:
                 first_reason = reason
+            if (
+                suspected is not None
+                and suspected.extraction is not None
+                and extraction is not None
+                and extraction.text_chars < suspected.extraction.text_chars * SOFT_GAIN
+            ):
+                # Rendering did not add text: the page is small on purpose, so the HTTP
+                # copy stands, with the suspicion recorded on it, and the walk ends here.
+                suspected.tiers_tried = tried
+                suspected.escalated = True
+                return suspected
             outcome = LadderOutcome(
                 result=result,
                 extraction=extraction,
@@ -170,6 +189,8 @@ class FetchLadder:
             if result.not_modified:
                 break
             LOG.info("escalating %s from %s: %s", url, tier, reason or verdict.signature)
+            if verdict.kind == "soft" and not reason:
+                suspected = outcome
             index += 1
             outcome.escalated = True
         assert outcome is not None  # noqa: S101 - the loop runs at least once

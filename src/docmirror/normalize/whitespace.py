@@ -1,4 +1,9 @@
-"""Zero-width characters go; NBSP becomes a space outside `<pre>`; code is untouched."""
+"""Zero-width characters go; NBSP and newline runs become a space outside `<pre>`.
+
+Code is untouched. A newline run in ordinary text is what a browser collapses to one
+space; left alone, a blank line inside a list item becomes a paragraph the converter
+indents, and an indented paragraph is an indented code block.
+"""
 
 from __future__ import annotations
 
@@ -9,6 +14,7 @@ if TYPE_CHECKING:
     from lxml import html
 
 _ZERO_WIDTH = re.compile("[\u200b‌‍⁠﻿]")
+_NEWLINE_RUN = re.compile(r"[ \t]*\n[ \t\n]*")
 
 
 def _inside_pre(element: html.HtmlElement) -> bool:
@@ -32,4 +38,8 @@ def _clean(text: str, *, in_pre: bool) -> str:
     text = _ZERO_WIDTH.sub("", text)
     if not in_pre:
         text = text.replace("\u00a0", " ")
+        if text.strip():
+            # Only text with words: the whitespace between block tags stays, so an
+            # HTML island keeps its line structure when it is serialized later.
+            text = _NEWLINE_RUN.sub(" ", text)
     return text

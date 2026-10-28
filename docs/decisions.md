@@ -105,6 +105,46 @@ numbered record under `decisions/`; this page is the running log of the smaller 
 - Learn links to `#non-admin-user-cant-...` while its heading id is
   `#nonadmin-user-cant-...`: the site's own fragment is stale, `verify` reports it,
   and no fuzzy matching papers over it.
+- A 304 Not Modified is never a block. Its body is empty by design, and the session
+  jar still holds the host's challenge cookies, so the "tiny body with a challenge
+  cookie" signature read every unchanged Learn page as a challenge and the breaker
+  escalated the update run to the browser after ten of them.
+- A self-link is no edge of the link graph. The rewriter used to record an absolute
+  `page#fragment` link to the page itself as internal and the bare `#fragment` it had
+  rewritten it to as nothing, so `inbound_internal` and `outbound_internal` changed on
+  the second run; now neither form is counted, as the frontier already did.
+- An `<a name>` or `<a id>` without href survives conversion: it lends an id-less
+  heading directly after it its id, or stays as an empty `<a id>` island. Fragment
+  checks also accept the percent-decoded form, since javadoc anchors hold spaces.
+- A soft block escalates once, but the rendered copy replaces the HTTP copy only when
+  it carries at least twice the main text. devsite's Gmail markup type reference and
+  Drive picker enums are tiny pages on purpose: rendering them added nothing and the
+  browser DOM measured worse, so the HTTP page stands with `soft_block_suspected`.
+- A response that is not HTML (a PDF under `/assets/`) never escalates: a browser
+  navigation to a download fails, and the page is skipped as not HTML at the first
+  tier instead.
+- Forms are unwrapped before conversion. html-to-markdown drops `<form>` whole, and
+  devsite's support pages put their "Ask a new question" and "Submit bug" links inside
+  one; the controls go, a button keeps its label as text.
+- The quality summary of an update describes the mirror: an unchanged page carries
+  the score it was measured with into the run's mean, p10 and low-confidence list.
+- Newline runs inside a text node that holds words collapse to one space outside
+  `<pre>`, as a browser renders them. devsite writes `<li>Install the\n\n Node.js
+  <a>…</a></li>`, and the blank line made the converter indent the rest of the item
+  into an indented code block. Whitespace-only nodes between tags are left alone so an
+  HTML island keeps its line structure. Paragraph text is therefore one line per
+  paragraph rather than the source's hard wraps.
+- A table with no header row cannot be a pipe table: a single row of `<td>` became a
+  bullet list under html-to-markdown and an empty header under markdownify, and a
+  `<th>` down the first column (javadoc parameter tables) has no pipe-table form. Both
+  stay HTML and count as `html_table_kept`.
+- `node .`, `docker …`, `kubectl …`, `make …`, `cd …`, `ls …`, `./…` and the other
+  common command words tag a bare `<pre>` as `bash`, as `pip` and `npm` already did.
+- Images whose URL has no file extension (Google-hosted `lh3.googleusercontent.com`
+  images in the newsletter issues) lose their `src` in the trafilatura fallback, which
+  only keeps sources that look like image files; readability-lxml loses the tables as
+  well. The `images` gate measures the loss and the page is low-confidence; nothing
+  is reconstructed.
 
 ## Phase 6: maintenance
 

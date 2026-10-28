@@ -73,7 +73,13 @@ def classify(
     'hard'
     >>> classify(FetchResult("u", "u", 200, body=b"<p>fine</p>")).kind
     'none'
+    >>> classify(FetchResult("u", "u", 304, cookies={"_abck": "x"})).kind
+    'none'
     """
+    if result.not_modified:
+        # A 304 carries no body by design; the tiny-body cookie rule must not read the
+        # session's own challenge cookies as a challenge on every unchanged page.
+        return BlockVerdict("none", "")
     signature = challenge_signature(result)
     if result.status in HARD_STATUSES:
         return BlockVerdict("hard", signature or f"http {result.status}")

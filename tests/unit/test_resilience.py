@@ -39,6 +39,10 @@ def test_block_signatures() -> None:
     assert classify(cookie).kind == "challenge"
     big_cookie = FetchResult("u", "u", 200, body=b"x" * 5000, cookies={"__cf_bm": "x"})
     assert classify(big_cookie).kind == "none"
+    # An unchanged page answers 304 with no body while the jar still holds the host's
+    # challenge cookies: that is not a challenge, or every update run would escalate.
+    not_modified = FetchResult("u", "u", 304, cookies={"_abck": "x", "__cf_bm": "y"})
+    assert classify(not_modified).kind == "none"
     soft = classify(
         FetchResult("u", "u", 200, body=b"<p>x</p>"), text_chars=10, median_text_chars=1000
     )
@@ -109,6 +113,39 @@ def test_ladder_escalates_shell_to_browser_and_caches() -> None:
     # The tier is cached by the first two path segments, so a sibling skips HTTP.
     second = asyncio.run(ladder.fetch("https://h/docs/api/b"))
     assert second.tiers_tried == ["browser"]
+
+
+def test_ladder_keeps_http_copy_when_render_adds_no_text() -> None:
+    tiny = "<html><body><main><h1>T</h1><p>Short page.</p></main></body></html>"
+
+    async def http(url: str, **_: object) -> FetchResult:
+        return FetchResult(url, url, 200, headers={"content-type": "text/html"}, body=tiny.encode())
+
+    async def browser(url: str) -> FetchResult:
+        return FetchResult(
+            url, url, 200, headers={"content-type": "text/html"}, body=tiny.encode(), tier="browser"
+        )
+
+    ladder = _ladder({"site": {"profile": "generic"}}, {"http": http, "browser": browser})
+    ladder.median_text = lambda _: 100_000.0
+    outcome = asyncio.run(ladder.fetch("https://h/docs/a"))
+    assert outcome.verdict.kind == "soft"
+    assert outcome.tier == "http"
+    assert outcome.tiers_tried == ["http", "browser"]
+    assert outcome.result.tier != "browser"
+
+
+def test_ladder_never_renders_a_non_html_body() -> None:
+    async def http(url: str, **_: object) -> FetchResult:
+        return FetchResult(url, url, 200, headers={"content-type": "application/pdf"}, body=b"%PDF")
+
+    async def browser(_url: str) -> FetchResult:
+        pytest.fail("a PDF must not be sent to the browser")
+
+    ladder = _ladder({"site": {"profile": "generic"}}, {"http": http, "browser": browser})
+    outcome = asyncio.run(ladder.fetch("https://h/docs/a.pdf"))
+    assert outcome.tier == "http"
+    assert not outcome.escalated
 
 
 def test_ladder_render_never_flags_without_escalating() -> None:

@@ -42,6 +42,7 @@ from docmirror.frontier.urls import ScopeRules, UrlNormalizer, host_of, locale_s
 from docmirror.links.paths import PathMapper
 from docmirror.normalize import normalize
 from docmirror.quality import measure_quality
+from docmirror.quality.metrics import GATE_NAMES
 from docmirror.render.driver import BrowserDriver, driver_for
 from docmirror.report.builder import ReportBuilder, config_hash
 from docmirror.report.models import BlockedUrl, FailedUrl
@@ -693,6 +694,18 @@ class Crawler:
         self.manifest.frontier_set_status(url, "unchanged")
         self.report.totals.skipped_unchanged += 1
         self.report.changes.unchanged.append(str(known["path"]))
+        # The quality summary describes the mirror, not the run: an unchanged page
+        # keeps the score it was measured with, so an update that converts nothing
+        # still reports the mean and the low-confidence pages the mirror holds.
+        flags: list[str] = json.loads(known["flags_json"] or "[]")
+        if known["quality_score"] is not None:
+            self.report.record_quality(
+                str(known["path"]),
+                float(known["quality_score"]),
+                [flag for flag in flags if flag in GATE_NAMES],
+                flags,
+                low_confidence=bool(known["low_confidence"]),
+            )
         self.emitter.emit(
             "page",
             url=url,
@@ -700,7 +713,7 @@ class Crawler:
             status="unchanged",
             tier=tier,
             quality_score=known["quality_score"],
-            flags=[],
+            flags=flags,
         )
 
     def _blocked(self, url: str, outcome: LadderOutcome) -> None:

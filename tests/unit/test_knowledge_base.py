@@ -90,7 +90,10 @@ def test_rewriter_relative_fragments_and_flags(tmp_path: Path) -> None:
     assert "[ext](https://other/x)" in new_body
     assert outcome.flags == {"uncrawled_internal"}
     kinds = sorted(kind for _, _, kind, _ in outcome.links)
-    assert kinds == ["external", "internal", "internal", "internal", "uncrawled"]
+    assert kinds == ["external", "internal", "internal", "uncrawled"]
+    # Rewriting the rewritten page records the same rows: the self-link counted nowhere.
+    _, second = rewriter.rewrite_text(page_a, new_body)
+    assert sorted(second.links) == sorted(outcome.links)
     page_b = rewriter.by_url[ROOT + "sub/b"]
     _, body_b = split_frontmatter((out / "sub/b.md").read_text())
     new_b, _ = rewriter.rewrite_text(page_b, body_b)
@@ -117,6 +120,19 @@ def test_rewriter_unresolved_fragment_and_removed_target(tmp_path: Path) -> None
     text, outcome = rewriter.rewrite_text(page_a, "[B](sub/b.md#sec)")
     assert text == "[B](https://h/docs/sub/b#sec)"
     assert "dangling_inbound" in outcome.flags
+
+
+def test_bare_fragment_links_are_checked_and_canonicalised(tmp_path: Path) -> None:
+    manifest, out = build_tree(tmp_path)
+    manifest.replace_anchors(ROOT + "a", ["top", "get(Optional<Q>)", "apply(a, b)"])
+    rewriter = LinkRewriter(
+        manifest, UrlNormalizer(frozenset()), ScopeRules(frozenset({"h"}), ("/docs/",)), out
+    )
+    page_a = rewriter.by_url[ROOT + "a"]
+    body = '[x](#get(Optional&lt;Q&gt;)) <a href="#apply(a,%20b)">y</a> [z](#nope)'
+    text, outcome = rewriter.rewrite_text(page_a, body)
+    assert text == body
+    assert outcome.broken == [("#nope", "fragment #nope not found in a.md")]
 
 
 def test_relative_target_row_lookup() -> None:

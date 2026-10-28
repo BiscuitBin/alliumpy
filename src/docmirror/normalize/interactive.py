@@ -12,12 +12,24 @@ if TYPE_CHECKING:
     from docmirror.config.models import Profile
 
 EMBED_TAGS = ("iframe", "video", "embed", "object", "audio")
+CONTROL_TAGS = ("input", "select", "textarea")
 
 
 def transform(
     content: html.HtmlElement, profile: Profile, flags: set[str], counts: dict[str, int]
 ) -> None:
-    """Replace each interactive element with `> [!NOTE] Interactive content omitted: ...`."""
+    """Replace each interactive element with `> [!NOTE] Interactive content omitted: ...`.
+
+    A form is unwrapped first: a converter drops `<form>` whole, taking the links and
+    the text around its controls with it. The controls themselves go; a button keeps
+    its label as text.
+    """
+    for form in list(content.iter("form")):
+        form.drop_tag()
+    for control in list(content.iter(*CONTROL_TAGS)):
+        control.drop_tree()
+    for button in content.iter("button"):
+        button.tag = "span"
     targets: list[html.HtmlElement] = list(content.iter(*EMBED_TAGS))
     for expression in profile.interactive_selectors:
         targets.extend(select(content, expression))

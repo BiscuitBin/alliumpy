@@ -12,7 +12,7 @@ and the versions follow semantic versioning once there is a release to version.
   `mslearn` and `devsite` profiles, DOM normalization for tabs, code languages,
   admonitions, tables, definition lists, details, images, math, footnotes and
   interactive embeds, two converter backends, frontmatter, quality gates and the report.
-- Golden tests over 39 captured pages with syrupy snapshots.
+- Golden tests over 40 captured pages with syrupy snapshots.
 - Relative link and fragment rewriting, YAKE and TF-IDF keywords, `index.md`,
   `index.jsonl`, `llms.txt` and `_index.md`, `docmirror index` and `docmirror verify`.
 - The Patchright and Camoufox tiers, block-signature detection, the per-host circuit

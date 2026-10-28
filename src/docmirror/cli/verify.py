@@ -12,7 +12,7 @@ from pathlib import Path
 from docmirror.cli.common import Common, config_for, fail
 from docmirror.convert.frontmatter import body_sha256, split_frontmatter
 from docmirror.exit_codes import ExitCode
-from docmirror.links.rewriter import _FENCE, _HEADING_ANCHOR, _HTML_ID, _MD_LINK
+from docmirror.links.rewriter import _FENCE, _HEADING_ANCHOR, _HTML_ID, _MD_LINK, has_anchor
 from docmirror.quality.measure import LANG_RATE_GATE, count_markdown
 from docmirror.quality.metrics import GATE_NAMES
 from docmirror.report.models import Frontmatter
@@ -115,7 +115,7 @@ def _check_links(
     for path, body in bodies.items():
         for href in _links_outside_code(body):
             if "://" in href or href.startswith(("mailto:", "tel:", "#", "data:")):
-                if href.startswith("#") and href[1:] and href[1:] not in anchors[path]:
+                if href.startswith("#") and href[1:] and not has_anchor(anchors[path], href[1:]):
                     result.broken_links.append((path, href, "fragment not found on the page"))
                 continue
             rel, _, fragment = href.partition("#")
@@ -125,7 +125,7 @@ def _check_links(
                 if not (out_dir / resolved).exists():
                     result.broken_links.append((path, href, "target file not found"))
                 continue
-            if fragment and fragment not in anchors[resolved]:
+            if fragment and not has_anchor(anchors[resolved], fragment):
                 reason = f"fragment #{fragment} not found in {resolved}"
                 result.broken_links.append((path, href, reason))
 
