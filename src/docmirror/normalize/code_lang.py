@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import re
 from typing import TYPE_CHECKING
 
@@ -103,33 +102,86 @@ def detect_language(pre: html.HtmlElement, attrs: list[str]) -> str:
 
 _SHELL_START = re.compile(
     r"^\s*(\$ |sudo |gem |pip3? |npm |npx |yarn |apt(-get)? |brew |gcloud |curl |wget |git |"
-    r"python3? -m |dotnet |mvn |gradle |go (get|run|install) |cargo |composer |pwsh |"
+    r"python3? |easy_install |dotnet |mvn |gradle |go (get|run|install) |cargo |composer |pwsh |"
     r"node |ruby |php |java |javac |docker |kubectl |make |mkdir |cd |ls |cat |echo |export |\./)",
     re.IGNORECASE,
 )
+_JSON_START = re.compile(r'^\s*[\[{]\s*(?:"[^"]*"\s*:|[\[{]|\])')
+_MARKUP_START = re.compile(r"^\s*<(?:[a-zA-Z][\w:-]*|!DOCTYPE|\?xml)")
+_HTML_TAGS = re.compile(r"<(?:html|head|body|div|span|p|a|script|link|meta|img|br|table|ul|li)\b")
+# Each guess is a regex over the first lines and the language it names, most specific first.
+_SIGNATURES: tuple[tuple[re.Pattern[str], str], ...] = (
+    (re.compile(r"^\s*using [\w.]+;|^\s*namespace [\w.]+", re.MULTILINE), "csharp"),
+    (
+        re.compile(
+            r"^\s*(?:import|package) [\w.]+(?:\.\*)?;|@\w+\s+public |"
+            r"public (?:static |final |abstract )*"
+            r"(?:class|interface|void|\w+(?:<[^>]*>)?) \w+\s*\(?",
+            re.MULTILINE,
+        ),
+        "java",
+    ),
+    (
+        re.compile(
+            r"@(?:interface|implementation|end)\b|UIColor\s*\*|^\s*[-+]\s*\([\w* ]+\)\s*\w+",
+            re.MULTILINE,
+        ),
+        "objectivec",
+    ),
+    (
+        re.compile(
+            r"^\s*(?:var|const|let|function|async function)\s+\w+|=>\s*\{|console\.log\(",
+            re.MULTILINE,
+        ),
+        "javascript",
+    ),
+    (
+        re.compile(r"^\s*(?:def \w+\(|from \w[\w.]* import |import \w+$|print\()", re.MULTILINE),
+        "python",
+    ),
+    (re.compile(r"^\s*(?:func \w+\(|package main$)", re.MULTILINE), "go"),
+    (re.compile(r"^\s*<\?php|^\s*\$\w+\s*=\s*new ", re.MULTILINE), "php"),
+)
+_CODE_CHARS = re.compile(r"[;{}<>()=\[\]]")
+_TEXT_LINE = re.compile(r"^(?:https?://\S+|[\w .,:'!?/%&+#@|-]*)$")
+_HEAD_LINES = 6
 
 
 def guess_language(text: str) -> str:
-    """A language from the code itself: HTTP samples, shell commands, JSON documents.
+    r"""A language from the code itself, or `text` for a block that is not code at all.
 
     >>> guess_language("GET /me HTTP/1.1"), guess_language("$ pip install x")
     ('http', 'bash')
-    >>> guess_language('{"a": 1}')
-    'json'
-    >>> guess_language("plain prose")
-    ''
+    >>> guess_language('{"a": 1}'), guess_language('{\n  "kind": "x",\n  ...\n}')
+    ('json', 'json')
+    >>> guess_language('<entry xmlns="http://www.w3.org/2005/Atom">')
+    'xml'
+    >>> guess_language("<div>x</div>"), guess_language("var f = function(x) {}")
+    ('html', 'javascript')
+    >>> guess_language("import com.google.type.Color;\n// ...")
+    'java'
+    >>> guess_language("Snippet not available"), guess_language("https://sites.google.com/")
+    ('text', 'text')
+    >>> guess_language("+---+\n| a |\n+---+"), guess_language("x = f(1)")
+    ('text', '')
     """
     if _HTTP_START.match(text):
         return "http"
     if _SHELL_START.match(text):
         return "bash"
     stripped = text.strip()
-    if stripped[:1] in "{[" and stripped[-1:] in "}]":
-        try:
-            json.loads(stripped)
-        except ValueError:
-            return ""
+    if _JSON_START.match(stripped):
         return "json"
+    if _MARKUP_START.match(stripped):
+        return "html" if _HTML_TAGS.search(stripped[:400]) else "xml"
+    head = "\n".join(stripped.splitlines()[:_HEAD_LINES])
+    for pattern, language in _SIGNATURES:
+        if pattern.search(head):
+            return language
+    lines = [line for line in stripped.splitlines() if line.strip()]
+    if lines and not _CODE_CHARS.search(stripped) and all(_TEXT_LINE.match(line) for line in lines):
+        # Prose, bare URLs, identifiers and box drawings are text, and say so.
+        return "text"
     return ""
 
 

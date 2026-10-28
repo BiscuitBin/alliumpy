@@ -9246,7 +9246,7 @@
   
   ##### C#
   
-  ```
+  ```text
   Snippet not available
   ```
   
@@ -9254,7 +9254,7 @@
   
   ##### Go
   
-  ```
+  ```text
   Snippet not available
   ```
   
@@ -9262,7 +9262,7 @@
   
   ##### Java
   
-  ```
+  ```text
   Snippet not available
   ```
   
@@ -9270,7 +9270,7 @@
   
   ##### JavaScript
   
-  ```
+  ```text
   Snippet not available
   ```
   
@@ -9278,7 +9278,7 @@
   
   ##### PHP
   
-  ```
+  ```text
   Snippet not available
   ```
   
@@ -9296,7 +9296,7 @@
   
   ##### Python
   
-  ```
+  ```text
   Snippet not available
   ```
   
@@ -9419,7 +9419,7 @@
   
   ##### JavaScript
   
-  ```
+  ```text
   Snippet not available
   ```
   
@@ -27347,7 +27347,7 @@
     "counts": {
       "admonitions": 1,
       "code_blocks": 104,
-      "code_blocks_tagged": 97,
+      "code_blocks_tagged": 104,
       "headings": 137,
       "html_tables": 0,
       "images": 0,

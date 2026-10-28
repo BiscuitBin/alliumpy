@@ -115,8 +115,9 @@ class LinkRewriter:
             self._check_fragment(current, target[1:], outcome, target)
             return target
         parts = urlsplit(target)
-        if not parts.scheme:
+        if not parts.scheme and not target.startswith("/"):
             # A relative link this tool wrote earlier: find its page by path.
+            # (A site-absolute `/path` is resolved against the source URL below.)
             path_part, _, fragment = target.partition("#")
             resolved = _join_path(current.path, path_part)
             known = self.by_path.get(resolved)

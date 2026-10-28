@@ -114,6 +114,24 @@ def test_code_language_sources_and_aliases() -> None:
     assert detect_language(pre, PROFILE.code_lang_attrs) == "json"
     pre = html.fromstring("<pre>node .</pre>")
     assert detect_language(pre, PROFILE.code_lang_attrs) == "bash"
+    for text, language in [
+        ("python setup.py install", "bash"),
+        ('{\n   "kind": "directory#mobiledevice",\n   ...\n}', "json"),
+        ("<entry xmlns='http://www.w3.org/2005/Atom'><id>x</id></entry>", "xml"),
+        (" import com.google.type.Color;\n\n // ...\n public static Color f(Color c)", "java"),
+        (" @Rule public ResetConfigRule resetConfig = new ResetConfigRule();", "java"),
+        (" static UIColor* fromProto(Color* protocolor) {", "objectivec"),
+        ("// ...\n\nvar protoToCssColor = function(rgb_color) {", "javascript"),
+        ("using Microsoft.Graph;\nvar client = new GraphServiceClient();", "csharp"),
+        ("Snippet not available", "text"),
+        ("https://sites.google.com/feeds/site/domainName", "text"),
+        ("03b07b79-c5bc-4b5e-9bfa-13acf4a99998", "text"),
+        ("+-------------+\n| Magic header |\n+-------------+", "text"),
+        ("x = f(1)", ""),
+    ]:
+        pre = html.fromstring("<pre></pre>")
+        pre.text = text
+        assert detect_language(pre, PROFILE.code_lang_attrs) == language, text
 
 
 def test_code_block_keeps_whitespace_and_strips_gutters_and_links() -> None:
@@ -185,7 +203,7 @@ def test_row_header_table_stays_html() -> None:
 def test_newline_runs_in_text_collapse_outside_code() -> None:
     fragment = "<ul><li>Install the\n      \n      Node.js <a href='/l'>library</a>.</li></ul>"
     assert run(fragment) == "- Install the Node.js [library](https://h/l).\n"
-    assert run("<pre><code>a\n\nb</code></pre>") == "```\na\n\nb\n```\n"
+    assert run("<pre><code>a = 1\n\nb(2)</code></pre>") == "```\na = 1\n\nb(2)\n```\n"
 
 
 def test_layout_table_is_unwrapped() -> None:

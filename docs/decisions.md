@@ -138,8 +138,16 @@ numbered record under `decisions/`; this page is the running log of the smaller 
   bullet list under html-to-markdown and an empty header under markdownify, and a
   `<th>` down the first column (javadoc parameter tables) has no pipe-table form. Both
   stay HTML and count as `html_table_kept`.
-- `node .`, `docker …`, `kubectl …`, `make …`, `cd …`, `ls …`, `./…` and the other
-  common command words tag a bare `<pre>` as `bash`, as `pip` and `npm` already did.
+- A bare `<pre>` is tagged from its text, in this order: HTTP request or status
+  lines, a shell command word (`pip`, `npm`, `node`, `python`, `easy_install`,
+  `docker`, `cd`, `./…` and the like), a JSON start (lax: `{"key":` is enough, so a
+  sample with `...` qualifies), a markup start (`html` when it holds HTML tags, else
+  `xml`), then language signatures over the first six lines (C# `using …;`, Java
+  `import …;` or `public static …`, Objective-C, JavaScript, Python, Go, PHP). A block
+  with no code characters at all (prose, bare URLs, a UUID, Learn's "Snippet not
+  available" placeholder, an ASCII diagram) is tagged `text`: an honest info string
+  rather than none. Anything else stays untagged and counts against
+  `code_lang_rate`.
 - Images whose URL has no file extension (Google-hosted `lh3.googleusercontent.com`
   images in the newsletter issues) lose their `src` in the trafilatura fallback, which
   only keeps sources that look like image files; readability-lxml loses the tables as

@@ -135,6 +135,18 @@ def test_bare_fragment_links_are_checked_and_canonicalised(tmp_path: Path) -> No
     assert outcome.broken == [("#nope", "fragment #nope not found in a.md")]
 
 
+def test_site_absolute_links_resolve_against_the_source(tmp_path: Path) -> None:
+    manifest, out = build_tree(tmp_path)
+    rewriter = LinkRewriter(
+        manifest, UrlNormalizer(frozenset()), ScopeRules(frozenset({"h"}), ("/docs/",)), out
+    )
+    page_a = rewriter.by_url[ROOT + "a"]
+    text, outcome = rewriter.rewrite_text(page_a, "[b](/docs/sub/b) [x](/docs/missing)")
+    assert text == "[b](sub/b.md) [x](/docs/missing)"
+    kinds = sorted(kind for _, _, kind, _ in outcome.links)
+    assert kinds == ["internal", "uncrawled"]
+
+
 def test_relative_target_row_lookup() -> None:
     row = PageRow("u", "a/b.md", "https://h/a/b", tombstoned=False)
     assert row.path == "a/b.md"
