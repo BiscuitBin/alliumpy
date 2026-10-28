@@ -82,12 +82,20 @@ class ReportBuilder:
         """The counters for a host, created on first use."""
         return self.hosts.setdefault(name, HostStats())
 
-    def record_quality(self, path: str, score: float, failed: list[str], flags: list[str]) -> None:
+    def record_quality(
+        self,
+        path: str,
+        score: float,
+        failed: list[str],
+        flags: list[str],
+        *,
+        low_confidence: bool | None = None,
+    ) -> None:
         """Record one page's quality outcome."""
         self.scores.append(score)
         for gate in failed:
             self.gate_failures[gate] = self.gate_failures.get(gate, 0) + 1
-        if failed:
+        if bool(failed) if low_confidence is None else low_confidence:
             self.totals.low_confidence += 1
             self.low_confidence_pages.append(
                 LowConfidencePage(path=path, quality_score=score, flags=flags)

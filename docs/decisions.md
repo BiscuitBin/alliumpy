@@ -71,6 +71,22 @@ numbered record under `decisions/`; this page is the running log of the smaller 
 - Titles such as "Page Summary" from devsite's generated takeaways panel are stripped
   as chrome, not kept as content, because the site generates them per visit.
 
+## Phase 5: resilience
+
+- `low_confidence` is true when a gate fails or when a pipeline flag says the content
+  is known to be incomplete (`render_needed`, `empty_content`, `soft_block_suspected`):
+  an empty shell scores 1.0 on every gate because there was nothing to lose, and the
+  prompt's acceptance criterion for `--render never` needs the count to be non-zero.
+- A soft block at the last available tier still writes the page, flagged
+  `soft_block_suspected` and counted as blocked for the host, because the page may be
+  a legitimately short one; a hard block or challenge writes nothing.
+- The browser tiers go through the same per-host limiter as HTTP, so escalation never
+  doubles the request rate.
+- The breaker trips immediately when no higher tier exists, which is what
+  `[antibot] stealth = "off"` or `--render never` means for a blocked host.
+- `docmirror fetch` keeps its browser profile under `~/.cache/docmirror` (or
+  `DOCMIRROR_STATE_DIR`) because it has no output directory.
+
 ## Related pages
 
 - [Site notes](site-notes.md)

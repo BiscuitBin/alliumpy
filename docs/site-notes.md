@@ -27,8 +27,12 @@ every finding below lands in a profile under `src/docmirror/config/profiles.py`.
 
 Probed without JavaScript, these serve an empty shell: `https://redocly.github.io/redoc/`
 (623 bytes, a `#root` div), `https://docs.zoom.us/` (187 KB with zero text), and
-`https://petstore.swagger.io/` (10 characters of text). The one used by the live suite is
-recorded here when phase 5 lands.
+`https://petstore.swagger.io/` (10 characters of text). The live suite uses the Redoc
+demo: with `--render never` its one page converts to an empty body flagged
+`render_needed` and `empty_content`; with `--render auto` the HTTP tier's empty shell
+escalates to the Patchright tier, which returns the rendered API reference. Its
+in-page routes (`/redoc/statistics`) are client-side and answer 404 to a direct fetch,
+so a crawl records them as gone.
 
 ## Sitemaps
 

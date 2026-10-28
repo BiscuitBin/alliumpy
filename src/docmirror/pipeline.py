@@ -26,6 +26,8 @@ from docmirror.convert import (
 )
 from docmirror.exit_codes import ExitCode, highest
 from docmirror.extract import extract_page
+from docmirror.fetch.breaker import HostBreaker
+from docmirror.fetch.ladder import FetchLadder, LadderOutcome
 from docmirror.fetch.politeness import HostLimiter, backoff_delay, retry_after_seconds
 from docmirror.fetch.session import FetchResult, HttpFetcher
 from docmirror.frontier.discovery import (
@@ -39,8 +41,9 @@ from docmirror.frontier.urls import ScopeRules, UrlNormalizer, host_of, locale_s
 from docmirror.links.paths import PathMapper
 from docmirror.normalize import normalize
 from docmirror.quality import measure_quality
+from docmirror.render.driver import BrowserDriver, driver_for
 from docmirror.report.builder import ReportBuilder, config_hash
-from docmirror.report.models import FailedUrl
+from docmirror.report.models import BlockedUrl, FailedUrl
 from docmirror.state.db import Manifest, atomic_write_text, now_iso
 
 if TYPE_CHECKING:
@@ -53,6 +56,7 @@ SITEMAP_CANDIDATES = ("sitemap.xml", "sitemap_index.xml")
 # stays near the start URL instead of sampling the whole sitemap.
 SITEMAP_DEPTH = 2
 HTTP_OK = 200
+INCOMPLETE_FLAGS = frozenset({"render_needed", "empty_content", "soft_block_suspected"})
 HTTP_MULTIPLE = 300
 HTTP_NOT_MODIFIED = 304
 HTTP_NOT_FOUND = 404
@@ -231,6 +235,18 @@ class Crawler:
         self.exit_code = ExitCode.OK
         self.written_paths: set[str] = set()
         self._stop = False
+        self.breakers: dict[str, HostBreaker] = {}
+        self.drivers: dict[str, BrowserDriver] = {}
+        self.text_lengths: dict[str, list[int]] = {}
+        self.ladder = FetchLadder(
+            config,
+            self.profile,
+            self._tier_fetchers(),
+            cached_tier=manifest.cached_tier,
+            cache_tier=manifest.cache_tier,
+            median_text=self._median_text,
+            on_outcome=self._record_outcome,
+        )
 
     # -- helpers -----------------------------------------------------------------
 
@@ -246,6 +262,67 @@ class Crawler:
             )
             self.limiters[host] = limiter
         return limiter
+
+    def breaker(self, host: str) -> HostBreaker:
+        """The circuit breaker for a host."""
+        breaker = self.breakers.get(host)
+        if breaker is None:
+            available = self.ladder.available()
+            breaker = HostBreaker(
+                window=self.config.antibot.window,
+                threshold=self.config.antibot.block_rate_threshold,
+                highest_tier=available[-1] if available else "http",
+            )
+            self.breakers[host] = breaker
+        return breaker
+
+    def _median_text(self, host: str) -> float | None:
+        lengths = self.text_lengths.get(host)
+        if not lengths or len(lengths) < 5:  # noqa: PLR2004 - a median of fewer pages means little
+            return None
+        ordered = sorted(lengths)
+        return float(ordered[len(ordered) // 2])
+
+    def _tier_fetchers(self) -> dict[str, Any]:
+        tiers: dict[str, Any] = {"http": self.polite_fetch}
+        stealth = self.config.antibot.stealth
+        if stealth != "off" and self.config.render.mode != "never":
+            tiers["browser"] = self._browser_fetcher("browser")
+            if stealth == "camoufox":
+                tiers["stealth"] = self._browser_fetcher("stealth")
+        return tiers
+
+    def _browser_fetcher(self, tier: str) -> Any:  # noqa: ANN401 - an async callable
+        async def fetch(url: str) -> FetchResult:
+            driver = self.drivers.get(tier)
+            if driver is None:
+                created = driver_for(
+                    tier,
+                    self.out_dir / ".docmirror",
+                    self.config.render,
+                    locale=self.config.site.locale,
+                )
+                if created is None:
+                    return FetchResult(
+                        url=url,
+                        final_url=url,
+                        status=0,
+                        tier=tier,
+                        error=f"{tier} tier unavailable",
+                    )
+                self.drivers[tier] = created
+                driver = created
+            limiter = self.limiter(host_of(url))
+            await limiter.acquire()
+            try:
+                result = await driver.fetch(url)
+            finally:
+                limiter.release()
+            if result.ok and result.cookies:
+                self.fetcher.set_cookies(host_of(url), result.cookies)
+            return result
+
+        return fetch
 
     async def robots_for(self, host: str) -> Robots:
         """Fetch and cache a host's robots.txt."""
@@ -414,6 +491,9 @@ class Crawler:
             self.manifest.frontier_bulk_status("in_progress", "pending")
             exit_code = ExitCode.PARTIAL
         finally:
+            for driver in self.drivers.values():
+                with contextlib.suppress(Exception):
+                    await driver.close()
             with contextlib.suppress(Exception):
                 await self.fetcher.close()
             report = self.report.write(self.out_dir, int(exit_code))
@@ -428,7 +508,7 @@ class Crawler:
 
     def _final_exit_code(self) -> ExitCode:
         code = self.exit_code
-        if self.report.totals.failed:
+        if self.report.totals.failed or self.report.totals.blocked:
             code = highest(code, ExitCode.PARTIAL)
         if any(h.breaker_tripped for h in self.report.hosts.values()):
             code = highest(code, ExitCode.BLOCKED)
@@ -447,6 +527,10 @@ class Crawler:
                 break
             batch = self.manifest.frontier_pending(min(concurrency, remaining))
             if not batch:
+                break
+            batch = [entry for entry in batch if not self.breaker(host_of(entry.url)).tripped]
+            if not batch:
+                self.manifest.frontier_bulk_status("pending", "skipped_blocked")
                 break
             shallowest = batch[0].depth
             if shallowest == 0:
@@ -468,6 +552,10 @@ class Crawler:
         self, url: str, depth: int, via: str | None, sitemap_lastmod: str | None
     ) -> None:
         host = host_of(url)
+        breaker = self.breaker(host)
+        if breaker.tripped:
+            self.manifest.frontier_set_status(url, "skipped_blocked")
+            return
         robots = await self.robots_for(host)
         if not robots.allows(url):
             self.manifest.frontier_set_status(url, "skipped_robots")
@@ -482,56 +570,37 @@ class Crawler:
             )
             return
         known = self.manifest.get_page(url)
-        etag = known["etag"] if known is not None and self.command == "update" else None
-        last_modified = (
-            known["last_modified"] if known is not None and self.command == "update" else None
+        conditional = known is not None and self.command == "update"
+        etag = known["etag"] if conditional and known is not None else None
+        last_modified = known["last_modified"] if conditional and known is not None else None
+        outcome = await self.ladder.fetch(
+            url, host_tier=breaker.tier, etag=etag, last_modified=last_modified
         )
-        result = await self.polite_fetch(url, etag=etag, last_modified=last_modified)
+        result = outcome.result
         stats = self.report.host(host)
+        stats.tiers_used.add(outcome.tier)
+        if outcome.escalated:
+            stats.render_escalations += 1
         if result.error is not None or result.status == 0:
             self._fail(url, result.error or "no response", self.config.fetch.retries)
             return
-        stats.tiers_used.add("http")
         self.bytes_total += len(result.body)
         if result.not_modified and known is not None:
-            self.manifest.upsert_page(url, last_seen=now_iso())
-            self.manifest.frontier_set_status(url, "unchanged")
-            self.report.totals.skipped_unchanged += 1
-            self.report.changes.unchanged.append(str(known["path"]))
-            self.emitter.emit(
-                "page",
-                url=url,
-                path=known["path"],
-                status="unchanged",
-                tier="http",
-                quality_score=known["quality_score"],
-                flags=[],
-            )
+            self._unchanged(url, known, outcome.tier)
             return
         if result.status in {HTTP_NOT_FOUND, HTTP_GONE}:
             self._tombstone(url, result.status, known)
             return
-        if result.status in {HTTP_FORBIDDEN, HTTP_TOO_MANY} or result.status >= HTTP_SERVER_ERROR:
-            stats.blocked += 1
-            stats.outcomes.append(True)
-            self.report.totals.blocked += 1
-            from docmirror.report.models import BlockedUrl  # noqa: PLC0415
-
-            self.report.blocked_urls.append(
-                BlockedUrl(
-                    url=url, status=result.status, signature=f"http {result.status}", tier="http"
-                )
-            )
-            self._fail(url, f"http {result.status}", self.config.fetch.retries, blocked=True)
+        verdict = outcome.verdict
+        if verdict.blocked and verdict.kind != "soft":
+            self._blocked(url, outcome)
             return
         if not result.ok:
             self._fail(url, f"http {result.status}", 1)
             return
-        stats.outcomes.append(False)
         stats.fetched += 1
         self.fetched_pages += 1
         self.report.totals.fetched += 1
-        text = result.text()
         content_type = result.headers.get("content-type", "")
         if content_type and "html" not in content_type and "xml" not in content_type:
             self.manifest.frontier_set_status(url, "skipped_not_html")
@@ -540,20 +609,100 @@ class Crawler:
                 url=url,
                 path=None,
                 status="skipped_not_html",
-                tier="http",
+                tier=outcome.tier,
                 quality_score=None,
                 flags=[],
             )
             return
         try:
             page = await asyncio.to_thread(
-                process_page, text, result.final_url, self.config, self.profile
+                process_page, result.text(), result.final_url, self.config, self.profile
             )
         except Exception as error:
             LOG.exception("processing %s failed", url)
             self._fail(url, f"{type(error).__name__}: {error}", 1)
             return
-        self._store(url, result, page, depth, via, sitemap_lastmod)
+        self.text_lengths.setdefault(host, []).append(page.text_chars)
+        if outcome.render_needed and outcome.tier == "http":
+            page.flags.add("render_needed")
+        if verdict.kind == "soft":
+            page.flags.add("soft_block_suspected")
+            stats.blocked += 1
+        self._store(url, result, page, depth, via, sitemap_lastmod, tier=outcome.tier)
+
+    def _unchanged(self, url: str, known: sqlite3.Row, tier: str) -> None:
+        self.manifest.upsert_page(url, last_seen=now_iso())
+        self.manifest.frontier_set_status(url, "unchanged")
+        self.report.totals.skipped_unchanged += 1
+        self.report.changes.unchanged.append(str(known["path"]))
+        self.emitter.emit(
+            "page",
+            url=url,
+            path=known["path"],
+            status="unchanged",
+            tier=tier,
+            quality_score=known["quality_score"],
+            flags=[],
+        )
+
+    def _blocked(self, url: str, outcome: LadderOutcome) -> None:
+        stats = self.report.host(host_of(url))
+        stats.blocked += 1
+        self.report.totals.blocked += 1
+        self.report.blocked_urls.append(
+            BlockedUrl(
+                url=url,
+                status=outcome.result.status,
+                signature=outcome.verdict.signature,
+                tier=outcome.tier,
+            )
+        )
+        self.manifest.frontier_set_status(url, "blocked")
+        self.emitter.emit(
+            "page",
+            url=url,
+            path=None,
+            status="blocked",
+            tier=outcome.tier,
+            quality_score=None,
+            flags=[],
+        )
+
+    def _record_outcome(self, host: str, tier: str, blocked: bool) -> None:  # noqa: FBT001 - the outcome is the argument
+        """Feed the breaker with one tier attempt; pause, slow and escalate, or trip."""
+        del tier
+        self.report.host(host).outcomes.append(blocked)
+        breaker = self.breaker(host)
+        action = breaker.record(blocked=blocked)
+        limiter = self.limiter(host)
+        if action == "escalate":
+            limiter.halve_rate()
+            limiter.pause_for(self.config.antibot.pause_s)
+            self.emitter.emit(
+                "host_backoff",
+                host=host,
+                reason="block rate",
+                block_rate=round(breaker.block_rate, 3),
+                pause_s=self.config.antibot.pause_s,
+                tier=breaker.tier,
+            )
+            LOG.warning(
+                "%s: block rate %.0f%%, pausing %.0fs and escalating to %s",
+                host,
+                breaker.block_rate * 100,
+                self.config.antibot.pause_s,
+                breaker.tier,
+            )
+        elif action == "trip":
+            self.report.host(host).breaker_tripped = True
+            skipped = self.manifest.frontier_bulk_status("pending", "skipped_blocked", host=host)
+            self.emitter.emit(
+                "breaker_tripped",
+                host=host,
+                block_rate=round(breaker.block_rate, 3),
+                skipped=skipped,
+            )
+            LOG.error("%s: circuit breaker tripped; %d pending URLs skipped", host, skipped)
 
     def _fail(self, url: str, error: str, attempts: int, *, blocked: bool = False) -> None:
         self.manifest.frontier_set_status(url, "blocked" if blocked else "failed")
@@ -589,6 +738,8 @@ class Crawler:
         depth: int,
         via: str | None,
         sitemap_lastmod: str | None,
+        *,
+        tier: str = "http",
     ) -> None:
         identity = url
         final_normalized = self.normalizer.normalize(result.final_url)
@@ -623,8 +774,9 @@ class Crawler:
         body = page.markdown_body
         fetched_at = now_iso()
         flags = sorted(page.flags | set(page.quality_failed))
-        if page.render_needed and self.config.render.mode == "never":
-            flags = sorted({*flags, "render_needed"})
+        # A gate failure, or a flag that says the content is known to be incomplete,
+        # makes the page low-confidence.
+        low_confidence = bool(page.quality_failed) or bool(set(flags) & INCOMPLETE_FLAGS)
         version = self.mapper.version_of(identity)
         locale = self.config.site.locale or locale_segment(urlsplit(identity).path) or None
         frontmatter: dict[str, Any] = {
@@ -638,11 +790,11 @@ class Crawler:
                 page.last_updated or result.headers.get("last-modified")
             ),
             "locale": locale,
-            "low_confidence": bool(page.quality_failed),
+            "low_confidence": low_confidence,
             "profile": self.config.site.profile,
             "quality_flags": flags,
             "quality_score": page.quality_score,
-            "render": "http",
+            "render": tier,
             "sitemap_lastmod": sitemap_lastmod,
             "source_url": result.final_url,
             "title": page.title,
@@ -661,10 +813,10 @@ class Crawler:
                 last_modified=result.headers.get("last-modified"),
                 sitemap_lastmod=sitemap_lastmod,
                 raw_sha256=body_sha256(result.text()),
-                render_tier="http",
+                render_tier=tier,
                 extractor=page.extractor,
                 quality_score=page.quality_score,
-                low_confidence=int(bool(page.quality_failed)),
+                low_confidence=int(low_confidence),
                 flags=flags,
                 last_seen=fetched_at,
                 discovered_via=via,
@@ -680,13 +832,15 @@ class Crawler:
             self._enqueue_links(identity, page, depth)
         self.written_paths.add(path)
         self.report.totals.converted += 1
-        self.report.record_quality(path, page.quality_score, page.quality_failed, flags)
+        self.report.record_quality(
+            path, page.quality_score, page.quality_failed, flags, low_confidence=low_confidence
+        )
         self.emitter.emit(
             "page",
             url=identity,
             path=path,
             status="written",
-            tier="http",
+            tier=tier,
             quality_score=page.quality_score,
             flags=flags,
         )
