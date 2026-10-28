@@ -87,6 +87,14 @@ def test_parse_size(text: str, expected: int) -> None:
     assert parse_size(text) == expected
 
 
+@pytest.mark.parametrize("text", ["1K", "2Ki", "3i", "MB"])
+def test_parse_size_rejects_unknown_units(text: str) -> None:
+    with pytest.raises(ValueError, match="not a size"):
+        parse_size(text)
+    with pytest.raises(ConfigError, match="max_bytes"):
+        validate_config({"scope": {"max_bytes": text}})
+
+
 def test_parse_duration() -> None:
     assert parse_duration("7d") == timedelta(days=7)
     assert parse_duration("1h30m") == timedelta(hours=1, minutes=30)

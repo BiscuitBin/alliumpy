@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from datetime import timedelta
 
-_SIZE = re.compile(r"^\s*(\d+(?:\.\d+)?)\s*([KMGT]?i?B?)\s*$", re.IGNORECASE)
+_SIZE = re.compile(r"^\s*(\d+(?:\.\d+)?)\s*((?:[KMGT]i?)?B)?\s*$", re.IGNORECASE)
 _SIZE_UNITS = {
     "": 1,
     "B": 1,
@@ -37,7 +37,7 @@ def parse_size(value: str | int) -> int:
         message = f"not a size: {value!r}"
         raise ValueError(message)
     number, unit = match.groups()
-    return int(float(number) * _SIZE_UNITS[unit.upper()])
+    return int(float(number) * _SIZE_UNITS[(unit or "").upper()])
 
 
 def parse_duration(value: str) -> timedelta | None:

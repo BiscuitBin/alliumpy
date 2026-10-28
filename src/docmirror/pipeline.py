@@ -753,14 +753,14 @@ class Crawler:
                 "host_backoff",
                 host=host,
                 reason="block rate",
-                block_rate=round(breaker.block_rate, 3),
+                block_rate=round(breaker.trigger_rate, 3),
                 pause_s=self.config.antibot.pause_s,
                 tier=breaker.tier,
             )
             LOG.warning(
                 "%s: block rate %.0f%%, pausing %.0fs and escalating to %s",
                 host,
-                breaker.block_rate * 100,
+                breaker.trigger_rate * 100,
                 self.config.antibot.pause_s,
                 breaker.tier,
             )

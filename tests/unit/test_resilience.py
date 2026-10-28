@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+import io
+import json
 from pathlib import Path
 
 import pytest
@@ -60,6 +62,20 @@ def test_breaker_escalates_then_trips() -> None:
     actions = [breaker.record(blocked=i % 4 == 0) for i in range(50)]
     assert actions[-1] == "trip" or breaker.tripped
     assert breaker.tripped
+
+
+def test_escalation_reports_the_rate_that_triggered_it(tmp_path: Path) -> None:
+    config = validate_config({"antibot": {"window": 10, "pause_s": 0}})
+    stream = io.StringIO()
+    with open_manifest(tmp_path) as manifest:
+        crawler = Crawler(config, tmp_path, manifest, EventEmitter(enabled=True, stream=stream))
+        crawler.breakers["h"] = HostBreaker(window=10, highest_tier="browser")
+        for _ in range(10):
+            crawler._record_outcome("h", "http", True)  # noqa: FBT003, SLF001 - the hook under test
+    events = [json.loads(line) for line in stream.getvalue().splitlines()]
+    backoff = next(e for e in events if e["event"] == "host_backoff")
+    assert backoff["block_rate"] == 1.0
+    assert crawler.breakers["h"].block_rate == 0.0
 
 
 def test_breaker_stays_calm_under_threshold() -> None:

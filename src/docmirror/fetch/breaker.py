@@ -24,6 +24,8 @@ class HostBreaker:
     tier_index: int = 0
     tripped: bool = False
     escalations: int = 0
+    # The block rate that caused the last escalation, kept because escalating clears the window.
+    trigger_rate: float = 0.0
     _since_escalation: int = 0
 
     @property
@@ -51,6 +53,7 @@ class HostBreaker:
             self.tier_index += 1
             self.escalations += 1
             self._since_escalation = 0
+            self.trigger_rate = self.block_rate
             self.outcomes.clear()
             return "escalate"
         if self._since_escalation >= self.window or self.escalations == 0:
