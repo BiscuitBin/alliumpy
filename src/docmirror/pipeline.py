@@ -47,6 +47,7 @@ from docmirror.render.driver import BrowserDriver, driver_for
 from docmirror.report.builder import ReportBuilder, config_hash
 from docmirror.report.models import BlockedUrl, FailedUrl
 from docmirror.state.db import FrontierEntry, Manifest, atomic_write_text, now_iso
+from docmirror.state.tombstones import REMOVED_DIR
 
 if TYPE_CHECKING:
     from docmirror.config.models import Config, Profile
@@ -523,7 +524,11 @@ class Crawler:
         return code
 
     def _requeue_known_pages(self) -> None:
-        """Queue every written page for a re-check: conditional GET, or a full fetch when forced."""
+        """Queue every written page for a re-check: conditional GET, or a full fetch when forced.
+
+        A tombstoned page is rechecked too, after every other URL, so one that comes back
+        is restored; a rediscovery in this run promotes it to its discoverer's priority.
+        """
         max_age = self.config.update.max_age_delta
         now = datetime.now(tz=UTC)
         with self.manifest.transaction():
@@ -541,6 +546,10 @@ class Crawler:
                 self.manifest.frontier_set_status(url, "pending")
                 if forced:
                     self.must_fetch.add(url)
+            for row in self.manifest.gone_pages():
+                url = str(row["normalized_url"])
+                self.manifest.enqueue(url, depth=0, discovered_from=None, discovered_via="recheck")
+                self.manifest.frontier_defer(url)
 
     def _written_total(self) -> int:
         return len(self.manifest.pages(written_only=True))
@@ -953,6 +962,10 @@ class Crawler:
             "keywords": keywords or None,
         }
         atomic_write_text(target, render_frontmatter(frontmatter) + "\n" + body)
+        revived = existing is not None and existing["tombstoned_at"] is not None
+        if revived:
+            # A page that came back is live again; its tombstoned copy goes.
+            (self.out_dir / REMOVED_DIR / path).unlink(missing_ok=True)
         self.manifest.upsert_page(
             identity,
             prewrite_sha256=prewrite,
@@ -961,7 +974,7 @@ class Crawler:
             last_changed=fetched_at,
             frontmatter=frontmatter,
         )
-        if previous is None:
+        if previous is None or revived:
             self.report.changes.added.append(path)
         else:
             self.report.changes.changed.append(path)

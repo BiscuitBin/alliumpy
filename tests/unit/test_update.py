@@ -218,3 +218,38 @@ def test_max_age_forces_refetch(site: FakeSite, tmp_path: Path) -> None:
     conditional = [etag for path, etag in site.hits if path != "/docs/moved"]
     assert conditional
     assert all(etag is None for etag in conditional)
+
+
+def test_tombstoned_page_that_returns_is_restored(site: FakeSite, tmp_path: Path) -> None:
+    out = tmp_path / "out"
+    out.mkdir()
+    _run(site, out)
+    site.gone.add("/docs/c")
+    _run(site, out, command="update")
+    assert "_removed/c.md" in _snapshot(out)
+    site.gone.discard("/docs/c")
+    report = _run(site, out, command="update")
+    after = _snapshot(out)
+    assert "c.md" in after
+    assert "_removed/c.md" not in after
+    assert "c.md" in report.changes.added
+    with open_manifest(out) as manifest:
+        row = manifest.get_page(site.server.url_for("/docs/c"))
+        assert row is not None
+        assert row["tombstoned_at"] is None
+
+
+def test_deferred_recheck_runs_last_unless_rediscovered(tmp_path: Path) -> None:
+    with open_manifest(tmp_path) as manifest:
+        for url in ("https://h/gone", "https://h/back", "https://h/a", "https://h/b"):
+            manifest.enqueue(url, depth=2, discovered_from=None, discovered_via="link")
+        manifest.frontier_set_status("https://h/gone", "gone")
+        manifest.frontier_defer("https://h/back")
+        manifest.enqueue("https://h/gone", depth=0, discovered_from=None, discovered_via="link")
+        order = [entry.url for entry in manifest.frontier_pending(10)]
+        assert order == ["https://h/a", "https://h/b", "https://h/back"]
+        manifest.enqueue(
+            "https://h/back", depth=1, discovered_from=None, discovered_via="sitemap", priority=50
+        )
+        order = [entry.url for entry in manifest.frontier_pending(10)]
+        assert order == ["https://h/back", "https://h/a", "https://h/b"]

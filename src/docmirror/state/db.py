@@ -23,6 +23,8 @@ if TYPE_CHECKING:
 
 STATE_DIR = ".docmirror"
 STATE_FILE = "state.sqlite"
+# A tombstoned page is rechecked after everything else unless it is rediscovered.
+DEFERRED_PRIORITY = -1
 
 
 def now_iso() -> str:
@@ -136,6 +138,14 @@ class Manifest:
             (normalized_url, *fields.values()),
         )
 
+    def gone_pages(self) -> list[sqlite3.Row]:
+        """Every tombstoned page row, ordered by path."""
+        return list(
+            self.connection.execute(
+                "SELECT * FROM pages WHERE status = 'gone' ORDER BY path"
+            ).fetchall()
+        )
+
     def pages(self, *, written_only: bool = False) -> list[sqlite3.Row]:
         """Every page row, ordered by path."""
         query = "SELECT * FROM pages"
@@ -189,7 +199,22 @@ class Manifest:
                 "UPDATE frontier SET sitemap_lastmod = ? WHERE url = ? AND sitemap_lastmod IS NULL",
                 (sitemap_lastmod, url),
             )
+        if cursor.rowcount == 0:
+            # Rediscovery promotes a deferred row; only a pending one, so a page that is
+            # gone again in this run is not queued a second time.
+            self.connection.execute(
+                "UPDATE frontier SET priority = ?, depth = MIN(depth, ?) "
+                "WHERE url = ? AND status = 'pending' AND priority < 0",
+                (priority, depth, url),
+            )
         return cursor.rowcount == 1
+
+    def frontier_defer(self, url: str) -> None:
+        """Queue an existing row as pending behind every other row (a deferred recheck)."""
+        self.connection.execute(
+            "UPDATE frontier SET status = 'pending', priority = ? WHERE url = ?",
+            (DEFERRED_PRIORITY, url),
+        )
 
     def frontier_set_status(
         self, url: str, status: str, *, next_attempt_at: str | None = None
@@ -217,10 +242,10 @@ class Manifest:
         return int(cursor.rowcount)
 
     def frontier_pending(self, limit: int) -> list[FrontierEntry]:
-        """Up to `limit` pending rows: shallowest first, then highest priority, then oldest."""
+        """Up to `limit` pending rows: shallowest, highest priority, oldest; deferred rows last."""
         rows = self.connection.execute(
             "SELECT * FROM frontier WHERE status = 'pending' "
-            "ORDER BY depth ASC, priority DESC, rowid ASC LIMIT ?",
+            "ORDER BY (priority < 0) ASC, depth ASC, priority DESC, rowid ASC LIMIT ?",
             (limit,),
         ).fetchall()
         return [

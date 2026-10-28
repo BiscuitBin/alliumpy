@@ -90,3 +90,15 @@ def test_doctor_runs() -> None:
 def test_report_without_a_report_is_usage(tmp_path: Path) -> None:
     result = runner.invoke(app, ["report", str(tmp_path)])
     assert result.exit_code == 2
+
+
+def test_refused_crawl_still_writes_a_report(tmp_path: Path) -> None:
+    (tmp_path / "docmirror.toml").write_text("[site]\nprofile = 'generic'\n", encoding="utf-8")
+    result = runner.invoke(app, ["crawl", str(tmp_path)])
+    assert result.exit_code == 2
+    report = json.loads((tmp_path / "crawl-report.json").read_text(encoding="utf-8"))
+    assert report["run"]["exit_code"] == 2
+    (tmp_path / "crawl-report.json").unlink()
+    result = runner.invoke(app, ["crawl", str(tmp_path), "--max-bytes", "1K"])
+    assert result.exit_code == 2
+    assert (tmp_path / "crawl-report.json").is_file()
