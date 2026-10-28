@@ -47,16 +47,15 @@ def counts_of(fragment: str) -> dict[str, int]:
     return normalize(content, PROFILE).counts
 
 
-LEARN_TABS = """
-<div class="tabGroup">
-  <ul role="tablist">
-    <li><a data-tab="http" href="#tabpanel_1_http">HTTP</a></li>
-    <li><a data-tab="csharp" href="#tabpanel_1_csharp">C#</a></li>
-  </ul>
-  <section data-tab="http"><pre><code class="lang-http">GET https://graph.microsoft.com/v1.0/me</code></pre></section>
-  <section data-tab="csharp" hidden><pre><code class="lang-csharp">var user = await graphClient.Me.GetAsync();</code></pre></section>
-</div>
-"""
+LEARN_TABS = (
+    '<div class="tabGroup"><ul role="tablist">'
+    '<li><a data-tab="http" href="#tabpanel_1_http">HTTP</a></li>'
+    '<li><a data-tab="csharp" href="#tabpanel_1_csharp">C#</a></li></ul>'
+    '<section data-tab="http"><pre><code class="lang-http">GET https://graph.microsoft.com/v1.0/me'
+    "</code></pre></section>"
+    '<section data-tab="csharp" hidden><pre><code class="lang-csharp">'
+    "var user = await graphClient.Me.GetAsync();</code></pre></section></div>"
+)
 
 
 def test_language_tabs_become_labelled_fences() -> None:

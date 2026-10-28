@@ -7,6 +7,7 @@
 extend-exclude = [
   "tests/fixtures/mslearn/",
   "tests/fixtures/devsite/",
+  "tests/golden/__snapshots__/",
   "examples/",
   "pixi.lock",
   ".pixi/",

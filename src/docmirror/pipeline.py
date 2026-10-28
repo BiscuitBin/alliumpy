@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import json
 import logging
 import sqlite3
 from dataclasses import dataclass, field
@@ -647,7 +648,7 @@ class Crawler:
             "title": page.title,
             "version": version,
         }
-        self._write_page(identity, path, body, frontmatter, fetched_at, existing, keywords=None)
+        self._write_page(identity, path, body, frontmatter, fetched_at, existing)
         with self.manifest.transaction():
             self.manifest.upsert_page(
                 identity,
@@ -698,32 +699,35 @@ class Crawler:
         frontmatter: dict[str, Any],
         fetched_at: str,
         existing: sqlite3.Row | None,
-        *,
-        keywords: list[str] | None,
     ) -> None:
-        sha = body_sha256(body)
-        previous_sha = existing["content_sha256"] if existing is not None else None
+        """Write the page unless its pre-rewrite body is unchanged since the last run."""
+        prewrite = body_sha256(body)
+        previous = existing["prewrite_sha256"] if existing is not None else None
         target = self.out_dir / path
-        if previous_sha == sha and target.is_file():
-            self.manifest.upsert_page(identity, content_sha256=sha, last_seen=fetched_at)
+        if previous == prewrite and target.is_file():
+            self.manifest.upsert_page(identity, last_seen=fetched_at)
             self.report.changes.unchanged.append(path)
             self.report.totals.skipped_unchanged += 1
             return
+        keywords = None
+        if existing is not None and existing["frontmatter_json"]:
+            keywords = json.loads(existing["frontmatter_json"]).get("keywords")
         frontmatter = {
             **frontmatter,
-            "content_sha256": sha,
+            "content_sha256": prewrite,
             "fetched_at": fetched_at,
-            "keywords": keywords,
+            "keywords": keywords or None,
         }
         atomic_write_text(target, render_frontmatter(frontmatter) + "\n" + body)
         self.manifest.upsert_page(
             identity,
-            content_sha256=sha,
+            prewrite_sha256=prewrite,
+            content_sha256=prewrite,
             fetched_at=fetched_at,
             last_changed=fetched_at,
             frontmatter=frontmatter,
         )
-        if previous_sha is None:
+        if previous is None:
             self.report.changes.added.append(path)
         else:
             self.report.changes.changed.append(path)

@@ -9,6 +9,7 @@ exclude: >-
     dist/|
     target/wheel-smoke/|
     tests/fixtures/(mslearn|devsite)/|
+    tests/golden/__snapshots__/|
     examples/|
     pixi\.lock$
   )

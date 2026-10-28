@@ -24,7 +24,7 @@ def test_frontmatter_round_trip_and_hash() -> None:
     assert block == "---\na: [1, 2]\nquality_score: 0.5\ntitle: T\n---\n"
     fields, body = split_frontmatter(block + "\nbody\n")
     assert fields == {"a": [1, 2], "quality_score": 0.5, "title": "T"}
-    assert body == "\nbody\n"
+    assert body == "body\n"
     assert body_sha256("x\n") != body_sha256("x")
     assert split_frontmatter("no frontmatter") == ({}, "no frontmatter")
 

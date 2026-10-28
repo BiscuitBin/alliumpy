@@ -32,7 +32,7 @@ def render_frontmatter(fields: Mapping[str, Any]) -> str:
 def split_frontmatter(text: str) -> tuple[dict[str, Any], str]:
     r"""The frontmatter mapping and the body of a page file.
 
-    >>> split_frontmatter("---\\ntitle: T\\n---\\nbody\\n")
+    >>> split_frontmatter("---\\ntitle: T\\n---\\n\\nbody\\n")
     ({'title': 'T'}, 'body\\n')
     """
     if not text.startswith("---\n"):
@@ -42,4 +42,7 @@ def split_frontmatter(text: str) -> tuple[dict[str, Any], str]:
         return {}, text
     loaded = yaml.safe_load(text[4:end]) or {}
     body = text[end + 5 :]
+    # A page file is the block, one blank line, then the body; the blank line is the
+    # separator, not part of the body the hash covers.
+    body = body.removeprefix("\n")
     return (loaded if isinstance(loaded, dict) else {}), body

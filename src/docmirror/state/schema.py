@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS pages (
     last_modified TEXT,
     sitemap_lastmod TEXT,
     raw_sha256 TEXT,
+    prewrite_sha256 TEXT,
     content_sha256 TEXT,
     render_tier TEXT,
     extractor TEXT,

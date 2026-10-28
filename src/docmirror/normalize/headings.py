@@ -13,6 +13,21 @@ if TYPE_CHECKING:
 HEADINGS = ("h1", "h2", "h3", "h4", "h5", "h6")
 
 
+def _lift_container_ids(content: html.HtmlElement) -> None:
+    """A section or div whose first child is an id-less heading lends it its own id.
+
+    Fragment links to `<section id="x"><h3>` are common; the section itself leaves no
+    trace in Markdown, so the heading carries the anchor instead.
+    """
+    for container in content.iter("section", "div", "article"):
+        identifier = container.get("id")
+        if not identifier:
+            continue
+        first = next((c for c in container if isinstance(c.tag, str)), None)
+        if first is not None and first.tag in HEADINGS and not first.get("id"):
+            first.set("id", identifier)
+
+
 def normalize_headings(
     content: html.HtmlElement,
     profile: Profile,
@@ -23,6 +38,7 @@ def normalize_headings(
     title: str = "",
 ) -> None:
     """Emit `{#id}` (attr style) or an `<a id>` before (inline style); demote to keep one H1."""
+    _lift_container_ids(content)
     headings = list(content.iter(*HEADINGS))
     h1s = [h for h in headings if h.tag == "h1"]
     if not h1s and title:
