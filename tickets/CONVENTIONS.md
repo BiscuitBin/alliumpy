@@ -164,12 +164,15 @@ Facts, each verified on 2026-10-22, that shape the mechanism:
    `dtolnay/rust-toolchain@stable`; there is no `rust-toolchain` file and no
    `rust-version`. The `_with_cross_module` signatures have grown between releases, and
    the README carries a pre-release notice, so the pin is exact: `allium-parser = "=3.6.1"`.
-6. **The repository is private.** GitHub Pages and branch protection are available to
+6. **The repository is public.** The maintainer made it public on 2026-10-24, during
+   T01; it began private. GitHub Pages and branch protection are available to
    a private repository only on a paid plan; on the free organisation plan both are
    public-repository features. T01 reads the plan and the visibility first, hands the
    question to the maintainer as an authorisation stop, and makes `pages.yml`'s deploy
    conditional (§10, §12 claim 11). GitHub Actions minutes on a private repository are
-   metered, and macOS and Windows runners cost more of them (§13).
+   metered, and macOS and Windows runners cost more of them (§13). On this public
+   repository, T01's first full CI run of seven Ubuntu jobs reported `total_ms: 0`
+   billable.
 7. **PEP 639 `license-files` globs cannot leave the project root,** which for maturin
    is `crates/alliumpy/`. T00 places this repository's Apache-2.0 text and upstream's
    MIT text with attribution under that directory so that both ship in the wheel's
@@ -720,9 +723,11 @@ The nine invariants, in place of P's:
    bindings crate is covered by pytest, stubtest and the wheel smoke, which `just check`
    runs.
 7. `Cargo.lock` is the pin; manifests write full `x.y.z` caret ranges, except
-   `allium-parser`, which is exact (decision 0011); every cargo gate passes `--locked`,
-   and `locked = true` in the maturin manifest makes every wheel build do the same
-   (decision 0004).
+   `allium-parser`, which is exact (decision 0011); every cargo gate that builds or
+   resolves dependencies passes `--locked`, except `deps-unused`, whose `cargo shear`
+   takes no such flag, and `snapshots-check`, which runs after `lock-check` and offline
+   because cargo-insta forwards the flag to nextest; and `locked = true` in the maturin
+   manifest makes every wheel build do the same (decision 0004).
 8. No dependency is added without the decision-0004 note.
 9. One version: the wheel's version with `.postN` stripped equals both crates' version,
    the `allium-parser` pin and the version `allium --version` prints (decision 0010);
@@ -1215,10 +1220,11 @@ the gate.
 - **CLI drift.** If S01 chooses vendoring, upstream's CLI source and this repository's
   copy diverge silently between bumps; the parity corpus is the alarm, and it is only as
   good as the corpus. T13 states what the corpus covers and what it does not.
-- **The repository is private.** Pages and branch protection are paid-plan features
-  here, and artefact attestation may be (§12 claim 5); Actions minutes are metered, and
-  the release matrix's macOS and Windows runners consume them fastest. T01 and T14 say so
-  before acting.
+- **The repository was private until 2026-10-24.** It is now public, so Pages and
+  branch protection are available on the free plan (T01), and T01's first full CI run of
+  seven Ubuntu jobs reported `total_ms: 0` billable. Whether artefact attestation is
+  available (§12 claim 5), and what the release matrix's macOS and Windows runners cost,
+  T14 reads before acting.
 - **Paid-plan features in the release.** A GitHub `release` environment with required
   reviewers, and tag rulesets, may themselves be paid-plan features on a private
   repository; T14 reads what the plan allows before asking.

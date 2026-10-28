@@ -48,9 +48,11 @@ These hold everywhere. Breaking one is a defect, not a trade-off.
    bindings crate is covered by pytest, stubtest and the wheel smoke, which `just check`
    runs.
 7. `Cargo.lock` is the pin; manifests write full `x.y.z` caret ranges, except
-   `allium-parser`, which is exact (decision 0011); every cargo gate passes `--locked`,
-   and `locked = true` in the maturin manifest makes every wheel build do the same
-   (decision 0004).
+   `allium-parser`, which is exact (decision 0011); every cargo gate that builds or
+   resolves dependencies passes `--locked`, except `deps-unused`, whose `cargo shear`
+   takes no such flag, and `snapshots-check`, which runs after `lock-check` and offline
+   because cargo-insta forwards the flag to nextest; and `locked = true` in the maturin
+   manifest makes every wheel build do the same (decision 0004).
 8. No dependency is added without the decision-0004 note.
 9. One version: the wheel's version with `.postN` stripped equals both crates' version,
    the `allium-parser` pin and the version `allium --version` prints (decision 0010);
