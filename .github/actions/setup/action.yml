@@ -1,16 +1,8 @@
-name: Set up the alliumpy toolchain
+name: Set up the docmirror toolchain
 description: >-
-  pixi and the environment pixi.lock pins (every tool binary, Python, prek and
-  the tooling package's checkers), the toolchain rust-toolchain.toml pins
-  through the runner's rustup, the cargo caches, the binaries in .tools/bin
-  that conda-forge lacks, and the lockfile sync. Runs after the checkout.
-
-inputs:
-  cache-key:
-    description: >-
-      Shared key for the cargo cache, one per job, so that an instrumented
-      coverage build never restores over a plain one.
-    required: true
+  pixi and the environment pixi.lock pins (every tool binary, Python, prek,
+  the tooling package's checkers and the package itself), the lockfile sync
+  and the hook environments. Runs after the checkout.
 
 runs:
   using: composite
@@ -21,9 +13,8 @@ runs:
     # than pretend one owner. `locked` refuses a lockfile that disagrees with
     # the manifest, which makes this step the CI lockfile check. Activation
     # puts .pixi/envs/default/bin, and so `just`, on every later step's PATH.
-    # The environment holds no rust, so cargo stays the runner's rustup
-    # proxy. The cache is keyed on pixi.lock's hash and written from main
-    # only, for the reason rust-cache's save-if gives below.
+    # The cache is keyed on pixi.lock's hash and written from main only, so
+    # one branch's environment cannot evict another's.
     - uses: prefix-dev/setup-pixi@d3f436a425481402e6a95a1d1fc10331c708cd9e # v0.10.2
       with:
         pixi-version: v0.81.0
@@ -32,62 +23,21 @@ runs:
         cache: true
         cache-write: ${{ github.ref == 'refs/heads/main' }}
         activate-environment: true
-    # The runner image ships rustup, and rustup 1.28 or later reads
-    # rust-toolchain.toml when given no toolchain, so the pin stays in one
-    # file. dtolnay/rust-toolchain is not used: at a SHA it requires a
-    # `toolchain` input, which would be a second copy of the pin.
-    - run: just install-toolchain
-      shell: bash
-    # After the toolchain, because the key hashes the rustc version. Saved
-    # from main only: a pull request restores main's cache and never writes
-    # its own, so one branch's target/ cannot evict another's. cache-bin
-    # governs ~/.cargo/bin, which holds nothing this gate installs: every
-    # tool is in the pixi environment setup-pixi restored above, or in
-    # .tools/bin, which actions/cache restores below.
-    - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
-      with:
-        shared-key: ${{ inputs.cache-key }}
-        save-if: ${{ github.ref == 'refs/heads/main' }}
-        cache-bin: false
-    # .tools holds what pixi cannot: cargo-hack from tools.txt, rustqual
-    # built from source from tools-source.txt. Keyed on both pin lists: a
-    # bumped line in either is a new key, and cargo-binstall skips a
-    # matching version already present on a hit. A key that missed a list
-    # would hit the old cache on a bump, and the new version would be
-    # installed, rustqual rebuilt, on every run and never saved, since a hit
-    # writes nothing back.
-    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-      with:
-        path: .tools
-        key: ${{ runner.os }}-${{ runner.arch }}-tools-${{ hashFiles('tools.txt', 'tools-source.txt') }}
-    # On the step that installs, never on the job: cargo-binstall (the
-    # environment's) reads GITHUB_TOKEN to raise the GitHub API rate limit
-    # while it resolves the release archive, and no other step has a use for
-    # it. It is the run's own token, minted and discarded with the run, so
-    # nothing is stored here. The recipe unsets it for the tools-source.txt
-    # pass, which compiles, so no build script sees it.
-    - run: just install-tools
-      shell: bash
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-    # Exactly what the lockfiles say: Cargo.lock fetched, pixi.lock
-    # installed, neither rewritten.
+    # Exactly what the lockfile says, installed, never rewritten.
     - run: just sync
       shell: bash
     # prek's cache outside the workspace, so check-clean's snapshot never
     # sees it. PREK_HOME is prek 0.5.3's cache variable.
     - run: echo "PREK_HOME=${{ runner.temp }}/prek" >> "$GITHUB_ENV"
       shell: bash
-    # The seven hook clones, the Go, Node and rustup toolchains and the
-    # ripsecrets build, which every gate job would otherwise fetch again.
-    # Keyed on both hook configs and on pixi.lock, which pins prek; saved on
-    # any branch, like .tools.
+    # The hook clones and toolchains every gate job would otherwise fetch
+    # again. Keyed on both hook configs and on pixi.lock, which pins prek.
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ${{ runner.temp }}/prek
         key: ${{ runner.os }}-${{ runner.arch }}-prek-${{ hashFiles('.pre-commit-config.yaml', '.pre-commit-fix.yaml', 'pixi.lock') }}
-    # The prepare and the lychee warm are the point; the shim it writes into
-    # the runner's .git is harmless. After this step no step reaches the
+    # The prepare is the point; the shim it writes into the runner's .git is
+    # harmless. After this step no gate step reaches the
     # network.
     - run: just install-hooks
       shell: bash

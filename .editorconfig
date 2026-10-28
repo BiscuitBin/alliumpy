@@ -8,18 +8,7 @@ indent_size = 2
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-# rustfmt owns Rust layout and writes four spaces; this entry stops
-# editorconfig-checker from reporting what rustfmt has just written. TOML is
-# left at the two-space default above, which is what taplo writes.
-[*.rs]
-indent_size = 4
-
 [Justfile]
-indent_size = 4
-
-# The specifications are written to a fixed column width with their own
-# comment-led layout; treating them as ordinary source reflows them.
-[*.allium]
 indent_size = 4
 
 # List continuations and fenced blocks legitimately indent by other amounts.

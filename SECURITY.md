@@ -1,8 +1,12 @@
-# Security
+# Security policy
 
-This is a T00 stub; T12 replaces it.
+docmirror fetches untrusted HTML from the public web and writes files under the output
+directory the user names. Report a vulnerability through a private channel to the
+repository owner rather than a public issue, and expect an acknowledgement before any
+public discussion.
 
-This document will describe supported versions and the vulnerability reporting procedure for the two-crate workspace and its Python
-wheel. This page is new to this repository. The owning lane will supply the operational details,
-examples, rationale and verification evidence when its ticket is implemented.
-Until then this text records the intended scope and ownership of the document.
+What the tool does not do: it never executes fetched content outside the browser tier's
+sandbox, never writes outside the output directory, never stores credentials, and never
+uses proxies, CAPTCHA solvers or paid unblocking services. Cookies a browser tier
+collects are kept under `<out>/.docmirror/browser/` and copied only into the same host's
+HTTP session.

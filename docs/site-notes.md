@@ -1,0 +1,107 @@
+---
+title: "Site notes"
+kind: "reference"
+audience: ["contributor", "maintainer", "agent"]
+canonical_for: ["site_behaviour", "profile_selectors"]
+requires: []
+---
+
+# Site notes
+
+What the live sites actually do, verified during the build, and where that differs from
+the build prompt's starting points. The prompt says to follow the site, implement the
+general mechanism and record the deviation here; a hostname never appears in code, so
+every finding below lands in a profile under `src/docmirror/config/profiles.py`.
+
+## Reachability, as probed on 2026-10-28
+
+| Endpoint | Result |
+| --- | --- |
+| `https://learn.microsoft.com/en-us/graph/api/overview` | `301` to the same path with `?view=graph-rest-1.0` appended: the version parameter is part of the identity of a Graph reference page. |
+| `https://learn.microsoft.com/sitemap.xml` | `302` to `/en-us/sitemap.xml`; `robots.txt` names `https://learn.microsoft.com/_sitemaps/sitemapindex.xml`, which covers the whole site, so sitemap discovery must stream-filter by scope rather than load it whole. |
+| `https://developers.google.com/workspace/gmail/api/guides` | `200`, 168 KB of server-rendered HTML; `robots.txt` names `https://developers.google.com/sitemap.xml`. |
+| `https://developers.google.com/workspace/gmail/api/guides.md.txt` | `200`, 5 KB of Markdown: the oracle for devsite pages works. |
+| `https://learn.microsoft.com/api/mcp` | `200` to a JSON-RPC `tools/list` POST: the Learn MCP oracle is reachable. |
+
+## Oracles
+
+Learn's MCP endpoint answers a JSON-RPC `tools/call` of `microsoft_docs_fetch` with the
+page as Markdown in an SSE body, CRLF-terminated, with every tab panel's code sample as
+a fence. devsite's `<page>.md.txt` is Markdown with YAML frontmatter and code samples as
+four-space-indented blocks, split by blank lines. The oracle test normalizes line endings
+and strips both fenced and indented code before the token-recall comparison; with that,
+every one of the twenty oracle pages scores at least 0.95 and most score 0.99.
+
+## JavaScript-rendered candidates for the escalation test
+
+Probed without JavaScript, these serve an empty shell: `https://redocly.github.io/redoc/`
+(623 bytes, a `#root` div), `https://docs.zoom.us/` (187 KB with zero text), and
+`https://petstore.swagger.io/` (10 characters of text). The live suite uses the Redoc
+demo: with `--render never` its one page converts to an empty body flagged
+`render_needed` and `empty_content`; with `--render auto` the HTTP tier's empty shell
+escalates to the Patchright tier, which returns the rendered API reference. Its
+in-page routes (`/redoc/statistics`) are client-side and answer 404 to a direct fetch,
+so a crawl records them as gone.
+
+## Sitemaps
+
+Learn's `sitemapindex.xml` lists 5,497 child sitemaps named by product and locale
+(`graph_en-us_1.xml`, `dotnet_zh-cn_12.xml`, `previous-versions_en-us_3.xml`). Reading
+them all at the polite rate takes most of an hour, so discovery ranks children by the
+scope's own tokens (a non-locale segment of a path prefix such as `graph`, and the
+pinned locale), drops children that name another locale, and reads at most
+`[scope] sitemap_max_children` (default 40) of them. For Graph this reads the
+`graph_en-us_*` files first and finds every Graph page in seconds. devsite's
+`sitemap.xml` is an index of 40 unnamed children (`sitemap_24_of_40.xml`); none can be
+ranked, so the budget reads them in order and stops once `max_pages × 4` in-scope
+URLs are queued. Sitemap entries queue at depth 2, one hop below the start page's own
+links, so a small crawl stays near the start URL.
+
+## Profiles
+
+Every selector below was checked against the captured fixtures under
+`tests/fixtures/<profile>/`. "Prompt" is what the build prompt proposed; "Site" is what
+the HTML holds.
+
+### mslearn (Microsoft Learn, Microsoft Graph)
+
+| Construct | Prompt | Site | Profile |
+| --- | --- | --- | --- |
+| Main content | `main#main`, `div.content` | `main#main` holds the article; `div.content` is a child wrapper. | As the prompt. |
+| Breadcrumbs | `ul#breadcrumbs, .breadcrumbs` | Rendered client-side from `/graph/ref-breadcrumb/toc.json` (a `<meta name="breadcrumb_path">`); the server HTML has no trail. | Selector kept; `breadcrumbs` is absent on Learn pages. |
+| Tab groups | `.tabGroup` with `ul[role=tablist] a[data-tab]` and `section[data-tab]` | Exactly that; inactive panels carry `hidden`. | As the prompt; `hidden` on a `section` is never stripped. |
+| Admonitions | `div.alert` with `p.alert-title` | `div.NOTE`, `div.TIP`, `div.IMPORTANT`, `div.WARNING`, `div.CAUTION`; the kind is the class and the label is the first `<p>`. | Both shapes; kind from the class. |
+| Code | `pre > code.lang-*` | `code.lang-http`, `lang-json`, `lang-csharp`; interactive samples are `lang-msgraph`, which is HTTP. | `msgraph` is an alias of `http`. |
+| Chrome inside `main` | `.page-metadata`, `#user-feedback`, `nav`, `[data-bi-name=feedback]` | Also the table-of-contents header, the "Exit editor mode" and "Summarize this article" buttons, an `[unauthorized-private-section]` notification (hidden) and `details.popover` menus. | All stripped; `button` is stripped wholesale. |
+| Last updated | `<time>` in the header | `<local-time datetime="…">` inside `ul.page-metadata`. | `local-time[datetime], time[datetime]`, read before the metadata is stripped. |
+| Query parameters | `view` meaningful, `tabs` not | Reference URLs 301 to `?view=graph-rest-1.0`; `tabs=` only selects a tab. | `view` is the version parameter; `tabs` is dropped. |
+| SDK snippet tabs | `pre > code.lang-*` | Language tabs whose SDK has no sample hold a bare `<pre>Snippet not available</pre>`. | Tagged `text`: the block is a placeholder, not code. |
+| Conditional GETs | not given | A 304 answers with no body while the session jar still holds Akamai's `_abck` and `ak_bmsc` cookies. | A 304 is never classified; the "tiny body with a challenge cookie" signature applies to answers that carry a body. |
+| Fragments | not given | Some in-site links use stale fragments: `known-issues#non-admin-user-cant-…` against a heading id `nonadmin-user-cant-…`, `query-parameters#filter-parameter` against `#filter`. | Reported by `verify` as unresolved fragments; nothing guesses a nearby id. |
+
+### devsite (developers.google.com, Google Workspace)
+
+| Construct | Prompt | Site | Profile |
+| --- | --- | --- | --- |
+| Main content | `article.devsite-article`, `.devsite-article-body` | `article.devsite-article` holds the article plus its meta block. | As the prompt. |
+| Breadcrumbs | not given | `ul.devsite-breadcrumb-list` inside `.devsite-article-meta`. | `.devsite-breadcrumb-list`, read before the meta block is stripped. |
+| Tab groups | `devsite-selector` with `section[aria-labelledby]`, or `devsite-tabs` / `div[role=tabpanel]` | `devsite-selector` holds one `<section>` per tab whose first `<h3>` is the label; there is no server-rendered tablist. `devsite-tabs.upper-tabs` is site navigation, not content. | `devsite-selector` with `panel_heading = "h2, h3, h4"`; `devsite-tabs:not(.upper-tabs)` kept for the role-based shape. |
+| Admonitions | `aside.note`, `.caution`, `.warning`, `.key-point`, `.objective` | Those plus `aside.special` ("Important:"), `aside.tip`, `aside.beta`, `aside.deprecated`; the label is a leading `<strong>`. | All of them, kind from the class, `special` mapped to IMPORTANT. |
+| Code | `pre.prettyprint[class*=lang-]` or `devsite-code pre` | `devsite-code > pre[syntax="Python"]`; terminals are `code.devsite-terminal`; REST reference JSON is a bare `<pre style>` inside a table cell. | `syntax` is the first language attribute; `devsite-terminal` is `bash`; `Bash Session` is an alias of `bash`. |
+| Chrome inside the article | `devsite-feedback`, `.devsite-article-meta`, `devsite-toc`, `.devsite-banner`, `devsite-page-rating` | Also `devsite-thumb-rating`, `devsite-recommendations-*`, `.nocontent`, `[data-nosnippet]` and the generated "Page Summary" panel `devsite-key-takeaways-panel`. | All stripped. |
+| Reference tables | plain tables | Parameter tables use `colspan` headers and block cells with `<p>`, nested `<table>` and `<pre>`, so they stay HTML; the JSON representations inside them cannot be fences. | `html_table_kept` on every REST reference page. |
+| Last updated | `<time>` | None in the HTML. | The `Last-Modified` header is used. |
+| Support pages | not given | The Stack Overflow search and the Issue Tracker links sit inside `<form>` elements with `<a class="button">`. | Forms are unwrapped so the links and button labels survive. |
+| Tiny pages | soft block = main text under 10% of the host median | The Gmail markup type reference (`gmail/markup/reference/types/*`) and the Drive picker enums are a heading and one sentence; rendering them adds no text. | The HTTP copy is kept with `soft_block_suspected`; the browser copy would need twice the text to replace it. |
+| Assets | not given | `/workspace/classroom/assets/*.pdf` is linked from guide pages with a 200 and `application/pdf`. | Skipped as not HTML at the HTTP tier; never sent to the browser. |
+| Newsletter issues | not given | `/workspace/newsletters/issues/*` is a bare Google Docs export: no `article.devsite-article`, layout tables with `border:none`, images on `lh*.googleusercontent.com` without a file extension. | Trafilatura fallback (`extractor_fallback`); the images lose their source and the `images` gate fails. |
+| Javadoc tables | not given | Summary tables are header-less single rows or `<th>`-per-row parameter tables. | Kept as HTML. |
+| Fragments | not given | Some links carry fragments the server HTML does not hold: the REST reference TOC links `#…SCHEMA_REPRESENTATION` ids only the client-side renderer creates; in-site links use `#file_properties` and `#manifest_structure_for_g_suite_add-ons` against headings now ided `file-properties` and `manifest-structure`; the Sites protocol guide links "Back to top" to `#top`, the Save to Drive guide to `#cors` and the Groups Settings reference to `#groups` and `#groupsSettings-groups-get`, and none of those ids exists anywhere in the server HTML. | Reported by `verify` as unresolved fragments; nothing guesses a nearby id. |
+| Literal Markdown | not given | The Drive v2 guide's HTML holds an unrendered Markdown link, `[downloadUrl]` followed by `(/workspace/drive/api/reference/rest/v2/revisions)` in parentheses, as plain text. | The rewriter treats a site-absolute `/path` target as a link resolved against the page, so it becomes relative when crawled and is made absolute against the page URL otherwise. |
+| Untagged code | `pre.prettyprint[class*=lang-]` | Many `devsite-code > pre` carry no `syntax`: `easy_install …` and `python setup.py …` install lines, lax JSON with `...`, Atom XML samples, bare URLs, Java and Objective-C colour helpers, an ASCII file-layout diagram. | Guessed from the text: shell command words, JSON and markup starts, language signatures; a block with no code characters that opens on prose, a URL, an id or a box-drawing line is tagged `text`; a lower-case command or a `Key: value` line stays untagged. |
+| Javadoc reference (Cloud Search SDK) | not given | Each member has an empty `<a name="shutdown()">` before an `<h4>` that carries its own generated id (`public-abstract-void-shutdown`); the summary table links to `#shutdown()` and to percent-encoded names such as `#apply(…,%20…)`. | A named anchor without href is kept: it lends an id-less heading its id, otherwise it stays as an empty `<a id>`; fragments are also matched percent-decoded. Fixture `cloudsearch-sdk-statsmanager.resetstatsrule`. |
+
+## Related pages
+
+- [Build decisions](decisions.md)
+- [Purpose and scope](project/purpose-and-scope.md)

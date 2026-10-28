@@ -12,55 +12,46 @@ requires: []
 is the supported interface: if something is worth running twice, it belongs there
 rather than in a shell history.
 
-`initialize`, `install-toolchain`, `install-tools`, `install-hooks`, `sync`, `lock`,
-`lock-upgrade`, `audit` and `check-links-online` reach the network. Initialization
-prepares the caches; later `check` runs need no network. A cold cache fails instead of
-fetching. Setup recipes and mutating recipes sit outside `check`.
+`initialize`, `install-hooks`, `install-browser`, `sync`, `lock`, `lock-upgrade`,
+`py-test-live`, `py-test-oracle` and `check-links-online` reach the network.
+Initialization prepares the caches; later `check` runs need no network. A cold cache
+fails instead of fetching. Setup recipes and mutating recipes sit outside `check`.
 
 ## Setup
 
 | Recipe | Purpose |
 | --- | --- |
 | `default` | Print the recipe list when just has no arguments. |
-| `initialize` | Install pixi's pinned environment, Rust toolchain, both extra tool lists and dependencies; prepare hooks only in the primary checkout. Never formats, stages, commits, tags or pushes. |
-| `check-toolchain` | Refuse a cargo other than rustup's proxy, then print the active toolchain. |
-| `install-toolchain` | Install the toolchain and components the toolchain file names. |
-| `install-tools` | Install `tools.txt` binary-only; for `tools-source.txt`, accept a signed quickinstall build or compile crates.io source locked. Never take unsigned release assets in the source pass; unset tokens and disable discovery there. |
-| `sync` | Fetch Cargo dependencies and install pixi's committed resolution without rewriting locks. |
-| `lock` | Relock Cargo after a manifest edit and run pixi lock. Read both diffs. |
-| `lock-upgrade` | Move Cargo and pixi resolutions within manifest constraints. |
-| `lock-check` | Compare both manifests to locks offline without writing. |
+| `initialize` | Install pixi's pinned environment, including the package, and prepare hooks only in the primary checkout. Never formats, stages, commits, tags or pushes. |
+| `sync` | Install pixi's committed resolution without rewriting the lock. |
+| `lock` | Relock after a manifest edit. Read the diff. |
+| `lock-upgrade` | Move the resolution within manifest constraints. |
+| `lock-check` | Compare the manifest to the lock offline without writing. |
 | `install-hooks` | Install the shared hook shim and prepare environments; primary checkout only. |
-
-## Develop
-
-| Recipe | Purpose |
-| --- | --- |
-| `build` | Build the workspace with every feature and the lockfile. |
-| `test` | Run core unit and integration tests through nextest, then doctests. Exclude the cdylib, whose tests are Python's. |
-| `test-doc` | Run core doctests alone. |
-| `snapshots-check` | Validate locks, run all core tests offline through cargo-insta and nextest, reject mismatches and unreferenced files without writing pending snapshots. |
-| `snapshots-review` | Interactive review of pending snapshots for a person at a terminal. |
-| `snapshots-accept` | Validate locks, rerun all core tests offline, accept intended snapshots without a terminal and delete unreferenced snapshots. Read the diff. |
+| `install-browser` | Download the Chromium build Patchright drives, for the browser tier. |
 
 ## Format and check
 
 | Recipe | Purpose |
 | --- | --- |
-| `format` | Write rustfmt and taplo formatting. |
-| `fix` | Run the mutating hook configuration twice, then clippy's repairs, then lint. |
+| `format` | Write ruff and taplo formatting. |
+| `fix` | Run the mutating hook configuration twice, then lint. |
 | `lint` | Run the complete read-only hook gate over all files. |
-| `fmt-check` | Check Rust formatting. |
 | `toml-check` | Check TOML formatting and lint. |
-| `clippy` | Lint all targets and features with warnings as errors. |
-| `metrics` | Check rustqual's version, then complexity, cohesion and coupling once per crate. Module rules wait for modules. |
-| `features` | Check every feature combination using cargo-hack. |
-| `coverage` | Run core nextest tests instrumented, enforce the line floor, and write ignored lcov output. |
-| `doc` | Build both crates' rustdoc with warnings as errors and `--cfg docsrs`. |
-| `site` | Empty `target/doc`, run doc, then write a root index linking both crates. Outside check. |
-| `deny` | Offline licence, ban and source checks. |
-| `audit` | Advisory check requiring the RustSec database; outside check. |
-| `deps-unused` | Report declared dependencies no crate uses. |
+
+## Python
+
+| Recipe | Purpose |
+| --- | --- |
+| `py-lint` | Ruff lint and format; require the package in its input and the positive fixture's F401 and E501 failures. |
+| `py-typecheck` | mypy over the package, tests and scripts; require the deliberate type-error fixture to fail with status 1. |
+| `py-test` | The offline suites: unit and golden tests. |
+| `py-test-accept` | Rerun the golden suite and rewrite changed snapshots. Read the diff. |
+| `py-test-live` | Real crawls of the target sites behind the `live` marker. |
+| `py-test-oracle` | Fidelity against upstream Markdown endpoints behind the `oracle` marker. |
+| `wheel` | Empty dist and build the wheel with the environment's hatchling, offline. |
+| `wheel-smoke` | Build the wheel, require exactly one, install it offline into a fresh venv that sees the environment's dependencies, run the isolated smoke and the console script. |
+| `version-check` | Compare the manifest version, `__version__` and the smoked command's output; a missing smoke venv fails. |
 
 ## Documents
 
@@ -70,28 +61,14 @@ fetching. Setup recipes and mutating recipes sit outside `check`.
 | `check-agents` | Validate the agent inventory, adapters, skills and bridges. |
 | `check-links-online` | Resolve external links manually; network failures keep it outside check. |
 
-## Python
-
-| Recipe | Purpose |
-| --- | --- |
-| `py-develop` | Build and install the extension editable into pixi via maturin, using CONDA_PREFIX and pinned uv. |
-| `py-lint` | Ruff lint and format; require the package in its input and the positive fixture's F401 and E501 failures. |
-| `py-typecheck` | mypy over package, stub, tests and scripts; require the deliberate type-error fixture to fail with status 1. |
-| `py-test` | Rebuild with py-develop, then run pytest on the binding. |
-| `py-stubtest` | Rebuild, then compare the imported native module with its canonical stub and reviewed allowlist. |
-| `wheel` | Empty dist and build a locked release wheel for this platform. |
-| `wheel-smoke` | Build the wheel, require exactly one, install offline into a fresh venv, run isolated Python smoke and console version. |
-| `version-check` | Compare version copies with the installed wheel-smoke command; a missing smoke venv fails. |
-
 ## Aggregate
 
 | Recipe | Purpose |
 | --- | --- |
-| `check` | Run the twenty-two configured gates in order with worktree snapshots, then check-clean. |
+| `check` | Run the ten configured gates in order with worktree snapshots, then check-clean. |
 | `check-clean` | Require a clean worktree, or equality with a supplied baseline. |
 
 ## Related pages
 
 - [Quality gates](quality-gates.md)
 - [Develop locally](../how-to/develop-locally.md)
-- [Configuration](configuration.md)

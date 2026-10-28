@@ -32,42 +32,36 @@ coverage threshold, disabling a lint rule at a call site, or loosening an assert
 it passes are all ways of deleting the signal while keeping the machinery.
 
 Where a rule is genuinely wrong for this project, the fix is to configure it once, in the
-config file, with a comment saying why. Here that file is the `[workspace.lints]` table in
-the root `Cargo.toml`, with `clippy.toml` beside it: `module_name_repetitions` is allowed
-there because the readable name is the repeated one, and the comment says so. At a call
-site the only form is `#[expect(lint, reason = "...")]` on the item it names, never a
-blanket `allow`, because an expectation that stops being met is itself a warning, so a
-suppression that no longer suppresses anything reports itself.
+config file, with a comment saying why. Here that file is `ruff.toml`, whose `ignore`
+list carries one comment per rule, and `mypy.ini`. At a call site the only form is
+`# noqa: RULE` with a reason on the line it names, never a file-wide suppression, and
+ruff's `unused-noqa` rule reports a suppression that no longer suppresses anything.
 
 ## Unreachable is not untested
 
-Coverage distinguishes two things that look alike. A branch no input can reach is not a
-gap in the tests; it is code that should not exist, whether a bounds check after a
-modulo, a null fallback after an exhaustive assignment, or a defensive default no caller
-can trigger. Delete it rather than cover it with a contrived test.
-
-The corollary: do not chase the last few percent. The floor is 90 per cent of lines over
-`crates/alliumpy-core/src/**`, and while the crate is small so is the denominator, so one
-untested conversion branch can breach the floor on its own. Doctests are not counted,
-so an example is documentation and a test of its contract, but not evidence for the
-floor.
+A branch no input can reach is not a gap in the tests; it is code that should not exist,
+whether a bounds check after a modulo, a null fallback after an exhaustive assignment,
+or a defensive default no caller can trigger. Delete it rather than cover it with a
+contrived test. There is no coverage floor here; the golden suite over captured pages is
+what proves the pipeline, and a construct it lacks is a fixture to capture.
 
 ## Evidence must be able to fail
 
 Tests assert observable results rather than that an internal function was called.
 The linter positive controls must fail with the fixture's own named violations;
 a missing input or a tool error is no evidence. The offline wheel smoke installs the
-release artefact into a fresh environment and runs Python with `-I`, so an editable
-checkout cannot hide a broken wheel. T13 adds byte-for-byte stdout and exit-code parity
-against a reference built from the exact upstream release; an empty corpus must fail.
+built artefact into a fresh environment and runs Python with `-I`, so an editable
+checkout cannot hide a broken wheel. A golden snapshot that changes is a fidelity change
+made visible; the quality gates on every page are measured, never asserted, and a page
+that fails one is flagged rather than passed.
 
-## Upstream is the arbiter
+## The page is the arbiter
 
-When a test and conversion disagree, compare both against upstream. Neither is adjusted
-merely until it passes. The repository converts parser results, never reinterprets them.
+When a snapshot and a normalizer disagree, compare both against the fixture's HTML. The
+output that keeps more of the page wins; neither is adjusted merely until it passes. A
+construct Markdown cannot carry is kept as sanitized HTML, never dropped.
 
 ## Related pages
 
 - [Quality gates](../reference/quality-gates.md)
-- [Testing](../reference/testing.md)
-- [Architecture](architecture.md)
+- [Commands](../reference/commands.md)

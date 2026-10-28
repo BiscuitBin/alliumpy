@@ -1,12 +1,22 @@
 # Changelog
 
-This is a T00 stub; T12 replaces it.
-
-This document will describe release changes and the upstream version each release wraps for the two-crate workspace and its Python
-wheel. This page is new to this repository. The owning lane will supply the operational details,
-examples, rationale and verification evidence when its ticket is implemented.
-Until then this text records the intended scope and ownership of the document.
+All notable changes to docmirror are recorded here. The format follows Keep a Changelog
+and the versions follow semantic versioning once there is a release to version.
 
 ## [Unreleased]
 
-Release notes will be added when changes are ready for users.
+- The repository is rebuilt around the `docmirror` package, on the toolchain carried from
+  `alliumpy` (pixi, just, prek, ruff, mypy, pytest and the `bg-*` validators).
+- `docmirror init`, `doctor`, `schema` and `report` subcommands.
+- `docmirror crawl`: sitemap, llms.txt and link discovery, polite curl_cffi fetching, the
+  `mslearn` and `devsite` profiles, DOM normalization for tabs, code languages,
+  admonitions, tables, definition lists, details, images, math, footnotes and
+  interactive embeds, two converter backends, frontmatter, quality gates and the report.
+- Golden tests over 40 captured pages with syrupy snapshots.
+- Relative link and fragment rewriting, YAKE and TF-IDF keywords, `index.md`,
+  `index.jsonl`, `llms.txt` and `_index.md`, `docmirror index` and `docmirror verify`.
+- The Patchright and Camoufox tiers, block-signature detection, the per-host circuit
+  breaker with exit 3, and `docmirror fetch`.
+- `docmirror update`: conditional re-checks, sitemap `lastmod`, tombstones to
+  `_removed/` or `--prune`, redirects, `--max-age`, and byte-identical re-runs.
+- The README, the live and oracle suites, and the acceptance crawls under `examples/`.

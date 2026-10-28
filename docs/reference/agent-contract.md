@@ -40,14 +40,13 @@ here, which stays until the tooling package makes the list configurable.
 
 ## What a skill must be
 
-This repository carries seven canonical house skills with fourteen bridges, and
+This repository carries six canonical house skills with twelve bridges, and
 `AGENTS.md` routes to them through its task blocks. Their triggers are:
 
 | Skill | Trigger |
 | --- | --- |
 | `plan-change` | Establish scope, risks and validation before implementation. |
-| `rust-change` | Change the core or bindings while preserving layering and Rust evidence. |
-| `python-change` | Change the package, stub, tests or console script together. |
+| `python-change` | Change the package, tests or console script with golden evidence. |
 | `review-change` | Review a diff against invariants, tests and documentation. |
 | `review-docs` | Revise a reachable page under the documentation contract. |
 | `project-check` | Prepare and interpret the complete gate. |
@@ -57,8 +56,8 @@ Frontmatter of exactly two keys:
 
 ```markdown
 ---
-name: rust-change
-description: Implement or review a change to the core or the bindings crate with the layering, tests and documentation evidence the invariants require.
+name: review-docs
+description: Add or revise a handbook page so it satisfies the documentation contract and stays reachable.
 ---
 ```
 
@@ -109,11 +108,11 @@ deliberate: the check reads Git rather than walking the filesystem, so an ignore
 invisible to it.
 
 On this tree `just check-agents` prints
-`Validated AGENTS.md, 2 adapters, and 7 skills.` There are no vendored Allium skills;
-[decision 0013](../decisions/0013-no-spec-gate-no-allium-skills.md) explains why.
+`Validated AGENTS.md, 2 adapters, and 6 skills.` The `rust-change` skill left with the
+Rust crates ([decision 0015](../decisions/0015-docmirror-in-place-of-alliumpy.md)).
 
 ## Related pages
 
 - [Documentation contract](documentation-contract.md)
 - [Quality gates](quality-gates.md)
-- [Decision 0013](../decisions/0013-no-spec-gate-no-allium-skills.md)
+- [Decision 0015](../decisions/0015-docmirror-in-place-of-alliumpy.md)

@@ -1,23 +1,22 @@
 ---
 name: plan-change
-description: Plan a change when the scope, affected specifications, risks, or validation need evidence before any code is written.
+description: Plan a change when the scope, affected fidelity rules, risks, or validation need evidence before any code is written.
 ---
 
 # Plan a change
 
-1. Read `AGENTS.md` and upstream's documentation for the behaviour in question at the
-   pinned version. Separate what you read from what you are guessing.
+1. Read `AGENTS.md` and the build prompt's section for the behaviour in question.
+   Separate what you read from what you are guessing; a selector or a site behaviour is
+   a guess until `docs/site-notes.md` or a fetched page under `ai_tmp/` confirms it.
 2. Inspect the worktree before proposing anything, and preserve work you did not author.
 3. Write down the observable outcome and explicit non-goals, so the scope can be reviewed.
-4. Identify whether behaviour changes. Behaviour is upstream's to change: a difference
-   from `allium-cli` at the pin is a defect here unless a decision record says otherwise
-   (invariant 1). Identify the upstream result to reproduce before planning an adaptation.
-5. Identify the boundaries crossed: the crate direction of invariant 2, the Python API's
-   shape (`crates/alliumpy/python/alliumpy/_alliumpy.pyi` is canonical), and a new topic's
-   owning page in `docs/manifest.yml`. An exposed API change moves the stub, the Rust
-   binding and a pytest case together.
-6. Name the risks and evidence that would settle them, and say which actions need
-   authorization the agent does not already have.
-7. Split into independently verifiable steps, each pairing behaviour, test and documentation.
-8. Present the plan with open questions marked as open. Confirm the work runs green
+4. Identify which invariant the change touches: a fidelity rule needs a golden fixture;
+   a profile change needs a live verification and a site-notes entry; a published
+   artefact change moves its pydantic model, schema and a test together.
+5. Name the risks and the evidence that would settle them, and say which actions need
+   authorization the agent does not already have: live crawls, `just lock`,
+   `just install-browser` and anything that leaves the worktree.
+6. Split into independently verifiable steps, each pairing behaviour, test and documentation.
+7. Present the plan with open questions marked as open, or, where the build prompt says
+   not to ask, record the choice in `docs/decisions.md`. Confirm the work runs green
    with `just check` before treating it as done.

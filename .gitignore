@@ -22,10 +22,10 @@ ai_tmp/
 !.claude/skills/
 .codex/settings.local.json
 
-# Everything cargo builds, and the coverage report the coverage recipe writes
-# under it. `just check` snapshots the worktree between recipes, so a build
-# product Git can see would abort the run before any recipe's exit code is
-# read.
+# Build products: the wheel smoke's virtual environment and anything else a
+# recipe writes. `just check` snapshots the worktree between recipes, so a
+# build product Git can see would abort the run before any recipe's exit
+# code is read.
 target/
 
 # The pixi environment `just initialize` installs from pixi.lock: every tool
@@ -34,28 +34,12 @@ target/
 # an environment Git can see aborts the snapshot.
 .pixi/
 
-# The tools tools.txt and tools-source.txt pin because conda-forge lacks them,
-# installed by `just install-tools`. Git ignores these generated binaries.
-.tools/
-
-# Raw profiles cargo-llvm-cov leaves behind when a run is interrupted before
-# it merges them, and an lcov report written anywhere but target/llvm-cov/.
-*.profraw
-lcov.info
-
-# What cargo-mutants writes, if T15 adopts it; ignored now so a first run can
-# never trip the snapshot.
-mutants.out*/
-
-# A test run outside the recipes may leave pending snapshots. A file Git can
-# see would abort the gate's worktree check; reviewed .snap files are committed.
-*.snap.new
-*.pending-snap
-
-# Wheel output and native extensions built by maturin.
+# Wheel output.
 dist/
-crates/alliumpy/python/alliumpy/*.so
-crates/alliumpy/python/alliumpy/*.pyd
+
+# Crawl output never lives in the tree: it goes under ai_tmp/, except the
+# reports and samples committed under examples/.
+*.egg-info/
 
 # Python bytecode, tool caches and local virtual environments.
 __pycache__/

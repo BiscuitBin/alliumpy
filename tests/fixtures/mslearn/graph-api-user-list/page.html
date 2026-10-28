@@ -1,0 +1,4087 @@
+ <!DOCTYPE html>
+		<html
+			class="layout layout-holy-grail   show-table-of-contents conceptual show-breadcrumb default-focus"
+			lang="en-us"
+			dir="ltr"
+			data-authenticated="false"
+			data-auth-status-determined="false"
+			data-target="docs"
+			x-ms-format-detection="none"
+		>
+			
+		<head>
+			<title>List users - Microsoft Graph v1.0 | Microsoft Learn</title>
+			<meta charset="utf-8" />
+			<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+			<meta name="color-scheme" content="light dark" />
+
+			<meta name="description" content="Retrieve a list of user objects." />
+			<link rel="canonical" href="https://learn.microsoft.com/en-us/graph/api/user-list?view=graph-rest-1.0" /> 
+
+			<!-- Non-customizable open graph and sharing-related metadata -->
+			<meta name="twitter:card" content="summary_large_image" />
+			<meta name="twitter:site" content="@MicrosoftLearn" />
+			<meta property="og:type" content="website" />
+			<meta property="og:image:alt" content="Microsoft Learn" />
+			<meta property="og:image" content="https://learn.microsoft.com/en-us/media/open-graph-image.png" />
+			<!-- Page specific open graph and sharing-related metadata -->
+			<meta property="og:title" content="List users - Microsoft Graph v1.0" />
+			<meta property="og:url" content="https://learn.microsoft.com/en-us/graph/api/user-list?view=graph-rest-1.0" />
+			<meta property="og:description" content="Retrieve a list of user objects." />
+			<meta name="platform_id" content="90c59392-7dca-83ff-dc48-b690f8bc2a8f" /> <meta name="scope" content="graph" />
+			<meta name="locale" content="en-us" />
+			 
+			<meta name="uhfHeaderId" content="MSDocsHeader-MSGraph" />
+
+			<meta name="page_type" content="conceptual" />
+
+			<!--page specific meta tags-->
+			
+
+			<!-- custom meta tags -->
+			
+		<meta name="feedback_system" content="Standard" />
+	
+		<meta name="feedback_product_url" content="https://developer.microsoft.com/graph/support" />
+	
+		<meta name="author" content="yyuank" />
+	
+		<meta name="ms.author" content="MSGraphDocsVteam" />
+	
+		<meta name="ms.suite" content="microsoft-graph" />
+	
+		<meta name="ms.subservice" content="entra-users" />
+	
+		<meta name="toc_preview" content="true" />
+	
+		<meta name="recommendations" content="false" />
+	
+		<meta name="breadcrumb_path" content="/graph/ref-breadcrumb/toc.json" />
+	
+		<meta name="monikerRange" content="graph-rest-1.0" />
+	
+		<meta name="ms.service" content="microsoft-graph" />
+	
+		<meta name="ms.topic" content="reference" />
+	
+		<meta name="ms.reviewer" content="iamut" />
+	
+		<meta name="ms.localizationpriority" content="high" />
+	
+		<meta name="doc_type" content="apiPageType" />
+	
+		<meta name="ms.date" content="2025-05-16T00:00:00Z" />
+	
+		<meta name="document_id" content="5288856d-4731-71a4-8c7b-01a8b9c599cb" />
+	
+		<meta name="document_version_independent_id" content="9c894ef4-2cff-60e5-a726-8281655005fd" />
+	
+		<meta name="updated_at" content="2026-05-14T00:20:00Z" />
+	
+		<meta name="original_content_git_url" content="https://github.com/microsoftgraph/microsoft-graph-docs/blob/live/api-reference/v1.0/api/user-list.md" />
+	
+		<meta name="gitcommit" content="https://github.com/microsoftgraph/microsoft-graph-docs/blob/90b4773e1dd61222be4e5feea3cfeeb162115c9f/api-reference/v1.0/api/user-list.md" />
+	
+		<meta name="git_commit_id" content="90b4773e1dd61222be4e5feea3cfeeb162115c9f" />
+	
+		<meta name="monikers" content="graph-rest-1.0" />
+	
+		<meta name="default_moniker" content="graph-rest-1.0" />
+	
+		<meta name="site_name" content="Docs" />
+	
+		<meta name="depot_name" content="MSDN.microsoft-graph-ref" />
+	
+		<meta name="schema" content="Conceptual" />
+	
+		<meta name="interactive_type" content="msgraph" />
+	
+		<meta name="toc_rel" content="toc.json" />
+	
+		<meta name="feedback_help_link_type" content="" />
+	
+		<meta name="feedback_help_link_url" content="" />
+	
+		<meta name="word_count" content="6148" />
+	
+		<meta name="config_moniker_range" content="&gt;= graph-rest-1.0" />
+	
+		<meta name="asset_id" content="api/user-list" />
+	
+		<meta name="moniker_range_name" content="107bf06837724705de50667b407c0197" />
+	
+		<meta name="item_type" content="Content" />
+	
+		<meta name="source_path" content="api-reference/v1.0/api/user-list.md" />
+	
+		<meta name="previous_tlsh_hash" content="CC57CDA20F2E550477C73D1A980A4A1155F142D83DB495DC15BE5BB2E9933E61976B3D979A2FDB008330A88A01B2793CEFD2E93BA21C33C926F69CACC31E3247B19C5B71AD" />
+	
+		<meta name="github_feedback_content_git_url" content="https://github.com/microsoftgraph/microsoft-graph-docs-contrib/blob/main/api-reference/v1.0/api/user-list.md" />
+	
+		<meta name="markdown_url" content="https://learn.microsoft.com/en-us/graph/api/user-list?view=graph-rest-1.0&amp;accept=text/markdown" />
+	 
+		<meta name="cmProducts" content="https://authoring-docs-microsoft.poolparty.biz/devrel/64b65f6c-101f-411a-9b83-9f577fab52d0" data-source="generated" />
+	
+		<meta name="spProducts" content="https://authoring-docs-microsoft.poolparty.biz/devrel/1a667fd1-8145-4b11-af0f-9f5de205a6e5" data-source="generated" />
+	
+
+			<!-- Apply persisted/system theme before first paint to prevent wrong-theme flash when scripts are deferred. -->
+			<script id="theme-preference">
+				(function () {
+			try {
+				var stored = localStorage.getItem('theme');
+				var theme = /^(light|dark|high-contrast)$/.test(stored)
+					? stored
+					: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+				document.documentElement.classList.add('theme-' + theme);
+			} catch (e) {}
+		})();;
+			</script>
+
+			<script id="atlas-layout-preferences">
+				(function () {
+			try {
+				var state = JSON.parse(localStorage.getItem('atlas-layout-preferences') || '{}');
+				var view = state["docs-layout-persistence"] || {};
+				var excludesKey = "";
+				var blocked = {};
+				if (excludesKey) {
+					var exclusions = JSON.parse(localStorage.getItem('atlas-layout-exclusions') || '{}');
+					if (Object.prototype.hasOwnProperty.call(exclusions, excludesKey)) {
+						var scoped = exclusions[excludesKey];
+						if (scoped) {
+							if (typeof scoped === 'object') blocked = scoped;
+						}
+					}
+				}
+				var html = document.documentElement;
+				for (var c in view) {
+					if (Object.prototype.hasOwnProperty.call(blocked, c)) continue;
+					if (view[c]) html.classList.add(c);
+					else html.classList.remove(c);
+				}
+			} catch (e) {}
+		})();;
+			</script>
+
+			<!-- assets and js globals -->
+			
+			<link rel="stylesheet" href="/static/assets/0.4.03585.8329-a252cb59/styles/site.css" />
+			
+			<script src="https://wcpstatic.microsoft.com/mscc/lib/v2/wcp-consent.js"></script>
+			<!-- Keep this URL in sync with oneDSScriptSelector in instrumentation/one-ds.ts. -->
+			<script async src="https://js.monitor.azure.com/scripts/c/ms.jsll-4.min.js"></script>
+			
+
+			<!-- msdocs global object -->
+			<script id="msdocs-script">
+		var msDocs = {
+  "environment": {
+    "accessLevel": "online",
+    "azurePortalHostname": "portal.azure.com",
+    "reviewFeatures": false,
+    "supportLevel": "production",
+    "systemContent": true,
+    "siteName": "learn",
+    "legacyHosting": false
+  },
+  "data": {
+    "contentLocale": "en-us",
+    "contentDir": "ltr",
+    "userLocale": "en-us",
+    "userDir": "ltr",
+    "pageTemplate": "Conceptual",
+    "layoutStateStorageKey": "docs-layout-persistence",
+    "brand": "",
+    "context": {},
+    "standardFeedback": true,
+    "showFeedbackReport": false,
+    "feedbackHelpLinkType": "",
+    "feedbackHelpLinkUrl": "",
+    "feedbackSystem": "Standard",
+    "feedbackGitHubRepo": "microsoftgraph/microsoft-graph-docs-contrib",
+    "feedbackProductUrl": "https://developer.microsoft.com/graph/support",
+    "extendBreadcrumb": false,
+    "isEditDisplayable": true,
+    "isPrivateUnauthorized": false,
+    "hideViewSource": false,
+    "isPermissioned": false,
+    "hasRecommendations": false
+  },
+  "functions": {}
+};;
+	</script>
+
+			<!-- base scripts, msdocs global should be before this -->
+			<script
+				src="/static/assets/0.4.03585.8329-a252cb59/scripts/en-us/index-docs.js"
+				async
+			></script>
+			
+
+			<!-- json-ld -->
+			
+		</head>
+	
+			<body
+				id="body"
+				data-bi-name="body"
+				class="layout-body "
+				lang="en-us"
+				dir="ltr"
+			>
+				<header class="layout-body-header background-color-body-medium">
+		<div class="header-holder has-default-focus">
+			
+		<a
+			href="#main"
+			
+			style="z-index: 1070"
+			class="outline-color-text visually-hidden-until-focused position-fixed inner-focus focus-visible top-0 left-0 right-0 padding-xs text-align-center background-color-body"
+			
+		>
+			Skip to main content
+		</a>
+	
+		<a
+			href="#"
+			data-skip-to-ask-learn
+			style="z-index: 1070"
+			class="outline-color-text visually-hidden-until-focused position-fixed inner-focus focus-visible top-0 left-0 right-0 padding-xs text-align-center background-color-body"
+			hidden
+		>
+			Skip to Ask Learn chat experience
+		</a>
+	
+
+			<div hidden id="cookie-consent-holder" data-test-id="cookie-consent-container"></div>
+			<!-- Unsupported browser warning -->
+			<div
+				id="unsupported-browser"
+				style="background-color: white; color: black; padding: 16px; border-bottom: 1px solid grey;"
+				hidden
+			>
+				<div style="max-width: 800px; margin: 0 auto;">
+					<p style="font-size: 24px">This browser is no longer supported.</p>
+					<p style="font-size: 16px; margin-top: 16px;">
+						Upgrade to Microsoft Edge to take advantage of the latest features, security updates, and technical support.
+					</p>
+					<div style="margin-top: 12px;">
+						<a
+							href="https://go.microsoft.com/fwlink/p/?LinkID=2092881 "
+							style="background-color: #0078d4; border: 1px solid #0078d4; color: white; padding: 6px 12px; border-radius: 2px; display: inline-block;"
+						>
+							Download Microsoft Edge
+						</a>
+						<a
+							href="https://learn.microsoft.com/en-us/lifecycle/faq/internet-explorer-microsoft-edge"
+							style="background-color: white; padding: 6px 12px; border: 1px solid #505050; color: #171717; border-radius: 2px; display: inline-block;"
+						>
+							More info about Internet Explorer and Microsoft Edge
+						</a>
+					</div>
+				</div>
+			</div>
+			<!-- site header -->
+			<div
+				id="ms--site-header"
+				data-test-id="site-header-wrapper"
+				itemscope="itemscope"
+				itemtype="http://schema.org/Organization"
+			>
+				<div
+					id="ms--mobile-nav"
+					class="site-header display-none-tablet padding-inline-none gap-none"
+					data-bi-name="mobile-header"
+					data-test-id="mobile-header"
+				></div>
+				<div
+					id="ms--primary-nav"
+					class="site-header display-none display-flex-tablet"
+					data-bi-name="L1-header"
+					data-test-id="primary-header"
+				></div>
+				<div
+					id="ms--secondary-nav"
+					class="site-header display-none display-flex-tablet"
+					data-bi-name="L2-header"
+					data-test-id="secondary-header"
+					
+				></div>
+			</div>
+			
+		<!-- banner -->
+		<div data-banner>
+			<div id="disclaimer-holder"></div>
+			
+		</div>
+		<!-- banner end -->
+	
+		</div>
+	</header>
+				 <section
+					id="layout-body-menu"
+					class="layout-body-menu border-right display-flex background-color-body-medium"
+					data-bi-name="menu"
+			  >
+					
+		<div
+			id="left-container"
+			class="left-container display-none padding-none display-block-tablet width-full display-none-until-layout-restored"
+			data-toc-container="true"
+		>
+			<div
+				id="ms--toc-content"
+				class="padding-left-sm padding-right-none padding-bottom-sm height-full"
+			>
+				<nav
+					id="affixed-left-container"
+					class="margin-top-xxs-tablet position-sticky display-flex flex-direction-column width-full"
+					aria-label="Primary"
+					data-bi-name="left-toc"
+					role="navigation"
+				>
+					<div
+						id="ms--collapsible-toc-header"
+						class="display-flex flex-direction-row-reverse justify-content-center align-items-center margin-bottom-xxs margin-right-xxs"
+					>
+						<button
+							type="button"
+							class="button button-clear button-sm inner-focus"
+							data-collapsible-toc-toggle
+							aria-expanded="true"
+							hidden
+							aria-controls="ms--toc-content"
+							aria-label="Table of contents"
+						>
+							<span class="icon icon-mirrored-rtl" aria-hidden="true">
+								<span
+									class="docon docon-panel-left-contract display-none-layout-menu-collapsed"
+								></span>
+								<span
+									class="docon docon-panel-left-expand display-none display-inline-layout-menu-collapsed"
+								></span>
+							</span>
+						</button>
+						<div
+							id="ms--collapsible-toc-moniker-slot"
+							class="flex-grow-1 display-none-layout-menu-collapsed"
+						></div>
+					</div>
+				</nav>
+			</div>
+		</div>
+	
+			  </section>
+
+				<main
+					id="main"
+					role="main"
+					class="layout-body-main "
+					data-bi-name="content"
+					lang="en-us"
+					dir="ltr"
+				>
+					
+			<div
+		id="ms--content-header"
+		class="content-header default-focus border-bottom-none"
+		data-bi-name="content-header"
+	>
+		<div class="content-header-controls margin-xxs margin-inline-sm-tablet">
+			<button
+				type="button"
+				class="contents-button button button-sm margin-right-xxs"
+				data-bi-name="contents-expand"
+				aria-haspopup="true"
+				data-contents-button
+			>
+				<span class="icon" aria-hidden="true"><span class="docon docon-menu"></span></span>
+				<span class="contents-expand-title"> Table of contents </span>
+			</button>
+			<button
+				type="button"
+				class="ap-collapse-behavior ap-expanded button button-sm"
+				data-bi-name="ap-collapse"
+				aria-controls="action-panel"
+			>
+				<span class="icon" aria-hidden="true"><span class="docon docon-exit-mode"></span></span>
+				<span>Exit editor mode</span>
+			</button>
+		</div>
+	</div> 
+		<div
+			id="action-panel"
+			role="region"
+			aria-label="Action Panel"
+			class="action-panel"
+			tabindex="-1"
+		></div>
+	
+			<div
+				data-main-column
+				class="reading-width margin-inline-auto layout-padding padding-top-none padding-top-sm-tablet padding-bottom-sm"
+			>
+				<div>
+					
+		<div id="article-header" class="background-color-body margin-bottom-xs display-none-print">
+			<div class="display-flex align-items-center justify-content-space-between">
+				
+		<details
+			id="article-header-breadcrumbs-overflow-popover"
+			class="popover popover-left"
+			data-for="article-header-breadcrumbs"
+		>
+			<summary
+				class="button button-clear button-primary button-sm inner-focus"
+				aria-label="All breadcrumbs"
+			>
+				<span class="icon" aria-hidden="true">
+					<span class="docon docon-more"></span>
+				</span>
+			</summary>
+			<div id="article-header-breadcrumbs-overflow" class="popover-content"></div>
+		</details>
+
+		<bread-crumbs
+			id="article-header-breadcrumbs"
+			role="group"
+			aria-label="Breadcrumbs"
+			data-test-id="article-header-breadcrumbs"
+			class="overflow-hidden flex-grow-1 margin-right-sm margin-right-md-tablet margin-right-lg-desktop margin-left-negative-xxs padding-left-xxs"
+		></bread-crumbs>
+	 
+		<div
+			id="article-header-page-actions"
+			class="opacity-none margin-left-auto display-flex flex-wrap-no-wrap align-items-stretch"
+		>
+			
+		<button
+			class="button button-sm border-none inner-focus display-none-tablet flex-shrink-0 "
+			data-bi-name="ask-learn-assistant-entry"
+			data-test-id="ask-learn-assistant-modal-entry-mobile"
+			data-ask-learn-modal-entry
+			
+			type="button"
+			style="min-width: max-content;"
+			aria-expanded="false"
+			aria-label="Ask Learn"
+			hidden
+		>
+			<span class="icon" aria-hidden="true">
+				<span class="docon docon-chat-sparkle-fill gradient-ask-learn-logo"></span>
+			</span>
+		</button>
+		<button
+			class="button button-sm display-none display-inline-flex-tablet display-none-desktop flex-shrink-0 margin-right-xxs border-color-ask-learn "
+			data-bi-name="ask-learn-assistant-entry"
+			
+			data-test-id="ask-learn-assistant-modal-entry-tablet"
+			data-ask-learn-modal-entry
+			type="button"
+			style="min-width: max-content;"
+			aria-expanded="false"
+			hidden
+		>
+			<span class="icon font-size-lg" aria-hidden="true">
+				<span class="docon docon-chat-sparkle-fill gradient-ask-learn-logo"></span>
+			</span>
+			<span>Ask Learn</span>
+		</button>
+		<button
+			class="button button-sm display-none flex-shrink-0 display-inline-flex-desktop margin-right-xxs border-color-ask-learn "
+			data-bi-name="ask-learn-assistant-entry"
+			
+			data-test-id="ask-learn-assistant-flyout-entry"
+			data-ask-learn-flyout-entry
+			data-flyout-button="toggle"
+			type="button"
+			style="min-width: max-content;"
+			aria-expanded="false"
+			aria-controls="ask-learn-flyout"
+			hidden
+		>
+			<span class="icon font-size-lg" aria-hidden="true">
+				<span class="docon docon-chat-sparkle-fill gradient-ask-learn-logo"></span>
+			</span>
+			<span>Ask Learn</span>
+		</button>
+	 
+
+			<details class="popover popover-right" id="article-header-page-actions-overflow">
+				<summary
+					class="justify-content-flex-start button button-clear button-sm button-primary inner-focus"
+					aria-label="More actions"
+					aria-expanded="false"
+					title="More actions"
+				>
+					<span class="icon" aria-hidden="true">
+						<span class="docon docon-more-vertical"></span>
+					</span>
+				</summary>
+				<div class="popover-content">
+					
+		<button
+			type="button"
+			id="ms--focus-mode-button"
+			data-focus-mode
+			data-bi-name="focus-mode-entry"
+			data-page-action-item="overflow-all"
+			data-popover-close
+			class="button button-clear button-sm button-block justify-content-flex-start text-align-left inner-focus display-none display-inline-flex-tablet"
+		>
+			<span class="icon" aria-hidden="true">
+				<span class="docon docon-glasses"></span>
+			</span>
+			<span>Reading mode</span>
+		</button>
+	 
+		<button
+			data-page-action-item="overflow-mobile"
+			type="button"
+			class="display-block-layout-menu-collapsed button-block button-sm inner-focus button button-clear display-none-tablet justify-content-flex-start text-align-left"
+			data-bi-name="contents-expand"
+			data-contents-button
+			data-popover-close
+		>
+			<span class="icon" aria-hidden="true"
+				><span class="docon docon-editor-list-bullet"></span
+			></span>
+			<span class="contents-expand-title">Table of contents</span>
+		</button>
+	 
+		<a
+			id="lang-link-overflow"
+			class="button-sm inner-focus button button-clear button-block justify-content-flex-start text-align-left"
+			data-bi-name="language-toggle"
+			data-page-action-item="overflow-all"
+			data-check-hidden="true"
+			data-read-in-link
+			href="#"
+			hidden
+		>
+			<span class="icon" aria-hidden="true" data-read-in-link-icon>
+				<span class="docon docon-locale-globe"></span>
+			</span>
+			<span data-read-in-link-text>Read in English</span>
+		</a>
+	
+					
+		<button
+			type="button"
+			class="collection button button-clear button-sm button-block justify-content-flex-start text-align-left inner-focus"
+			data-list-type="collection"
+			data-bi-name="collection"
+			data-page-action-item="overflow-all"
+			data-check-hidden="true"
+			data-popover-close
+		>
+			<span class="icon" aria-hidden="true">
+				<span class="docon docon-circle-addition"></span>
+			</span>
+			<span class="collection-status">Add</span>
+		</button>
+	 
+		<button
+			type="button"
+			class="collection button button-block button-clear button-sm justify-content-flex-start text-align-left inner-focus"
+			data-list-type="plan"
+			data-bi-name="plan"
+			data-page-action-item="overflow-all"
+			data-check-hidden="true"
+			data-popover-close
+			hidden
+		>
+			<span class="icon" aria-hidden="true">
+				<span class="docon docon-circle-addition"></span>
+			</span>
+			<span class="plan-status">Add to Plans</span>
+		</button>
+	 
+					
+		<a
+			data-contenteditbtn
+			class="button button-clear button-block button-sm inner-focus justify-content-flex-start text-align-left text-decoration-none"
+			data-bi-name="edit"
+			data-page-action-item="overflow-all"
+			data-check-hidden="true"
+			
+			href="https://github.com/microsoftgraph/microsoft-graph-docs-contrib/blob/main/api-reference/v1.0/api/user-list.md"
+			data-original_content_git_url="https://github.com/microsoftgraph/microsoft-graph-docs/blob/live/api-reference/v1.0/api/user-list.md"
+			data-original_content_git_url_template="{repo}/blob/{branch}/api-reference/v1.0/api/user-list.md"
+			data-pr_repo=""
+			data-pr_branch=""
+		>
+			<span class="icon" aria-hidden="true">
+				<span class="docon docon-edit-outline"></span>
+			</span>
+			<span>Edit</span>
+		</a>
+	  
+		<hr class="margin-block-xxs" />
+		
+				<button
+					class="button button-block button-clear button-sm justify-content-flex-start text-align-left inner-focus"
+					type="button"
+					data-bi-name="copy-markdown"
+					data-page-action-item="overflow-all"
+					data-copy-markdown
+					data-copy-state="idle"
+					data-check-hidden="true"
+				>
+					<span class="icon color-primary" aria-hidden="true">
+						<span data-show-when="idle" class="docon docon-code-lang"></span>
+						<span data-show-when="loading" class="loader" hidden></span>
+						<span data-show-when="success" class="docon docon-check-mark" hidden></span>
+					</span>
+					<span>Copy Markdown</span>
+				</button>
+		   
+				<button
+					class="button button-block button-clear button-sm justify-content-flex-start text-align-left inner-focus"
+					type="button"
+					data-bi-name="print"
+					data-page-action-item="overflow-all"
+					data-popover-close
+					data-print-page
+					data-check-hidden="true"
+				>
+					<span class="icon color-primary" aria-hidden="true">
+						<span class="docon docon-print"></span>
+					</span>
+					<span>Print</span>
+				</button>
+		  
+	
+				</div>
+			</details>
+		</div>
+	
+			</div>
+		</div>
+	  
+		<!-- privateUnauthorizedTemplate is hidden by default -->
+		<div unauthorized-private-section data-bi-name="permission-content-unauthorized-private" hidden>
+			<hr class="hr margin-top-xs margin-bottom-sm" />
+			<div class="notification notification-info">
+				<div class="notification-content">
+					<p class="margin-top-none notification-title">
+						<span class="icon" aria-hidden="true"
+							><span class="docon docon-exclamation-circle-solid"></span
+						></span>
+						<span>Note</span>
+					</p>
+					<p class="margin-top-none authentication-determined not-authenticated">
+						Access to this page requires authorization. You can try <a class="docs-sign-in" href="#" data-bi-name="permission-content-sign-in">signing in</a> or <a  class="docs-change-directory" data-bi-name="permisson-content-change-directory">changing directories</a>.
+					</p>
+					<p class="margin-top-none authentication-determined authenticated">
+						Access to this page requires authorization. You can try <a class="docs-change-directory" data-bi-name="permisson-content-change-directory">changing directories</a>.
+					</p>
+				</div>
+			</div>
+		</div>
+	
+					<div class="content"><h1 id="list-users">List users</h1></div>
+					
+		<div
+			id="article-metadata"
+			data-bi-name="article-metadata"
+			data-test-id="article-metadata"
+			class="page-metadata-container display-flex gap-xxs justify-content-space-between align-items-center flex-wrap-wrap"
+		>
+			 
+				<div
+					id="user-feedback"
+					class="margin-block-xxs display-none display-none-print"
+					hidden
+					data-hide-on-archived
+				>
+					
+		<button
+			id="user-feedback-button"
+			data-test-id="conceptual-feedback-button"
+			class="button button-sm button-clear button-primary display-none"
+			type="button"
+			data-bi-name="user-feedback-button"
+			data-user-feedback-button
+			hidden
+		>
+			<span class="icon" aria-hidden="true">
+				<span class="docon docon-like"></span>
+			</span>
+			<span>Feedback</span>
+		</button>
+	
+				</div>
+		  
+		</div>
+	 
+		<div data-id="ai-summary" class="display-none-print">
+			<div id="ms--ai-summary-cta" class="margin-top-xs display-flex align-items-center">
+				<span class="icon" aria-hidden="true">
+					<span class="docon docon-sparkle-fill gradient-text-vivid"></span>
+				</span>
+				<button
+					id="ms--ai-summary"
+					type="button"
+					class="tag tag-sm tag-suggestion margin-left-xxs"
+					data-test-id="ai-summary-cta"
+					data-bi-name="ai-summary-cta"
+					data-an="ai-summary"
+				>
+					<span class="ai-summary-cta-text">
+						Summarize this article for me
+					</span>
+				</button>
+			</div>
+			<!-- Slot where the client will render the summary card after the user clicks the CTA -->
+			<div id="ms--ai-summary-header" class="margin-top-xs"></div>
+		</div>
+	 
+		<nav
+			id="center-doc-outline"
+			class="doc-outline display-none-desktop display-none-print margin-bottom-sm"
+			data-bi-name="intopic toc"
+			aria-label="In this article"
+		>
+			<h2 id="ms--in-this-article" class="title is-6 margin-block-xs">
+				In this article
+			</h2>
+		</nav>
+	 <div class="content"><p>Namespace: microsoft.graph</p>
+<p>Retrieve a list of <a href="resources/user?view=graph-rest-1.0" data-linktype="relative-path">user</a> objects.</p>
+<blockquote>
+<p><strong>Note:</strong> This request might have replication delays for users that were recently created, updated, or deleted. Learn more in <a href="https://devblogs.microsoft.com/identity/designing-for-eventual-consistency-for-microsoft-entra/" data-linktype="external">Designing for eventual consistency for Microsoft Entra</a>.</p>
+</blockquote>
+<!-- markdownlint-disable MD041-->
+<p>This API is available in the following <a href="/en-us/graph/deployments" data-linktype="absolute-path">national cloud deployments</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Global service</th>
+<th>US Government L4</th>
+<th>US Government L5 (DOD)</th>
+<th>China operated by 21Vianet</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<h2 id="permissions">Permissions</h2>
+<p>One of the following permissions is required to call this API. To learn more, including how to choose permissions, see <a href="/en-us/graph/permissions-reference" data-linktype="absolute-path">Permissions</a>.</p>
+<!-- { "blockType": "ignored"  } // Note: Removing this line will result in the permissions autogeneration tool overwriting the table. -->
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Permission type</th>
+<th style="text-align: left;">Permissions (from least to most privileged)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Delegated (work or school account)</td>
+<td style="text-align: left;">User.ReadBasic.All, User.Read.All, User.ReadWrite.All, Directory.Read.All, Directory.ReadWrite.All</td>
+</tr>
+<tr>
+<td style="text-align: left;">Delegated (personal Microsoft account)</td>
+<td style="text-align: left;">Not supported.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Application</td>
+<td style="text-align: left;">User.Read.All, User.ReadWrite.All, Directory.Read.All, Directory.ReadWrite.All</td>
+</tr>
+</tbody>
+</table>
+<p>Guests can't call this API. For more information about the permissions for member and guests, see <a href="/en-us/azure/active-directory/fundamentals/users-default-permissions?context=graph/context#member-and-guest-users" data-linktype="absolute-path">What are the default user permissions in Microsoft Entra ID?</a></p>
+<h3 id="permissions-for-specific-scenarios">Permissions for specific scenarios</h3>
+<ul>
+<li><em>User-Mail.ReadWrite.All</em> is the least privileged permission to read and write the <strong>otherMails</strong> property; also allows to read some identifier-related properties on the user object.</li>
+<li><em>User-PasswordProfile.ReadWrite.All</em> is the least privileged permission to read and write password reset-related properties; also allows to read some identifier-related properties on the user object.</li>
+<li><em>User-Phone.ReadWrite.All</em> is the least privileged permission to read and write the <strong>businessPhones</strong> and <strong>mobilePhone</strong> properties; also allows to read some identifier-related properties on the user object.</li>
+<li><em>User.EnableDisableAccount.All</em> + <em>User.Read.All</em> is the least privileged combination of permissions to read and write the <strong>accountEnabled</strong> property.</li>
+</ul>
+<h2 id="http-request">HTTP request</h2>
+<!-- { "blockType": "ignored" } -->
+<pre><code class="lang-http">GET /users
+</code></pre>
+<h2 id="optional-query-parameters">Optional query parameters</h2>
+<p>This method supports the <code>$count</code>, <code>$expand</code>, <code>$filter</code>, <code>$orderby</code>, <code>$search</code>, <code>$select</code>, and <code>$top</code> <a href="/en-us/graph/query-parameters" data-linktype="absolute-path">OData query parameters</a> to help customize the response. <code>$skip</code> isn't supported. The default and maximum page sizes are 100 and 999 user objects respectively, except when you specify <code>$select=signInActivity</code> or <code>$filter=signInActivity</code>. When <code>signInActivity</code> is selected or filtered on, the maximum page size is 500. Some queries are supported only when you use the <strong>ConsistencyLevel</strong> header set to <code>eventual</code> and <code>$count</code>. For more information, see <a href="/en-us/graph/aad-advanced-queries" data-linktype="absolute-path">Advanced query capabilities on directory objects</a>. The <code>$count</code> and <code>$search</code> parameters are currently not available in Azure AD B2C tenants.</p>
+<p>By default, only a limited set of properties are returned (<strong>businessPhones</strong>, <strong>displayName</strong>, <strong>givenName</strong>, <strong>id</strong>, <strong>jobTitle</strong>, <strong>mail</strong>, <strong>mobilePhone</strong>, <strong>officeLocation</strong>, <strong>preferredLanguage</strong>, <strong>surname</strong>, and <strong>userPrincipalName</strong>).To return an alternative property set, specify the desired set of <a href="resources/user?view=graph-rest-1.0" data-linktype="relative-path">user</a> properties using the OData <code>$select</code> query parameter. For example, to return <strong>displayName</strong>, <strong>givenName</strong>, and <strong>postalCode</strong>, add the following to your query <code>$select=displayName,givenName,postalCode</code>.</p>
+<p>Extension properties also support query parameters as follows:</p>
+<table>
+<thead>
+<tr>
+<th>Extension type</th>
+<th>Comments</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>onPremisesExtensionAttributes 1-15</td>
+<td>Returned only with <code>$select</code>. Supports <code>$filter</code> (<code>eq</code>, <code>ne</code>, and <code>eq</code> on <code>null</code> values).</td>
+</tr>
+<tr>
+<td>Schema extensions</td>
+<td>Returned only with <code>$select</code>. Supports <code>$filter</code> (<code>eq</code>, <code>ne</code>, and <code>eq</code> on <code>null</code> values).</td>
+</tr>
+<tr>
+<td>Open extensions</td>
+<td>Returned only with <code>$expand</code>, that is, <code>users?$expand=extensions</code>.</td>
+</tr>
+<tr>
+<td>Directory extensions</td>
+<td>Returned only with <code>$select</code>. Supports <code>$filter</code> (<code>eq</code>, <code>ne</code>, and <code>eq</code> on <code>null</code> values).</td>
+</tr>
+</tbody>
+</table>
+<p>Certain properties can't be returned within a user collection. The following properties are only supported when <a href="user-get?view=graph-rest-1.0" data-linktype="relative-path">retrieving a single user</a>: <strong>aboutMe</strong>, <strong>birthday</strong>, <strong>hireDate</strong>, <strong>interests</strong>, <strong>mySite</strong>, <strong>pastProjects</strong>, <strong>preferredName</strong>, <strong>responsibilities</strong>, <strong>schools</strong>, <strong>skills</strong>, <strong>mailboxSettings</strong>.</p>
+<p>The following properties aren't supported in personal Microsoft accounts and will be <code>null</code>: <strong>aboutMe</strong>, <strong>birthday</strong>, <strong>interests</strong>, <strong>mySite</strong>, <strong>pastProjects</strong>, <strong>preferredName</strong>, <strong>responsibilities</strong>, <strong>schools</strong>, <strong>skills</strong>, <strong>streetAddress</strong>.</p>
+<h2 id="request-headers">Request headers</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Header</th>
+<th style="text-align: left;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Authorization</td>
+<td style="text-align: left;">Bearer {token}. Required. Learn more about <a href="/en-us/graph/auth/auth-concepts" data-linktype="absolute-path">authentication and authorization</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">ConsistencyLevel</td>
+<td style="text-align: left;">eventual. This header and <code>$count</code> are required when using <code>$search</code>, or in specific usage of <code>$filter</code>. For more information about the use of <strong>ConsistencyLevel</strong> and <code>$count</code>, see <a href="/en-us/graph/aad-advanced-queries" data-linktype="absolute-path">Advanced query capabilities on directory objects</a>.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="request-body">Request body</h2>
+<p>Don't supply a request body for this method.</p>
+<h2 id="response">Response</h2>
+<p>If successful, this method returns a <code>200 OK</code> response code and collection of <a href="resources/user?view=graph-rest-1.0" data-linktype="relative-path">user</a> objects in the response body. If a large user collection is returned, you can use <a href="/en-us/graph/paging" data-linktype="absolute-path">paging in your app</a>.</p>
+<p>Attempting to use <code>$select</code> on the <code>/users</code> collection to retrieve properties that can't be returned within a user collection (for example, the request <code>../users?$select=aboutMe</code>) returns a <code>501 Not Implemented</code> error code.</p>
+<h2 id="examples">Examples</h2>
+<h3 id="example-1-get-all-users">Example 1: Get all users</h3>
+<h4 id="request">Request</h4>
+<p>The following example shows a request.</p>
+<div class="tabGroup" id="tabgroup_1">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_1_http" role="tab" aria-controls="tabpanel_1_http" data-tab="http" tabindex="0" aria-selected="true" data-linktype="self-bookmark">HTTP</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_csharp" role="tab" aria-controls="tabpanel_1_csharp" data-tab="csharp" tabindex="-1" data-linktype="self-bookmark">C#</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_go" role="tab" aria-controls="tabpanel_1_go" data-tab="go" tabindex="-1" data-linktype="self-bookmark">Go</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_java" role="tab" aria-controls="tabpanel_1_java" data-tab="java" tabindex="-1" data-linktype="self-bookmark">Java</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_javascript" role="tab" aria-controls="tabpanel_1_javascript" data-tab="javascript" tabindex="-1" data-linktype="self-bookmark">JavaScript</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_php" role="tab" aria-controls="tabpanel_1_php" data-tab="php" tabindex="-1" data-linktype="self-bookmark">PHP</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_powershell" role="tab" aria-controls="tabpanel_1_powershell" data-tab="powershell" tabindex="-1" data-linktype="self-bookmark">PowerShell</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_python" role="tab" aria-controls="tabpanel_1_python" data-tab="python" tabindex="-1" data-linktype="self-bookmark">Python</a>
+</li>
+</ul>
+<section id="tabpanel_1_http" role="tabpanel" data-tab="http">
+<!-- {
+  "blockType": "request",
+  "name": "get_users_2"
+} -->
+<pre><code class="lang-msgraph" data-interactive="msgraph">GET https://graph.microsoft.com/v1.0/users
+</code></pre>
+</section>
+<section id="tabpanel_1_csharp" role="tabpanel" data-tab="csharp" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-csharp">
+// Code snippets are only available for the latest version. Current version is 5.x
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=csharp
+var result = await graphClient.Users.GetAsync();
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_1_go" role="tabpanel" data-tab="go" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-go">
+
+// Code snippets are only available for the latest major version. Current major version is $v1.*
+
+// Dependencies
+import (
+	  "context"
+	  msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
+	  //other-imports
+)
+
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=go
+users, err := graphClient.Users().Get(context.Background(), nil)
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_1_java" role="tabpanel" data-tab="java" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-java">
+// Code snippets are only available for the latest version. Current version is 6.x
+
+GraphServiceClient graphClient = new GraphServiceClient(requestAdapter);
+
+UserCollectionResponse result = graphClient.users().get();
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_1_javascript" role="tabpanel" data-tab="javascript" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-javascript">
+const options = {
+	authProvider,
+};
+
+const client = Client.init(options);
+
+let users = await client.api('/users')
+	.get();
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_1_php" role="tabpanel" data-tab="php" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-php">
+&lt;?php
+use Microsoft\Graph\GraphServiceClient;
+
+
+$graphServiceClient = new GraphServiceClient($tokenRequestContext, $scopes);
+
+
+$result = $graphServiceClient-&gt;users()-&gt;get()-&gt;wait();
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_1_powershell" role="tabpanel" data-tab="powershell" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-powershell">
+Import-Module Microsoft.Graph.Users
+
+Get-MgUser
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_1_python" role="tabpanel" data-tab="python" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-python">
+# Code snippets are only available for the latest version. Current version is 1.x
+from msgraph import GraphServiceClient
+# To initialize your graph_client, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=python
+
+result = await graph_client.users.get()
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+</div>
+<h4 id="response-1">Response</h4>
+<p>The following example shows the response.</p>
+<blockquote>
+<p><strong>Note:</strong> The response object shown here might be shortened for readability.</p>
+</blockquote>
+<!-- {
+  "blockType": "response",
+  "truncated": true,
+  "@odata.type": "microsoft.graph.user",
+  "isCollection": true
+} -->
+<pre><code class="lang-http">HTTP/1.1 200 OK
+Content-type: application/json
+
+{
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users",
+    "value": [
+        {
+            "businessPhones": [],
+            "displayName": "Conf Room Adams",
+            "givenName": null,
+            "jobTitle": null,
+            "mail": "Adams@contoso.com",
+            "mobilePhone": null,
+            "officeLocation": null,
+            "preferredLanguage": null,
+            "surname": null,
+            "userPrincipalName": "Adams@contoso.com",
+            "id": "6ea91a8d-e32e-41a1-b7bd-d2d185eed0e0"
+        },
+        {
+            "businessPhones": [
+                "425-555-0100"
+            ],
+            "displayName": "MOD Administrator",
+            "givenName": "MOD",
+            "jobTitle": null,
+            "mail": null,
+            "mobilePhone": "425-555-0101",
+            "officeLocation": null,
+            "preferredLanguage": "en-US",
+            "surname": "Administrator",
+            "userPrincipalName": "admin@contoso.com",
+            "id": "4562bcc8-c436-4f95-b7c0-4f8ce89dca5e"
+        }
+    ]
+}
+</code></pre>
+<h3 id="example-2-get-a-user-account-using-a-sign-in-name">Example 2: Get a user account using a sign-in name</h3>
+<h4 id="request-1">Request</h4>
+<p>The following example shows a request.</p>
+<blockquote>
+<p><strong>Note:</strong> When filtering for an <strong>issuerAssignedId</strong>, you must supply both <strong>issuer</strong> and <strong>issuerAssignedId</strong>. However, the <strong>issuer</strong> value will be ignored in certain scenarios. For more information on filtering on identities, see <a href="resources/objectidentity?view=graph-rest-1.0" data-linktype="relative-path">objectIdentity resource type</a></p>
+</blockquote>
+<div class="tabGroup" id="tabgroup_2">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_2_http" role="tab" aria-controls="tabpanel_2_http" data-tab="http" tabindex="0" aria-selected="true" data-linktype="self-bookmark">HTTP</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_2_csharp" role="tab" aria-controls="tabpanel_2_csharp" data-tab="csharp" tabindex="-1" data-linktype="self-bookmark">C#</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_2_go" role="tab" aria-controls="tabpanel_2_go" data-tab="go" tabindex="-1" data-linktype="self-bookmark">Go</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_2_java" role="tab" aria-controls="tabpanel_2_java" data-tab="java" tabindex="-1" data-linktype="self-bookmark">Java</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_2_javascript" role="tab" aria-controls="tabpanel_2_javascript" data-tab="javascript" tabindex="-1" data-linktype="self-bookmark">JavaScript</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_2_php" role="tab" aria-controls="tabpanel_2_php" data-tab="php" tabindex="-1" data-linktype="self-bookmark">PHP</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_2_powershell" role="tab" aria-controls="tabpanel_2_powershell" data-tab="powershell" tabindex="-1" data-linktype="self-bookmark">PowerShell</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_2_python" role="tab" aria-controls="tabpanel_2_python" data-tab="python" tabindex="-1" data-linktype="self-bookmark">Python</a>
+</li>
+</ul>
+<section id="tabpanel_2_http" role="tabpanel" data-tab="http">
+<!-- {
+  "blockType": "request",
+  "name": "get_signinname_users"
+} -->
+<pre><code class="lang-msgraph" data-interactive="msgraph">GET https://graph.microsoft.com/v1.0/users?$select=displayName,id&amp;$filter=identities/any(c:c/issuerAssignedId eq 'j.smith@yahoo.com' and c/issuer eq 'My B2C tenant')
+</code></pre>
+</section>
+<section id="tabpanel_2_csharp" role="tabpanel" data-tab="csharp" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-csharp">
+// Code snippets are only available for the latest version. Current version is 5.x
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=csharp
+var result = await graphClient.Users.GetAsync((requestConfiguration) =&gt;
+{
+	requestConfiguration.QueryParameters.Select = new string []{ "displayName","id" };
+	requestConfiguration.QueryParameters.Filter = "identities/any(c:c/issuerAssignedId eq 'j.smith@yahoo.com' and c/issuer eq 'My B2C tenant')";
+});
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_2_go" role="tabpanel" data-tab="go" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-go">
+
+// Code snippets are only available for the latest major version. Current major version is $v1.*
+
+// Dependencies
+import (
+	  "context"
+	  msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
+	  graphusers "github.com/microsoftgraph/msgraph-sdk-go/users"
+	  //other-imports
+)
+
+
+requestFilter := "identities/any(c:c/issuerAssignedId eq 'j.smith@yahoo.com' and c/issuer eq 'My B2C tenant')"
+
+requestParameters := &amp;graphusers.UsersRequestBuilderGetQueryParameters{
+	Select: [] string {"displayName","id"},
+	Filter: &amp;requestFilter,
+}
+configuration := &amp;graphusers.UsersRequestBuilderGetRequestConfiguration{
+	QueryParameters: requestParameters,
+}
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=go
+users, err := graphClient.Users().Get(context.Background(), configuration)
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_2_java" role="tabpanel" data-tab="java" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-java">
+// Code snippets are only available for the latest version. Current version is 6.x
+
+GraphServiceClient graphClient = new GraphServiceClient(requestAdapter);
+
+UserCollectionResponse result = graphClient.users().get(requestConfiguration -&gt; {
+	requestConfiguration.queryParameters.select = new String []{"displayName", "id"};
+	requestConfiguration.queryParameters.filter = "identities/any(c:c/issuerAssignedId eq 'j.smith@yahoo.com' and c/issuer eq 'My B2C tenant')";
+});
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_2_javascript" role="tabpanel" data-tab="javascript" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-javascript">
+const options = {
+	authProvider,
+};
+
+const client = Client.init(options);
+
+let users = await client.api('/users')
+	.filter('identities/any(c:c/issuerAssignedId eq \'j.smith@yahoo.com\' and c/issuer eq \'My B2C tenant\')')
+	.select('displayName,id')
+	.get();
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_2_php" role="tabpanel" data-tab="php" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-php">
+&lt;?php
+use Microsoft\Graph\GraphServiceClient;
+use Microsoft\Graph\Generated\Users\UsersRequestBuilderGetRequestConfiguration;
+
+
+$graphServiceClient = new GraphServiceClient($tokenRequestContext, $scopes);
+
+$requestConfiguration = new UsersRequestBuilderGetRequestConfiguration();
+$queryParameters = UsersRequestBuilderGetRequestConfiguration::createQueryParameters();
+$queryParameters-&gt;select = ["displayName","id"];
+$queryParameters-&gt;filter = "identities/any(c:c/issuerAssignedId eq 'j.smith@yahoo.com' and c/issuer eq 'My B2C tenant')";
+$requestConfiguration-&gt;queryParameters = $queryParameters;
+
+
+$result = $graphServiceClient-&gt;users()-&gt;get($requestConfiguration)-&gt;wait();
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_2_powershell" role="tabpanel" data-tab="powershell" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-powershell">
+Import-Module Microsoft.Graph.Users
+
+Get-MgUser -Property "displayName,id" -Filter "identities/any(c:c/issuerAssignedId eq 'j.smith@yahoo.com' and c/issuer eq 'My B2C tenant')" 
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_2_python" role="tabpanel" data-tab="python" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-python">
+# Code snippets are only available for the latest version. Current version is 1.x
+from msgraph import GraphServiceClient
+from msgraph.generated.users.users_request_builder import UsersRequestBuilder
+from kiota_abstractions.base_request_configuration import RequestConfiguration
+# To initialize your graph_client, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=python
+query_params = UsersRequestBuilder.UsersRequestBuilderGetQueryParameters(
+		select = ["displayName","id"],
+		filter = "identities/any(c:c/issuerAssignedId eq 'j.smith@yahoo.com' and c/issuer eq 'My B2C tenant')",
+)
+
+request_configuration = RequestConfiguration(
+query_parameters = query_params,
+)
+
+result = await graph_client.users.get(request_configuration = request_configuration)
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+</div>
+<h4 id="response-2">Response</h4>
+<p>The following example shows the response.</p>
+<blockquote>
+<p><strong>Note:</strong> The response object shown here might be shortened for readability.</p>
+</blockquote>
+<!-- {
+  "blockType": "response",
+  "truncated": true,
+  "@odata.type": "microsoft.graph.user",
+  "isCollection": true
+} -->
+<pre><code class="lang-http">HTTP/1.1 200 OK
+Content-type: application/json
+
+{
+  "value": [
+    {
+      "displayName": "John Smith",
+      "id": "87d349ed-44d7-43e1-9a83-5f2406dee5bd"
+    }
+  ]
+}
+</code></pre>
+<h3 id="example-3-get-only-a-count-of-users">Example 3: Get only a count of users</h3>
+<h4 id="request-2">Request</h4>
+<p>The following example shows a request. This request requires the <strong>ConsistencyLevel</strong> header set to <code>eventual</code> because <code>$count</code> is in the request. For more information about the use of <strong>ConsistencyLevel</strong> and <code>$count</code>, see <a href="/en-us/graph/aad-advanced-queries" data-linktype="absolute-path">Advanced query capabilities on directory objects</a>.</p>
+<blockquote>
+<p><strong>Note:</strong> The <code>$count</code> and <code>$search</code> query parameters are currently not available in Azure AD B2C tenants.</p>
+</blockquote>
+<div class="tabGroup" id="tabgroup_3">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_3_http" role="tab" aria-controls="tabpanel_3_http" data-tab="http" tabindex="0" aria-selected="true" data-linktype="self-bookmark">HTTP</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_3_csharp" role="tab" aria-controls="tabpanel_3_csharp" data-tab="csharp" tabindex="-1" data-linktype="self-bookmark">C#</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_3_go" role="tab" aria-controls="tabpanel_3_go" data-tab="go" tabindex="-1" data-linktype="self-bookmark">Go</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_3_java" role="tab" aria-controls="tabpanel_3_java" data-tab="java" tabindex="-1" data-linktype="self-bookmark">Java</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_3_javascript" role="tab" aria-controls="tabpanel_3_javascript" data-tab="javascript" tabindex="-1" data-linktype="self-bookmark">JavaScript</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_3_php" role="tab" aria-controls="tabpanel_3_php" data-tab="php" tabindex="-1" data-linktype="self-bookmark">PHP</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_3_powershell" role="tab" aria-controls="tabpanel_3_powershell" data-tab="powershell" tabindex="-1" data-linktype="self-bookmark">PowerShell</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_3_python" role="tab" aria-controls="tabpanel_3_python" data-tab="python" tabindex="-1" data-linktype="self-bookmark">Python</a>
+</li>
+</ul>
+<section id="tabpanel_3_http" role="tabpanel" data-tab="http">
+<!-- {
+  "blockType": "request",
+  "name": "get_count_only_v1_e3"
+} -->
+<pre><code class="lang-msgraph" data-interactive="msgraph">GET https://graph.microsoft.com/v1.0/users/$count
+ConsistencyLevel: eventual
+</code></pre>
+</section>
+<section id="tabpanel_3_csharp" role="tabpanel" data-tab="csharp" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-csharp">
+// Code snippets are only available for the latest version. Current version is 5.x
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=csharp
+await graphClient.Users.Count.GetAsync((requestConfiguration) =&gt;
+{
+	requestConfiguration.Headers.Add("ConsistencyLevel", "eventual");
+});
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_3_go" role="tabpanel" data-tab="go" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-go">
+
+// Code snippets are only available for the latest major version. Current major version is $v1.*
+
+// Dependencies
+import (
+	  "context"
+	  abstractions "github.com/microsoft/kiota-abstractions-go"
+	  msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
+	  graphusers "github.com/microsoftgraph/msgraph-sdk-go/users"
+	  //other-imports
+)
+
+headers := abstractions.NewRequestHeaders()
+headers.Add("ConsistencyLevel", "eventual")
+
+configuration := &amp;graphusers.Users$countRequestBuilderGetRequestConfiguration{
+	Headers: headers,
+}
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=go
+graphClient.Users().Count().Get(context.Background(), configuration)
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_3_java" role="tabpanel" data-tab="java" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-java">
+// Code snippets are only available for the latest version. Current version is 6.x
+
+GraphServiceClient graphClient = new GraphServiceClient(requestAdapter);
+
+graphClient.users().count().get(requestConfiguration -&gt; {
+	requestConfiguration.headers.add("ConsistencyLevel", "eventual");
+});
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_3_javascript" role="tabpanel" data-tab="javascript" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-javascript">
+const options = {
+	authProvider,
+};
+
+const client = Client.init(options);
+
+let int32 = await client.api('/users/$count')
+	.header('ConsistencyLevel','eventual')
+	.get();
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_3_php" role="tabpanel" data-tab="php" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-php">
+&lt;?php
+use Microsoft\Graph\GraphServiceClient;
+use Microsoft\Graph\Generated\Users\Count\CountRequestBuilderGetRequestConfiguration;
+
+
+$graphServiceClient = new GraphServiceClient($tokenRequestContext, $scopes);
+
+$requestConfiguration = new CountRequestBuilderGetRequestConfiguration();
+$headers = [
+		'ConsistencyLevel' =&gt; 'eventual',
+	];
+$requestConfiguration-&gt;headers = $headers;
+
+
+$graphServiceClient-&gt;users()-&gt;count()-&gt;get($requestConfiguration)-&gt;wait();
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_3_powershell" role="tabpanel" data-tab="powershell" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-powershell">
+Import-Module Microsoft.Graph.Users
+
+Get-MgUserCount -ConsistencyLevel eventual 
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_3_python" role="tabpanel" data-tab="python" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-python">
+# Code snippets are only available for the latest version. Current version is 1.x
+from msgraph import GraphServiceClient
+from msgraph.generated.users.count.count_request_builder import CountRequestBuilder
+from kiota_abstractions.base_request_configuration import RequestConfiguration
+# To initialize your graph_client, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=python
+
+request_configuration = RequestConfiguration()
+request_configuration.headers.add("ConsistencyLevel", "eventual")
+
+
+await graph_client.users.count.get(request_configuration = request_configuration)
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+</div>
+<h4 id="response-3">Response</h4>
+<p>The following example shows the response.</p>
+<!-- {
+  "blockType": "response",
+  "truncated": true,
+  "@odata.type": "String"
+} -->
+<pre><code class="lang-http">HTTP/1.1 200 OK
+Content-type: text/plain
+
+893
+</code></pre>
+<h3 id="example-4-use-filter-and-top-to-get-one-user-with-a-display-name-that-starts-with-a-including-a-count-of-returned-objects">Example 4: Use $filter and $top to get one user with a display name that starts with 'a' including a count of returned objects</h3>
+<h4 id="request-3">Request</h4>
+<p>The following example shows a request. This request requires the <strong>ConsistencyLevel</strong> header set to <code>eventual</code> and the <code>$count=true</code> query string because the request has both the <code>$orderby</code> and <code>$filter</code> query parameters. For more information about the use of <strong>ConsistencyLevel</strong> and <code>$count</code>, see <a href="/en-us/graph/aad-advanced-queries" data-linktype="absolute-path">Advanced query capabilities on directory objects</a>.</p>
+<blockquote>
+<p><strong>Note:</strong> The <code>$count</code> and <code>$search</code> query parameters are currently not available in Azure AD B2C tenants.</p>
+</blockquote>
+<!-- {
+  "blockType": "ignored",
+  "name": "list_users_startswith"
+} -->
+<pre><code class="lang-msgraph" data-interactive="msgraph">GET https://graph.microsoft.com/v1.0/users?$filter=startswith(displayName,'a')&amp;$orderby=displayName&amp;$count=true&amp;$top=1
+ConsistencyLevel: eventual
+</code></pre>
+<h4 id="response-4">Response</h4>
+<p>The following example shows the response.</p>
+<blockquote>
+<p><strong>Note:</strong> The response object shown here might be shortened for readability.</p>
+</blockquote>
+<!-- {
+  "blockType": "response",
+  "truncated": true,
+  "@odata.type": "microsoft.graph.user",
+  "isCollection": true
+} -->
+<pre><code class="lang-http">HTTP/1.1 200 OK
+Content-type: application/json
+
+{
+  "@odata.context":"https://graph.microsoft.com/v1.0/$metadata#users",
+  "@odata.count":1,
+  "value":[
+    {
+      "displayName":"a",
+      "mail":"a@contoso.com",
+      "mailNickname":"a_contoso.com#EXT#",
+      "userPrincipalName":"a_contoso.com#EXT#@contoso.com"
+    }
+  ]
+}
+</code></pre>
+<h3 id="example-5-use-filter-to-get-all-users-with-a-mail-that-ends-with-acontosocom-including-a-count-of-returned-objects-with-the-results-ordered-by-userprincipalname">Example 5: Use $filter to get all users with a mail that ends with 'a@contoso.com', including a count of returned objects, with the results ordered by userPrincipalName</h3>
+<h4 id="request-4">Request</h4>
+<p>The following example shows a request. This request requires the <strong>ConsistencyLevel</strong> header set to <code>eventual</code> and the <code>$count=true</code> query string because the request has both the <code>$orderby</code> and <code>$filter</code> query parameters, and also uses the <code>endsWith</code> operator. For more information about the use of <strong>ConsistencyLevel</strong> and <code>$count</code>, see <a href="/en-us/graph/aad-advanced-queries" data-linktype="absolute-path">Advanced query capabilities on directory objects</a>.</p>
+<blockquote>
+<p><strong>Note:</strong> The <code>$count</code> and <code>$search</code> query parameters are currently not available in Azure AD B2C tenants.</p>
+</blockquote>
+<div class="tabGroup" id="tabgroup_4">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_4_http" role="tab" aria-controls="tabpanel_4_http" data-tab="http" tabindex="0" aria-selected="true" data-linktype="self-bookmark">HTTP</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_4_csharp" role="tab" aria-controls="tabpanel_4_csharp" data-tab="csharp" tabindex="-1" data-linktype="self-bookmark">C#</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_4_go" role="tab" aria-controls="tabpanel_4_go" data-tab="go" tabindex="-1" data-linktype="self-bookmark">Go</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_4_java" role="tab" aria-controls="tabpanel_4_java" data-tab="java" tabindex="-1" data-linktype="self-bookmark">Java</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_4_javascript" role="tab" aria-controls="tabpanel_4_javascript" data-tab="javascript" tabindex="-1" data-linktype="self-bookmark">JavaScript</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_4_php" role="tab" aria-controls="tabpanel_4_php" data-tab="php" tabindex="-1" data-linktype="self-bookmark">PHP</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_4_powershell" role="tab" aria-controls="tabpanel_4_powershell" data-tab="powershell" tabindex="-1" data-linktype="self-bookmark">PowerShell</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_4_python" role="tab" aria-controls="tabpanel_4_python" data-tab="python" tabindex="-1" data-linktype="self-bookmark">Python</a>
+</li>
+</ul>
+<section id="tabpanel_4_http" role="tabpanel" data-tab="http">
+<!-- {
+  "blockType": "request",
+  "name": "get_a_count_endsWith"
+} -->
+<pre><code class="lang-msgraph" data-interactive="msgraph">GET https://graph.microsoft.com/v1.0/users?$filter=endswith(mail,'a@contoso.com')&amp;$orderby=userPrincipalName&amp;$count=true
+ConsistencyLevel: eventual
+</code></pre>
+</section>
+<section id="tabpanel_4_csharp" role="tabpanel" data-tab="csharp" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-csharp">
+// Code snippets are only available for the latest version. Current version is 5.x
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=csharp
+var result = await graphClient.Users.GetAsync((requestConfiguration) =&gt;
+{
+	requestConfiguration.QueryParameters.Filter = "endswith(mail,'a@contoso.com')";
+	requestConfiguration.QueryParameters.Orderby = new string []{ "userPrincipalName" };
+	requestConfiguration.QueryParameters.Count = true;
+	requestConfiguration.Headers.Add("ConsistencyLevel", "eventual");
+});
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_4_go" role="tabpanel" data-tab="go" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-go">
+
+// Code snippets are only available for the latest major version. Current major version is $v1.*
+
+// Dependencies
+import (
+	  "context"
+	  abstractions "github.com/microsoft/kiota-abstractions-go"
+	  msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
+	  graphusers "github.com/microsoftgraph/msgraph-sdk-go/users"
+	  //other-imports
+)
+
+headers := abstractions.NewRequestHeaders()
+headers.Add("ConsistencyLevel", "eventual")
+
+
+requestFilter := "endswith(mail,'a@contoso.com')"
+requestCount := true
+
+requestParameters := &amp;graphusers.UsersRequestBuilderGetQueryParameters{
+	Filter: &amp;requestFilter,
+	Orderby: [] string {"userPrincipalName"},
+	Count: &amp;requestCount,
+}
+configuration := &amp;graphusers.UsersRequestBuilderGetRequestConfiguration{
+	Headers: headers,
+	QueryParameters: requestParameters,
+}
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=go
+users, err := graphClient.Users().Get(context.Background(), configuration)
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_4_java" role="tabpanel" data-tab="java" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-java">
+// Code snippets are only available for the latest version. Current version is 6.x
+
+GraphServiceClient graphClient = new GraphServiceClient(requestAdapter);
+
+UserCollectionResponse result = graphClient.users().get(requestConfiguration -&gt; {
+	requestConfiguration.queryParameters.filter = "endswith(mail,'a@contoso.com')";
+	requestConfiguration.queryParameters.orderby = new String []{"userPrincipalName"};
+	requestConfiguration.queryParameters.count = true;
+	requestConfiguration.headers.add("ConsistencyLevel", "eventual");
+});
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_4_javascript" role="tabpanel" data-tab="javascript" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-javascript">
+const options = {
+	authProvider,
+};
+
+const client = Client.init(options);
+
+let users = await client.api('/users')
+	.header('ConsistencyLevel','eventual')
+	.filter('endswith(mail,\'a@contoso.com\')')
+	.orderby('userPrincipalName')
+	.get();
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_4_php" role="tabpanel" data-tab="php" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-php">
+&lt;?php
+use Microsoft\Graph\GraphServiceClient;
+use Microsoft\Graph\Generated\Users\UsersRequestBuilderGetRequestConfiguration;
+
+
+$graphServiceClient = new GraphServiceClient($tokenRequestContext, $scopes);
+
+$requestConfiguration = new UsersRequestBuilderGetRequestConfiguration();
+$headers = [
+		'ConsistencyLevel' =&gt; 'eventual',
+	];
+$requestConfiguration-&gt;headers = $headers;
+
+$queryParameters = UsersRequestBuilderGetRequestConfiguration::createQueryParameters();
+$queryParameters-&gt;filter = "endswith(mail,'a@contoso.com')";
+$queryParameters-&gt;orderby = ["userPrincipalName"];
+$queryParameters-&gt;count = true;
+$requestConfiguration-&gt;queryParameters = $queryParameters;
+
+
+$result = $graphServiceClient-&gt;users()-&gt;get($requestConfiguration)-&gt;wait();
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_4_powershell" role="tabpanel" data-tab="powershell" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-powershell">
+Import-Module Microsoft.Graph.Users
+
+Get-MgUser -Filter "endswith(mail,'a@contoso.com')" -Sort "userPrincipalName" -CountVariable CountVar  -ConsistencyLevel eventual 
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_4_python" role="tabpanel" data-tab="python" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-python">
+# Code snippets are only available for the latest version. Current version is 1.x
+from msgraph import GraphServiceClient
+from msgraph.generated.users.users_request_builder import UsersRequestBuilder
+from kiota_abstractions.base_request_configuration import RequestConfiguration
+# To initialize your graph_client, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=python
+query_params = UsersRequestBuilder.UsersRequestBuilderGetQueryParameters(
+		filter = "endswith(mail,'a@contoso.com')",
+		orderby = ["userPrincipalName"],
+		count = True,
+)
+
+request_configuration = RequestConfiguration(
+query_parameters = query_params,
+)
+request_configuration.headers.add("ConsistencyLevel", "eventual")
+
+
+result = await graph_client.users.get(request_configuration = request_configuration)
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+</div>
+<h4 id="response-5">Response</h4>
+<p>The following example shows the response.</p>
+<blockquote>
+<p><strong>Note:</strong> The response object shown here might be shortened for readability.</p>
+</blockquote>
+<!-- {
+  "blockType": "response",
+  "truncated": true,
+  "@odata.type": "microsoft.graph.user",
+  "isCollection": true
+} -->
+<pre><code class="lang-http">HTTP/1.1 200 OK
+Content-type: application/json
+
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users",
+  "@odata.count": 1,
+  "value": [
+    {
+      "displayName": "Grady Archie",
+      "givenName": "Grady",
+      "jobTitle": "Designer",
+      "mail": "GradyA@contoso.com",
+      "userPrincipalName": "GradyA@contoso.com",
+      "id": "e8b753b5-4117-464e-9a08-713e1ff266b3"
+      }
+    ]
+}
+</code></pre>
+<h3 id="example-6-use-search-to-get-users-with-display-names-that-contain-the-letters-wa-including-a-count-of-returned-objects">Example 6: Use $search to get users with display names that contain the letters 'wa' including a count of returned objects</h3>
+<h4 id="request-5">Request</h4>
+<p>The following example shows a request. This request requires the <strong>ConsistencyLevel</strong> header set to <code>eventual</code> because <code>$search</code> is in the request. For more information about the use of <strong>ConsistencyLevel</strong> and <code>$count</code>, see <a href="/en-us/graph/aad-advanced-queries" data-linktype="absolute-path">Advanced query capabilities on directory objects</a>.</p>
+<blockquote>
+<p><strong>Note:</strong> The <code>$count</code> and <code>$search</code> query parameters are currently not available in Azure AD B2C tenants.</p>
+</blockquote>
+<div class="tabGroup" id="tabgroup_5">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_5_http" role="tab" aria-controls="tabpanel_5_http" data-tab="http" tabindex="0" aria-selected="true" data-linktype="self-bookmark">HTTP</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_5_csharp" role="tab" aria-controls="tabpanel_5_csharp" data-tab="csharp" tabindex="-1" data-linktype="self-bookmark">C#</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_5_go" role="tab" aria-controls="tabpanel_5_go" data-tab="go" tabindex="-1" data-linktype="self-bookmark">Go</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_5_java" role="tab" aria-controls="tabpanel_5_java" data-tab="java" tabindex="-1" data-linktype="self-bookmark">Java</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_5_javascript" role="tab" aria-controls="tabpanel_5_javascript" data-tab="javascript" tabindex="-1" data-linktype="self-bookmark">JavaScript</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_5_php" role="tab" aria-controls="tabpanel_5_php" data-tab="php" tabindex="-1" data-linktype="self-bookmark">PHP</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_5_powershell" role="tab" aria-controls="tabpanel_5_powershell" data-tab="powershell" tabindex="-1" data-linktype="self-bookmark">PowerShell</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_5_python" role="tab" aria-controls="tabpanel_5_python" data-tab="python" tabindex="-1" data-linktype="self-bookmark">Python</a>
+</li>
+</ul>
+<section id="tabpanel_5_http" role="tabpanel" data-tab="http">
+<!-- {
+  "blockType": "request",
+  "name": "get_wa_count"
+} -->
+<pre><code class="lang-msgraph" data-interactive="msgraph">GET https://graph.microsoft.com/v1.0/users?$search="displayName:wa"&amp;$orderby=displayName&amp;$count=true
+ConsistencyLevel: eventual
+</code></pre>
+</section>
+<section id="tabpanel_5_csharp" role="tabpanel" data-tab="csharp" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-csharp">
+// Code snippets are only available for the latest version. Current version is 5.x
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=csharp
+var result = await graphClient.Users.GetAsync((requestConfiguration) =&gt;
+{
+	requestConfiguration.QueryParameters.Search = "\"displayName:wa\"";
+	requestConfiguration.QueryParameters.Orderby = new string []{ "displayName" };
+	requestConfiguration.QueryParameters.Count = true;
+	requestConfiguration.Headers.Add("ConsistencyLevel", "eventual");
+});
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_5_go" role="tabpanel" data-tab="go" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-go">
+
+// Code snippets are only available for the latest major version. Current major version is $v1.*
+
+// Dependencies
+import (
+	  "context"
+	  abstractions "github.com/microsoft/kiota-abstractions-go"
+	  msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
+	  graphusers "github.com/microsoftgraph/msgraph-sdk-go/users"
+	  //other-imports
+)
+
+headers := abstractions.NewRequestHeaders()
+headers.Add("ConsistencyLevel", "eventual")
+
+
+requestSearch := "\"displayName:wa\""
+requestCount := true
+
+requestParameters := &amp;graphusers.UsersRequestBuilderGetQueryParameters{
+	Search: &amp;requestSearch,
+	Orderby: [] string {"displayName"},
+	Count: &amp;requestCount,
+}
+configuration := &amp;graphusers.UsersRequestBuilderGetRequestConfiguration{
+	Headers: headers,
+	QueryParameters: requestParameters,
+}
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=go
+users, err := graphClient.Users().Get(context.Background(), configuration)
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_5_java" role="tabpanel" data-tab="java" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-java">
+// Code snippets are only available for the latest version. Current version is 6.x
+
+GraphServiceClient graphClient = new GraphServiceClient(requestAdapter);
+
+UserCollectionResponse result = graphClient.users().get(requestConfiguration -&gt; {
+	requestConfiguration.queryParameters.search = "\"displayName:wa\"";
+	requestConfiguration.queryParameters.orderby = new String []{"displayName"};
+	requestConfiguration.queryParameters.count = true;
+	requestConfiguration.headers.add("ConsistencyLevel", "eventual");
+});
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_5_javascript" role="tabpanel" data-tab="javascript" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-javascript">
+const options = {
+	authProvider,
+};
+
+const client = Client.init(options);
+
+let users = await client.api('/users')
+	.header('ConsistencyLevel','eventual')
+	.search('displayName:wa')
+	.orderby('displayName')
+	.get();
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_5_php" role="tabpanel" data-tab="php" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-php">
+&lt;?php
+use Microsoft\Graph\GraphServiceClient;
+use Microsoft\Graph\Generated\Users\UsersRequestBuilderGetRequestConfiguration;
+
+
+$graphServiceClient = new GraphServiceClient($tokenRequestContext, $scopes);
+
+$requestConfiguration = new UsersRequestBuilderGetRequestConfiguration();
+$headers = [
+		'ConsistencyLevel' =&gt; 'eventual',
+	];
+$requestConfiguration-&gt;headers = $headers;
+
+$queryParameters = UsersRequestBuilderGetRequestConfiguration::createQueryParameters();
+$queryParameters-&gt;search = "\"displayName:wa\"";
+$queryParameters-&gt;orderby = ["displayName"];
+$queryParameters-&gt;count = true;
+$requestConfiguration-&gt;queryParameters = $queryParameters;
+
+
+$result = $graphServiceClient-&gt;users()-&gt;get($requestConfiguration)-&gt;wait();
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_5_powershell" role="tabpanel" data-tab="powershell" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-powershell">
+Import-Module Microsoft.Graph.Users
+
+Get-MgUser -Search '"displayName:wa"' -Sort "displayName" -CountVariable CountVar  -ConsistencyLevel eventual 
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_5_python" role="tabpanel" data-tab="python" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-python">
+# Code snippets are only available for the latest version. Current version is 1.x
+from msgraph import GraphServiceClient
+from msgraph.generated.users.users_request_builder import UsersRequestBuilder
+from kiota_abstractions.base_request_configuration import RequestConfiguration
+# To initialize your graph_client, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=python
+query_params = UsersRequestBuilder.UsersRequestBuilderGetQueryParameters(
+		search = "\"displayName:wa\"",
+		orderby = ["displayName"],
+		count = True,
+)
+
+request_configuration = RequestConfiguration(
+query_parameters = query_params,
+)
+request_configuration.headers.add("ConsistencyLevel", "eventual")
+
+
+result = await graph_client.users.get(request_configuration = request_configuration)
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+</div>
+<h4 id="response-6">Response</h4>
+<p>The following example shows the response.</p>
+<blockquote>
+<p><strong>Note:</strong> The response object shown here might be shortened for readability.</p>
+</blockquote>
+<!-- {
+  "blockType": "response",
+  "truncated": true,
+  "@odata.type": "microsoft.graph.user",
+  "isCollection": true
+} -->
+<pre><code class="lang-http">HTTP/1.1 200 OK
+Content-type: application/json
+
+{
+  "@odata.context":"https://graph.microsoft.com/v1.0/$metadata#users",
+  "@odata.count":7,
+  "value":[
+    {
+      "displayName":"Oscar Ward",
+      "givenName":"Oscar",
+      "mail":"oscarward@contoso.com",
+      "userPrincipalName":"oscarward@contoso.com"
+    }
+  ]
+}
+</code></pre>
+<h3 id="example-7-use-search-to-get-users-with-display-names-that-contain-the-letters-wa-or-the-letters-ad-including-a-count-of-returned-objects">Example 7: Use $search to get users with display names that contain the letters 'wa' or the letters 'ad' including a count of returned objects</h3>
+<h4 id="request-6">Request</h4>
+<p>The following example shows a request. This request requires the <strong>ConsistencyLevel</strong> header set to <code>eventual</code> because <code>$search</code> is in the request. For more information about the use of <strong>ConsistencyLevel</strong> and <code>$count</code>, see <a href="/en-us/graph/aad-advanced-queries" data-linktype="absolute-path">Advanced query capabilities on directory objects</a>.</p>
+<blockquote>
+<p><strong>Note:</strong> The <code>$count</code> and <code>$search</code> query parameters are currently not available in Azure AD B2C tenants.</p>
+</blockquote>
+<div class="tabGroup" id="tabgroup_6">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_6_http" role="tab" aria-controls="tabpanel_6_http" data-tab="http" tabindex="0" aria-selected="true" data-linktype="self-bookmark">HTTP</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_6_csharp" role="tab" aria-controls="tabpanel_6_csharp" data-tab="csharp" tabindex="-1" data-linktype="self-bookmark">C#</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_6_go" role="tab" aria-controls="tabpanel_6_go" data-tab="go" tabindex="-1" data-linktype="self-bookmark">Go</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_6_java" role="tab" aria-controls="tabpanel_6_java" data-tab="java" tabindex="-1" data-linktype="self-bookmark">Java</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_6_javascript" role="tab" aria-controls="tabpanel_6_javascript" data-tab="javascript" tabindex="-1" data-linktype="self-bookmark">JavaScript</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_6_php" role="tab" aria-controls="tabpanel_6_php" data-tab="php" tabindex="-1" data-linktype="self-bookmark">PHP</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_6_powershell" role="tab" aria-controls="tabpanel_6_powershell" data-tab="powershell" tabindex="-1" data-linktype="self-bookmark">PowerShell</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_6_python" role="tab" aria-controls="tabpanel_6_python" data-tab="python" tabindex="-1" data-linktype="self-bookmark">Python</a>
+</li>
+</ul>
+<section id="tabpanel_6_http" role="tabpanel" data-tab="http">
+<!-- {
+  "blockType": "request",
+  "name": "get_to_count"
+} -->
+<pre><code class="lang-msgraph" data-interactive="msgraph">GET https://graph.microsoft.com/v1.0/users?$search="displayName:wa" OR "displayName:ad"&amp;$orderbydisplayName&amp;$count=true
+ConsistencyLevel: eventual
+</code></pre>
+</section>
+<section id="tabpanel_6_csharp" role="tabpanel" data-tab="csharp" aria-hidden="true" hidden="hidden">
+
+<pre><code>Snippet not available
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_6_go" role="tabpanel" data-tab="go" aria-hidden="true" hidden="hidden">
+
+<pre><code>Snippet not available
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_6_java" role="tabpanel" data-tab="java" aria-hidden="true" hidden="hidden">
+
+<pre><code>Snippet not available
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_6_javascript" role="tabpanel" data-tab="javascript" aria-hidden="true" hidden="hidden">
+
+<pre><code>Snippet not available
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_6_php" role="tabpanel" data-tab="php" aria-hidden="true" hidden="hidden">
+
+<pre><code>Snippet not available
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_6_powershell" role="tabpanel" data-tab="powershell" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-powershell">
+Import-Module Microsoft.Graph.Users
+
+Get-MgUser -Search '"displayName:wa" OR "displayName:ad"' -Orderbydisplayname =  -CountVariable CountVar  -ConsistencyLevel eventual 
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_6_python" role="tabpanel" data-tab="python" aria-hidden="true" hidden="hidden">
+
+<pre><code>Snippet not available
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+</div>
+<h4 id="response-7">Response</h4>
+<p>The following example shows the response.</p>
+<blockquote>
+<p><strong>Note:</strong> The response object shown here might be shortened for readability.</p>
+</blockquote>
+<!-- {
+  "blockType": "response",
+  "truncated": true,
+  "@odata.type": "microsoft.graph.user",
+  "isCollection": true
+} -->
+<pre><code class="lang-http">HTTP/1.1 200 OK
+Content-type: application/json
+
+{
+  "@odata.context":"https://graph.microsoft.com/v1.0/$metadata#users",
+  "@odata.count":7,
+  "value":[
+    {
+      "displayName":"Oscar Ward",
+      "givenName":"Oscar",
+      "mail":"oscarward@contoso.com",
+      "userPrincipalName":"oscarward@contoso.com"
+    },
+    {
+      "displayName":"contosoAdmin1",
+      "givenName":"Contoso Administrator",
+      "mail":"'contosoadmin1@fabrikam.com",
+      "userPrincipalName":"contosoadmin1_fabrikam.com#EXT#@contoso.com"
+    }
+  ]
+}
+</code></pre>
+<h3 id="example-8-get-guest-b2b-users-from-a-specific-tenant-or-domain-by-userprincipalname">Example 8: Get guest (B2B) users from a specific tenant or domain by userPrincipalName</h3>
+<h4 id="request-7">Request</h4>
+<p>The following example shows a request. The userPrincipalName value for guest (B2B collaboration) users always contains the "#EXT#" identifier. For example, the userPrincipalName of a user in their home tenant is <em>AdeleV@adatum.com</em>. When you invite the user to collaborate in your tenant, <em>contoso.com</em>, their userPrincipalName in your tenant is "AdeleV_adatum.com#EXT#@contoso.com".</p>
+<p>This request requires the <strong>ConsistencyLevel</strong> header set to <code>eventual</code> and the <code>$count=true</code> query string because the request includes the endsWith operator. For more information about the use of <strong>ConsistencyLevel</strong> and <code>$count</code>, see <a href="/en-us/graph/aad-advanced-queries" data-linktype="absolute-path">Advanced query capabilities on directory objects</a>.</p>
+<blockquote>
+<p><strong>NOTE:</strong> You must encode the reserved character "#" in the userPrincipalName value as "%23" in the request URL. For more information, see <a href="/en-us/graph/query-parameters#encoding-query-parameters" data-linktype="absolute-path">Encoding special characters</a>.</p>
+</blockquote>
+<div class="tabGroup" id="tabgroup_7">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_7_http" role="tab" aria-controls="tabpanel_7_http" data-tab="http" tabindex="0" aria-selected="true" data-linktype="self-bookmark">HTTP</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_7_csharp" role="tab" aria-controls="tabpanel_7_csharp" data-tab="csharp" tabindex="-1" data-linktype="self-bookmark">C#</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_7_go" role="tab" aria-controls="tabpanel_7_go" data-tab="go" tabindex="-1" data-linktype="self-bookmark">Go</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_7_java" role="tab" aria-controls="tabpanel_7_java" data-tab="java" tabindex="-1" data-linktype="self-bookmark">Java</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_7_javascript" role="tab" aria-controls="tabpanel_7_javascript" data-tab="javascript" tabindex="-1" data-linktype="self-bookmark">JavaScript</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_7_php" role="tab" aria-controls="tabpanel_7_php" data-tab="php" tabindex="-1" data-linktype="self-bookmark">PHP</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_7_powershell" role="tab" aria-controls="tabpanel_7_powershell" data-tab="powershell" tabindex="-1" data-linktype="self-bookmark">PowerShell</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_7_python" role="tab" aria-controls="tabpanel_7_python" data-tab="python" tabindex="-1" data-linktype="self-bookmark">Python</a>
+</li>
+</ul>
+<section id="tabpanel_7_http" role="tabpanel" data-tab="http">
+<!-- {
+  "blockType": "request",
+  "name": "get_b2b_users"
+}-->
+<pre><code class="lang-msgraph" data-interactive="msgraph">GET https://graph.microsoft.com/v1.0/users?$select=id,displayName,mail,identities&amp;$filter=endsWith(userPrincipalName,'%23EXT%23@contoso.com')&amp;$count=true
+ConsistencyLevel: eventual
+</code></pre>
+</section>
+<section id="tabpanel_7_csharp" role="tabpanel" data-tab="csharp" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-csharp">
+// Code snippets are only available for the latest version. Current version is 5.x
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=csharp
+var result = await graphClient.Users.GetAsync((requestConfiguration) =&gt;
+{
+	requestConfiguration.QueryParameters.Select = new string []{ "id","displayName","mail","identities" };
+	requestConfiguration.QueryParameters.Filter = "endsWith(userPrincipalName,'";
+	requestConfiguration.Headers.Add("ConsistencyLevel", "eventual");
+});
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_7_go" role="tabpanel" data-tab="go" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-go">
+
+// Code snippets are only available for the latest major version. Current major version is $v1.*
+
+// Dependencies
+import (
+	  "context"
+	  abstractions "github.com/microsoft/kiota-abstractions-go"
+	  msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
+	  graphusers "github.com/microsoftgraph/msgraph-sdk-go/users"
+	  //other-imports
+)
+
+headers := abstractions.NewRequestHeaders()
+headers.Add("ConsistencyLevel", "eventual")
+
+
+requestFilter := "endsWith(userPrincipalName,'"
+
+requestParameters := &amp;graphusers.UsersRequestBuilderGetQueryParameters{
+	Select: [] string {"id","displayName","mail","identities"},
+	Filter: &amp;requestFilter,
+}
+configuration := &amp;graphusers.UsersRequestBuilderGetRequestConfiguration{
+	Headers: headers,
+	QueryParameters: requestParameters,
+}
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=go
+users, err := graphClient.Users().Get(context.Background(), configuration)
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_7_java" role="tabpanel" data-tab="java" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-java">
+// Code snippets are only available for the latest version. Current version is 6.x
+
+GraphServiceClient graphClient = new GraphServiceClient(requestAdapter);
+
+UserCollectionResponse result = graphClient.users().get(requestConfiguration -&gt; {
+	requestConfiguration.queryParameters.select = new String []{"id", "displayName", "mail", "identities"};
+	requestConfiguration.queryParameters.filter = "endsWith(userPrincipalName,'";
+	requestConfiguration.headers.add("ConsistencyLevel", "eventual");
+});
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_7_javascript" role="tabpanel" data-tab="javascript" aria-hidden="true" hidden="hidden">
+
+<pre><code>Snippet not available
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_7_php" role="tabpanel" data-tab="php" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-php">
+&lt;?php
+use Microsoft\Graph\GraphServiceClient;
+use Microsoft\Graph\Generated\Users\UsersRequestBuilderGetRequestConfiguration;
+
+
+$graphServiceClient = new GraphServiceClient($tokenRequestContext, $scopes);
+
+$requestConfiguration = new UsersRequestBuilderGetRequestConfiguration();
+$headers = [
+		'ConsistencyLevel' =&gt; 'eventual',
+	];
+$requestConfiguration-&gt;headers = $headers;
+
+$queryParameters = UsersRequestBuilderGetRequestConfiguration::createQueryParameters();
+$queryParameters-&gt;select = ["id","displayName","mail","identities"];
+$queryParameters-&gt;filter = "endsWith(userPrincipalName,'";
+$requestConfiguration-&gt;queryParameters = $queryParameters;
+
+
+$result = $graphServiceClient-&gt;users()-&gt;get($requestConfiguration)-&gt;wait();
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_7_powershell" role="tabpanel" data-tab="powershell" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-powershell">
+Import-Module Microsoft.Graph.Users
+
+Get-MgUser -Property "id,displayName,mail,identities" -Filter "endsWith(userPrincipalName,'"  -ConsistencyLevel eventual 
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_7_python" role="tabpanel" data-tab="python" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-python">
+# Code snippets are only available for the latest version. Current version is 1.x
+from msgraph import GraphServiceClient
+from msgraph.generated.users.users_request_builder import UsersRequestBuilder
+from kiota_abstractions.base_request_configuration import RequestConfiguration
+# To initialize your graph_client, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=python
+query_params = UsersRequestBuilder.UsersRequestBuilderGetQueryParameters(
+		select = ["id","displayName","mail","identities"],
+		filter = "endsWith(userPrincipalName,'",
+)
+
+request_configuration = RequestConfiguration(
+query_parameters = query_params,
+)
+request_configuration.headers.add("ConsistencyLevel", "eventual")
+
+
+result = await graph_client.users.get(request_configuration = request_configuration)
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+</div>
+<h4 id="response-8">Response</h4>
+<p>The following example shows the response.</p>
+<blockquote>
+<p><strong>Note:</strong> The response object shown here might be shortened for readability.</p>
+</blockquote>
+<!-- {
+  "blockType": "response",
+  "truncated": true,
+  "@odata.type": "microsoft.graph.user",
+  "isCollection": true
+} -->
+<pre><code class="lang-http">HTTP/1.1 200 OK
+Content-type: application/json
+
+{
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users(id,displayName,mail,identities)",
+    "@odata.count": 2,
+    "value": [
+        {
+            "id": "39807bd1-3dde-48f3-8165-81ddd4e46de0",
+            "displayName": "Adele Vance",
+            "mail": "AdeleV@adatum.com",
+            "identities": [
+                {
+                    "signInType": "userPrincipalName",
+                    "issuer": "contoso.com",
+                    "issuerAssignedId": "AdeleV_adatum.com#EXT#@cntoso.com"
+                }
+            ]
+        }
+    ]
+}
+</code></pre>
+<h3 id="example-9-use-filter-to-get-users-who-are-assigned-a-specific-license">Example 9: Use $filter to get users who are assigned a specific license</h3>
+<h4 id="request-8">Request</h4>
+<p>The following example shows a request.</p>
+<!-- {
+  "blockType": "ignored",
+  "name": "get_user_assignedLicenses"
+} -->
+<pre><code class="lang-msgraph" data-interactive="msgraph">GET https://graph.microsoft.com/v1.0/users?$select=id,mail,assignedLicenses&amp;$filter=assignedLicenses/any(u:u/skuId eq cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46)
+</code></pre>
+<h4 id="response-9">Response</h4>
+<p>The following example shows the response.</p>
+<!-- {
+  "blockType": "response",
+  "truncated": true,
+  "@odata.type": "microsoft.graph.user",
+  "isCollection": true
+} -->
+<pre><code class="lang-http">HTTP/1.1 200 OK
+Content-type: application/json
+
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users(id,mail,assignedLicenses)",
+  "value": [
+    {
+      "id": "cb4954e8-467f-4a6d-a8c8-28b9034fadbc",
+      "mail": "admin@contoso.com",
+      "assignedLicenses": [
+        {
+          "disabledPlans": [],
+          "skuId": "cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46"
+        }
+      ]
+    },
+    {
+      "id": "81a133c2-bdf2-4e67-8755-7264366b04ee",
+      "mail": "DebraB@contoso.com",
+      "assignedLicenses": [
+        {
+          "disabledPlans": [],
+          "skuId": "cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46"
+        }
+      ]
+    }
+  ]
+}
+</code></pre>
+<h3 id="example-10-get-the-value-of-a-schema-extension-for-all-users">Example 10: Get the value of a schema extension for all users</h3>
+<p>In this example, the ID of the schema extension is <code>ext55gb1l09_msLearnCourses</code>.</p>
+<h4 id="request-9">Request</h4>
+<div class="tabGroup" id="tabgroup_8">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_8_http" role="tab" aria-controls="tabpanel_8_http" data-tab="http" tabindex="0" aria-selected="true" data-linktype="self-bookmark">HTTP</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_8_csharp" role="tab" aria-controls="tabpanel_8_csharp" data-tab="csharp" tabindex="-1" data-linktype="self-bookmark">C#</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_8_go" role="tab" aria-controls="tabpanel_8_go" data-tab="go" tabindex="-1" data-linktype="self-bookmark">Go</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_8_java" role="tab" aria-controls="tabpanel_8_java" data-tab="java" tabindex="-1" data-linktype="self-bookmark">Java</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_8_javascript" role="tab" aria-controls="tabpanel_8_javascript" data-tab="javascript" tabindex="-1" data-linktype="self-bookmark">JavaScript</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_8_php" role="tab" aria-controls="tabpanel_8_php" data-tab="php" tabindex="-1" data-linktype="self-bookmark">PHP</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_8_powershell" role="tab" aria-controls="tabpanel_8_powershell" data-tab="powershell" tabindex="-1" data-linktype="self-bookmark">PowerShell</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_8_python" role="tab" aria-controls="tabpanel_8_python" data-tab="python" tabindex="-1" data-linktype="self-bookmark">Python</a>
+</li>
+</ul>
+<section id="tabpanel_8_http" role="tabpanel" data-tab="http">
+<!-- {
+  "blockType": "request",
+  "name": "list_users_schemaextension"
+}-->
+<pre><code class="lang-msgraph" data-interactive="msgraph">GET https://graph.microsoft.com/v1.0/users?$select=ext55gb1l09_msLearnCourses
+</code></pre>
+</section>
+<section id="tabpanel_8_csharp" role="tabpanel" data-tab="csharp" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-csharp">
+// Code snippets are only available for the latest version. Current version is 5.x
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=csharp
+var result = await graphClient.Users.GetAsync((requestConfiguration) =&gt;
+{
+	requestConfiguration.QueryParameters.Select = new string []{ "ext55gb1l09_msLearnCourses" };
+});
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_8_go" role="tabpanel" data-tab="go" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-go">
+
+// Code snippets are only available for the latest major version. Current major version is $v1.*
+
+// Dependencies
+import (
+	  "context"
+	  msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
+	  graphusers "github.com/microsoftgraph/msgraph-sdk-go/users"
+	  //other-imports
+)
+
+requestParameters := &amp;graphusers.UsersRequestBuilderGetQueryParameters{
+	Select: [] string {"ext55gb1l09_msLearnCourses"},
+}
+configuration := &amp;graphusers.UsersRequestBuilderGetRequestConfiguration{
+	QueryParameters: requestParameters,
+}
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=go
+users, err := graphClient.Users().Get(context.Background(), configuration)
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_8_java" role="tabpanel" data-tab="java" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-java">
+// Code snippets are only available for the latest version. Current version is 6.x
+
+GraphServiceClient graphClient = new GraphServiceClient(requestAdapter);
+
+UserCollectionResponse result = graphClient.users().get(requestConfiguration -&gt; {
+	requestConfiguration.queryParameters.select = new String []{"ext55gb1l09_msLearnCourses"};
+});
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_8_javascript" role="tabpanel" data-tab="javascript" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-javascript">
+const options = {
+	authProvider,
+};
+
+const client = Client.init(options);
+
+let users = await client.api('/users')
+	.select('ext55gb1l09_msLearnCourses')
+	.get();
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_8_php" role="tabpanel" data-tab="php" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-php">
+&lt;?php
+use Microsoft\Graph\GraphServiceClient;
+use Microsoft\Graph\Generated\Users\UsersRequestBuilderGetRequestConfiguration;
+
+
+$graphServiceClient = new GraphServiceClient($tokenRequestContext, $scopes);
+
+$requestConfiguration = new UsersRequestBuilderGetRequestConfiguration();
+$queryParameters = UsersRequestBuilderGetRequestConfiguration::createQueryParameters();
+$queryParameters-&gt;select = ["ext55gb1l09_msLearnCourses"];
+$requestConfiguration-&gt;queryParameters = $queryParameters;
+
+
+$result = $graphServiceClient-&gt;users()-&gt;get($requestConfiguration)-&gt;wait();
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_8_powershell" role="tabpanel" data-tab="powershell" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-powershell">
+Import-Module Microsoft.Graph.Users
+
+Get-MgUser -Property "ext55gb1l09_msLearnCourses" 
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_8_python" role="tabpanel" data-tab="python" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-python">
+# Code snippets are only available for the latest version. Current version is 1.x
+from msgraph import GraphServiceClient
+from msgraph.generated.users.users_request_builder import UsersRequestBuilder
+from kiota_abstractions.base_request_configuration import RequestConfiguration
+# To initialize your graph_client, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=python
+query_params = UsersRequestBuilder.UsersRequestBuilderGetQueryParameters(
+		select = ["ext55gb1l09_msLearnCourses"],
+)
+
+request_configuration = RequestConfiguration(
+query_parameters = query_params,
+)
+
+result = await graph_client.users.get(request_configuration = request_configuration)
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+</div>
+<h4 id="response-10">Response</h4>
+<p>In the following response, the schema extension property <code>ext55gb1l09_msLearnCourses</code> is unassigned in two of the user objects.</p>
+<!-- {
+  "blockType": "response",
+  "truncated": true,
+  "@odata.type": "microsoft.graph.user"
+} -->
+<pre><code class="lang-http">HTTP/1.1 200 OK
+Content-type: application/json
+
+{
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users(ext55gb1l09_msLearnCourses)",
+    "value": [
+        {},
+        {
+            "ext55gb1l09_msLearnCourses": {
+                "@odata.type": "#microsoft.graph.ComplexExtensionValue",
+                "courseType": "Developer",
+                "courseName": "Introduction to Microsoft Graph",
+                "courseId": 1
+            }
+        },
+        {}
+    ]
+}
+</code></pre>
+<blockquote>
+<p><strong>Note:</strong> You can also apply <code>$filter</code> on the schema extension property to retrieve objects where a property in the collection matches a specified value. The syntax is <code>/users?$filter={schemaPropertyID}/{propertyName} eq 'value'</code>. For example, <code>GET /users?$select=ext55gb1l09_msLearnCourses&amp;$filter=ext55gb1l09_msLearnCourses/courseType eq 'Developer'</code>. The <code>eq</code> and <code>not</code> operators are supported.</p>
+</blockquote>
+<h3 id="example-11-get-users-including-their-last-sign-in-time">Example 11: Get users including their last sign-in time</h3>
+<h4 id="request-10">Request</h4>
+<p>The following example shows a request.</p>
+<div class="NOTE">
+<p>Note</p>
+<ul>
+<li>Details for the <strong>signInActivity</strong> property require a Microsoft Entra ID P1 or P2 license and the <code>AuditLog.Read.All</code> permission.</li>
+<li>When you specify <code>$select=signInActivity</code> or <code>$filter=signInActivity</code> when listing users, the maximum page size for <code>$top</code> is 500. Requests with <code>$top</code> set higher than 500 return pages with up to 500 users. The <strong>signInActivity</strong> property supports <code>$filter</code> (<code>eq</code>, <code>ne</code>, <code>not</code>, <code>ge</code>, <code>le</code>) <em>but</em> not with any other filterable properties.</li>
+</ul>
+</div>
+<div class="tabGroup" id="tabgroup_9">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_9_http" role="tab" aria-controls="tabpanel_9_http" data-tab="http" tabindex="0" aria-selected="true" data-linktype="self-bookmark">HTTP</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_9_csharp" role="tab" aria-controls="tabpanel_9_csharp" data-tab="csharp" tabindex="-1" data-linktype="self-bookmark">C#</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_9_go" role="tab" aria-controls="tabpanel_9_go" data-tab="go" tabindex="-1" data-linktype="self-bookmark">Go</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_9_java" role="tab" aria-controls="tabpanel_9_java" data-tab="java" tabindex="-1" data-linktype="self-bookmark">Java</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_9_javascript" role="tab" aria-controls="tabpanel_9_javascript" data-tab="javascript" tabindex="-1" data-linktype="self-bookmark">JavaScript</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_9_php" role="tab" aria-controls="tabpanel_9_php" data-tab="php" tabindex="-1" data-linktype="self-bookmark">PHP</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_9_powershell" role="tab" aria-controls="tabpanel_9_powershell" data-tab="powershell" tabindex="-1" data-linktype="self-bookmark">PowerShell</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_9_python" role="tab" aria-controls="tabpanel_9_python" data-tab="python" tabindex="-1" data-linktype="self-bookmark">Python</a>
+</li>
+</ul>
+<section id="tabpanel_9_http" role="tabpanel" data-tab="http">
+<!-- {
+  "blockType": "request",
+  "name": "get_users_signin_last_time"
+}-->
+<pre><code class="lang-msgraph" data-interactive="msgraph">GET https://graph.microsoft.com/v1.0/users?$select=displayName,userPrincipalName,signInActivity
+</code></pre>
+</section>
+<section id="tabpanel_9_csharp" role="tabpanel" data-tab="csharp" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-csharp">
+// Code snippets are only available for the latest version. Current version is 5.x
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=csharp
+var result = await graphClient.Users.GetAsync((requestConfiguration) =&gt;
+{
+	requestConfiguration.QueryParameters.Select = new string []{ "displayName","userPrincipalName","signInActivity" };
+});
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_9_go" role="tabpanel" data-tab="go" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-go">
+
+// Code snippets are only available for the latest major version. Current major version is $v1.*
+
+// Dependencies
+import (
+	  "context"
+	  msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
+	  graphusers "github.com/microsoftgraph/msgraph-sdk-go/users"
+	  //other-imports
+)
+
+requestParameters := &amp;graphusers.UsersRequestBuilderGetQueryParameters{
+	Select: [] string {"displayName","userPrincipalName","signInActivity"},
+}
+configuration := &amp;graphusers.UsersRequestBuilderGetRequestConfiguration{
+	QueryParameters: requestParameters,
+}
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=go
+users, err := graphClient.Users().Get(context.Background(), configuration)
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_9_java" role="tabpanel" data-tab="java" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-java">
+// Code snippets are only available for the latest version. Current version is 6.x
+
+GraphServiceClient graphClient = new GraphServiceClient(requestAdapter);
+
+UserCollectionResponse result = graphClient.users().get(requestConfiguration -&gt; {
+	requestConfiguration.queryParameters.select = new String []{"displayName", "userPrincipalName", "signInActivity"};
+});
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_9_javascript" role="tabpanel" data-tab="javascript" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-javascript">
+const options = {
+	authProvider,
+};
+
+const client = Client.init(options);
+
+let users = await client.api('/users')
+	.select('displayName,userPrincipalName,signInActivity')
+	.get();
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_9_php" role="tabpanel" data-tab="php" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-php">
+&lt;?php
+use Microsoft\Graph\GraphServiceClient;
+use Microsoft\Graph\Generated\Users\UsersRequestBuilderGetRequestConfiguration;
+
+
+$graphServiceClient = new GraphServiceClient($tokenRequestContext, $scopes);
+
+$requestConfiguration = new UsersRequestBuilderGetRequestConfiguration();
+$queryParameters = UsersRequestBuilderGetRequestConfiguration::createQueryParameters();
+$queryParameters-&gt;select = ["displayName","userPrincipalName","signInActivity"];
+$requestConfiguration-&gt;queryParameters = $queryParameters;
+
+
+$result = $graphServiceClient-&gt;users()-&gt;get($requestConfiguration)-&gt;wait();
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_9_powershell" role="tabpanel" data-tab="powershell" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-powershell">
+Import-Module Microsoft.Graph.Users
+
+Get-MgUser -Property "displayName,userPrincipalName,signInActivity" 
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_9_python" role="tabpanel" data-tab="python" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-python">
+# Code snippets are only available for the latest version. Current version is 1.x
+from msgraph import GraphServiceClient
+from msgraph.generated.users.users_request_builder import UsersRequestBuilder
+from kiota_abstractions.base_request_configuration import RequestConfiguration
+# To initialize your graph_client, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=python
+query_params = UsersRequestBuilder.UsersRequestBuilderGetQueryParameters(
+		select = ["displayName","userPrincipalName","signInActivity"],
+)
+
+request_configuration = RequestConfiguration(
+query_parameters = query_params,
+)
+
+result = await graph_client.users.get(request_configuration = request_configuration)
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+</div>
+<h4 id="response-11">Response</h4>
+<p>The following example shows the response.</p>
+<blockquote>
+<p><strong>Note:</strong> The response object shown here might be shortened for readability.</p>
+</blockquote>
+<!-- {
+  "blockType": "response",
+  "truncated": true,
+  "@odata.type": "microsoft.graph.user",
+  "isCollection": true
+} -->
+<pre><code class="lang-http">HTTP/1.1 200 OK
+Content-type: application/json
+
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users(displayName,userPrincipalName,signInActivity)",
+  "value": [
+    {
+      "displayName": "Adele Vance",
+      "userPrincipalName": "AdeleV@contoso.com",
+      "id": "1aecaf40-dc3a-461f-88a8-d06994e12898",
+      "signInActivity": {
+        "lastSignInDateTime": "2021-06-17T16:41:33Z",
+        "lastSignInRequestId": "d4d31c40-4c36-4775-ad59-7d1e6a171f00",
+        "lastNonInteractiveSignInDateTime": "0001-01-01T00:00:00Z",
+        "lastNonInteractiveSignInRequestId": "",
+        "lastSuccessfulSignInDateTime": "",
+        "lastSuccessfulSignInRequestId": ""
+      }
+    },
+    {
+      "displayName": "Alex Wilber",
+      "userPrincipalName": "AlexW@contoso.com",
+      "id": "f0662ee5-84b1-43d6-8338-769cce1bc141",
+      "signInActivity": {
+        "lastSignInDateTime": "2021-07-29T15:53:27Z",
+        "lastSignInRequestId": "f3149ee1-e347-4181-b45b-99a1f82b1c00",
+        "lastNonInteractiveSignInDateTime": "2021-07-29T17:53:42Z",
+        "lastNonInteractiveSignInRequestId": "868efa6a-b2e9-40e9-9b1c-0aaea5b50200",
+        "lastSuccessfulSignInDateTime": "",
+        "lastSuccessfulSignInRequestId": ""
+      }
+    }
+  ]
+}
+</code></pre>
+<h3 id="example-12-use-filter-and-endswith-to-get-users-with-a-specified-top-level-domain-in-othermails">Example 12: Use $filter and endsWith to get users with a specified top-level domain in otherMails</h3>
+<h4 id="request-11">Request</h4>
+<p>The following example shows a request. This request requires the <strong>ConsistencyLevel</strong> header set to <code>eventual</code> because <code>$count</code> is in the request. For more information about the use of <strong>ConsistencyLevel</strong> and <code>$count</code>, see <a href="/en-us/graph/aad-advanced-queries" data-linktype="absolute-path">Advanced query capabilities on directory objects</a>.</p>
+<div class="tabGroup" id="tabgroup_10">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_10_http" role="tab" aria-controls="tabpanel_10_http" data-tab="http" tabindex="0" aria-selected="true" data-linktype="self-bookmark">HTTP</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_10_csharp" role="tab" aria-controls="tabpanel_10_csharp" data-tab="csharp" tabindex="-1" data-linktype="self-bookmark">C#</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_10_go" role="tab" aria-controls="tabpanel_10_go" data-tab="go" tabindex="-1" data-linktype="self-bookmark">Go</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_10_java" role="tab" aria-controls="tabpanel_10_java" data-tab="java" tabindex="-1" data-linktype="self-bookmark">Java</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_10_javascript" role="tab" aria-controls="tabpanel_10_javascript" data-tab="javascript" tabindex="-1" data-linktype="self-bookmark">JavaScript</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_10_php" role="tab" aria-controls="tabpanel_10_php" data-tab="php" tabindex="-1" data-linktype="self-bookmark">PHP</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_10_powershell" role="tab" aria-controls="tabpanel_10_powershell" data-tab="powershell" tabindex="-1" data-linktype="self-bookmark">PowerShell</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_10_python" role="tab" aria-controls="tabpanel_10_python" data-tab="python" tabindex="-1" data-linktype="self-bookmark">Python</a>
+</li>
+</ul>
+<section id="tabpanel_10_http" role="tabpanel" data-tab="http">
+<!-- {
+  "blockType": "request",
+  "name": "list_users_filterOtherMails"
+}-->
+<pre><code class="lang-msgraph" data-interactive="msgraph">GET https://graph.microsoft.com/v1.0/users?$filter=otherMails/any(x:endswith(x,'.edu'))&amp;$count=true
+ConsistencyLevel: eventual
+</code></pre>
+</section>
+<section id="tabpanel_10_csharp" role="tabpanel" data-tab="csharp" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-csharp">
+// Code snippets are only available for the latest version. Current version is 5.x
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=csharp
+var result = await graphClient.Users.GetAsync((requestConfiguration) =&gt;
+{
+	requestConfiguration.QueryParameters.Filter = "otherMails/any(x:endswith(x,'.edu'))";
+	requestConfiguration.QueryParameters.Count = true;
+	requestConfiguration.Headers.Add("ConsistencyLevel", "eventual");
+});
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_10_go" role="tabpanel" data-tab="go" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-go">
+
+// Code snippets are only available for the latest major version. Current major version is $v1.*
+
+// Dependencies
+import (
+	  "context"
+	  abstractions "github.com/microsoft/kiota-abstractions-go"
+	  msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
+	  graphusers "github.com/microsoftgraph/msgraph-sdk-go/users"
+	  //other-imports
+)
+
+headers := abstractions.NewRequestHeaders()
+headers.Add("ConsistencyLevel", "eventual")
+
+
+requestFilter := "otherMails/any(x:endswith(x,'.edu'))"
+requestCount := true
+
+requestParameters := &amp;graphusers.UsersRequestBuilderGetQueryParameters{
+	Filter: &amp;requestFilter,
+	Count: &amp;requestCount,
+}
+configuration := &amp;graphusers.UsersRequestBuilderGetRequestConfiguration{
+	Headers: headers,
+	QueryParameters: requestParameters,
+}
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=go
+users, err := graphClient.Users().Get(context.Background(), configuration)
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_10_java" role="tabpanel" data-tab="java" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-java">
+// Code snippets are only available for the latest version. Current version is 6.x
+
+GraphServiceClient graphClient = new GraphServiceClient(requestAdapter);
+
+UserCollectionResponse result = graphClient.users().get(requestConfiguration -&gt; {
+	requestConfiguration.queryParameters.filter = "otherMails/any(x:endswith(x,'.edu'))";
+	requestConfiguration.queryParameters.count = true;
+	requestConfiguration.headers.add("ConsistencyLevel", "eventual");
+});
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_10_javascript" role="tabpanel" data-tab="javascript" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-javascript">
+const options = {
+	authProvider,
+};
+
+const client = Client.init(options);
+
+let users = await client.api('/users')
+	.header('ConsistencyLevel','eventual')
+	.filter('otherMails/any(x:endswith(x,\'.edu\'))')
+	.get();
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_10_php" role="tabpanel" data-tab="php" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-php">
+&lt;?php
+use Microsoft\Graph\GraphServiceClient;
+use Microsoft\Graph\Generated\Users\UsersRequestBuilderGetRequestConfiguration;
+
+
+$graphServiceClient = new GraphServiceClient($tokenRequestContext, $scopes);
+
+$requestConfiguration = new UsersRequestBuilderGetRequestConfiguration();
+$headers = [
+		'ConsistencyLevel' =&gt; 'eventual',
+	];
+$requestConfiguration-&gt;headers = $headers;
+
+$queryParameters = UsersRequestBuilderGetRequestConfiguration::createQueryParameters();
+$queryParameters-&gt;filter = "otherMails/any(x:endswith(x,'.edu'))";
+$queryParameters-&gt;count = true;
+$requestConfiguration-&gt;queryParameters = $queryParameters;
+
+
+$result = $graphServiceClient-&gt;users()-&gt;get($requestConfiguration)-&gt;wait();
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_10_powershell" role="tabpanel" data-tab="powershell" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-powershell">
+Import-Module Microsoft.Graph.Users
+
+Get-MgUser -Filter "otherMails/any(x:endswith(x,'.edu'))" -CountVariable CountVar  -ConsistencyLevel eventual 
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_10_python" role="tabpanel" data-tab="python" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-python">
+# Code snippets are only available for the latest version. Current version is 1.x
+from msgraph import GraphServiceClient
+from msgraph.generated.users.users_request_builder import UsersRequestBuilder
+from kiota_abstractions.base_request_configuration import RequestConfiguration
+# To initialize your graph_client, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=python
+query_params = UsersRequestBuilder.UsersRequestBuilderGetQueryParameters(
+		filter = "otherMails/any(x:endswith(x,'.edu'))",
+		count = True,
+)
+
+request_configuration = RequestConfiguration(
+query_parameters = query_params,
+)
+request_configuration.headers.add("ConsistencyLevel", "eventual")
+
+
+result = await graph_client.users.get(request_configuration = request_configuration)
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+</div>
+<h4 id="response-12">Response</h4>
+<blockquote>
+<p><strong>Note:</strong> The response object shown here might be shortened for readability.</p>
+</blockquote>
+<!-- {
+  "blockType": "response",
+  "truncated": true,
+  "@odata.type": "microsoft.graph.user",
+  "isCollection": true
+} -->
+<pre><code class="lang-http">HTTP/1.1 200 OK
+Content-type: application/json
+
+{
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users",
+    "@odata.count": 2,
+    "value": [
+        {
+            "displayName": "Isaiah Langer",
+            "mail": "isaiahl@fineartschool.edu",
+            "id": "0012cd20-3890-409e-9db3-afc3055ebe22"
+        },
+        {
+            "displayName": "Adele Vance",
+            "mail": "adelev@bellowscollege.edu",
+            "id": "0012cd20-3890-409e-9db3-afc3055ebe22"
+        }
+    ]
+}
+</code></pre>
+<h3 id="example-13-list-all-users-whose-management-is-restricted">Example 13: List all users whose management is restricted</h3>
+<p>The following example shows how to list all users whose management is restricted.</p>
+<h4 id="request-12">Request</h4>
+<p>The following example shows a request.</p>
+<div class="tabGroup" id="tabgroup_11">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_11_http" role="tab" aria-controls="tabpanel_11_http" data-tab="http" tabindex="0" aria-selected="true" data-linktype="self-bookmark">HTTP</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_11_csharp" role="tab" aria-controls="tabpanel_11_csharp" data-tab="csharp" tabindex="-1" data-linktype="self-bookmark">C#</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_11_go" role="tab" aria-controls="tabpanel_11_go" data-tab="go" tabindex="-1" data-linktype="self-bookmark">Go</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_11_java" role="tab" aria-controls="tabpanel_11_java" data-tab="java" tabindex="-1" data-linktype="self-bookmark">Java</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_11_javascript" role="tab" aria-controls="tabpanel_11_javascript" data-tab="javascript" tabindex="-1" data-linktype="self-bookmark">JavaScript</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_11_php" role="tab" aria-controls="tabpanel_11_php" data-tab="php" tabindex="-1" data-linktype="self-bookmark">PHP</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_11_powershell" role="tab" aria-controls="tabpanel_11_powershell" data-tab="powershell" tabindex="-1" data-linktype="self-bookmark">PowerShell</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_11_python" role="tab" aria-controls="tabpanel_11_python" data-tab="python" tabindex="-1" data-linktype="self-bookmark">Python</a>
+</li>
+</ul>
+<section id="tabpanel_11_http" role="tabpanel" data-tab="http">
+<!-- {
+  "blockType": "request",
+  "name": "get_user_restricted"
+}-->
+<pre><code class="lang-msgraph" data-interactive="msgraph">GET https://graph.microsoft.com/v1.0/users?$filter=isManagementRestricted eq true&amp;$select=displayName,userPrincipalName
+</code></pre>
+</section>
+<section id="tabpanel_11_csharp" role="tabpanel" data-tab="csharp" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-csharp">
+// Code snippets are only available for the latest version. Current version is 5.x
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=csharp
+var result = await graphClient.Users.GetAsync((requestConfiguration) =&gt;
+{
+	requestConfiguration.QueryParameters.Filter = "isManagementRestricted eq true";
+	requestConfiguration.QueryParameters.Select = new string []{ "displayName","userPrincipalName" };
+});
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_11_go" role="tabpanel" data-tab="go" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-go">
+
+// Code snippets are only available for the latest major version. Current major version is $v1.*
+
+// Dependencies
+import (
+	  "context"
+	  msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
+	  graphusers "github.com/microsoftgraph/msgraph-sdk-go/users"
+	  //other-imports
+)
+
+
+requestFilter := "isManagementRestricted eq true"
+
+requestParameters := &amp;graphusers.UsersRequestBuilderGetQueryParameters{
+	Filter: &amp;requestFilter,
+	Select: [] string {"displayName","userPrincipalName"},
+}
+configuration := &amp;graphusers.UsersRequestBuilderGetRequestConfiguration{
+	QueryParameters: requestParameters,
+}
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=go
+users, err := graphClient.Users().Get(context.Background(), configuration)
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_11_java" role="tabpanel" data-tab="java" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-java">
+// Code snippets are only available for the latest version. Current version is 6.x
+
+GraphServiceClient graphClient = new GraphServiceClient(requestAdapter);
+
+UserCollectionResponse result = graphClient.users().get(requestConfiguration -&gt; {
+	requestConfiguration.queryParameters.filter = "isManagementRestricted eq true";
+	requestConfiguration.queryParameters.select = new String []{"displayName", "userPrincipalName"};
+});
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_11_javascript" role="tabpanel" data-tab="javascript" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-javascript">
+const options = {
+	authProvider,
+};
+
+const client = Client.init(options);
+
+let users = await client.api('/users')
+	.filter('isManagementRestricted eq true')
+	.select('displayName,userPrincipalName')
+	.get();
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_11_php" role="tabpanel" data-tab="php" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-php">
+&lt;?php
+use Microsoft\Graph\GraphServiceClient;
+use Microsoft\Graph\Generated\Users\UsersRequestBuilderGetRequestConfiguration;
+
+
+$graphServiceClient = new GraphServiceClient($tokenRequestContext, $scopes);
+
+$requestConfiguration = new UsersRequestBuilderGetRequestConfiguration();
+$queryParameters = UsersRequestBuilderGetRequestConfiguration::createQueryParameters();
+$queryParameters-&gt;filter = "isManagementRestricted eq true";
+$queryParameters-&gt;select = ["displayName","userPrincipalName"];
+$requestConfiguration-&gt;queryParameters = $queryParameters;
+
+
+$result = $graphServiceClient-&gt;users()-&gt;get($requestConfiguration)-&gt;wait();
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_11_powershell" role="tabpanel" data-tab="powershell" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-powershell">
+Import-Module Microsoft.Graph.Users
+
+Get-MgUser -Filter "isManagementRestricted eq true" -Property "displayName,userPrincipalName" 
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+<section id="tabpanel_11_python" role="tabpanel" data-tab="python" aria-hidden="true" hidden="hidden">
+
+<pre><code class="lang-python">
+# Code snippets are only available for the latest version. Current version is 1.x
+from msgraph import GraphServiceClient
+from msgraph.generated.users.users_request_builder import UsersRequestBuilder
+from kiota_abstractions.base_request_configuration import RequestConfiguration
+# To initialize your graph_client, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&amp;tabs=python
+query_params = UsersRequestBuilder.UsersRequestBuilderGetQueryParameters(
+		filter = "isManagementRestricted eq true",
+		select = ["displayName","userPrincipalName"],
+)
+
+request_configuration = RequestConfiguration(
+query_parameters = query_params,
+)
+
+result = await graph_client.users.get(request_configuration = request_configuration)
+
+
+</code></pre>
+<!-- markdownlint-disable MD041-->
+<blockquote>
+<p>For details about how to <a href="/en-us/graph/sdks/sdk-installation" data-linktype="absolute-path">add the SDK</a> to your project and <a href="/en-us/graph/sdks/choose-authentication-providers" data-linktype="absolute-path">create an authProvider</a> instance, see the <a href="/en-us/graph/sdks/sdks-overview" data-linktype="absolute-path">SDK documentation</a>.</p>
+</blockquote>
+</section>
+</div>
+<h4 id="response-13">Response</h4>
+<p>The following example shows the response.</p>
+<blockquote>
+<p><strong>Note:</strong> The response object shown here might be shortened for readability.</p>
+</blockquote>
+<!-- {
+  "blockType": "response",
+  "truncated": true,
+  "@odata.type": "microsoft.graph.user"
+} -->
+<pre><code class="lang-http">HTTP/1.1 200 OK
+Content-type: application/json
+
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users(displayName,userPrincipalName)",
+  "value": [
+    {
+      "displayName": "Adele",
+      "userPrincipalName": "Adele@contoso.com"
+    },
+    {
+      "displayName": "Bob",
+      "userPrincipalName": "Bob@contoso.com"
+    }
+  ]
+}
+</code></pre>
+<!-- uuid: 8fcb5dbc-d5aa-4681-8e31-b001d5168d79
+2015-10-25 14:57:30 UTC -->
+<!-- {
+  "type": "#page.annotation",
+  "description": "List users",
+  "keywords": "",
+  "section": "documentation",
+  "tocPath": "",
+  "suppressions": [
+  ]
+}-->
+</div>
+					
+		<div
+			id="ms--inline-notifications"
+			class="margin-block-xs"
+			data-bi-name="inline-notification"
+		></div>
+	 
+		<div
+			id="assertive-live-region"
+			role="alert"
+			aria-live="assertive"
+			class="visually-hidden"
+			aria-relevant="additions"
+			aria-atomic="true"
+		></div>
+		<div
+			id="polite-live-region"
+			role="status"
+			aria-live="polite"
+			class="visually-hidden"
+			aria-relevant="additions"
+			aria-atomic="true"
+		></div>
+	
+					
+		<!-- feedback section -->
+		<section
+			id="site-user-feedback-footer"
+			class="font-size-sm margin-top-md display-none-print display-none-desktop"
+			data-test-id="site-user-feedback-footer"
+			data-bi-name="site-feedback-section"
+		>
+			<hr class="hr" />
+			<h2 id="ms--feedback" class="title is-3">Feedback</h2>
+			<div class="display-flex flex-wrap-wrap align-items-center">
+				<p class="font-weight-semibold margin-xxs margin-left-none">
+					Was this page helpful?
+				</p>
+				<div class="buttons">
+					<button
+						class="thumb-rating-button like button button-primary button-sm"
+						data-test-id="footer-rating-yes"
+						data-binary-rating-response="rating-yes"
+						type="button"
+						title="This article is helpful"
+						data-bi-name="button-rating-yes"
+						aria-pressed="false"
+					>
+						<span class="icon" aria-hidden="true">
+							<span class="docon docon-like"></span>
+						</span>
+						<span>Yes</span>
+					</button>
+					<button
+						class="thumb-rating-button dislike button button-primary button-sm"
+						id="standard-rating-no-button"
+						hidden
+						data-test-id="footer-rating-no"
+						data-binary-rating-response="rating-no"
+						type="button"
+						title="This article is not helpful"
+						data-bi-name="button-rating-no"
+						aria-pressed="false"
+					>
+						<span class="icon" aria-hidden="true">
+							<span class="docon docon-dislike"></span>
+						</span>
+						<span>No</span>
+					</button>
+					<details
+						class="popover popover-top"
+						id="mobile-help-popover"
+						data-test-id="footer-feedback-popover"
+					>
+						<summary
+							class="thumb-rating-button dislike button button-primary button-sm"
+							data-test-id="details-footer-rating-no"
+							data-binary-rating-response="rating-no"
+							title="This article is not helpful"
+							data-bi-name="button-rating-no"
+							aria-pressed="false"
+							data-bi-an="feedback-unhelpful-popover"
+						>
+							<span class="icon" aria-hidden="true">
+								<span class="docon docon-dislike"></span>
+							</span>
+							<span>No</span>
+						</summary>
+						<div
+							class="popover-content width-200 width-300-tablet"
+							role="dialog"
+							aria-labelledby="popover-heading"
+							aria-describedby="popover-description"
+						>
+							<p id="popover-heading" class="font-size-lg margin-bottom-xxs font-weight-semibold">
+								Need help with this topic?
+							</p>
+							<p id="popover-description" class="font-size-sm margin-bottom-xs">
+								Want to try using Ask Learn to clarify or guide you through this topic?
+							</p>
+							
+		<div class="buttons flex-direction-row flex-wrap justify-content-center gap-xxs">
+			<div>
+		<button
+			class="button button-sm border inner-focus display-none margin-right-xxs"
+			data-bi-name="ask-learn-assistant-entry-troubleshoot"
+			data-test-id="ask-learn-assistant-modal-entry-mobile-feedback"
+			data-ask-learn-modal-entry-feedback
+			data-bi-an=feedback-unhelpful-popover
+			type="button"
+			style="min-width: max-content;"
+			aria-expanded="false"
+			aria-label="Ask Learn"
+			hidden
+		>
+			<span class="icon" aria-hidden="true">
+				<span class="docon docon-chat-sparkle-fill gradient-ask-learn-logo"></span>
+			</span>
+		</button>
+		<button
+			class="button button-sm display-inline-flex display-none-desktop flex-shrink-0 margin-right-xxs border-color-ask-learn margin-right-xxs"
+			data-bi-name="ask-learn-assistant-entry-troubleshoot"
+			data-bi-an=feedback-unhelpful-popover
+			data-test-id="ask-learn-assistant-modal-entry-tablet-feedback"
+			data-ask-learn-modal-entry-feedback
+			type="button"
+			style="min-width: max-content;"
+			aria-expanded="false"
+			hidden
+		>
+			<span class="icon font-size-lg" aria-hidden="true">
+				<span class="docon docon-chat-sparkle-fill gradient-ask-learn-logo"></span>
+			</span>
+			<span>Ask Learn</span>
+		</button>
+		<button
+			class="button button-sm display-none flex-shrink-0 display-inline-flex-desktop margin-right-xxs border-color-ask-learn margin-right-xxs"
+			data-bi-name="ask-learn-assistant-entry-troubleshoot"
+			data-bi-an=feedback-unhelpful-popover
+			data-test-id="ask-learn-assistant-flyout-entry-feedback"
+			data-ask-learn-flyout-entry-show-only
+			data-flyout-button="toggle"
+			type="button"
+			style="min-width: max-content;"
+			aria-expanded="false"
+			aria-controls="ask-learn-flyout"
+			hidden
+		>
+			<span class="icon font-size-lg" aria-hidden="true">
+				<span class="docon docon-chat-sparkle-fill gradient-ask-learn-logo"></span>
+			</span>
+			<span>Ask Learn</span>
+		</button>
+	</div>
+			<button
+				type="button"
+				class="button button-sm margin-right-xxs"
+				data-help-option="suggest-fix"
+				data-bi-name="feedback-suggest"
+				data-bi-an="feedback-unhelpful-popover"
+				data-test-id="suggest-fix"
+			>
+				<span class="icon" aria-hidden="true">
+					<span class="docon docon-feedback"></span>
+				</span>
+				<span> Suggest a fix? </span>
+			</button>
+		</div>
+	
+						</div>
+					</details>
+				</div>
+			</div>
+		</section>
+		<!-- end feedback section -->
+	
+				</div>
+				
+		<div id="ms--additional-resources-mobile" class="display-none-print">
+			<hr class="hr" hidden />
+			<h2 id="ms--additional-resources-mobile-heading" class="title is-3" hidden>
+				Additional resources
+			</h2>
+			 
+		<section
+			id="right-rail-training-mobile"
+			class=""
+			data-bi-name="learning-resource-card"
+			hidden
+		></section>
+	 
+		<section
+			id="right-rail-events-mobile"
+			class=""
+			data-bi-name="events-card"
+			hidden
+		></section>
+	
+		</div>
+	 
+		<div
+			id="article-metadata-footer"
+			data-bi-name="article-metadata-footer"
+			data-test-id="article-metadata-footer"
+			class="page-metadata-container"
+		>
+			<hr class="hr" />
+			<ul class="metadata page-metadata" data-bi-name="page info" lang="en-us" dir="ltr">
+				<li class="visibility-hidden-visual-diff">
+			<span class="badge badge-sm text-wrap-pretty">
+				<span>Last updated on <local-time format="twoDigitNumeric"
+		datetime="2025-07-23T10:06:00.000Z"
+		data-article-date-source="calculated"
+		class="is-invisible"
+	>
+		2025-07-23
+	</local-time></span>
+			</span>
+		</li>
+			</ul>
+		</div>
+	
+			</div>
+		
+				</main>
+				<aside
+					id="layout-body-aside"
+					class="layout-body-aside  "
+					data-bi-name="aside"
+					aria-label="Additional resources"
+			  >
+					
+		<div
+			id="ms--additional-resources"
+			class="right-container padding-sm display-none display-block-desktop height-full"
+			data-bi-name="pageactions"
+		>
+			<div id="affixed-right-container" data-bi-name="right-column">
+				
+		<nav
+			id="side-doc-outline"
+			class="doc-outline border-bottom padding-bottom-xs margin-bottom-xs scrollbar-width-thin"
+			data-bi-name="intopic toc"
+			aria-label="In this article"
+		>
+			<h3>In this article</h3>
+		</nav>
+	
+				<!-- Feedback -->
+				
+		<section
+			id="ms--site-user-feedback-right-rail"
+			class="font-size-sm display-none-print"
+			data-test-id="site-user-feedback-right-rail"
+			data-bi-name="site-feedback-right-rail"
+		>
+			<div class="display-flex flex-wrap-wrap align-items-center">
+				<p class="font-weight-semibold margin-xxs margin-left-none">
+					Was this page helpful?
+				</p>
+				<div class="display-flex flex-wrap-nowrap">
+					<button
+						class="thumb-rating-button like inner-focus"
+						data-test-id="right-rail-rating-yes"
+						data-binary-rating-response="rating-yes"
+						type="button"
+						title="This article is helpful"
+						aria-label="This article is helpful"
+						data-bi-name="button-rating-yes"
+						aria-pressed="false"
+					>
+						<span class="icon" aria-hidden="true">
+							<span class="docon docon-like"></span>
+						</span>
+					</button>
+					<button
+						class="thumb-rating-button dislike inner-focus"
+						id="right-rail-no-button"
+						hidden
+						data-test-id="right-rail-rating-no"
+						data-binary-rating-response="rating-no"
+						type="button"
+						title="This article is not helpful"
+						aria-label="This article is not helpful"
+						data-bi-name="button-rating-no"
+						aria-pressed="false"
+					>
+						<span class="icon" aria-hidden="true">
+							<span class="docon docon-dislike"></span>
+						</span>
+					</button>
+					<details class="popover popover-right" id="help-popover" data-test-id="feedback-popover">
+						<summary
+							tabindex="0"
+							class="thumb-rating-button dislike inner-focus"
+							data-test-id="details-right-rail-rating-no"
+							data-binary-rating-response="rating-no"
+							title="This article is not helpful"
+							aria-label="This article is not helpful"
+							data-bi-name="button-rating-no"
+							aria-pressed="false"
+							data-bi-an="feedback-unhelpful-popover"
+						>
+							<span class="icon" aria-hidden="true">
+								<span class="docon docon-dislike"></span>
+							</span>
+						</summary>
+						<div
+							class="popover-content width-200 width-300-tablet"
+							role="dialog"
+							aria-labelledby="popover-heading-right-rail"
+							aria-describedby="popover-description-right-rail"
+						>
+							<p
+								id="popover-heading-right-rail"
+								class="font-size-lg margin-bottom-xxs font-weight-semibold"
+							>
+								Need help with this topic?
+							</p>
+							<p id="popover-description-right-rail" class="font-size-sm margin-bottom-xs">
+								Want to try using Ask Learn to clarify or guide you through this topic?
+							</p>
+							
+		<div class="buttons flex-direction-row flex-wrap justify-content-center gap-xxs">
+			<div>
+		<button
+			class="button button-sm border inner-focus display-none margin-right-xxs"
+			data-bi-name="ask-learn-assistant-entry-troubleshoot"
+			data-test-id="ask-learn-assistant-modal-entry-mobile-feedback"
+			data-ask-learn-modal-entry-feedback
+			data-bi-an=feedback-unhelpful-popover
+			type="button"
+			style="min-width: max-content;"
+			aria-expanded="false"
+			aria-label="Ask Learn"
+			hidden
+		>
+			<span class="icon" aria-hidden="true">
+				<span class="docon docon-chat-sparkle-fill gradient-ask-learn-logo"></span>
+			</span>
+		</button>
+		<button
+			class="button button-sm display-inline-flex display-none-desktop flex-shrink-0 margin-right-xxs border-color-ask-learn margin-right-xxs"
+			data-bi-name="ask-learn-assistant-entry-troubleshoot"
+			data-bi-an=feedback-unhelpful-popover
+			data-test-id="ask-learn-assistant-modal-entry-tablet-feedback"
+			data-ask-learn-modal-entry-feedback
+			type="button"
+			style="min-width: max-content;"
+			aria-expanded="false"
+			hidden
+		>
+			<span class="icon font-size-lg" aria-hidden="true">
+				<span class="docon docon-chat-sparkle-fill gradient-ask-learn-logo"></span>
+			</span>
+			<span>Ask Learn</span>
+		</button>
+		<button
+			class="button button-sm display-none flex-shrink-0 display-inline-flex-desktop margin-right-xxs border-color-ask-learn margin-right-xxs"
+			data-bi-name="ask-learn-assistant-entry-troubleshoot"
+			data-bi-an=feedback-unhelpful-popover
+			data-test-id="ask-learn-assistant-flyout-entry-feedback"
+			data-ask-learn-flyout-entry-show-only
+			data-flyout-button="toggle"
+			type="button"
+			style="min-width: max-content;"
+			aria-expanded="false"
+			aria-controls="ask-learn-flyout"
+			hidden
+		>
+			<span class="icon font-size-lg" aria-hidden="true">
+				<span class="docon docon-chat-sparkle-fill gradient-ask-learn-logo"></span>
+			</span>
+			<span>Ask Learn</span>
+		</button>
+	</div>
+			<button
+				type="button"
+				class="button button-sm margin-right-xxs"
+				data-help-option="suggest-fix"
+				data-bi-name="feedback-suggest"
+				data-bi-an="feedback-unhelpful-popover"
+				data-test-id="suggest-fix"
+			>
+				<span class="icon" aria-hidden="true">
+					<span class="docon docon-feedback"></span>
+				</span>
+				<span> Suggest a fix? </span>
+			</button>
+		</div>
+	
+						</div>
+					</details>
+				</div>
+			</div>
+		</section>
+	
+			</div>
+		</div>
+	
+			  </aside> <section
+					id="layout-body-flyout"
+					class="layout-body-flyout "
+					data-bi-name="flyout"
+			  >
+					 <div
+	class="height-full border-left background-color-body-medium"
+	id="ask-learn-flyout"
+></div>
+			  </section> <div class="layout-body-footer " data-bi-name="layout-footer">
+		<footer
+			id="footer"
+			data-test-id="footer"
+			data-bi-name="footer"
+			class="footer-layout padding-xs padding-sm-desktop has-default-focus border-top"
+			role="contentinfo"
+		>
+			<div class="display-flex gap-xs flex-wrap-wrap is-full-height padding-right-lg-desktop">
+				
+		<a
+			data-mscc-ic="false"
+			href="#"
+			data-bi-name="select-locale"
+			class="locale-selector-link flex-shrink-0 button button-sm button-clear external-link-indicator"
+			id=""
+			title=""
+			><span class="icon" aria-hidden="true"
+				><span class="docon docon-world"></span></span
+			><span class="local-selector-link-text">en-us</span></a
+		>
+	 <div class="ccpa-privacy-link" data-ccpa-privacy-link hidden>
+		
+		<a
+			data-mscc-ic="false"
+			href="https://aka.ms/yourcaliforniaprivacychoices"
+			data-bi-name="your-privacy-choices"
+			class="button button-sm button-clear flex-shrink-0 external-link-indicator"
+			id=""
+			title=""
+			>
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			viewBox="0 0 30 14"
+			xml:space="preserve"
+			height="16"
+			width="43"
+			aria-hidden="true"
+			focusable="false"
+		>
+			<path
+				d="M7.4 12.8h6.8l3.1-11.6H7.4C4.2 1.2 1.6 3.8 1.6 7s2.6 5.8 5.8 5.8z"
+				style="fill-rule:evenodd;clip-rule:evenodd;fill:#fff"
+			></path>
+			<path
+				d="M22.6 0H7.4c-3.9 0-7 3.1-7 7s3.1 7 7 7h15.2c3.9 0 7-3.1 7-7s-3.2-7-7-7zm-21 7c0-3.2 2.6-5.8 5.8-5.8h9.9l-3.1 11.6H7.4c-3.2 0-5.8-2.6-5.8-5.8z"
+				style="fill-rule:evenodd;clip-rule:evenodd;fill:#06f"
+			></path>
+			<path
+				d="M24.6 4c.2.2.2.6 0 .8L22.5 7l2.2 2.2c.2.2.2.6 0 .8-.2.2-.6.2-.8 0l-2.2-2.2-2.2 2.2c-.2.2-.6.2-.8 0-.2-.2-.2-.6 0-.8L20.8 7l-2.2-2.2c-.2-.2-.2-.6 0-.8.2-.2.6-.2.8 0l2.2 2.2L23.8 4c.2-.2.6-.2.8 0z"
+				style="fill:#fff"
+			></path>
+			<path
+				d="M12.7 4.1c.2.2.3.6.1.8L8.6 9.8c-.1.1-.2.2-.3.2-.2.1-.5.1-.7-.1L5.4 7.7c-.2-.2-.2-.6 0-.8.2-.2.6-.2.8 0L8 8.6l3.8-4.5c.2-.2.6-.2.9 0z"
+				style="fill:#06f"
+			></path>
+		</svg>
+	
+			<span>Your Privacy Choices</span></a
+		>
+	
+	</div>
+				<div class="flex-shrink-0">
+		<div class="dropdown has-caret-up">
+			<button
+				data-test-id="theme-selector-button"
+				class="dropdown-trigger button button-clear button-sm inner-focus theme-dropdown-trigger"
+				aria-controls="{{ themeMenuId }}"
+				aria-haspopup="true"
+				aria-expanded="false"
+				data-bi-name="theme"
+			>
+				<span class="icon" aria-hidden="true"><span class="docon docon-sun"></span></span>
+				<span>Theme</span>
+				<span class="icon expanded-indicator" aria-hidden="true">
+					<span class="docon docon-chevron-down-light"></span>
+				</span>
+			</button>
+			<div class="dropdown-menu" id="{{ themeMenuId }}" role="menu">
+				<ul class="theme-selector padding-xxs" data-test-id="theme-dropdown-menu" role="none">
+					<li class="theme display-block" role="none">
+						<button
+							class="button button-clear button-sm theme-control button-block justify-content-flex-start text-align-left"
+							role="menuitemradio"
+							aria-checked="false"
+							data-theme-to="light"
+							tabindex="-1"
+						>
+							<span class="theme-light margin-right-xxs">
+								<span
+									class="theme-selector-icon border display-inline-block has-body-background"
+									aria-hidden="true"
+								>
+									<svg class="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 14">
+										<rect width="22" height="14" class="has-fill-body-background" />
+										<rect x="5" y="5" width="12" height="4" class="has-fill-secondary" />
+										<rect x="5" y="2" width="2" height="1" class="has-fill-secondary" />
+										<rect x="8" y="2" width="2" height="1" class="has-fill-secondary" />
+										<rect x="11" y="2" width="3" height="1" class="has-fill-secondary" />
+										<rect x="1" y="1" width="2" height="2" class="has-fill-secondary" />
+										<rect x="5" y="10" width="7" height="2" rx="0.3" class="has-fill-primary" />
+										<rect x="19" y="1" width="2" height="2" rx="1" class="has-fill-secondary" />
+									</svg>
+								</span>
+							</span>
+							<span> Light </span>
+						</button>
+					</li>
+					<li class="theme display-block" role="none">
+						<button
+							class="button button-clear button-sm theme-control button-block justify-content-flex-start text-align-left"
+							role="menuitemradio"
+							aria-checked="false"
+							data-theme-to="dark"
+							tabindex="-1"
+						>
+							<span class="theme-dark margin-right-xxs">
+								<span
+									class="border theme-selector-icon display-inline-block has-body-background"
+									aria-hidden="true"
+								>
+									<svg class="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 14">
+										<rect width="22" height="14" class="has-fill-body-background" />
+										<rect x="5" y="5" width="12" height="4" class="has-fill-secondary" />
+										<rect x="5" y="2" width="2" height="1" class="has-fill-secondary" />
+										<rect x="8" y="2" width="2" height="1" class="has-fill-secondary" />
+										<rect x="11" y="2" width="3" height="1" class="has-fill-secondary" />
+										<rect x="1" y="1" width="2" height="2" class="has-fill-secondary" />
+										<rect x="5" y="10" width="7" height="2" rx="0.3" class="has-fill-primary" />
+										<rect x="19" y="1" width="2" height="2" rx="1" class="has-fill-secondary" />
+									</svg>
+								</span>
+							</span>
+							<span> Dark </span>
+						</button>
+					</li>
+					<li class="theme display-block" role="none">
+						<button
+							class="button button-clear button-sm theme-control button-block justify-content-flex-start text-align-left"
+							role="menuitemradio"
+							aria-checked="false"
+							data-theme-to="high-contrast"
+							tabindex="-1"
+						>
+							<span class="theme-high-contrast margin-right-xxs">
+								<span
+									class="border theme-selector-icon display-inline-block has-body-background"
+									aria-hidden="true"
+								>
+									<svg class="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 14">
+										<rect width="22" height="14" class="has-fill-body-background" />
+										<rect x="5" y="5" width="12" height="4" class="has-fill-secondary" />
+										<rect x="5" y="2" width="2" height="1" class="has-fill-secondary" />
+										<rect x="8" y="2" width="2" height="1" class="has-fill-secondary" />
+										<rect x="11" y="2" width="3" height="1" class="has-fill-secondary" />
+										<rect x="1" y="1" width="2" height="2" class="has-fill-secondary" />
+										<rect x="5" y="10" width="7" height="2" rx="0.3" class="has-fill-primary" />
+										<rect x="19" y="1" width="2" height="2" rx="1" class="has-fill-secondary" />
+									</svg>
+								</span>
+							</span>
+							<span> High contrast </span>
+						</button>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+			</div>
+			<ul class="links" data-bi-name="footerlinks">
+				<li class="manage-cookies-holder" hidden=""></li>
+				<li>
+		
+		<a
+			data-mscc-ic="false"
+			href="https://learn.microsoft.com/en-us/principles-for-ai-generated-content"
+			data-bi-name="aiDisclaimer"
+			class=" external-link-indicator"
+			id=""
+			title=""
+			>AI Disclaimer</a
+		>
+	
+	</li><li>
+		
+		<a
+			data-mscc-ic="false"
+			href="https://learn.microsoft.com/en-us/previous-versions/"
+			data-bi-name="archivelink"
+			class=" external-link-indicator"
+			id=""
+			title=""
+			>Previous Versions</a
+		>
+	
+	</li> <li>
+		
+		<a
+			data-mscc-ic="false"
+			href="https://techcommunity.microsoft.com/t5/microsoft-learn-blog/bg-p/MicrosoftLearnBlog"
+			data-bi-name="bloglink"
+			class=" external-link-indicator"
+			id=""
+			title=""
+			>Blog</a
+		>
+	
+	</li> <li>
+		
+		<a
+			data-mscc-ic="false"
+			href="https://learn.microsoft.com/en-us/contribute"
+			data-bi-name="contributorGuide"
+			class=" external-link-indicator"
+			id=""
+			title=""
+			>Contribute</a
+		>
+	
+	</li><li>
+		
+		<a
+			data-mscc-ic="false"
+			href="https://go.microsoft.com/fwlink/?LinkId=521839"
+			data-bi-name="privacy"
+			class=" external-link-indicator"
+			id=""
+			title=""
+			>Privacy</a
+		>
+	
+	</li><li>
+		
+		<a
+			data-mscc-ic="false"
+			href="https://go.microsoft.com/fwlink/?linkid=2259814"
+			data-bi-name="consumer-health-privacy"
+			class=" external-link-indicator"
+			id=""
+			title=""
+			>Consumer Health Privacy</a
+		>
+	
+	</li><li>
+		
+		<a
+			data-mscc-ic="false"
+			href="https://learn.microsoft.com/en-us/legal/termsofuse"
+			data-bi-name="termsofuse"
+			class=" external-link-indicator"
+			id=""
+			title=""
+			>Terms of Use</a
+		>
+	
+	</li><li>
+		
+		<a
+			data-mscc-ic="false"
+			href="https://www.microsoft.com/legal/intellectualproperty/Trademarks/"
+			data-bi-name="trademarks"
+			class=" external-link-indicator"
+			id=""
+			title=""
+			>Trademarks</a
+		>
+	
+	</li>
+				<li>&copy; Microsoft 2026</li>
+			</ul>
+		</footer>
+	</footer>
+			</body>
+		</html>

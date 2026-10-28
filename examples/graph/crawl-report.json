@@ -1,0 +1,407 @@
+{
+  "run": {
+    "id": "2026-10-28T14-00-45Z-f43b",
+    "command": "update",
+    "started_at": "2026-10-28T14:00:45Z",
+    "finished_at": "2026-10-28T14:02:29Z",
+    "duration_s": 104.383,
+    "exit_code": 0,
+    "version": "0.1.0",
+    "config_hash": "e6c336a1d3e8297d",
+    "robots_ignored": false
+  },
+  "totals": {
+    "discovered": 3127,
+    "fetched": 0,
+    "converted": 0,
+    "skipped_unchanged": 199,
+    "failed": 0,
+    "blocked": 0,
+    "low_confidence": 3
+  },
+  "per_host": [
+    {
+      "host": "learn.microsoft.com",
+      "fetched": 0,
+      "blocked": 0,
+      "block_rate": 0.0,
+      "tiers_used": [
+        "http"
+      ],
+      "breaker_tripped": false,
+      "robots_ignored": false,
+      "render_escalations": 0,
+      "retry_after_honored": 0
+    }
+  ],
+  "blocked_urls": [],
+  "failed_urls": [],
+  "low_confidence_pages": [
+    {
+      "path": "group-directory-settings.md",
+      "quality_score": 0.9833,
+      "flags": [
+        "html_table_kept",
+        "list_items",
+        "uncrawled_internal"
+      ]
+    },
+    {
+      "path": "security-partner-overview.md",
+      "quality_score": 0.9833,
+      "flags": [
+        "list_items",
+        "uncrawled_internal"
+      ]
+    },
+    {
+      "path": "throttling-limits.md",
+      "quality_score": 0.9833,
+      "flags": [
+        "html_table_kept",
+        "list_items",
+        "uncrawled_internal"
+      ]
+    }
+  ],
+  "broken_links": [
+    {
+      "from_path": "api/resources/v1.0/group.md",
+      "href": "../../../known-issues.md#non-admin-user-cant-add-self-as-group-owner-during-group-creation-or-update",
+      "reason": "fragment #non-admin-user-cant-add-self-as-group-owner-during-group-creation-or-update not found in known-issues.md"
+    },
+    {
+      "from_path": "api/resources/v1.0/group.md",
+      "href": "../../../known-issues.md#non-admin-user-cant-add-self-as-group-owner-during-group-creation-or-update",
+      "reason": "fragment #non-admin-user-cant-add-self-as-group-owner-during-group-creation-or-update not found in known-issues.md"
+    },
+    {
+      "from_path": "api/v1.0/group-post-groups.md",
+      "href": "../../known-issues.md#non-admin-user-cant-add-self-as-group-owner-during-group-creation-or-update",
+      "reason": "fragment #non-admin-user-cant-add-self-as-group-owner-during-group-creation-or-update not found in known-issues.md"
+    },
+    {
+      "from_path": "api/v1.0/group-post-groups.md",
+      "href": "../../known-issues.md#non-admin-user-cant-add-self-as-group-owner-during-group-creation-or-update",
+      "reason": "fragment #non-admin-user-cant-add-self-as-group-owner-during-group-creation-or-update not found in known-issues.md"
+    },
+    {
+      "from_path": "api/v1.0/subscription-post-subscriptions.md",
+      "href": "../../change-notifications-with-resource-data.md#creating-a-subscription",
+      "reason": "fragment #creating-a-subscription not found in change-notifications-with-resource-data.md"
+    },
+    {
+      "from_path": "api/v1.0/user-list-people.md",
+      "href": "../../query-parameters.md#top-parameter",
+      "reason": "fragment #top-parameter not found in query-parameters.md"
+    },
+    {
+      "from_path": "connect-to-assignments-and-grades.md",
+      "href": "query-parameters.md#filter-parameter",
+      "reason": "fragment #filter-parameter not found in query-parameters.md"
+    },
+    {
+      "from_path": "migrate-exchange-web-services-api-mapping.md",
+      "href": "outlook-get-shared-events-calendars.md#sharee-get-a-shared-calendar-or-its-events-directly-from-calendar-owners-mailbox",
+      "reason": "fragment #sharee-get-a-shared-calendar-or-its-events-directly-from-calendar-owners-mailbox not found in outlook-get-shared-events-calendars.md"
+    },
+    {
+      "from_path": "query-parameters.md",
+      "href": "known-issues.md#search-for-directory-objects-fails-for-encoded-ampersand-character",
+      "reason": "fragment #search-for-directory-objects-fails-for-encoded-ampersand-character not found in known-issues.md"
+    },
+    {
+      "from_path": "teams-changenotifications-appinstallation.md",
+      "href": "known-issues.md#upgrade-events-for-teams-app-installation-change-notifications-in-chat-scope-are-not-delivered",
+      "reason": "fragment #upgrade-events-for-teams-app-installation-change-notifications-in-chat-scope-are-not-delivered not found in known-issues.md"
+    },
+    {
+      "from_path": "tutorials/dotnet-email.md",
+      "href": "../query-parameters.md#top-parameter",
+      "reason": "fragment #top-parameter not found in query-parameters.md"
+    },
+    {
+      "from_path": "tutorials/dotnet-email.md",
+      "href": "../query-parameters.md#orderby-parameter",
+      "reason": "fragment #orderby-parameter not found in query-parameters.md"
+    },
+    {
+      "from_path": "tutorials/go-authentication.md",
+      "href": "../query-parameters.md#select-parameter",
+      "reason": "fragment #select-parameter not found in query-parameters.md"
+    },
+    {
+      "from_path": "tutorials/java-app-only-get-users.md",
+      "href": "../query-parameters.md#top-parameter",
+      "reason": "fragment #top-parameter not found in query-parameters.md"
+    },
+    {
+      "from_path": "tutorials/java-app-only-get-users.md",
+      "href": "../query-parameters.md#orderby-parameter",
+      "reason": "fragment #orderby-parameter not found in query-parameters.md"
+    },
+    {
+      "from_path": "tutorials/java-authentication.md",
+      "href": "../query-parameters.md#select-parameter",
+      "reason": "fragment #select-parameter not found in query-parameters.md"
+    },
+    {
+      "from_path": "tutorials/java-email.md",
+      "href": "../query-parameters.md#top-parameter",
+      "reason": "fragment #top-parameter not found in query-parameters.md"
+    },
+    {
+      "from_path": "tutorials/java-email.md",
+      "href": "../query-parameters.md#orderby-parameter",
+      "reason": "fragment #orderby-parameter not found in query-parameters.md"
+    },
+    {
+      "from_path": "tutorials/javascript-email.md",
+      "href": "../query-parameters.md#top-parameter",
+      "reason": "fragment #top-parameter not found in query-parameters.md"
+    },
+    {
+      "from_path": "tutorials/javascript-email.md",
+      "href": "../query-parameters.md#orderby-parameter",
+      "reason": "fragment #orderby-parameter not found in query-parameters.md"
+    },
+    {
+      "from_path": "tutorials/php-email.md",
+      "href": "../query-parameters.md#top-parameter",
+      "reason": "fragment #top-parameter not found in query-parameters.md"
+    },
+    {
+      "from_path": "tutorials/php-email.md",
+      "href": "../query-parameters.md#orderby-parameter",
+      "reason": "fragment #orderby-parameter not found in query-parameters.md"
+    },
+    {
+      "from_path": "tutorials/powershell-email.md",
+      "href": "../query-parameters.md#top-parameter",
+      "reason": "fragment #top-parameter not found in query-parameters.md"
+    },
+    {
+      "from_path": "tutorials/powershell-email.md",
+      "href": "../query-parameters.md#orderby-parameter",
+      "reason": "fragment #orderby-parameter not found in query-parameters.md"
+    }
+  ],
+  "changes": {
+    "added": [],
+    "changed": [],
+    "unchanged": [
+      "api/resources/v1.0/driveitem.md",
+      "api/resources/v1.0/group.md",
+      "api/resources/v1.0/identityset.md",
+      "api/resources/v1.0/plannerassignments.md",
+      "api/resources/v1.0/profilephoto.md",
+      "api/resources/v1.0/user.md",
+      "api/resources/v1.0/workbookchart.md",
+      "api/v1.0/calendar-get.md",
+      "api/v1.0/driveitem-list-children.md",
+      "api/v1.0/event-delta.md",
+      "api/v1.0/group-post-conversations.md",
+      "api/v1.0/group-post-groups.md",
+      "api/v1.0/notebook-get.md",
+      "api/v1.0/plannergroup-list-plans.md",
+      "api/v1.0/planneruser-list-tasks.md",
+      "api/v1.0/reportroot-getoffice365groupsactivitycounts.md",
+      "api/v1.0/section-post-pages.md",
+      "api/v1.0/subscription-post-subscriptions.md",
+      "api/v1.0/user-findmeetingtimes.md",
+      "api/v1.0/user-get.md",
+      "api/v1.0/user-list-directreports.md",
+      "api/v1.0/user-list-manager.md",
+      "api/v1.0/user-list-people.md",
+      "api/v1.0/user-update-mailboxsettings.md",
+      "app-authorization.md",
+      "app-registration.md",
+      "application-proxy-configure-api.md",
+      "application-saml-sso-configure-api.md",
+      "applications-authenticationbehaviors.md",
+      "auth-register-app-v2.md",
+      "auth-v2-service.md",
+      "authenticationmethods-get-started.md",
+      "businessscenarios-concept-overview.md",
+      "change-notifications-delivery-event-hubs.md",
+      "change-notifications-with-resource-data.md",
+      "changenotifications-for-presence.md",
+      "changenotifications-for-virtualevent.md",
+      "cloud-communications-identifylargegalleryview.md",
+      "cloud-communications-media.md",
+      "cloud-communications-online-meetings.md",
+      "cloud-communications-virtual-events-townhall-usecases.md",
+      "cloud-communications-virtual-events-webinar-usecases.md",
+      "connect-to-assignments-and-grades.md",
+      "connecting-external-content-api-limits.md",
+      "connecting-external-content-experiences.md",
+      "cross-device-app-configuration.md",
+      "custom-connector-sdk-contracts-common.md",
+      "custom-connector-sdk-contracts-connectionmanagement.md",
+      "custom-connector-sdk-overview.md",
+      "custom-connector-sdk-sample-publish.md",
+      "data-connect-custom-encryption.md",
+      "data-connect-templates-overview.md",
+      "data-connect-troubleshooting.md",
+      "data-connect-users-and-groups.md",
+      "delta-query-users.md",
+      "education-rubric-overview.md",
+      "embed-teams-app-in-assignment.md",
+      "errors.md",
+      "excel-concept-overview.md",
+      "extensibility-overview.md",
+      "findmeetingtimes-example.md",
+      "get-links-to-assignments-and-submissions.md",
+      "group-directory-settings.md",
+      "how-to-pim-alerts.md",
+      "how-to-pim-update-rules.md",
+      "identity-governance-pim-rules-overview.md",
+      "index-2b2fc5.md",
+      "known-issues.md",
+      "managed-private-endpoints-overview.md",
+      "mcp-server/get-started.md",
+      "mcp-server/mcp-server-sample-prompts.md",
+      "microsoft-graph-activity-logs-overview.md",
+      "migrate-azure-ad-graph-audit-api-use.md",
+      "migrate-azure-ad-graph-client-libraries.md",
+      "migrate-azure-ad-graph-deploy-test-extend.md",
+      "migrate-azure-ad-graph-permissions-differences.md",
+      "migrate-azure-ad-graph-planning-checklist.md",
+      "migrate-azure-ad-graph-request-differences.md",
+      "migrate-exchange-web-services-api-mapping.md",
+      "msgraph-onboarding-overview.md",
+      "notifications-concept-overview.md",
+      "notifications-integrating-app-server.md",
+      "notifications-integration-e2e-overview.md",
+      "office-365-connected-services.md",
+      "onenote-abs-pos.md",
+      "onenote-create-page.md",
+      "outlook-calendar-meeting-proposals.md",
+      "outlook-calendar-online-meetings.md",
+      "outlook-create-send-messages.md",
+      "outlook-get-mime-message.md",
+      "outlook-get-shared-events-calendars.md",
+      "outlook-immutable-id.md",
+      "outlook-organize-messages.md",
+      "outlook-schedule-recurring-events.md",
+      "outlook-send-mail-from-other-user.md",
+      "paging.md",
+      "partners-billing-concept-overview.md",
+      "patterns/analyze-storage-data.md",
+      "patterns/notifications-in-push-mode.md",
+      "profilephoto-configure-settings.md",
+      "profilepriority-configure-profilepropertysetting.md",
+      "pronouns-configure-pronouns-availability.md",
+      "query-parameters.md",
+      "quick-start-faq.md",
+      "resolve-auth-errors.md",
+      "sdks/choose-authentication-providers.md",
+      "sdks/create-client.md",
+      "sdks/create-requests.md",
+      "sdks/generate-with-kiota.md",
+      "sdks/large-file-upload.md",
+      "sdks/use-beta.md",
+      "search-concept-acceptlanguage-header.md",
+      "search-concept-acronym.md",
+      "search-concept-aggregation.md",
+      "search-concept-collapse.md",
+      "search-concept-custom-types.md",
+      "search-concept-files.md",
+      "search-concept-messages.md",
+      "search-concept-speller.md",
+      "search-concept-trim-duplicate.md",
+      "search-concept-xrank.md",
+      "security-partner-overview.md",
+      "service-communications-concept-overview.md",
+      "synchronization-configure-with-custom-target-attributes.md",
+      "synchronization-configure-with-directory-extension-attributes.md",
+      "teams-activity-feed-notifications-best-practices.md",
+      "teams-changenotifications-appinstallation.md",
+      "teams-changenotifications-channelmembership.md",
+      "teams-changenotifications-chatmembership.md",
+      "teams-changenotifications-team-and-channel.md",
+      "teams-changenotifications-teammembership.md",
+      "teams-embed-within-own-app.md",
+      "teams-send-activityfeednotifications.md",
+      "templates/terraform/overview-terraform-for-graph.md",
+      "templates/terraform/quickstart-create-terraform.md",
+      "templates/terraform/reference/beta/applications.md",
+      "templates/terraform/reference/beta/approleassignedto.md",
+      "templates/terraform/reference/beta/federatedidentitycredentials.md",
+      "templates/terraform/reference/beta/groups.md",
+      "templates/terraform/reference/beta/oauth2permissiongrants.md",
+      "templates/terraform/reference/beta/overview.md",
+      "templates/terraform/reference/beta/serviceprincipals.md",
+      "templates/terraform/reference/beta/users.md",
+      "templates/terraform/reference/v1.0/applications.md",
+      "templates/terraform/reference/v1.0/approleassignedto.md",
+      "templates/terraform/reference/v1.0/federatedidentitycredentials.md",
+      "templates/terraform/reference/v1.0/groups.md",
+      "templates/terraform/reference/v1.0/oauth2permissiongrants.md",
+      "templates/terraform/reference/v1.0/overview.md",
+      "templates/terraform/reference/v1.0/serviceprincipals.md",
+      "templates/terraform/reference/v1.0/users.md",
+      "throttling-limits.md",
+      "toolkit/components/agenda.md",
+      "toolkit/components/chat.md",
+      "toolkit/components/get.md",
+      "toolkit/components/people-picker.md",
+      "toolkit/components/planner.md",
+      "toolkit/components/todo.md",
+      "toolkit/customize-components/disambiguation.md",
+      "toolkit/customize-components/localization.md",
+      "toolkit/get-started/build-a-microsoft-teams-tab.md",
+      "toolkit/get-started/build-a-web-app.md",
+      "toolkit/overview.md",
+      "toolkit/providers/custom.md",
+      "traverse-the-graph.md",
+      "tutorial-accessreviews-securitygroup.md",
+      "tutorial-lifecycle-workflows-set-employeeleavedatetime.md",
+      "tutorials/dotnet-email.md",
+      "tutorials/go-app-only-extend-app.md",
+      "tutorials/go-app-only.md",
+      "tutorials/go-authentication.md",
+      "tutorials/go.md",
+      "tutorials/index.md",
+      "tutorials/java-app-only-get-users.md",
+      "tutorials/java-app-only.md",
+      "tutorials/java-authentication.md",
+      "tutorials/java-email.md",
+      "tutorials/java-extend-app.md",
+      "tutorials/java.md",
+      "tutorials/javascript-app-only-authentication.md",
+      "tutorials/javascript-app-only-extend-app.md",
+      "tutorials/javascript-email.md",
+      "tutorials/php-app-only-extend-app.md",
+      "tutorials/php-email.md",
+      "tutorials/php-extend-app.md",
+      "tutorials/php.md",
+      "tutorials/powershell-app-only.md",
+      "tutorials/powershell-email.md",
+      "tutorials/powershell-extend-app.md",
+      "tutorials/python-app-only.md",
+      "tutorials/typescript-app-only-authentication.md",
+      "unified-tenant-configuration-management-concept-overview.md",
+      "update-assignment-and-grade-data.md",
+      "use-postman-with-delegated-authentication.md",
+      "utcm-authentication-setup.md",
+      "utcm-intune-resources.md",
+      "utcm-teams-resources.md",
+      "windowsupdates-deploy-expedited-update.md",
+      "windowsupdates-manage-safeguards.md"
+    ],
+    "removed": [],
+    "moved": [],
+    "failed": []
+  },
+  "quality_summary": {
+    "mean_score": 0.9997,
+    "p10_score": 1.0,
+    "gate_failures": {
+      "list_items": 3
+    }
+  },
+  "render_escalations": 0,
+  "retry_after_honored": 0,
+  "robots_ignored": false
+}

@@ -8,24 +8,17 @@ exclude: >-
     \.pixi/|
     ai_tmp/|
     target/|
-    \.tools/|
     tests/fixtures/py-lint-violation/|
     dist/|
     target/wheel-smoke/|
-    tests/fixtures/parity/.*\.allium$|
-    Cargo\.lock$|
+    tests/fixtures/(mslearn|devsite)/|
+    tests/golden/__snapshots__/|
+    examples/|
     pixi\.lock$
   )
 repos:
   - repo: local
     hooks:
-      - id: cargo-fmt
-        name: rustfmt
-        entry: cargo fmt --all
-        language: system
-        pass_filenames: false
-        types: [rust]
-
       # `just fix` is the only caller, so .pixi/envs/default/bin is already on PATH here.
       - id: taplo-fmt
         name: taplo format
@@ -44,12 +37,6 @@ repos:
         entry: .pixi/envs/default/bin/ruff check --fix
         language: system
         files: \.pyi?$
-
-      - id: cargo-shear-fix
-        name: Remove unused dependencies
-        entry: cargo shear --fix
-        language: system
-        pass_filenames: false
 
   - repo: builtin
     hooks:
