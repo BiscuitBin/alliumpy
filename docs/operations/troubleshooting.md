@@ -89,10 +89,11 @@ lockfile was not solved again. Run `just lock`, read the diff, and commit the lo
 
 ## `cargo` reports that `Cargo.lock` needs to be updated but `--locked` was passed
 
-Every recipe passes `--locked`, so a manifest edit that the lockfile does not reflect
-fails every build until the lockfile is solved again. Run `just lock`, read the diff, and
-commit `Cargo.lock` with the manifest. A new dependency is a decision before it is an
-edit: [Decision 0004](../decisions/0004-dependency-policy.md) says what one has to
+Every cargo recipe that builds passes `--locked` or runs after `lock-check`, so a
+manifest edit that the lockfile does not reflect fails every build until the lockfile
+is solved again. Run `just lock`, read the diff, and commit `Cargo.lock` with the
+manifest. A new dependency is a decision before it is an edit:
+[Decision 0004](../decisions/0004-dependency-policy.md) says what one has to
 justify.
 
 ## `just lint` clones or downloads

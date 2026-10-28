@@ -9,8 +9,10 @@ requires: []
 # Maintain dependencies
 
 The manifests write full `x.y.z` caret ranges, and `Cargo.lock` is the pin: committed,
-marked `linguist-generated`, and passed `--locked` by every gate, so no recipe that checks
-can rewrite it. This is [decision 0004](../decisions/0004-dependency-policy.md), a stated
+marked `linguist-generated`, and passed `--locked` by every cargo gate that builds or
+resolves dependencies (invariant 7 names the two exceptions, `deps-unused` and
+`snapshots-check`), so no recipe that checks can rewrite it. This is
+[decision 0004](../decisions/0004-dependency-policy.md), a stated
 deviation from the games' exact-pin rule, because a library that writes `=1.2.3` poisons
 every downstream resolution: two crates pinning different patch releases of one
 dependency cannot be built together. The tools are the other way round: `pyproject.toml`
