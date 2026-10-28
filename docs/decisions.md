@@ -87,6 +87,25 @@ numbered record under `decisions/`; this page is the running log of the smaller 
 - `docmirror fetch` keeps its browser profile under `~/.cache/docmirror` (or
   `DOCMIRROR_STATE_DIR`) because it has no output directory.
 
+## Phase 6: maintenance
+
+- `max_pages` is the mirror's size, not a per-run fetch count: an update re-checks every
+  written page for free and admits new pages only while the mirror is below the limit,
+  so running `crawl` twice with the same limit leaves the same set of pages.
+- A page that moves (301/308 to an in-scope URL) keeps its path; the old URL becomes an
+  alias of the new identity with `redirect_to` set. The prompt says to move the file to
+  the new URL's path, but the path mapping is promised to be stable once assigned, and
+  every inbound relative link already points at the old path.
+- A re-check is a conditional GET unless `--max-age` forced it or the sitemap's
+  `lastmod` is newer than the stored one; a 200 whose raw HTML hash is unchanged, or
+  whose pre-rewrite Markdown is unchanged, leaves the file and its `fetched_at` alone.
+- `index.md` says when the newest page was fetched, not when the last run happened, so an
+  update that changed nothing rewrites no index file; the run id and time are in
+  `crawl-report.json`.
+- A removed page's inbound relative links go back to the absolute source URL with
+  `dangling_inbound` on the linking page, through the same rewriter pass that made
+  them relative.
+
 ## Related pages
 
 - [Site notes](site-notes.md)

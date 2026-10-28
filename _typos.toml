@@ -26,3 +26,5 @@ als = "als"
 [default.extend-identifiers]
 # ruff's copyright-notice rule family, named in ruff.toml.
 CPY001 = "CPY001"
+# Akamai's bot-manager cookie, a block signature in src/docmirror/fetch/blocks.py.
+_abck = "_abck"

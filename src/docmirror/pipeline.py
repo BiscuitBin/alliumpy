@@ -13,6 +13,7 @@ import json
 import logging
 import sqlite3
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urljoin, urlsplit, urlunsplit
@@ -44,7 +45,7 @@ from docmirror.quality import measure_quality
 from docmirror.render.driver import BrowserDriver, driver_for
 from docmirror.report.builder import ReportBuilder, config_hash
 from docmirror.report.models import BlockedUrl, FailedUrl
-from docmirror.state.db import Manifest, atomic_write_text, now_iso
+from docmirror.state.db import FrontierEntry, Manifest, atomic_write_text, now_iso
 
 if TYPE_CHECKING:
     from docmirror.config.models import Config, Profile
@@ -198,7 +199,8 @@ class Crawler:
             meaningful.add(config.scope.version_param)
         self.normalizer = UrlNormalizer(frozenset(meaningful))
         start = config.site.start_urls[0] if config.site.start_urls else config.site.root_url
-        hosts = set(config.scope.allowed_hosts) or {host_of(start)}
+        self.scheme = urlsplit(start).scheme or "https"
+        hosts = set(config.scope.allowed_hosts) or {urlsplit(start).netloc.lower()}
         prefixes = tuple(config.scope.path_prefixes) or (_directory(start),)
         self.scope = ScopeRules(
             frozenset(h.lower() for h in hosts),
@@ -235,6 +237,7 @@ class Crawler:
         self.exit_code = ExitCode.OK
         self.written_paths: set[str] = set()
         self._stop = False
+        self.must_fetch: set[str] = set()
         self.breakers: dict[str, HostBreaker] = {}
         self.drivers: dict[str, BrowserDriver] = {}
         self.text_lengths: dict[str, list[int]] = {}
@@ -330,7 +333,7 @@ class Crawler:
             return self.robots[host]
         respect = self.config.fetch.robots == "respect"
         agent = self.fetcher.user_agent or "docmirror"
-        result = await self.fetcher.fetch(f"https://{host}/robots.txt")
+        result = await self.fetcher.fetch(f"{self.scheme}://{host}/robots.txt")
         robots = (
             Robots.parse(result.text(), agent, respect=respect)
             if result.ok
@@ -392,7 +395,7 @@ class Crawler:
         for host in sorted(self.scope.allowed_hosts):
             robots = await self.robots_for(host)
             candidates = list(robots.sitemaps) + [
-                f"https://{host}/{name}" for name in SITEMAP_CANDIDATES
+                f"{self.scheme}://{host}/{name}" for name in SITEMAP_CANDIDATES
             ]
             await self._walk_sitemaps(candidates, host)
             await self._llms_txt(host)
@@ -443,17 +446,17 @@ class Crawler:
                 queue.extend(chosen)
 
     async def _llms_txt(self, host: str) -> None:
-        result = await self.polite_fetch(f"https://{host}/llms.txt")
+        result = await self.polite_fetch(f"{self.scheme}://{host}/llms.txt")
         if not result.ok or "text/html" in result.headers.get("content-type", ""):
             return
         with self.manifest.transaction():
-            for url in parse_llms_txt(result.text(), f"https://{host}/"):
+            for url in parse_llms_txt(result.text(), f"{self.scheme}://{host}/"):
                 normalized = self.normalizer.normalize(url)
                 if self.scope.in_scope(normalized, 1):
                     self.manifest.enqueue(
                         normalized,
                         depth=1,
-                        discovered_from=f"https://{host}/llms.txt",
+                        discovered_from=f"{self.scheme}://{host}/llms.txt",
                         discovered_via="llms.txt",
                         priority=40,
                     )
@@ -473,6 +476,8 @@ class Crawler:
                 self.manifest.frontier_bulk_status("in_progress", "pending")
             else:
                 self.manifest.frontier_bulk_status("in_progress", "pending")
+            if self.command == "update":
+                self._requeue_known_pages()
             await self.discover()
             self.report.totals.discovered = self.manifest.frontier_count()
             if self.dry_run:
@@ -516,22 +521,59 @@ class Crawler:
             code = highest(code, ExitCode.QUALITY)
         return code
 
+    def _requeue_known_pages(self) -> None:
+        """Queue every written page for a re-check: conditional GET, or a full fetch when forced."""
+        max_age = self.config.update.max_age_delta
+        now = datetime.now(tz=UTC)
+        with self.manifest.transaction():
+            for row in self.manifest.pages(written_only=True):
+                url = str(row["normalized_url"])
+                forced = False
+                if max_age is not None and row["last_seen"]:
+                    seen = datetime.strptime(str(row["last_seen"]), "%Y-%m-%dT%H:%M:%SZ").replace(
+                        tzinfo=UTC
+                    )
+                    forced = now - seen > max_age
+                self.manifest.enqueue(
+                    url, depth=0, discovered_from=None, discovered_via="recheck", priority=90
+                )
+                self.manifest.frontier_set_status(url, "pending")
+                if forced:
+                    self.must_fetch.add(url)
+
+    def _written_total(self) -> int:
+        return len(self.manifest.pages(written_only=True))
+
     async def _loop(self) -> None:
         concurrency = max(
             1, self.config.fetch.concurrency_per_host * max(1, len(self.scope.allowed_hosts))
         )
         while not self._stop:
-            remaining = self.config.scope.max_pages - self.fetched_pages
-            if remaining <= 0 or self.bytes_total >= self.config.scope.max_bytes_int:
+            if self.bytes_total >= self.config.scope.max_bytes_int:
                 self.manifest.frontier_bulk_status("pending", "skipped_limit")
                 break
-            batch = self.manifest.frontier_pending(min(concurrency, remaining))
+            remaining = self.config.scope.max_pages - self._written_total()
+            batch = self.manifest.frontier_pending(concurrency * 4)
             if not batch:
                 break
             batch = [entry for entry in batch if not self.breaker(host_of(entry.url)).tripped]
             if not batch:
                 self.manifest.frontier_bulk_status("pending", "skipped_blocked")
                 break
+            known = {str(r["normalized_url"]) for r in self.manifest.pages(written_only=True)}
+            chosen: list[FrontierEntry] = []
+            for entry in batch:
+                if entry.url in known:
+                    chosen.append(entry)
+                elif remaining > 0:
+                    chosen.append(entry)
+                    remaining -= 1
+                if len(chosen) >= concurrency:
+                    break
+            if not chosen:
+                self.manifest.frontier_bulk_status("pending", "skipped_limit")
+                break
+            batch = chosen
             shallowest = batch[0].depth
             if shallowest == 0:
                 # Start pages go alone, so their links are queued before anything deeper.
@@ -570,9 +612,7 @@ class Crawler:
             )
             return
         known = self.manifest.get_page(url)
-        conditional = known is not None and self.command == "update"
-        etag = known["etag"] if conditional and known is not None else None
-        last_modified = known["last_modified"] if conditional and known is not None else None
+        etag, last_modified = self._conditional_headers(url, known, sitemap_lastmod)
         outcome = await self.ladder.fetch(
             url, host_tier=breaker.tier, etag=etag, last_modified=last_modified
         )
@@ -601,6 +641,10 @@ class Crawler:
         stats.fetched += 1
         self.fetched_pages += 1
         self.report.totals.fetched += 1
+        raw_sha = body_sha256(result.text())
+        if known is not None and known["status"] == "written" and known["raw_sha256"] == raw_sha:
+            self._unchanged(url, known, outcome.tier)
+            return
         content_type = result.headers.get("content-type", "")
         if content_type and "html" not in content_type and "xml" not in content_type:
             self.manifest.frontier_set_status(url, "skipped_not_html")
@@ -629,6 +673,21 @@ class Crawler:
             page.flags.add("soft_block_suspected")
             stats.blocked += 1
         self._store(url, result, page, depth, via, sitemap_lastmod, tier=outcome.tier)
+
+    def _conditional_headers(
+        self, url: str, known: sqlite3.Row | None, sitemap_lastmod: str | None
+    ) -> tuple[str | None, str | None]:
+        """`If-None-Match` and `If-Modified-Since` for a known page, unless a fetch is forced.
+
+        A page is fetched unconditionally when `--max-age` forced it, or when the sitemap's
+        `lastmod` is newer than the one stored.
+        """
+        if known is None or known["status"] != "written" or url in self.must_fetch:
+            return None, None
+        stored = known["sitemap_lastmod"]
+        if sitemap_lastmod and stored and str(sitemap_lastmod) > str(stored):
+            return None, None
+        return known["etag"], known["last_modified"]
 
     def _unchanged(self, url: str, known: sqlite3.Row, tier: str) -> None:
         self.manifest.upsert_page(url, last_seen=now_iso())
@@ -747,14 +806,22 @@ class Crawler:
             self.manifest.add_alias(url, final_normalized)
             if self.scope.in_scope(final_normalized, depth):
                 identity = final_normalized
+                self.manifest.upsert_page(url, redirect_to=identity)
         if page.canonical_url:
             canonical = self.normalizer.normalize(page.canonical_url)
             if canonical != identity and self.scope.in_scope(canonical, depth):
                 self.manifest.add_alias(identity, canonical)
                 identity = canonical
         existing = self.manifest.get_page(identity)
+        old_row = self.manifest.get_page(url) if identity != url else None
         if existing is not None and existing["path"]:
             path = str(existing["path"])
+        elif old_row is not None and old_row["path"] and old_row["status"] == "written":
+            # A page that moved keeps its path: the old URL becomes an alias of the new
+            # identity and the file stays where every inbound link already points.
+            path = str(old_row["path"])
+            self.manifest.upsert_page(url, path=None, status="redirected", redirect_to=identity)
+            existing = old_row
         else:
             path = self.mapper.assign(identity, self.manifest.path_taken)
         if identity != url:
@@ -813,6 +880,7 @@ class Crawler:
                 last_modified=result.headers.get("last-modified"),
                 sitemap_lastmod=sitemap_lastmod,
                 raw_sha256=body_sha256(result.text()),
+                redirect_to=None,
                 render_tier=tier,
                 extractor=page.extractor,
                 quality_score=page.quality_score,

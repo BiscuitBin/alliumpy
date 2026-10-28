@@ -135,6 +135,7 @@ def write_index_md(
     config: Config, out_dir: Path, pages: list[IndexedPage], report: ReportBuilder | None
 ) -> None:
     """The human index, grouped by top-level directory, with `_index.md` for large ones."""
+    del report
     threshold = config.index.hierarchical_threshold
     groups: dict[str, list[IndexedPage]] = {}
     for page in pages:
@@ -142,8 +143,9 @@ def write_index_md(
     lines = [f"# {config.site.name or config.site.root_url} documentation index", ""]
     lines.append(f"Source: <{config.site.root_url}>  ")
     lines.append(f"Pages: {len(pages)}  ")
-    run_time = report.run_id if report is not None else now_iso()
-    lines.append(f"Last run: {run_time}  ")
+    # The newest page fetch, not the run id: an unchanged mirror must re-index byte for byte.
+    last_fetch = max((p.entry.fetched_at for p in pages), default=now_iso())
+    lines.append(f"Last updated: {last_fetch}  ")
     lines.append("Report: [crawl-report.json](crawl-report.json)")
     lines.append("")
     for directory in sorted(groups):

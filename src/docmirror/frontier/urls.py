@@ -122,8 +122,9 @@ class ScopeRules:
         object.__setattr__(self, "_exclude", tuple(_matcher(p) for p in self.exclude))
 
     def host_allowed(self, url: str) -> bool:
-        """Whether the host is one of the allowed hosts."""
-        return host_of(url) in self.allowed_hosts
+        """Whether the host (with or without its port) is one of the allowed hosts."""
+        netloc = urlsplit(url).netloc.lower()
+        return netloc in self.allowed_hosts or host_of(url) in self.allowed_hosts
 
     def in_scope(self, url: str, depth: int = 0) -> bool:
         """Every rule at once: host, prefix, include, exclude, locale and depth.
