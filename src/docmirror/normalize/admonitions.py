@@ -98,6 +98,9 @@ def convert_one(element: html.HtmlElement, spec: AdmonitionSpec, counts: dict[st
         ):
             parent.drop_tree()
     quote = html.Element("blockquote")
+    if element.get("id"):
+        # The alert has no form that carries an id; the headings pass anchors it.
+        quote.set("id", element.get("id"))
     marker = etree.SubElement(quote, "p")
     marker.text = f"[!{kind}]"
     known = {kind.lower(), label.lower(), *(k for k, v in KINDS.items() if v == kind)}

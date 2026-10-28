@@ -57,6 +57,39 @@ def _named_anchors(content: html.HtmlElement, anchors: list[str], islands: Islan
         anchor.text = islands.register(f'<a id="{identifier}"></a>') + (anchor.text or "")
 
 
+INLINE = frozenset({"span", "code", "a", "strong", "em", "b", "i", "kbd", "mark", "sub", "sup"})
+ANCHORED_BLOCKS = frozenset({"blockquote", "figure"})
+
+
+def _block_anchors(content: html.HtmlElement, anchors: list[str], islands: Islands) -> None:
+    """An id on an element Markdown converts away travels as an empty `<a id>` before it.
+
+    Every alert and figure keeps its id; any other element keeps it only when a link
+    on the same page points at it, so a reference page with an id on every row does
+    not fill with anchors nobody targets.
+    """
+    # Links were made absolute before this pass, so any fragment on any link counts:
+    # only an element on this page with that id gains an anchor.
+    targets = {
+        a.get("href", "").rsplit("#", 1)[1] for a in content.iter("a") if "#" in a.get("href", "")
+    }
+    for element in list(content.iter()):
+        tag = element.tag
+        if not isinstance(tag, str) or tag in HEADINGS or tag == "a":
+            continue
+        identifier = element.get("id")
+        if not identifier or (tag not in ANCHORED_BLOCKS and identifier not in targets):
+            continue
+        anchors.append(identifier)
+        token = islands.register(f'<a id="{identifier}"></a>')
+        if tag in INLINE:
+            element.text = token + (element.text or "")
+            continue
+        holder = html.Element("p")
+        holder.text = token
+        element.addprevious(holder)
+
+
 def normalize_headings(
     content: html.HtmlElement,
     profile: Profile,
@@ -69,6 +102,7 @@ def normalize_headings(
     """Emit `{#id}` (attr style) or an `<a id>` before (inline style); demote to keep one H1."""
     _lift_container_ids(content)
     _named_anchors(content, anchors, islands)
+    _block_anchors(content, anchors, islands)
     headings = list(content.iter(*HEADINGS))
     h1s = [h for h in headings if h.tag == "h1"]
     if not h1s and title:

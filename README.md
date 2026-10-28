@@ -179,6 +179,9 @@ Measured against the 40 captured fixture pages and the 200-page acceptance crawl
   file keeps its place but loses its source; the `images` gate reports it.
 - **Header-less tables stay HTML.** A pipe table needs a header row, so a table with
   none, or with row headers down the first column, is kept as HTML.
+- **Code inside a block definition list stays `<pre>`.** A `<dl>` whose definition
+  holds block content is kept as HTML, so a code sample inside it keeps its text but
+  has no fence and no info string (one devsite concepts page in the fixture set).
 - **Generated panels are stripped.** devsite's "Page Summary" takeaways panel and Learn's
   "Summarize this article" controls are chrome, not content.
 - **Heading anchors are an extension.** `## Heading {#id}` preserves the source id in a

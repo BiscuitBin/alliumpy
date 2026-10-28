@@ -101,11 +101,13 @@ def _check_page(
     if frontmatter.get("content_sha256") != body_sha256(body):
         result.problems.append((path, "content_sha256 does not match the body"))
     counts = count_markdown(body)
+    # Each gate counts once per page: the stored flags, plus the one gate `verify`
+    # can re-measure from the Markdown alone.
+    failed = {flag for flag in frontmatter.get("quality_flags") or [] if flag in GATE_NAMES}
     if counts.fences and counts.fences_tagged / counts.fences < LANG_RATE_GATE:
-        result.gate_failures["code_lang_rate"] = result.gate_failures.get("code_lang_rate", 0) + 1
-    for flag in frontmatter.get("quality_flags") or []:
-        if flag in GATE_NAMES:
-            result.gate_failures[flag] = result.gate_failures.get(flag, 0) + 1
+        failed.add("code_lang_rate")
+    for gate in sorted(failed):
+        result.gate_failures[gate] = result.gate_failures.get(gate, 0) + 1
     return body, _anchors(body)
 
 

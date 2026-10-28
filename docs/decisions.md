@@ -145,6 +145,18 @@ numbered record under `decisions/`; this page is the running log of the smaller 
   only keeps sources that look like image files; readability-lxml loses the tables as
   well. The `images` gate measures the loss and the page is low-confidence; nothing
   is reconstructed.
+- `verify` counts each gate once per page: the stored gate flags and its own
+  re-measurement of `code_lang_rate` are merged before counting, where the
+  acceptance run showed every flagged page counted twice.
+- An id on an element Markdown converts away travels as an empty `<a id>` before it:
+  every alert and figure keeps its id, and any other element keeps it when a link on
+  the page carries that fragment. devsite's `aside.note#delegated-admin-note` is the
+  target of eleven links on its own page, and the REST reference pages link their
+  resource list to `<div id="v1.users.threads">` blocks.
+- A tagged `<pre syntax="HTML">` inside a `<dd>` of a block definition list stays a
+  `<pre>` inside the dl island, so it is the one tagged source block in the fixture set
+  without an info string; the alternative, a fence indented under the term, would be
+  read as an indented code block.
 
 ## Phase 6: maintenance
 

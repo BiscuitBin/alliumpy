@@ -230,6 +230,20 @@ def test_named_anchors_survive() -> None:
     assert out == 'See <a id="here"></a>this point later.\n'
 
 
+def test_ids_on_converted_blocks_become_anchors() -> None:
+    # An alert keeps its id; a paragraph keeps one only when the page links to it.
+    fragment = (
+        "<p>See <a href='#n'>note</a> and <a href='#p2'>there</a>.</p>"
+        "<aside class='note' id='n'><strong>Note:</strong> Body.</aside>"
+        "<p id='p1'>Untargeted.</p><p id='p2'>Targeted.</p>"
+    )
+    out = run(fragment)
+    assert '<a id="n"></a>\n\n> [!NOTE]\n>\n> Body.\n' in out
+    assert "Untargeted." in out
+    assert 'id="p1"' not in out
+    assert '<a id="p2"></a>\n\nTargeted.\n' in out
+
+
 def test_inline_html_elements_are_kept() -> None:
     out = run("<p>Press <kbd>Ctrl</kbd>, H<sub>2</sub>O, x<sup>2</sup>, <mark>hi</mark></p>")
     assert out == "Press <kbd>Ctrl</kbd>, H<sub>2</sub>O, x<sup>2</sup>, <mark>hi</mark>\n"

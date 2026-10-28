@@ -213,3 +213,8 @@ def test_verify_tree_reports_problems(tmp_path: Path) -> None:
     assert "content_sha256" in problems["a.md"]
     reasons = sorted(reason for _, _, reason in result.broken_links)
     assert reasons == ["fragment #nope not found in sub/b.md", "target file not found"]
+    # A page flagged `code_lang_rate` whose fences verify also finds untagged counts once.
+    frontmatter["quality_flags"] = ["code_lang_rate"]
+    atomic_write_text(out / "a.md", render_frontmatter(frontmatter) + "\n" + "```\nx\n```\n")
+    result = verify_tree(out)
+    assert result.gate_failures == {"code_lang_rate": 1}
