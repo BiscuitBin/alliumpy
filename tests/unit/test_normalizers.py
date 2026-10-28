@@ -128,6 +128,52 @@ def test_code_language_sources_and_aliases() -> None:
         ("03b07b79-c5bc-4b5e-9bfa-13acf4a99998", "text"),
         ("+-------------+\n| Magic header |\n+-------------+", "text"),
         ("x = f(1)", ""),
+        ('<feed xmlns="http://www.w3.org/2005/Atom"><link rel="self" href="u"/></feed>', "xml"),
+        ('<a:b xmlns:a="u"/>', "xml"),
+        ('["a", "b"]', "json"),
+        ("[1, 2, 3]", "json"),
+        ("{}", "json"),
+        ("[[bin]]\nname = 'x'", ""),
+        ("{{ user.name }}", ""),
+        ("[[UIColor alloc] initWithRed:1.0 green:0 blue:0 alpha:1]", "objectivec"),
+        ("Your public key fingerprint is shown below", "text"),
+        ("public class Foo {", "java"),
+        ("Python 3.8 or later is required", "text"),
+        ("gsutil cp gs://bucket/file .", ""),
+        ("firebase deploy", ""),
+        ("terraform init", ""),
+        ("name: my-app\nversion: 1.0", ""),
+        ("GData-Version: 3.0", ""),
+        ("This block holds\nsome wrapped prose", "text"),
+        ("<!doctype html>\n<html></html>", "html"),
+        ("<tr><td>1</td></tr>", "html"),
+        ("<svg viewBox='0 0 1 1'></svg>", "html"),
+        ("<YOUR_API_KEY>", ""),
+        ("<?xml version='1.0'?><feed/>", "xml"),
+        ("- (Optional) Set the display name", ""),
+        ("- (void)viewDidLoad {", "objectivec"),
+        ("+ (instancetype)sharedInstance;", "objectivec"),
+        # Shapes the narrower rules must still recognize.
+        ('<Button Content="Click me" Clicked="OnClicked" />', "xml"),
+        ("<ng-container *ngIf='x'><div>a</div></ng-container>", "html"),
+        ("<summary>Gets the name.</summary>", "xml"),
+        (
+            '<appengine-web-app xmlns="http://appengine.google.com/ns/1.0">\n</appengine-web-app>',
+            "xml",
+        ),
+        ("<gmp-map center='1,2'>\n  <div slot='control'>x</div>\n</gmp-map>", "html"),
+        ('[\n  ["A1", "B1"],\n  ["A2", "B2"],\n  ...\n]', "json"),
+        ('[\n  {\n    // first item\n    "id": 1\n  }\n]', "json"),
+        ("@RunWith(JUnit4.class) public class FooTest {\n}", "java"),
+        ("@Override @Nullable public String get() {\n  return s;\n}", "java"),
+        ("Upload the file that holds your\npublic key to the server first.", "text"),
+        ("class Foo extends Bar {\n  constructor() {}\n}", ""),
+        ("Java 11 or later is required", "text"),
+        ("Get-Mailbox -Identity user", ""),
+        ("user@example.com", "text"),
+        ("- (IBAction)signOut:(id)sender {\n}", "objectivec"),
+        ("- (nullable GIDGoogleUser *)currentUser {\n}", "objectivec"),
+        ("- (int)count {\n  return 3;\n}", "objectivec"),
     ]:
         pre = html.fromstring("<pre></pre>")
         pre.text = text
@@ -140,6 +186,13 @@ def test_code_block_keeps_whitespace_and_strips_gutters_and_links() -> None:
         "    return <a href='/x'>g</a>()\n\n\nprint(1)</code></pre>"
     )
     assert run(fragment) == "```python\ndef f():\n    return g()\n\n\nprint(1)\n```\n"
+
+
+def test_inline_code_stays_on_one_line() -> None:
+    # The link rewriter matches code spans within one line, so a span never wraps.
+    fragment = "<p>Write <code>see\n[b](/docs/sub/b)</code> here</p>"
+    for backend in ("html-to-markdown", "markdownify"):
+        assert run(fragment, backend=backend) == "Write `see [b](/docs/sub/b)` here\n"
 
 
 def test_fence_is_longer_than_backtick_runs() -> None:

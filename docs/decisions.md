@@ -148,15 +148,29 @@ and, on devsite, the browser profile's cache).
   `<th>` down the first column (javadoc parameter tables) has no pipe-table form. Both
   stay HTML and count as `html_table_kept`.
 - A bare `<pre>` is tagged from its text, in this order: HTTP request or status
-  lines, a shell command word (`pip`, `npm`, `node`, `python`, `easy_install`,
-  `docker`, `cd`, `./…` and the like), a JSON start (lax: `{"key":` is enough, so a
-  sample with `...` qualifies), a markup start (`html` when it holds HTML tags, else
-  `xml`), then language signatures over the first six lines (C# `using …;`, Java
-  `import …;` or `public static …`, Objective-C, JavaScript, Python, Go, PHP). A block
-  with no code characters at all (prose, bare URLs, a UUID, Learn's "Snippet not
-  available" placeholder, an ASCII diagram) is tagged `text`: an honest info string
-  rather than none. Anything else stays untagged and counts against
-  `code_lang_rate`.
+  lines, a lower-case shell command word (`pip`, `npm`, `node`, `python`,
+  `easy_install`, `docker`, `cd`, `./…` and the like; "Python 3.8 or later" is prose),
+  JSON (a block that parses strictly, or a lax start of `{"key":`, an array of objects
+  or an array of arrays of values, so a sample with `...` or comments qualifies but a
+  TOML `[[bin]]` table or a double-brace template does not), markup (the first element
+  decides: `<!doctype html>` or a lower-case HTML element without a namespace prefix
+  is `html`, as is a custom element such as `gmp-map` that declares no `xmlns` and
+  holds HTML elements; anything else, PascalCase XAML, `appengine-web-app` and
+  fragments opening on `title`, `summary` or `source` included, is `xml`; a whole block
+  that is one `<PLACEHOLDER>` is not markup), then language signatures over the first
+  six lines (C# `using …;`, Java `import …;` or a declaration with a modifier, after
+  any annotations, Objective-C with a typed method or `[[Class msg]`, JavaScript,
+  Python, Go, PHP). A block with no code characters is tagged `text` when its first
+  line is prose starting with a capital or a digit that is neither a `Key: value` line
+  nor a PowerShell `Verb-Noun` cmdlet, a bare URL, a single token such as a UUID or an
+  address, or a box-drawing line; later lines may be any wrapped prose. Learn's
+  "Snippet not available" placeholder and an ASCII diagram qualify. A lower-case
+  command (`terraform init`), YAML (`name: x`), a header line (`GData-Version: 3.0`),
+  and therefore also an `Error: …` or `Note: …` line or lower-case sample output,
+  stays untagged and counts against `code_lang_rate` rather than claiming `text`.
+- A link inside an inline code span (a run of backticks closed by a run of the same
+  length on the same line) is shown code, not a link: the rewriter leaves it as
+  written and `verify` does not check it, as fenced code already is.
 - Images whose URL has no file extension (Google-hosted `lh3.googleusercontent.com`
   images in the newsletter issues) lose their `src` in the trafilatura fallback, which
   only keeps sources that look like image files; readability-lxml loses the tables as

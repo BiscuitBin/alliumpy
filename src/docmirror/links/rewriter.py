@@ -21,6 +21,8 @@ from docmirror.links.paths import relative_path
 from docmirror.state.db import atomic_write_text
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from docmirror.frontier.urls import ScopeRules, UrlNormalizer
     from docmirror.pipeline import Crawler
     from docmirror.state.db import Manifest
@@ -31,6 +33,7 @@ _MD_LINK = re.compile(
 )
 _HTML_HREF = re.compile(r'(?P<prefix><a\b[^>]*?\bhref=")(?P<target>[^"]*)(?P<suffix>")')
 _FENCE = re.compile(r"^(\s*)(`{3,}|~{3,})")
+_BACKTICKS = re.compile(r"`+")
 _HEADING_ANCHOR = re.compile(r"\{#([^}\s]+)\}\s*$")
 _HTML_ID = re.compile(r'\bid="([^"]+)"')
 
@@ -140,7 +143,7 @@ class LinkRewriter:
             # A self-link is no edge of the graph, exactly as a bare `#fragment` is not,
             # so the counts do not change once it has been rewritten to one.
             self._check_fragment(current, fragment, outcome, target)
-            return f"#{fragment}" if fragment else target
+            return f"#{fragment}" if fragment else _source_form(target, absolute)
         known = self.by_url.get(normalized)
         if known is not None and not known.tombstoned:
             self._check_fragment(known, fragment, outcome, target)
@@ -152,7 +155,7 @@ class LinkRewriter:
             outcome.links.append((normalized, fragment, "uncrawled", None))
         else:
             outcome.links.append((normalized, fragment, "external", None))
-        return target
+        return _source_form(target, absolute)
 
     def _check_fragment(
         self, known: PageRow, fragment: str, outcome: RewriteOutcome, target: str
@@ -184,25 +187,63 @@ class LinkRewriter:
                 fence = match.group(2)
                 out.append(line)
                 continue
-            rewritten = _MD_LINK.sub(
-                lambda m: (
-                    "]("
-                    + self.resolve(current, m.group("target"), outcome)
-                    + (m.group("title") or "")
-                    + ")"
-                ),
-                line,
+            out.append(
+                outside_code_spans(line, lambda text: self._rewrite_links(current, text, outcome))
             )
-            rewritten = _HTML_HREF.sub(
-                lambda m: (
-                    m.group("prefix")
-                    + self.resolve(current, m.group("target"), outcome)
-                    + m.group("suffix")
-                ),
-                rewritten,
-            )
-            out.append(rewritten)
         return "\n".join(out), outcome
+
+    def _rewrite_links(self, current: PageRow, text: str, outcome: RewriteOutcome) -> str:
+        rewritten = _MD_LINK.sub(
+            lambda m: (
+                "]("
+                + self.resolve(current, m.group("target"), outcome)
+                + (m.group("title") or "")
+                + ")"
+            ),
+            text,
+        )
+        return _HTML_HREF.sub(
+            lambda m: (
+                m.group("prefix")
+                + self.resolve(current, m.group("target"), outcome)
+                + m.group("suffix")
+            ),
+            rewritten,
+        )
+
+
+def outside_code_spans(line: str, fn: Callable[[str], str]) -> str:
+    """Apply `fn` to the parts of one line outside its inline code spans.
+
+    A span opens on a run of n backticks and closes on the next run of exactly n, as in
+    CommonMark; an unmatched run is literal text. Spans are matched within one line,
+    which is the shape the converter emits.
+
+    >>> outside_code_spans("a `b` ``c`` ` d", str.upper)
+    'A `b` ``c`` ` D'
+    """
+    out: list[str] = []
+    start = 0
+    pos = 0
+    while (opening := _BACKTICKS.search(line, pos)) is not None:
+        width = len(opening.group())
+        closing = next(
+            (m for m in _BACKTICKS.finditer(line, opening.end()) if len(m.group()) == width),
+            None,
+        )
+        if closing is None:
+            pos = opening.end()
+            continue
+        out.append(fn(line[start : opening.start()]))
+        out.append(line[opening.start() : closing.end()])
+        start = pos = closing.end()
+    out.append(fn(line[start:]))
+    return "".join(out)
+
+
+def _source_form(target: str, absolute: str) -> str:
+    """A target left unrewritten: a site-absolute `/path` becomes its absolute URL."""
+    return absolute if target.startswith("/") else target
 
 
 def _canonical(fragment: str) -> str:

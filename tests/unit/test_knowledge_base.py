@@ -142,9 +142,24 @@ def test_site_absolute_links_resolve_against_the_source(tmp_path: Path) -> None:
     )
     page_a = rewriter.by_url[ROOT + "a"]
     text, outcome = rewriter.rewrite_text(page_a, "[b](/docs/sub/b) [x](/docs/missing)")
-    assert text == "[b](sub/b.md) [x](/docs/missing)"
+    assert text == f"[b](sub/b.md) [x]({ROOT}missing)"
     kinds = sorted(kind for _, _, kind, _ in outcome.links)
     assert kinds == ["internal", "uncrawled"]
+
+
+def test_links_inside_inline_code_are_left_alone(tmp_path: Path) -> None:
+    manifest, out = build_tree(tmp_path)
+    rewriter = LinkRewriter(
+        manifest, UrlNormalizer(frozenset()), ScopeRules(frozenset({"h"}), ("/docs/",)), out
+    )
+    page_a = rewriter.by_url[ROOT + "a"]
+    body = '`[b](/docs/sub/b)` and ``<a href="/docs/sub/b">`` then [b](/docs/sub/b)'
+    text, outcome = rewriter.rewrite_text(page_a, body)
+    assert text == '`[b](/docs/sub/b)` and ``<a href="/docs/sub/b">`` then [b](sub/b.md)'
+    assert [kind for _, _, kind, _ in outcome.links] == ["internal"]
+    # An unmatched backtick run is literal, so the link after it is still rewritten.
+    text, _ = rewriter.rewrite_text(page_a, "a `` b [b](/docs/sub/b)")
+    assert text == "a `` b [b](sub/b.md)"
 
 
 def test_relative_target_row_lookup() -> None:
@@ -225,6 +240,12 @@ def test_verify_tree_reports_problems(tmp_path: Path) -> None:
     assert "content_sha256" in problems["a.md"]
     reasons = sorted(reason for _, _, reason in result.broken_links)
     assert reasons == ["fragment #nope not found in sub/b.md", "target file not found"]
+    # A link shown inside inline code is not checked.
+    atomic_write_text(
+        out / "a.md",
+        render_frontmatter(frontmatter) + "\n" + body + '`[x](nowhere.md)` `<a href="gone.md">`\n',
+    )
+    assert verify_tree(out).broken_links == []
     # A page flagged `code_lang_rate` whose fences verify also finds untagged counts once.
     frontmatter["quality_flags"] = ["code_lang_rate"]
     atomic_write_text(out / "a.md", render_frontmatter(frontmatter) + "\n" + "```\nx\n```\n")

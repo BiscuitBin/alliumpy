@@ -12,7 +12,14 @@ from pathlib import Path
 from docmirror.cli.common import Common, config_for, fail
 from docmirror.convert.frontmatter import body_sha256, split_frontmatter
 from docmirror.exit_codes import ExitCode
-from docmirror.links.rewriter import _FENCE, _HEADING_ANCHOR, _HTML_ID, _MD_LINK, has_anchor
+from docmirror.links.rewriter import (
+    _FENCE,
+    _HEADING_ANCHOR,
+    _HTML_ID,
+    _MD_LINK,
+    has_anchor,
+    outside_code_spans,
+)
 from docmirror.quality.measure import LANG_RATE_GATE, count_markdown
 from docmirror.quality.metrics import GATE_NAMES
 from docmirror.report.models import Frontmatter
@@ -64,9 +71,14 @@ def _links_outside_code(body: str) -> list[str]:
             in_code = True
             fence = match.group(2)
             continue
-        targets.extend(m.group("target") for m in _MD_LINK.finditer(line))
-        targets.extend(_HTML_HREF.findall(line))
+        outside_code_spans(line, lambda text: _collect_targets(text, targets))
     return targets
+
+
+def _collect_targets(text: str, targets: list[str]) -> str:
+    targets.extend(m.group("target") for m in _MD_LINK.finditer(text))
+    targets.extend(_HTML_HREF.findall(text))
+    return text
 
 
 def _anchors(body: str) -> set[str]:
