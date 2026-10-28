@@ -65,6 +65,9 @@ numbered record under `decisions/`; this page is the running log of the smaller 
   link inside code would be read as code. This is listed under "What is lossy".
 - A `<dl>` term and its definition share one paragraph joined by a hard break, so the
   four-space indent is a continuation line, never an indented code block.
+- Every hard break, from `<br>` or a `<dl>` term, is a trailing backslash in both
+  backends. Two trailing spaces would not survive post-processing, which trims trailing
+  whitespace.
 - Hidden elements are stripped except `section[hidden]`, which is how Learn marks an
   inactive tab panel; `<iframe>` is not stripped but replaced by the interactive
   placeholder, which keeps the URL.

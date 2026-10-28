@@ -1,4 +1,4 @@
-"""Zero-width characters go; NBSP and newline runs become a space outside `<pre>`.
+"""Outside `<pre>`, zero-width characters go and NBSP and newline runs become a space.
 
 Code is untouched. A newline run in ordinary text is what a browser collapses to one
 space; left alone, a blank line inside a list item becomes a paragraph the converter
@@ -35,8 +35,8 @@ def transform(content: html.HtmlElement) -> None:
 
 
 def _clean(text: str, *, in_pre: bool) -> str:
-    text = _ZERO_WIDTH.sub("", text)
     if not in_pre:
+        text = _ZERO_WIDTH.sub("", text)
         text = text.replace("\u00a0", " ")
         if text.strip():
             # Only text with words: the whitespace between block tags stays, so an

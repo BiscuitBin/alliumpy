@@ -138,29 +138,29 @@
   
   ![Figure 1. A Drive-integrated app uses the Drive API and OAuth 2.0 to interact with files in My Drive and shared drives.](https://developers.google.com/static/workspace/drive/images/localized/drive-intro/en.svg)
   
-  *Figure 1. A Drive-integrated app uses the Drive API and OAuth 2.0 to interact with files in My Drive and shared drives.*
+  ***Figure 1.** A Drive-integrated app uses the Drive API and OAuth 2.0 to interact with files in My Drive and shared drives.*
   
   These terms define the key components shown in Figure 1:
   
-  ***Google Drive***
+  ***Google Drive***\
       Google's cloud file storage service provides users with a personal storage space, called *My Drive*, and the option to access collaborative shared folders, called *shared drives*.
   
-  ***Google Drive API***
+  ***Google Drive API***\
       The REST API that lets you use Drive storage from within your app.
   
-  ***Drive-integrated app***
+  ***Drive-integrated app***\
       An app that uses Drive as its storage solution.
   
-  ***Google Drive UI***
+  ***Google Drive UI***\
       Google's user interface that manages files stored on Drive. If your app is an editor-type app, such as a spreadsheet or word processor, you can integrate with the Drive UI to create and open files within your app.
   
-  ***My Drive***
+  ***My Drive***\
       A Drive storage location that a specific user owns. Files stored on My Drive can be shared with other users, but ownership of the content remains specific to an individual user.
   
-  ***OAuth 2.0***
+  ***OAuth 2.0***\
       The authorization protocol that the Drive API requires to authenticate your app users. If your application uses [Sign In With Google](https://developers.google.com/identity/gsi/web/guides/overview), it handles the OAuth 2.0 flow and application access tokens.
   
-  ***Shared drive***
+  ***Shared drive***\
       A Drive storage location that owns files that multiple users collaborate on. Any user with access to a shared drive has access to all files it contains. Users can also be granted access to individual files inside the shared drive.
   
   ## What can you do with the Drive API? {#what-can-you-do}
@@ -459,13 +459,13 @@
   
   You can optionally add event metadata when you create a calendar event. If you choose not to add metadata during creation, you can update many fields using the [`events.update()`](https://developers.google.com/workspace/calendar/v3/reference/events/update); however, some fields, such as the event ID, can only be set during an [`events.insert()`](https://developers.google.com/workspace/calendar/v3/reference/events/insert) operation.
   
-  **Location**
+  **Location**\
       Adding an address into the location field enables features such as "time to leave" or displaying a map with the directions.
   
-  **Event ID**
+  **Event ID**\
       When creating an event, you can choose to generate your own event ID that conforms to our format requirements. This enables you to keep entities in your local database in sync with events in Google Calendar. It also prevents duplicate event creation if the operation fails at some point after it is successfully executed in the Calendar backend. If no event ID is provided, the server generates one for you. See the [event ID reference](https://developers.google.com/workspace/calendar/v3/reference/events#id) for more information.
   
-  **Attendees**
+  **Attendees**\
       The event you create appears on all the primary Google Calendars of the attendees you included with the same event ID. If you set `sendUpdates` to `"all"` or `"externalOnly"` in your insert request, the corresponding attendees receive an email notification for your event. To learn more, see [events with multiple attendees](https://developers.google.com/workspace/calendar/concepts#events_with_attendees).
   
   The following examples demonstrate creating an event and setting its metadata:
@@ -3668,7 +3668,7 @@
   '''
   # StatsManager.ResetStatsRule
   
-  public static class **StatsManager.ResetStatsRule** extends Object
+  public static class **StatsManager.ResetStatsRule** extends Object\
   implements TestRule
   
   [`TestRule`](https://developers.google.com/workspace/cloud-search/docs/reference/sdk/org/junit/rules/TestRule) to reset static [`StatsManager`](https://developers.google.com/workspace/cloud-search/docs/reference/sdk/com/google/enterprise/cloudsearch/sdk/StatsManager) object for unit tests.
@@ -4549,9 +4549,9 @@
   
   In one of the following development environments, access the Google Cloud CLI (`gcloud`):
   
-  - **Cloud Shell**: To use an online terminal with the gcloud CLI already set up, activate Cloud Shell.
+  - **Cloud Shell**: To use an online terminal with the gcloud CLI already set up, activate Cloud Shell. \
   [Activate Cloud Shell](https://console.cloud.google.com/?cloudshell=true)
-  - **Local Shell**: To use a local development environment, [install](https://cloud.google.com/sdk/docs/install) and [initialize](https://cloud.google.com/sdk/docs/initializing) the gcloud CLI.
+  - **Local Shell**: To use a local development environment, [install](https://cloud.google.com/sdk/docs/install) and [initialize](https://cloud.google.com/sdk/docs/initializing) the gcloud CLI. \
     To create a Cloud project, use the `gcloud projects create` command:
   
     ```bash
@@ -25995,7 +25995,7 @@
   
   ## SkipToken {#skiptoken}
   
-  Some requests return multiple pages of data, either due to server-side paging or due to using the [`$top`](https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#top) parameter to limit the page size of the response. Many Microsoft Graph APIs use the `skipToken` query parameter to reference subsequent pages of the result.
+  Some requests return multiple pages of data, either due to server-side paging or due to using the [`$top`](https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#top) parameter to limit the page size of the response. Many Microsoft Graph APIs use the `skipToken` query parameter to reference subsequent pages of the result.\
   This parameter contains an opaque token that references the next page of results and is returned in the URL provided in the **@odata.nextLink** property in the response. To learn more, see [Paging](https://learn.microsoft.com/en-us/graph/paging).
   
   > [!NOTE]

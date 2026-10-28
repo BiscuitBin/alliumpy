@@ -37,6 +37,7 @@ PROFILE = Profile(
 def run(fragment: str, profile: Profile = PROFILE, backend: str = "html-to-markdown") -> str:
     content = html.fragment_fromstring(fragment, create_parent="div")
     content.make_links_absolute("https://h/docs/")
+    content.getroottree().docinfo.URL = "https://h/docs/"
     result = normalize(content, profile, title="")
     raw = convert_html(result.fragment, backend)  # type: ignore[arg-type]
     return postprocess(result.islands.restore(raw))
@@ -237,6 +238,30 @@ def test_complex_table_is_sanitized_html() -> None:
     assert counts["table_cells"] == 2
 
 
+def test_complex_table_drops_script_urls() -> None:
+    out = run(
+        "<table><tr><td rowspan='2'><a href=' Java\tScript:alert(1)'>x</a>"
+        "<img src='data:text/html,x' alt='a'><img src='data:image/png;base64,AA' alt='b'>"
+        "</td><td><p>x</p><p>y</p></td></tr></table>"
+    )
+    assert "href" not in out
+    assert "data:text" not in out
+    assert 'src="data:image/png;base64,AA"' in out
+
+
+def test_complex_table_tail_appears_once() -> None:
+    out = run(
+        "<div><table><tr><td rowspan='2'>a</td><td><p>x</p><p>y</p></td></tr></table>After</div>"
+    )
+    assert out.count("After") == 1
+
+
+def test_island_code_keeps_its_blank_lines() -> None:
+    out = run("<table><tr><td rowspan='2'><pre>a\n\n\nb</pre></td><td>c</td></tr></table>")
+    assert "<pre>a\n&#32;\n&#32;\nb</pre>" in out
+    assert "\n\n" not in out
+
+
 def test_single_row_headerless_table_stays_html() -> None:
     fragment = "<table><tr><td><a href='/i'>Impl</a></td><td>Description</td></tr></table>"
     out = run(fragment)
@@ -265,7 +290,7 @@ def test_layout_table_is_unwrapped() -> None:
 
 def test_definition_list_inline_and_block() -> None:
     out = run("<dl><dt>Term</dt><dd>The <em>definition</em> text.</dd></dl>")
-    assert out == "**Term**\n    The *definition* text.\n"
+    assert out == "**Term**\\\n    The *definition* text.\n"
     block = run("<dl><dt>T</dt><dd><p>one</p><p>two</p></dd></dl>")
     assert block.startswith("<dl>")
 
@@ -275,11 +300,34 @@ def test_details_keeps_html_with_markdown_inside() -> None:
     assert out == "<details open>\n<summary>More</summary>\n\nHidden **text**\n\n</details>\n"
 
 
+def test_details_escapes_its_summary_and_keeps_bare_text() -> None:
+    out = run("<details><summary>&lt;img onerror=x&gt;</summary>Important text</details>")
+    assert "<summary>&lt;img onerror=x&gt;</summary>" in out
+    assert "Important text" in out
+
+
+def test_hard_breaks_survive_postprocess_in_both_backends() -> None:
+    for backend in ("html-to-markdown", "markdownify"):
+        assert run("<p>a<br>b</p>", backend=backend) == "a\\\nb\n"
+
+
 def test_images_and_figures() -> None:
     out = run(
         "<figure><img src='/i.png' alt=''><figcaption>Cap</figcaption></figure><img src='/j.png' alt='' title='T'>"
     )
     assert out == '![Cap](https://h/i.png)\n\n*Cap*\n\n![T](https://h/j.png "T")\n'
+
+
+def test_figure_caption_keeps_links() -> None:
+    out = run(
+        "<figure><img src='/i.png' alt=''><figcaption>See <a href='/s'>source</a>.</figcaption>"
+        "</figure>"
+    )
+    assert out == "![See source.](https://h/i.png)\n\n*See [source](https://h/s).*\n"
+
+
+def test_zero_width_characters_stay_inside_code() -> None:
+    assert run("<p>a\u200db</p><pre>c\u200dd</pre>") == "ab\n\n```\nc\u200dd\n```\n"
 
 
 def test_headings_keep_ids_and_single_h1() -> None:
@@ -341,6 +389,18 @@ def test_footnotes() -> None:
     out = run(fragment)
     assert "Claim[^1]." in out
     assert "[^1]: Source" in out
+
+
+def test_footnote_backlinks_are_not_references() -> None:
+    fragment = (
+        "<p>Claim<sup><a href='#fn1'>1</a></sup> and <a href='other#fn1'>elsewhere</a>.</p>"
+        "<ol><li id='fn1'><p>Source <a href='#fnref1'>back</a></p></li></ol>"
+    )
+    out = run(fragment)
+    assert "[^1]: Source\n" in out
+    assert "back" not in out
+    assert out.count("[^1]") == 2
+    assert "[elsewhere](https://h/docs/other#fn1)" in out
 
 
 def test_interactive_placeholders() -> None:

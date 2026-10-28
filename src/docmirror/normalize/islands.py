@@ -19,9 +19,20 @@ _TOKEN = "DOCMIRRORISLAND{index}X"
 _TOKEN_RE = re.compile(r"DOCMIRRORISLAND(\d+)X")
 _BLANK_LINE = re.compile(r"\n(?:[ \t]*\n)+")
 _INDENT = re.compile(r"\n[ \t]+")
+_PRE_BLANK_LINE = re.compile(r"\n[ \t]*(?=\n)")
 KEEP_ATTRIBUTES = frozenset(
     {"rowspan", "colspan", "id", "scope", "href", "src", "alt", "title", "open"}
 )
+_URL_NOISE = re.compile(r"[\x00-\x20\x7f]+")
+_SCRIPT_SCHEMES = ("javascript:", "vbscript:")
+
+
+def _unsafe_url(name: str, value: str) -> bool:
+    """Whether a kept `href`/`src` would run script; only `src` may carry a `data:image/` URL."""
+    url = _URL_NOISE.sub("", value).lower()
+    if url.startswith(_SCRIPT_SCHEMES):
+        return True
+    return url.startswith("data:") and not (name == "src" and url.startswith("data:image/"))
 
 
 def sanitize(element: html.HtmlElement, keep: Iterable[str] = KEEP_ATTRIBUTES) -> str:
@@ -31,24 +42,27 @@ def sanitize(element: html.HtmlElement, keep: Iterable[str] = KEEP_ATTRIBUTES) -
         if not isinstance(node.tag, str):
             continue
         for name in list(node.attrib):
-            if name not in kept:
+            if name not in kept or (
+                name in {"href", "src"} and _unsafe_url(name, node.attrib[name])
+            ):
                 del node.attrib[name]
     for node in list(element.iter("script", "style")):
         node.drop_tree()
-    for pre in element.iter("pre"):
-        # A blank line ends a Markdown HTML block, so none may survive inside an island;
-        # inside code a lone space keeps the line without changing what it shows.
-        for node in pre.iter():
-            if node.text:
-                node.text = _BLANK_LINE.sub("\n \n", node.text)
-            if node.tail and node is not pre:
-                node.tail = _BLANK_LINE.sub("\n \n", node.tail)
-    serialized = etree.tostring(element, encoding="unicode", method="html").strip()
-    # Outside <pre>, leading indentation is dropped too: an indented line would read as
-    # an indented code block if the HTML block were ever interrupted.
+    # The tail stays in the document after the placeholder, so it is not part of the island.
+    serialized = etree.tostring(element, encoding="unicode", method="html", with_tail=False).strip()
+    # A blank line ends a Markdown HTML block, so none may survive in an island. Outside
+    # <pre> blank lines and leading indentation are dropped: an indented line would read
+    # as an indented code block if the HTML block were ever interrupted. Inside <pre> each
+    # blank line holds an encoded space, which shows the same and outlives the trailing
+    # whitespace trim in post-processing.
     parts = re.split(r"(<pre\b.*?</pre>)", serialized, flags=re.DOTALL)
-    cleaned = [part if part.startswith("<pre") else _INDENT.sub("\n", part) for part in parts]
-    return _BLANK_LINE.sub("\n", "".join(cleaned))
+    cleaned = [
+        _PRE_BLANK_LINE.sub("\n&#32;", part)
+        if part.startswith("<pre")
+        else _BLANK_LINE.sub("\n", _INDENT.sub("\n", part))
+        for part in parts
+    ]
+    return "".join(cleaned)
 
 
 class Islands:

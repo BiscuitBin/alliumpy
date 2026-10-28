@@ -166,7 +166,9 @@ def _strip(content: html.HtmlElement, profile: Profile) -> None:
             continue
         tag = element.tag
         if (
-            tag in {"script", "style", "noscript", "template"}
+            tag in {"style", "noscript", "template"}
+            # A MathJax `math/tex` script is the formula itself; the math normalizer reads it.
+            or (tag == "script" and not (element.get("type") or "").startswith("math/tex"))
             or (tag == "svg" and len(etree.tostring(element)) < ICON_SVG_MAX_BYTES)
             # `hidden` marks chrome, except on a tab-panel section, which tabs expand.
             or (element.get("hidden") is not None and tag != "section")
@@ -259,6 +261,9 @@ def extract_page(
         used = "body"
     _strip(content, profile)
     content.make_links_absolute(base_url, resolve_base_href=True)
+    # A fallback extractor builds a fresh tree with no base; the normalizers read it to
+    # tell a link to this page from a link elsewhere.
+    content.getroottree().docinfo.URL = base_url
     metadata.heading_ids = [
         element.get("id") or ""
         for element in content.iter("h1", "h2", "h3", "h4", "h5", "h6")

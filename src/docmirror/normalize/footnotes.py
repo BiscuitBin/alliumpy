@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from typing import TYPE_CHECKING
+from urllib.parse import urldefrag
 
 from lxml import etree, html
 
@@ -13,6 +14,21 @@ if TYPE_CHECKING:
     from docmirror.normalize.islands import Islands
 
 _REF = re.compile(r"^#?(?:fn|footnote)[-:_]?(?:ref[-:_]?)?([A-Za-z0-9_-]+)$")
+_BACKREF_PREFIXES = ("fnref", "footnote-ref", "fn-ref")
+
+
+def _same_page_fragment(href: str, page: str | None) -> str:
+    """The fragment of a link to this page, or empty for a link elsewhere.
+
+    Extraction makes links absolute, so a same-page link is the page URL plus a fragment;
+    without a known page URL only a bare `#fragment` counts.
+    """
+    if href.startswith("#"):
+        return href[1:]
+    if page is None:
+        return ""
+    target, fragment = urldefrag(href)
+    return fragment if target == urldefrag(page)[0] else ""
 
 
 def transform(content: html.HtmlElement, islands: Islands, convert: Callable[[str], str]) -> None:
@@ -25,11 +41,18 @@ def transform(content: html.HtmlElement, islands: Islands, convert: Callable[[st
             definitions[match.group(1)] = item
     if not definitions:
         return
+    page = content.base_url
+    # Backlinks go first, so the reference pass below cannot take one for a reference.
+    for item in definitions.values():
+        for back in list(item.iter("a")):
+            if _same_page_fragment(back.get("href") or "", page).startswith(
+                _BACKREF_PREFIXES
+            ) or "footnote-backref" in (back.get("class") or ""):
+                back.drop_tree()
     for anchor in list(content.iter("a")):
-        href = anchor.get("href") or ""
-        fragment = href.rsplit("#", 1)[-1] if "#" in href else ""
+        fragment = _same_page_fragment(anchor.get("href") or "", page)
         match = _REF.match("#" + fragment) if fragment else None
-        if not match or match.group(1) not in definitions:
+        if not match or "ref" in fragment.lower() or match.group(1) not in definitions:
             continue
         label = match.group(1)
         holder = anchor
@@ -44,11 +67,6 @@ def transform(content: html.HtmlElement, islands: Islands, convert: Callable[[st
         islands.replace_element(holder, f"[^{label}]", block=False)
     blocks: list[str] = []
     for label, item in definitions.items():
-        for back in list(item.iter("a")):
-            if (back.get("href") or "").lstrip("#").startswith(
-                ("fnref", "footnote-ref", "fn-ref")
-            ) or "footnote-backref" in (back.get("class") or ""):
-                back.drop_tree()
         inner = (item.text or "") + "".join(
             etree.tostring(c, encoding="unicode", method="html") for c in item
         )

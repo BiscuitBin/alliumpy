@@ -45,6 +45,7 @@ def _html_to_markdown(fragment: str, bullet: str) -> str:
         extract_metadata=False,
         wrap=False,
         whitespace_mode="normalized",
+        newline_style="backslash",
         preserve_tags=list(INLINE_HTML_TAGS),
         autolinks=False,
         hidden_content="all",
@@ -89,7 +90,7 @@ class _Markdownify:
             escape_underscores=True,
             escape_misc=False,
             wrap=False,
-            newline_style="spaces",
+            newline_style="backslash",
         )
         return str(converter.convert(fragment))
 

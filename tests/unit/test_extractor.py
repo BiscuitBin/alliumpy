@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+from docmirror.config.loader import validate_config
 from docmirror.config.profiles import BUILTIN_PROFILES
 from docmirror.extract import extract_page
+from docmirror.pipeline import process_page
 
 PAGE = """
 <html lang="en-us"><head><title>T | Site</title><meta name="description" content="Desc">
@@ -49,3 +51,14 @@ def test_spa_shell_and_noscript_signals() -> None:
     assert result.metadata.spa_shell
     assert result.metadata.noscript_needs_js
     assert result.text_chars < 50
+
+
+def test_math_scripts_survive_extraction() -> None:
+    config = validate_config({"site": {"profile": "generic"}})
+    page = (
+        "<html><body><main><h1>M</h1><p>Body text.</p><script>track()</script>"
+        "<script type='math/tex; mode=display'>a^2 + b^2</script></main></body></html>"
+    )
+    result = process_page(page, "https://h/docs/m", config, config.profile())
+    assert "$$a^2 + b^2$$" in result.markdown_body
+    assert "track" not in result.markdown_body
