@@ -39,6 +39,38 @@ numbered record under `decisions/`; this page is the running log of the smaller 
 - `[fetch.provider]` exists, validates, and rejects any non-empty value with a message
   saying it is reserved and not implemented.
 
+## Phases 2 and 3: crawl, convert, fidelity
+
+- Sitemap entries queue at depth 2 and the frontier is ordered by depth, so a bounded
+  crawl samples the pages near the start URL rather than the sitemap's first entries;
+  start pages are fetched alone first so their links are queued before anything deeper.
+- A page without the version parameter keeps its plain path and reports
+  `version_default` in its frontmatter; inserting the default into every path would
+  move every conceptual page under a version it does not have.
+- The page title is the first H1 of the main content, then `og:title`, then `<title>`,
+  because both sites suffix `<title>` with the site name.
+- Raw-HTML islands: a subtree that must stay HTML (a complex table, a block definition
+  list, `<details>`, math without TeX, an inline heading anchor) is replaced by a token
+  before conversion and restored afterwards, so one mechanism serves every backend.
+  Blank lines inside an island are removed, and a blank line inside `<pre>` inside an
+  island becomes a line holding one space, because a blank line ends a Markdown HTML
+  block.
+- Element counts for the quality gates come from the normalized tree plus its islands
+  (what the output must carry), not from the raw DOM: expanding a tab group adds
+  headings and removes a tablist's links and list items by design, and the
+  `tabs_expanded` gate covers the expansion itself. Text coverage still uses the raw
+  DOM's words. The language-tag rate counts fences only; a `<pre>` kept inside an HTML
+  table cannot be a fence.
+- Links inside `<pre>` become their text: a fence cannot carry a link, and a Markdown
+  link inside code would be read as code. This is listed under "What is lossy".
+- A `<dl>` term and its definition share one paragraph joined by a hard break, so the
+  four-space indent is a continuation line, never an indented code block.
+- Hidden elements are stripped except `section[hidden]`, which is how Learn marks an
+  inactive tab panel; `<iframe>` is not stripped but replaced by the interactive
+  placeholder, which keeps the URL.
+- Titles such as "Page Summary" from devsite's generated takeaways panel are stripped
+  as chrome, not kept as content, because the site generates them per visit.
+
 ## Related pages
 
 - [Site notes](site-notes.md)

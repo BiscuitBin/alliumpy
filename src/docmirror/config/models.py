@@ -53,6 +53,9 @@ class Scope(Section):
     version_param: str = ""
     version_default: str = ""
     version_map: dict[str, str] = Field(default_factory=dict)
+    # How many child sitemaps of a sitemap index are read, best-ranked first, before
+    # discovery stops; a site-wide index can hold thousands.
+    sitemap_max_children: int = Field(default=40, ge=0)
 
     @field_validator("max_bytes")
     @classmethod
@@ -115,10 +118,12 @@ class TabSpec(Section):
     """One tab-group shape: the group, its labels and its panels."""
 
     group: str
-    label: str
     panel: str
+    label: str = ""
     panel_key: str = ""
     label_key: str = ""
+    # A heading inside each panel that carries its label, for groups without a tablist.
+    panel_heading: str = ""
 
 
 class AdmonitionSpec(Section):

@@ -27,6 +27,7 @@ GENERIC = Profile(
             label_key="aria-controls",
         )
     ],
+    code_lang_attrs=["class:lang-", "class:language-", "data-lang", "data-language"],
     admonitions=[
         AdmonitionSpec(selector=".admonition", title=".admonition-title", kind_from="class"),
         AdmonitionSpec(selector="div.alert", title=".alert-title", kind_from="class"),
@@ -35,22 +36,36 @@ GENERIC = Profile(
 
 MSLEARN = Profile(
     main_selector=["main#main", "div.content"],
+    # Learn renders its breadcrumb trail client-side from toc.json; the server HTML
+    # has none, so this selector matches nothing and the trail stays absent.
     breadcrumb_selector="ul#breadcrumbs, .breadcrumbs",
     strip_selectors=[
+        ".page-metadata-container",
         ".page-metadata",
-        "[class^='feedback-']",
-        "[class*=' feedback-']",
+        "#article-metadata",
         "#user-feedback",
         "nav",
         "[data-bi-name='feedback']",
         "[data-bi-name='pageactions']",
-        ".page-actions",
         "#article-header-page-actions",
+        "#article-header-page-actions-overflow",
+        "#article-header-breadcrumbs-overflow-popover",
+        "details.popover",
         "#ms--additional-resources",
-        ".metadata",
+        "#ms--additional-resources-mobile",
         "#action-panel",
         ".skip-to-main-link",
         "[data-bi-name='breadcrumb']",
+        ".visibility-hidden-visual-diff",
+        "#ms--in-this-article",
+        "#center-doc-outline",
+        "#affixed-left-container",
+        "#ms--collapsible-toc-header",
+        "[data-id='ai-summary']",
+        "#ms--ai-summary-header",
+        "[unauthorized-private-section]",
+        ".notification",
+        "button",
     ],
     meaningful_query_params=["view"],
     tabs=[
@@ -62,11 +77,20 @@ MSLEARN = Profile(
             label_key="data-tab",
         )
     ],
-    admonitions=[AdmonitionSpec(selector="div.alert", title="p.alert-title", kind_from="class")],
+    # Learn's callouts are `div.NOTE` (and TIP, IMPORTANT, WARNING, CAUTION) with the
+    # kind as the class and the label in the first paragraph; the prompt's `div.alert`
+    # is the older Docs markup and matches nothing here.
+    admonitions=[
+        AdmonitionSpec(
+            selector="div.NOTE, div.TIP, div.IMPORTANT, div.WARNING, div.CAUTION, div.alert",
+            title="p:first-child, p.alert-title",
+            kind_from="class",
+        )
+    ],
     code_lang_attrs=["class:lang-", "class:language-", "data-lang", "data-language"],
     heading_anchor_style="attr",
-    interactive_selectors=[".try-it", "[data-bi-name='try-it']", "iframe", "video"],
-    last_updated_selector="time[data-article-date], time",
+    interactive_selectors=[".try-it", "[data-bi-name='try-it']", "[data-interactive-sample]"],
+    last_updated_selector="local-time[datetime], time[datetime]",
 )
 
 DEVSITE = Profile(
@@ -86,17 +110,21 @@ DEVSITE = Profile(
         "devsite-actions",
         ".devsite-feedback-wrapper",
         "devsite-page-feedback",
+        "devsite-recommendations-sidebar",
+        "devsite-recommendations-dropdown",
+        # The generated "Page Summary" panel is not part of the authored page.
+        "devsite-key-takeaways-panel",
+        ".nocontent",
+        "[data-nosnippet]",
+        ".devsite-rating",
+        "devsite-ai-summary",
     ],
     tabs=[
+        # `devsite-selector` holds one <section> per tab whose first heading is the
+        # label; there is no server-rendered tablist.
+        TabSpec(group="devsite-selector", panel="section", panel_heading="h2, h3, h4"),
         TabSpec(
-            group="devsite-selector",
-            label="devsite-tabs tab",
-            panel="section[aria-labelledby]",
-            panel_key="aria-labelledby",
-            label_key="id",
-        ),
-        TabSpec(
-            group="devsite-tabs",
+            group="devsite-tabs:not(.upper-tabs)",
             label="tab",
             panel="div[role=tabpanel]",
             panel_key="aria-labelledby",
@@ -108,13 +136,19 @@ DEVSITE = Profile(
             selector="aside.note, aside.caution, aside.warning, aside.key-point, "
             "aside.objective, aside.tip, aside.important, aside.success, aside.beta, "
             "aside.deprecated, aside.special, aside.key-term, aside.dogfood, aside.experimental",
-            title="b, strong",
+            title="strong, b",
             kind_from="class",
         )
     ],
-    code_lang_attrs=["class:lang-", "class:language-", "data-lang", "data-language"],
+    # devsite marks the language on `pre[syntax]` and terminals on `code.devsite-terminal`.
+    code_lang_attrs=["syntax", "class:lang-", "class:language-", "data-lang", "data-language"],
     heading_anchor_style="attr",
-    interactive_selectors=["devsite-iframe", "iframe", "devsite-code-explorer", "video"],
+    interactive_selectors=[
+        "devsite-iframe",
+        "devsite-code-explorer",
+        ".devsite-embedded-apis-explorer",
+        "devsite-apis-explorer",
+    ],
     last_updated_selector=".devsite-article-meta time, time[itemprop=dateModified]",
 )
 

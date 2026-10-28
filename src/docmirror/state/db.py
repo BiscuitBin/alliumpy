@@ -167,7 +167,7 @@ class Manifest:
 
     # -- frontier --------------------------------------------------------------
 
-    def enqueue(  # noqa: PLR0913 - one keyword per frontier column
+    def enqueue(
         self,
         url: str,
         *,
@@ -217,10 +217,10 @@ class Manifest:
         return int(cursor.rowcount)
 
     def frontier_pending(self, limit: int) -> list[FrontierEntry]:
-        """Up to `limit` pending rows, highest priority and shallowest first."""
+        """Up to `limit` pending rows: shallowest first, then highest priority, then oldest."""
         rows = self.connection.execute(
             "SELECT * FROM frontier WHERE status = 'pending' "
-            "ORDER BY priority DESC, depth ASC, rowid ASC LIMIT ?",
+            "ORDER BY depth ASC, priority DESC, rowid ASC LIMIT ?",
             (limit,),
         ).fetchall()
         return [

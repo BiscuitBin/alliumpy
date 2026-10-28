@@ -20,6 +20,10 @@ ignore = [
   "PLR0917", # Typer subcommands take every flag the specification lists, positionally.
   "TC001",   # Runtime-evaluated annotations (pydantic, Typer) need their imports at runtime.
   "TC003",   # Same: `Path` in a Typer signature is read at runtime.
+  "PLR0913", # Pipeline stages carry one argument per fact about a page.
+  "C901",    # Complexity is reviewed by hand; a page pipeline has many cases by nature.
+  "PLR0912", # Same: branch counts follow the HTTP status space.
+  "PLR0911", # Same: one return per outcome of a fetch.
 ]
 
 [lint.pydocstyle]
@@ -27,6 +31,9 @@ ignore = [
 convention = "google"
 
 [lint.per-file-ignores]
+"tests/{unit,golden,live,oracle}/**" = [
+  "E501", # HTML fixture strings are quoted whole, not reflowed; the positive control keeps the rule.
+]
 "tests/**" = [
   "S101",    # Assertions express the test contract.
   "INP001",  # Tests are discovered without an importable test package.
@@ -45,6 +52,12 @@ convention = "google"
   "INP001", # Repository scripts are standalone, not an importable package.
   "T201",   # The version checker prints its verdict.
   "S603",   # The version checker executes a fixed console-script path without a shell.
+]
+"src/docmirror/pipeline.py" = [
+  "T201", # --dry-run prints the frontier; it is the command's output.
+]
+"src/docmirror/normalize/islands.py" = [
+  "S105", # The island token is a placeholder word, not a secret.
 ]
 "scripts/version_check.py" = [
   "PLR2004", # The version checker requires two version-output words.

@@ -26,6 +26,7 @@ class Common:
 
     config_path: Path | None = None
     json_events: bool = False
+    yes: bool = False
     non_interactive: bool = False
     verbosity: int = 0
     quiet: bool = False
@@ -40,6 +41,10 @@ class Common:
     def interactive(self) -> bool:
         """Whether prompting is allowed: never when stdout is not a TTY."""
         return not self.non_interactive and sys.stdout.isatty()
+
+    def non_interactive_confirmed(self) -> bool:
+        """Whether `--yes` stood in for a confirmation."""
+        return self.yes
 
 
 def configure_logging(common: Common) -> None:
@@ -89,6 +94,7 @@ def common_from(
     common = Common(
         config_path=config,
         json_events=json_events,
+        yes=yes,
         non_interactive=yes or not sys.stdout.isatty(),
         verbosity=verbose,
         quiet=quiet,

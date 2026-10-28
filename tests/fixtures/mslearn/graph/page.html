@@ -1,0 +1,1041 @@
+ <!DOCTYPE html>
+		<html
+			class="layout layout-single    hub show-breadcrumb default-focus"
+			lang="en-us"
+			dir="ltr"
+			data-authenticated="false"
+			data-auth-status-determined="false"
+			data-target="docs"
+			x-ms-format-detection="none"
+		>
+			
+		<head>
+			<title>Microsoft Graph documentation | Microsoft Learn</title>
+			<meta charset="utf-8" />
+			<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+			<meta name="color-scheme" content="light dark" />
+
+			<meta name="description" content="Microsoft Graph is the gateway to data and intelligence in Microsoft 365. Use Microsoft Graph to build intelligent apps, derive insights and analytics, and extend Microsoft 365 experiences." />
+			<link rel="canonical" href="https://learn.microsoft.com/en-us/graph/" /> 
+
+			<!-- Non-customizable open graph and sharing-related metadata -->
+			<meta name="twitter:card" content="summary_large_image" />
+			<meta name="twitter:site" content="@MicrosoftLearn" />
+			<meta property="og:type" content="website" />
+			<meta property="og:image:alt" content="Microsoft Learn" />
+			<meta property="og:image" content="https://learn.microsoft.com/en-us/media/open-graph-image.png" />
+			<!-- Page specific open graph and sharing-related metadata -->
+			<meta property="og:title" content="Microsoft Graph documentation" />
+			<meta property="og:url" content="https://learn.microsoft.com/en-us/graph/" />
+			<meta property="og:description" content="Microsoft Graph is the gateway to data and intelligence in Microsoft 365. Use Microsoft Graph to build intelligent apps, derive insights and analytics, and extend Microsoft 365 experiences." />
+			<meta name="platform_id" content="d966f232-5027-5a16-a7e6-d87105d5e95f" /> <meta name="scope" content="graph" />
+			<meta name="locale" content="en-us" />
+			 
+			<meta name="uhfHeaderId" content="MSDocsHeader-MSGraph" />
+
+			<meta name="page_type" content="hub" />
+
+			<!--page specific meta tags-->
+			
+
+			<!-- custom meta tags -->
+			
+		<meta name="summary" content="Microsoft Graph is the gateway to data and intelligence in Microsoft 365. Use Microsoft Graph to build intelligent apps, derive insights and analytics, and extend Microsoft 365 experiences." />
+	
+		<meta name="schema" content="Hub" />
+	
+		<meta name="feedback_system" content="Standard" />
+	
+		<meta name="feedback_product_url" content="https://developer.microsoft.com/graph/support" />
+	
+		<meta name="breadcrumb_path" content="/graph/concepts/breadcrumb/toc.json" />
+	
+		<meta name="author" content="CelesteDG" />
+	
+		<meta name="ms.author" content="MSGraphDocsVteam" />
+	
+		<meta name="ms.suite" content="microsoft-graph" />
+	
+		<meta name="ms.subservice" content="non-product-specific" />
+	
+		<meta name="toc_preview" content="true" />
+	
+		<meta name="recommendations" content="false" />
+	
+		<meta name="ms.service" content="microsoft-graph" />
+	
+		<meta name="ms.topic" content="hub-page" />
+	
+		<meta name="ms.date" content="2022-05-11T00:00:00Z" />
+	
+		<meta name="document_id" content="183a3bee-148d-8d33-f490-73ab22c369ac" />
+	
+		<meta name="document_version_independent_id" content="f2d03fe2-e3a7-b8ad-1530-92f9faf64003" />
+	
+		<meta name="updated_at" content="2025-11-18T16:57:00Z" />
+	
+		<meta name="original_content_git_url" content="https://github.com/microsoftgraph/microsoft-graph-docs/blob/live/concepts/index.yml" />
+	
+		<meta name="gitcommit" content="https://github.com/microsoftgraph/microsoft-graph-docs/blob/636c13b6cd747791d11d0997e5c4ee685c7f5a5a/concepts/index.yml" />
+	
+		<meta name="git_commit_id" content="636c13b6cd747791d11d0997e5c4ee685c7f5a5a" />
+	
+		<meta name="site_name" content="Docs" />
+	
+		<meta name="depot_name" content="MSDN.microsoft-graph-docs" />
+	
+		<meta name="feedback_help_link_type" content="" />
+	
+		<meta name="feedback_help_link_url" content="" />
+	
+		<meta name="asset_id" content="index" />
+	
+		<meta name="moniker_range_name" content="" />
+	
+		<meta name="item_type" content="Content" />
+	
+		<meta name="source_path" content="concepts/index.yml" />
+	
+		<meta name="github_feedback_content_git_url" content="https://github.com/microsoftgraph/microsoft-graph-docs-contrib/blob/main/concepts/index.yml" />
+	
+		<meta name="markdown_url" content="https://learn.microsoft.com/en-us/graph/?accept=text/markdown" />
+	 
+		<meta name="cmProducts" content="https://authoring-docs-microsoft.poolparty.biz/devrel/5fc61396-d075-4560-aece-fdbda73d243f" data-source="generated" />
+	
+		<meta name="cmProducts" content="https://authoring-docs-microsoft.poolparty.biz/devrel/1dd701e0-441f-4b0a-9806-aa47decc4e35" data-source="generated" />
+	
+		<meta name="spProducts" content="https://authoring-docs-microsoft.poolparty.biz/devrel/ad9437c1-8cda-4537-ad69-b4b263652e13" data-source="generated" />
+	
+		<meta name="spProducts" content="https://authoring-docs-microsoft.poolparty.biz/devrel/0a2fc935-5977-4aa6-9f55-0be03bd2acb8" data-source="generated" />
+	
+
+			<!-- Apply persisted/system theme before first paint to prevent wrong-theme flash when scripts are deferred. -->
+			<script id="theme-preference">
+				(function () {
+			try {
+				var stored = localStorage.getItem('theme');
+				var theme = /^(light|dark|high-contrast)$/.test(stored)
+					? stored
+					: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+				document.documentElement.classList.add('theme-' + theme);
+			} catch (e) {}
+		})();;
+			</script>
+
+			<script id="atlas-layout-preferences">
+				(function () {
+			try {
+				var state = JSON.parse(localStorage.getItem('atlas-layout-preferences') || '{}');
+				var view = state["Hub"] || {};
+				var excludesKey = "";
+				var blocked = {};
+				if (excludesKey) {
+					var exclusions = JSON.parse(localStorage.getItem('atlas-layout-exclusions') || '{}');
+					if (Object.prototype.hasOwnProperty.call(exclusions, excludesKey)) {
+						var scoped = exclusions[excludesKey];
+						if (scoped) {
+							if (typeof scoped === 'object') blocked = scoped;
+						}
+					}
+				}
+				var html = document.documentElement;
+				for (var c in view) {
+					if (Object.prototype.hasOwnProperty.call(blocked, c)) continue;
+					if (view[c]) html.classList.add(c);
+					else html.classList.remove(c);
+				}
+			} catch (e) {}
+		})();;
+			</script>
+
+			<!-- assets and js globals -->
+			
+			<link rel="stylesheet" href="/static/assets/0.4.03585.8329-a252cb59/styles/site.css" />
+			
+			<script src="https://wcpstatic.microsoft.com/mscc/lib/v2/wcp-consent.js"></script>
+			<!-- Keep this URL in sync with oneDSScriptSelector in instrumentation/one-ds.ts. -->
+			<script async src="https://js.monitor.azure.com/scripts/c/ms.jsll-4.min.js"></script>
+			
+
+			<!-- msdocs global object -->
+			<script id="msdocs-script">
+		var msDocs = {
+  "environment": {
+    "accessLevel": "online",
+    "azurePortalHostname": "portal.azure.com",
+    "reviewFeatures": false,
+    "supportLevel": "production",
+    "systemContent": true,
+    "siteName": "learn",
+    "legacyHosting": false
+  },
+  "data": {
+    "contentLocale": "en-us",
+    "contentDir": "ltr",
+    "userLocale": "en-us",
+    "userDir": "ltr",
+    "pageTemplate": "Hub",
+    "layoutStateStorageKey": "Hub",
+    "brand": "m365",
+    "context": {},
+    "standardFeedback": false,
+    "showFeedbackReport": false,
+    "feedbackHelpLinkType": "",
+    "feedbackHelpLinkUrl": "",
+    "feedbackSystem": "Standard",
+    "feedbackGitHubRepo": "microsoftgraph/microsoft-graph-docs-contrib",
+    "feedbackProductUrl": "https://developer.microsoft.com/graph/support",
+    "extendBreadcrumb": false,
+    "isEditDisplayable": true,
+    "isPrivateUnauthorized": false,
+    "hideViewSource": false,
+    "isPermissioned": false,
+    "hasRecommendations": false
+  },
+  "functions": {}
+};;
+	</script>
+
+			<!-- base scripts, msdocs global should be before this -->
+			<script
+				src="/static/assets/0.4.03585.8329-a252cb59/scripts/en-us/index-docs.js"
+				async
+			></script>
+			
+
+			<!-- json-ld -->
+			
+		<script >bazadebezolkohpepadr="217123033"</script><script type="text/javascript" src="https://learn.microsoft.com/akam/13/cf109b7"  defer></script></head>
+	
+			<body
+				id="body"
+				data-bi-name="body"
+				class="layout-body "
+				lang="en-us"
+				dir="ltr"
+			>
+				<header class="layout-body-header background-color-body-medium">
+		<div class="header-holder has-default-focus">
+			
+		<a
+			href="#main"
+			
+			style="z-index: 1070"
+			class="outline-color-text visually-hidden-until-focused position-fixed inner-focus focus-visible top-0 left-0 right-0 padding-xs text-align-center background-color-body"
+			
+		>
+			Skip to main content
+		</a>
+	
+
+			<div hidden id="cookie-consent-holder" data-test-id="cookie-consent-container"></div>
+			<!-- Unsupported browser warning -->
+			<div
+				id="unsupported-browser"
+				style="background-color: white; color: black; padding: 16px; border-bottom: 1px solid grey;"
+				hidden
+			>
+				<div style="max-width: 800px; margin: 0 auto;">
+					<p style="font-size: 24px">This browser is no longer supported.</p>
+					<p style="font-size: 16px; margin-top: 16px;">
+						Upgrade to Microsoft Edge to take advantage of the latest features, security updates, and technical support.
+					</p>
+					<div style="margin-top: 12px;">
+						<a
+							href="https://go.microsoft.com/fwlink/p/?LinkID=2092881 "
+							style="background-color: #0078d4; border: 1px solid #0078d4; color: white; padding: 6px 12px; border-radius: 2px; display: inline-block;"
+						>
+							Download Microsoft Edge
+						</a>
+						<a
+							href="https://learn.microsoft.com/en-us/lifecycle/faq/internet-explorer-microsoft-edge"
+							style="background-color: white; padding: 6px 12px; border: 1px solid #505050; color: #171717; border-radius: 2px; display: inline-block;"
+						>
+							More info about Internet Explorer and Microsoft Edge
+						</a>
+					</div>
+				</div>
+			</div>
+			<!-- site header -->
+			<div
+				id="ms--site-header"
+				data-test-id="site-header-wrapper"
+				itemscope="itemscope"
+				itemtype="http://schema.org/Organization"
+			>
+				<div
+					id="ms--mobile-nav"
+					class="site-header display-none-tablet padding-inline-none gap-none"
+					data-bi-name="mobile-header"
+					data-test-id="mobile-header"
+				></div>
+				<div
+					id="ms--primary-nav"
+					class="site-header display-none display-flex-tablet"
+					data-bi-name="L1-header"
+					data-test-id="primary-header"
+				></div>
+				<div
+					id="ms--secondary-nav"
+					class="site-header display-none display-flex-tablet"
+					data-bi-name="L2-header"
+					data-test-id="secondary-header"
+					
+				></div>
+			</div>
+			
+		<!-- banner -->
+		<div data-banner>
+			<div id="disclaimer-holder"></div>
+			
+		</div>
+		<!-- banner end -->
+	
+		</div>
+	</header>
+				 
+
+				<main
+					id="main"
+					role="main"
+					class="layout-body-main "
+					data-bi-name="content"
+					lang="en-us"
+					dir="ltr"
+				>
+					
+			<div data-main-column class=" ">
+				 <div id="ms--hub-page-content">
+	<section id="hero" data-bi-name="hero" class="hero  has-background-m365 has-text-m365-invert background-image-pattern-plus hero-xs background-image-pattern background-size-200">
+		<div class="hero-content">
+			<h1 id="hero-title" class="title is-1">Microsoft Graph documentation</h1>
+				<p>Microsoft Graph is the gateway to data and intelligence in Microsoft 365. Use Microsoft Graph to build intelligent apps, derive insights and analytics, and extend Microsoft 365 experiences.</p>
+		</div>
+	</section>
+
+		<section id="highlighted-content" data-bi-name="highlighted-content">
+			<div class="uhf-container padding-block-sm">
+<div class="columns is-multiline">
+		<div class="column is-6-tablet is-3-desktop">
+			<article data-bi-name="icon-card" class="card is-full-height position-relative">
+				<div class="card-content display-flex">
+					<div class="media align-items-stretch">
+						<div class="media-left display-none display-block-tablet">
+							<div class="image image-64x64" aria-hidden="true">
+								<img src="/en-us/media/hubs/shared/icon-overview.svg?branch=main" alt="" role="presentation" data-linktype="absolute-path">
+							</div>
+						</div>
+						<div class="media-content">
+							<p class="card-supertitle margin-top-none margin-top-xs-tablet">Overview</p>
+							<a href="overview" class="card-title stretched-link has-external-link-indicator" data-linktype="relative-path">What is Microsoft Graph?</a>
+						</div>
+					</div>
+				</div>
+			</article>
+		</div>
+		<div class="column is-6-tablet is-3-desktop">
+			<article data-bi-name="icon-card" class="card is-full-height position-relative">
+				<div class="card-content display-flex">
+					<div class="media align-items-stretch">
+						<div class="media-left display-none display-block-tablet">
+							<div class="image image-64x64" aria-hidden="true">
+								<img src="/en-us/media/hubs/shared/icon-reference.svg?branch=main" alt="" role="presentation" data-linktype="absolute-path">
+							</div>
+						</div>
+						<div class="media-content">
+							<p class="card-supertitle margin-top-none margin-top-xs-tablet">Reference</p>
+							<a href="/en-us/graph/api/overview?view=graph-rest-1.0&amp;preserve-view=true" class="card-title stretched-link has-external-link-indicator" data-linktype="absolute-path">Microsoft Graph REST API</a>
+						</div>
+					</div>
+				</div>
+			</article>
+		</div>
+		<div class="column is-6-tablet is-3-desktop">
+			<article data-bi-name="icon-card" class="card is-full-height position-relative">
+				<div class="card-content display-flex">
+					<div class="media align-items-stretch">
+						<div class="media-left display-none display-block-tablet">
+							<div class="image image-64x64" aria-hidden="true">
+								<img src="/en-us/media/hubs/shared/icon-whats-new.svg?branch=main" alt="" role="presentation" data-linktype="absolute-path">
+							</div>
+						</div>
+						<div class="media-content">
+							<p class="card-supertitle margin-top-none margin-top-xs-tablet">What's new</p>
+							<a href="/en-us/graph/mcp-server/overview" class="card-title stretched-link has-external-link-indicator" data-linktype="absolute-path">Microsoft MCP Server for Enterprise</a>
+						</div>
+					</div>
+				</div>
+			</article>
+		</div>
+		<div class="column is-6-tablet is-3-desktop">
+			<article data-bi-name="icon-card" class="card is-full-height position-relative">
+				<div class="card-content display-flex">
+					<div class="media align-items-stretch">
+						<div class="media-left display-none display-block-tablet">
+							<div class="image image-64x64" aria-hidden="true">
+								<img src="/en-us/media/hubs/shared/icon-whats-new.svg?branch=main" alt="" role="presentation" data-linktype="absolute-path">
+							</div>
+						</div>
+						<div class="media-content">
+							<p class="card-supertitle margin-top-none margin-top-xs-tablet">What's new</p>
+							<a href="https://developer.microsoft.com/en-us/graph/changelog" class="card-title stretched-link has-external-link-indicator" data-linktype="external">API Changelog</a>
+						</div>
+					</div>
+				</div>
+			</article>
+		</div>
+</div>
+			</div>
+		</section>
+
+
+		<section id="conceptual-content" data-bi-name="conceptual-content" class="padding-block-lg">
+			<div class="uhf-container anchor-headings">
+	<h2 class="title is-2 is-responsive margin-top-none margin-bottom-sm">Services and features</h2>
+<div class="columns is-multiline">
+		<div class="column is-4-tablet is-4-desktop">
+			<article data-bi-name="card" class="card is-full-height">
+				<div class="card-content">
+					<h3 class="card-title color-text font-size-lg">Users</h3>
+					<ul class="has-line-height-reset margin-left-none margin-bottom-none margin-top-xs">
+							<li class="is-unstyled margin-bottom-xxs font-size-sm">
+								<div class="justify-content-flex-start display-flex is-fullwidth font-size-sm has-text-wrap">
+									<span class="icon font-size-md has-text-primary margin-right-xxs" aria-hidden="true">
+										<span class="docon docon-topic-overview"></span>
+									</span>
+									<a href="azuread-users-concept-overview" class="has-external-link-indicator" data-linktype="relative-path">Access and manipulate user resources directly.</a>
+								</div>
+							</li>
+					</ul>
+				</div>
+			</article>
+		</div>
+		<div class="column is-4-tablet is-4-desktop">
+			<article data-bi-name="card" class="card is-full-height">
+				<div class="card-content">
+					<h3 class="card-title color-text font-size-lg">Groups</h3>
+					<ul class="has-line-height-reset margin-left-none margin-bottom-none margin-top-xs">
+							<li class="is-unstyled margin-bottom-xxs font-size-sm">
+								<div class="justify-content-flex-start display-flex is-fullwidth font-size-sm has-text-wrap">
+									<span class="icon font-size-md has-text-primary margin-right-xxs" aria-hidden="true">
+										<span class="docon docon-topic-overview"></span>
+									</span>
+									<a href="microsoft365-groups-concept-overview" class="has-external-link-indicator" data-linktype="relative-path">Enable user collaboration and integration across services.</a>
+								</div>
+							</li>
+					</ul>
+				</div>
+			</article>
+		</div>
+		<div class="column is-4-tablet is-4-desktop">
+			<article data-bi-name="card" class="card is-full-height">
+				<div class="card-content">
+					<h3 class="card-title color-text font-size-lg">Identity and access management</h3>
+					<ul class="has-line-height-reset margin-left-none margin-bottom-none margin-top-xs">
+							<li class="is-unstyled margin-bottom-xxs font-size-sm">
+								<div class="justify-content-flex-start display-flex is-fullwidth font-size-sm has-text-wrap">
+									<span class="icon font-size-md has-text-primary margin-right-xxs" aria-hidden="true">
+										<span class="docon docon-topic-overview"></span>
+									</span>
+									<a href="identity-network-access-overview" class="has-external-link-indicator" data-linktype="relative-path">Use Microsoft Entra methods to manage access and authenticate users.</a>
+								</div>
+							</li>
+					</ul>
+				</div>
+			</article>
+		</div>
+		<div class="column is-4-tablet is-4-desktop">
+			<article data-bi-name="card" class="card is-full-height">
+				<div class="card-content">
+					<h3 class="card-title color-text font-size-lg">Security</h3>
+					<ul class="has-line-height-reset margin-left-none margin-bottom-none margin-top-xs">
+							<li class="is-unstyled margin-bottom-xxs font-size-sm">
+								<div class="justify-content-flex-start display-flex is-fullwidth font-size-sm has-text-wrap">
+									<span class="icon font-size-md has-text-primary margin-right-xxs" aria-hidden="true">
+										<span class="docon docon-topic-overview"></span>
+									</span>
+									<a href="security-concept-overview" class="has-external-link-indicator" data-linktype="relative-path">Connect Microsoft security products, services, and partners to streamline security operations.</a>
+								</div>
+							</li>
+					</ul>
+				</div>
+			</article>
+		</div>
+		<div class="column is-4-tablet is-4-desktop">
+			<article data-bi-name="card" class="card is-full-height">
+				<div class="card-content">
+					<h3 class="card-title color-text font-size-lg">Microsoft Teams teamwork and communications</h3>
+					<ul class="has-line-height-reset margin-left-none margin-bottom-none margin-top-xs">
+							<li class="is-unstyled margin-bottom-xxs font-size-sm">
+								<div class="justify-content-flex-start display-flex is-fullwidth font-size-sm has-text-wrap">
+									<span class="icon font-size-md has-text-primary margin-right-xxs" aria-hidden="true">
+										<span class="docon docon-topic-overview"></span>
+									</span>
+									<a href="teams-concept-overview" class="has-external-link-indicator" data-linktype="relative-path">Explore chat-based collaboration, meetings, calling, and enterprise voice features.</a>
+								</div>
+							</li>
+					</ul>
+				</div>
+			</article>
+		</div>
+		<div class="column is-4-tablet is-4-desktop">
+			<article data-bi-name="card" class="card is-full-height">
+				<div class="card-content">
+					<h3 class="card-title color-text font-size-lg">Outlook calendar and mail</h3>
+					<ul class="has-line-height-reset margin-left-none margin-bottom-none margin-top-xs">
+							<li class="is-unstyled margin-bottom-xxs font-size-sm">
+								<div class="justify-content-flex-start display-flex is-fullwidth font-size-sm has-text-wrap">
+									<span class="icon font-size-md has-text-primary margin-right-xxs" aria-hidden="true">
+										<span class="docon docon-topic-overview"></span>
+									</span>
+									<a href="outlook-calendar-concept-overview" class="has-external-link-indicator" data-linktype="relative-path">Control calendars such as creating an event.</a>
+								</div>
+							</li>
+							<li class="is-unstyled margin-bottom-xxs font-size-sm">
+								<div class="justify-content-flex-start display-flex is-fullwidth font-size-sm has-text-wrap">
+									<span class="icon font-size-md has-text-primary margin-right-xxs" aria-hidden="true">
+										<span class="docon docon-topic-overview"></span>
+									</span>
+									<a href="outlook-mail-concept-overview" class="has-external-link-indicator" data-linktype="relative-path">Access and manage messages and mail data.</a>
+								</div>
+							</li>
+					</ul>
+				</div>
+			</article>
+		</div>
+		<div class="column is-4-tablet is-4-desktop">
+			<article data-bi-name="card" class="card is-full-height">
+				<div class="card-content">
+					<h3 class="card-title color-text font-size-lg">Microsoft 365 Copilot connectors</h3>
+					<ul class="has-line-height-reset margin-left-none margin-bottom-none margin-top-xs">
+							<li class="is-unstyled margin-bottom-xxs font-size-sm">
+								<div class="justify-content-flex-start display-flex is-fullwidth font-size-sm has-text-wrap">
+									<span class="icon font-size-md has-text-primary margin-right-xxs" aria-hidden="true">
+										<span class="docon docon-topic-overview"></span>
+									</span>
+									<a href="/en-us/graph/connecting-external-content-connectors-overview" class="has-external-link-indicator" data-linktype="absolute-path">Explore Copilot connectors.</a>
+								</div>
+							</li>
+							<li class="is-unstyled margin-bottom-xxs font-size-sm">
+								<div class="justify-content-flex-start display-flex is-fullwidth font-size-sm has-text-wrap">
+									<span class="icon font-size-md has-text-primary margin-right-xxs" aria-hidden="true">
+										<span class="docon docon-topic-get-started"></span>
+									</span>
+									<a href="/en-us/graph/connecting-external-content-build-quickstart" class="has-external-link-indicator" data-linktype="absolute-path">Build your first connector.</a>
+								</div>
+							</li>
+					</ul>
+				</div>
+			</article>
+		</div>
+		<div class="column is-4-tablet is-4-desktop">
+			<article data-bi-name="card" class="card is-full-height">
+				<div class="card-content">
+					<h3 class="card-title color-text font-size-lg">Microsoft Graph Data Connect</h3>
+					<ul class="has-line-height-reset margin-left-none margin-bottom-none margin-top-xs">
+							<li class="is-unstyled margin-bottom-xxs font-size-sm">
+								<div class="justify-content-flex-start display-flex is-fullwidth font-size-sm has-text-wrap">
+									<span class="icon font-size-md has-text-primary margin-right-xxs" aria-hidden="true">
+										<span class="docon docon-topic-overview"></span>
+									</span>
+									<a href="/en-us/graph/data-connect-concept-overview" class="has-external-link-indicator" data-linktype="absolute-path">Explore Microsoft Graph Data Connect.</a>
+								</div>
+							</li>
+							<li class="is-unstyled margin-bottom-xxs font-size-sm">
+								<div class="justify-content-flex-start display-flex is-fullwidth font-size-sm has-text-wrap">
+									<span class="icon font-size-md has-text-primary margin-right-xxs" aria-hidden="true">
+										<span class="docon docon-topic-get-started"></span>
+									</span>
+									<a href="/en-us/graph/data-connect-quickstart" class="has-external-link-indicator" data-linktype="absolute-path">Build a Data Connect application.</a>
+								</div>
+							</li>
+					</ul>
+				</div>
+			</article>
+		</div>
+		<div class="column is-4-tablet is-4-desktop">
+			<article data-bi-name="card" class="card is-full-height">
+				<div class="card-content">
+					<h3 class="card-title color-text font-size-lg">All services and features</h3>
+					<ul class="has-line-height-reset margin-left-none margin-bottom-none margin-top-xs">
+							<li class="is-unstyled margin-bottom-xxs font-size-sm">
+								<div class="justify-content-flex-start display-flex is-fullwidth font-size-sm has-text-wrap">
+									<span class="icon font-size-md has-text-primary margin-right-xxs" aria-hidden="true">
+										<span class="docon docon-topic-concept"></span>
+									</span>
+									<a href="overview-major-services" class="has-external-link-indicator" data-linktype="relative-path">Explore services for productivity, collaboration, people and workplace intelligence, education, and more.</a>
+								</div>
+							</li>
+							<li class="is-unstyled margin-bottom-xxs font-size-sm">
+								<div class="justify-content-flex-start display-flex is-fullwidth font-size-sm has-text-wrap">
+									<span class="icon font-size-md has-text-primary margin-right-xxs" aria-hidden="true">
+										<span class="docon docon-topic-whats-new"></span>
+									</span>
+									<a href="/en-us/graph/whats-new-overview" class="has-external-link-indicator" data-linktype="absolute-path">Find out what's new in the beta and v1.0 APIs.</a>
+								</div>
+							</li>
+					</ul>
+				</div>
+			</article>
+		</div>
+</div>
+			</div>
+		</section>
+
+		<section id="tools" data-bi-name="tools" class="padding-block-lg">
+			<div class="uhf-container anchor-headings padding-bottom-sm">
+	<h2 class="title is-2 is-responsive margin-top-none margin-bottom-sm">SDKs and tools</h2>
+<div class="columns is-multiline">
+		<div class="column is-4-tablet is-4-desktop">
+			<article data-bi-name="icon-card" class="card is-full-height position-relative">
+				<div class="card-content display-flex">
+					<div class="media align-items-center">
+						<div class="media-left">
+							<div class="image image-32x32">
+								<img src="images/hub/icon01-sdk.svg" alt="" aria-hidden="true" data-linktype="relative-path">
+							</div>
+						</div>
+						<div class="media-content">
+							<a id="sdks-0" href="/en-us/graph/sdks/sdks-overview" class="card-title stretched-link has-external-link-indicator" data-linktype="absolute-path">SDKs</a>
+						</div>
+					</div>
+				</div>
+			</article>
+		</div>
+		<div class="column is-4-tablet is-4-desktop">
+			<article data-bi-name="icon-card" class="card is-full-height position-relative">
+				<div class="card-content display-flex">
+					<div class="media align-items-center">
+						<div class="media-left">
+							<div class="image image-32x32">
+								<img src="images/hub/icon03-graphexplorer.svg" alt="" aria-hidden="true" data-linktype="relative-path">
+							</div>
+						</div>
+						<div class="media-content">
+							<a id="graph-explorer-1" href="https://developer.microsoft.com/en-us/graph/graph-explorer" class="card-title stretched-link has-external-link-indicator" data-linktype="external">Graph Explorer</a>
+						</div>
+					</div>
+				</div>
+			</article>
+		</div>
+		<div class="column is-4-tablet is-4-desktop">
+			<article data-bi-name="icon-card" class="card is-full-height position-relative">
+				<div class="card-content display-flex">
+					<div class="media align-items-center">
+						<div class="media-left">
+							<div class="image image-32x32">
+								<img src="images/hub/icon04-graphtoolkit.svg" alt="" aria-hidden="true" data-linktype="relative-path">
+							</div>
+						</div>
+						<div class="media-content">
+							<a id="microsoft-graph-toolkit-2" href="toolkit/overview" class="card-title stretched-link has-external-link-indicator" data-linktype="relative-path">Microsoft Graph Toolkit</a>
+						</div>
+					</div>
+				</div>
+			</article>
+		</div>
+		<div class="column is-4-tablet is-4-desktop">
+			<article data-bi-name="icon-card" class="card is-full-height position-relative">
+				<div class="card-content display-flex">
+					<div class="media align-items-center">
+						<div class="media-left">
+							<div class="image image-32x32">
+								<img src="images/hub/icon02-quickstart.svg" alt="" aria-hidden="true" data-linktype="relative-path">
+							</div>
+						</div>
+						<div class="media-content">
+							<a id="iac-templates-3" href="/en-us/graph/templates/" class="card-title stretched-link has-external-link-indicator" data-linktype="absolute-path">IaC templates</a>
+						</div>
+					</div>
+				</div>
+			</article>
+		</div>
+		<div class="column is-4-tablet is-4-desktop">
+			<article data-bi-name="icon-card" class="card is-full-height position-relative">
+				<div class="card-content display-flex">
+					<div class="media align-items-center">
+						<div class="media-left">
+							<div class="image image-32x32">
+								<img src="images/index/i_backlog.svg" alt="" aria-hidden="true" data-linktype="relative-path">
+							</div>
+						</div>
+						<div class="media-content">
+							<a id="microsoft-mcp-server-for-enterprise-4" href="/en-us/graph/mcp-server/overview" class="card-title stretched-link has-external-link-indicator" data-linktype="absolute-path">Microsoft MCP Server for Enterprise</a>
+						</div>
+					</div>
+				</div>
+			</article>
+		</div>
+</div>
+			</div>
+		</section>
+
+		<section id="additional-content" data-bi-name="additional-content" class="padding-block-lg">
+			<div class="uhf-container anchor-headings">
+						<h2 class="title is-2 is-responsive margin-top-none margin-bottom-sm">Resources</h2>
+					<div class="columns is-multiline">
+						<div class="column is-4-tablet is-4-desktop">
+								<article data-bi-name="summary-card" class="card is-full-height">
+									<div class="card-content">
+										<h3 class="card-title color-text font-size-lg">Training and tutorials</h3>
+										<ul class="has-line-height-reset margin-left-none margin-bottom-none margin-top-xs">
+												<li class="is-unstyled margin-bottom-xxs font-size-sm">
+													<a href="https://developer.microsoft.com/graph/quick-start" class="has-external-link-indicator" data-linktype="external">
+														Quick Start
+													</a>
+												</li>
+												<li class="is-unstyled margin-bottom-xxs font-size-sm">
+													<a href="/en-us/training/paths/m365-msgraph-fundamentals/" class="has-external-link-indicator" data-linktype="absolute-path">
+														Microsoft Graph fundamentals
+													</a>
+												</li>
+												<li class="is-unstyled margin-bottom-xxs font-size-sm">
+													<a href="/en-us/training/browse/?products=ms-graph&amp;resource_type=learning%20path" class="has-external-link-indicator" data-linktype="absolute-path">
+														Microsoft Graph learning paths
+													</a>
+												</li>
+												<li class="is-unstyled margin-bottom-xxs font-size-sm">
+													<a href="/en-us/graph/tutorials" class="has-external-link-indicator" data-linktype="absolute-path">
+														Tutorials
+													</a>
+												</li>
+										</ul>
+									</div>
+								</article>
+						</div>
+						<div class="column is-4-tablet is-4-desktop">
+								<article data-bi-name="summary-card" class="card is-full-height">
+									<div class="card-content">
+										<h3 class="card-title color-text font-size-lg">Community</h3>
+										<ul class="has-line-height-reset margin-left-none margin-bottom-none margin-top-xs">
+												<li class="is-unstyled margin-bottom-xxs font-size-sm">
+													<a href="https://developer.microsoft.com/graph/blogs/" class="has-external-link-indicator" data-linktype="external">
+														Microsoft Graph blog
+													</a>
+												</li>
+												<li class="is-unstyled margin-bottom-xxs font-size-sm">
+													<a href="https://developer.microsoft.com/graph/gallery/?filterBy=Videos,Podcasts" class="has-external-link-indicator" data-linktype="external">
+														Videos and podcasts
+													</a>
+												</li>
+												<li class="is-unstyled margin-bottom-xxs font-size-sm">
+													<a href="https://www.youtube.com/playlist?list=PLWZJrkeLOrbabneRhISU-N7uK4PvVy-jV" class="has-external-link-indicator" data-linktype="external">
+														Monthly community calls
+													</a>
+												</li>
+										</ul>
+									</div>
+								</article>
+						</div>
+						<div class="column is-4-tablet is-4-desktop">
+								<article data-bi-name="summary-card" class="card is-full-height">
+									<div class="card-content">
+										<h3 class="card-title color-text font-size-lg">Support</h3>
+										<ul class="has-line-height-reset margin-left-none margin-bottom-none margin-top-xs">
+												<li class="is-unstyled margin-bottom-xxs font-size-sm">
+													<a href="https://developer.microsoft.com/graph/support" class="has-external-link-indicator" data-linktype="external">
+														Microsoft Graph support
+													</a>
+												</li>
+												<li class="is-unstyled margin-bottom-xxs font-size-sm">
+													<a href="/en-us/answers/products/graph" class="has-external-link-indicator" data-linktype="absolute-path">
+														Microsoft Graph Q&amp;A community support
+													</a>
+												</li>
+												<li class="is-unstyled margin-bottom-xxs font-size-sm">
+													<a href="https://feedbackportal.microsoft.com/feedback/forum/ebe2edae-97d1-ec11-a7b5-0022481f3c80" class="has-external-link-indicator" data-linktype="external">
+														Microsoft Graph feedback portal
+													</a>
+												</li>
+												<li class="is-unstyled margin-bottom-xxs font-size-sm">
+													<a href="https://developer.microsoft.com/en-us/graph/known-issues" class="has-external-link-indicator" data-linktype="external">
+														Known issues
+													</a>
+												</li>
+										</ul>
+									</div>
+								</article>
+						</div>
+					</div>
+			</div>
+		</section>
+</div>
+
+
+			</div>
+		
+				</main>
+				  <div class="layout-body-footer " data-bi-name="layout-footer">
+		<footer
+			id="footer"
+			data-test-id="footer"
+			data-bi-name="footer"
+			class="footer-layout padding-xs padding-sm-desktop has-default-focus border-top"
+			role="contentinfo"
+		>
+			<div class="display-flex gap-xs flex-wrap-wrap is-full-height padding-right-lg-desktop">
+				
+		<a
+			data-mscc-ic="false"
+			href="#"
+			data-bi-name="select-locale"
+			class="locale-selector-link flex-shrink-0 button button-sm button-clear external-link-indicator"
+			id=""
+			title=""
+			><span class="icon" aria-hidden="true"
+				><span class="docon docon-world"></span></span
+			><span class="local-selector-link-text">en-us</span></a
+		>
+	 <div class="ccpa-privacy-link" data-ccpa-privacy-link hidden>
+		
+		<a
+			data-mscc-ic="false"
+			href="https://aka.ms/yourcaliforniaprivacychoices"
+			data-bi-name="your-privacy-choices"
+			class="button button-sm button-clear flex-shrink-0 external-link-indicator"
+			id=""
+			title=""
+			>
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			viewBox="0 0 30 14"
+			xml:space="preserve"
+			height="16"
+			width="43"
+			aria-hidden="true"
+			focusable="false"
+		>
+			<path
+				d="M7.4 12.8h6.8l3.1-11.6H7.4C4.2 1.2 1.6 3.8 1.6 7s2.6 5.8 5.8 5.8z"
+				style="fill-rule:evenodd;clip-rule:evenodd;fill:#fff"
+			></path>
+			<path
+				d="M22.6 0H7.4c-3.9 0-7 3.1-7 7s3.1 7 7 7h15.2c3.9 0 7-3.1 7-7s-3.2-7-7-7zm-21 7c0-3.2 2.6-5.8 5.8-5.8h9.9l-3.1 11.6H7.4c-3.2 0-5.8-2.6-5.8-5.8z"
+				style="fill-rule:evenodd;clip-rule:evenodd;fill:#06f"
+			></path>
+			<path
+				d="M24.6 4c.2.2.2.6 0 .8L22.5 7l2.2 2.2c.2.2.2.6 0 .8-.2.2-.6.2-.8 0l-2.2-2.2-2.2 2.2c-.2.2-.6.2-.8 0-.2-.2-.2-.6 0-.8L20.8 7l-2.2-2.2c-.2-.2-.2-.6 0-.8.2-.2.6-.2.8 0l2.2 2.2L23.8 4c.2-.2.6-.2.8 0z"
+				style="fill:#fff"
+			></path>
+			<path
+				d="M12.7 4.1c.2.2.3.6.1.8L8.6 9.8c-.1.1-.2.2-.3.2-.2.1-.5.1-.7-.1L5.4 7.7c-.2-.2-.2-.6 0-.8.2-.2.6-.2.8 0L8 8.6l3.8-4.5c.2-.2.6-.2.9 0z"
+				style="fill:#06f"
+			></path>
+		</svg>
+	
+			<span>Your Privacy Choices</span></a
+		>
+	
+	</div>
+				<div class="flex-shrink-0">
+		<div class="dropdown has-caret-up">
+			<button
+				data-test-id="theme-selector-button"
+				class="dropdown-trigger button button-clear button-sm inner-focus theme-dropdown-trigger"
+				aria-controls="{{ themeMenuId }}"
+				aria-haspopup="true"
+				aria-expanded="false"
+				data-bi-name="theme"
+			>
+				<span class="icon" aria-hidden="true"><span class="docon docon-sun"></span></span>
+				<span>Theme</span>
+				<span class="icon expanded-indicator" aria-hidden="true">
+					<span class="docon docon-chevron-down-light"></span>
+				</span>
+			</button>
+			<div class="dropdown-menu" id="{{ themeMenuId }}" role="menu">
+				<ul class="theme-selector padding-xxs" data-test-id="theme-dropdown-menu" role="none">
+					<li class="theme display-block" role="none">
+						<button
+							class="button button-clear button-sm theme-control button-block justify-content-flex-start text-align-left"
+							role="menuitemradio"
+							aria-checked="false"
+							data-theme-to="light"
+							tabindex="-1"
+						>
+							<span class="theme-light margin-right-xxs">
+								<span
+									class="theme-selector-icon border display-inline-block has-body-background"
+									aria-hidden="true"
+								>
+									<svg class="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 14">
+										<rect width="22" height="14" class="has-fill-body-background" />
+										<rect x="5" y="5" width="12" height="4" class="has-fill-secondary" />
+										<rect x="5" y="2" width="2" height="1" class="has-fill-secondary" />
+										<rect x="8" y="2" width="2" height="1" class="has-fill-secondary" />
+										<rect x="11" y="2" width="3" height="1" class="has-fill-secondary" />
+										<rect x="1" y="1" width="2" height="2" class="has-fill-secondary" />
+										<rect x="5" y="10" width="7" height="2" rx="0.3" class="has-fill-primary" />
+										<rect x="19" y="1" width="2" height="2" rx="1" class="has-fill-secondary" />
+									</svg>
+								</span>
+							</span>
+							<span> Light </span>
+						</button>
+					</li>
+					<li class="theme display-block" role="none">
+						<button
+							class="button button-clear button-sm theme-control button-block justify-content-flex-start text-align-left"
+							role="menuitemradio"
+							aria-checked="false"
+							data-theme-to="dark"
+							tabindex="-1"
+						>
+							<span class="theme-dark margin-right-xxs">
+								<span
+									class="border theme-selector-icon display-inline-block has-body-background"
+									aria-hidden="true"
+								>
+									<svg class="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 14">
+										<rect width="22" height="14" class="has-fill-body-background" />
+										<rect x="5" y="5" width="12" height="4" class="has-fill-secondary" />
+										<rect x="5" y="2" width="2" height="1" class="has-fill-secondary" />
+										<rect x="8" y="2" width="2" height="1" class="has-fill-secondary" />
+										<rect x="11" y="2" width="3" height="1" class="has-fill-secondary" />
+										<rect x="1" y="1" width="2" height="2" class="has-fill-secondary" />
+										<rect x="5" y="10" width="7" height="2" rx="0.3" class="has-fill-primary" />
+										<rect x="19" y="1" width="2" height="2" rx="1" class="has-fill-secondary" />
+									</svg>
+								</span>
+							</span>
+							<span> Dark </span>
+						</button>
+					</li>
+					<li class="theme display-block" role="none">
+						<button
+							class="button button-clear button-sm theme-control button-block justify-content-flex-start text-align-left"
+							role="menuitemradio"
+							aria-checked="false"
+							data-theme-to="high-contrast"
+							tabindex="-1"
+						>
+							<span class="theme-high-contrast margin-right-xxs">
+								<span
+									class="border theme-selector-icon display-inline-block has-body-background"
+									aria-hidden="true"
+								>
+									<svg class="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 14">
+										<rect width="22" height="14" class="has-fill-body-background" />
+										<rect x="5" y="5" width="12" height="4" class="has-fill-secondary" />
+										<rect x="5" y="2" width="2" height="1" class="has-fill-secondary" />
+										<rect x="8" y="2" width="2" height="1" class="has-fill-secondary" />
+										<rect x="11" y="2" width="3" height="1" class="has-fill-secondary" />
+										<rect x="1" y="1" width="2" height="2" class="has-fill-secondary" />
+										<rect x="5" y="10" width="7" height="2" rx="0.3" class="has-fill-primary" />
+										<rect x="19" y="1" width="2" height="2" rx="1" class="has-fill-secondary" />
+									</svg>
+								</span>
+							</span>
+							<span> High contrast </span>
+						</button>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+			</div>
+			<ul class="links" data-bi-name="footerlinks">
+				<li class="manage-cookies-holder" hidden=""></li>
+				<li>
+		
+		<a
+			data-mscc-ic="false"
+			href="https://learn.microsoft.com/en-us/principles-for-ai-generated-content"
+			data-bi-name="aiDisclaimer"
+			class=" external-link-indicator"
+			id=""
+			title=""
+			>AI Disclaimer</a
+		>
+	
+	</li><li>
+		
+		<a
+			data-mscc-ic="false"
+			href="https://learn.microsoft.com/en-us/previous-versions/"
+			data-bi-name="archivelink"
+			class=" external-link-indicator"
+			id=""
+			title=""
+			>Previous Versions</a
+		>
+	
+	</li> <li>
+		
+		<a
+			data-mscc-ic="false"
+			href="https://techcommunity.microsoft.com/t5/microsoft-learn-blog/bg-p/MicrosoftLearnBlog"
+			data-bi-name="bloglink"
+			class=" external-link-indicator"
+			id=""
+			title=""
+			>Blog</a
+		>
+	
+	</li> <li>
+		
+		<a
+			data-mscc-ic="false"
+			href="https://learn.microsoft.com/en-us/contribute"
+			data-bi-name="contributorGuide"
+			class=" external-link-indicator"
+			id=""
+			title=""
+			>Contribute</a
+		>
+	
+	</li><li>
+		
+		<a
+			data-mscc-ic="false"
+			href="https://go.microsoft.com/fwlink/?LinkId=521839"
+			data-bi-name="privacy"
+			class=" external-link-indicator"
+			id=""
+			title=""
+			>Privacy</a
+		>
+	
+	</li><li>
+		
+		<a
+			data-mscc-ic="false"
+			href="https://go.microsoft.com/fwlink/?linkid=2259814"
+			data-bi-name="consumer-health-privacy"
+			class=" external-link-indicator"
+			id=""
+			title=""
+			>Consumer Health Privacy</a
+		>
+	
+	</li><li>
+		
+		<a
+			data-mscc-ic="false"
+			href="https://learn.microsoft.com/en-us/legal/termsofuse"
+			data-bi-name="termsofuse"
+			class=" external-link-indicator"
+			id=""
+			title=""
+			>Terms of Use</a
+		>
+	
+	</li><li>
+		
+		<a
+			data-mscc-ic="false"
+			href="https://www.microsoft.com/legal/intellectualproperty/Trademarks/"
+			data-bi-name="trademarks"
+			class=" external-link-indicator"
+			id=""
+			title=""
+			>Trademarks</a
+		>
+	
+	</li>
+				<li>&copy; Microsoft 2026</li>
+			</ul>
+		</footer>
+	</footer>
+			<noscript><img src="https://learn.microsoft.com/akam/13/pixel_cf109b7?a=dD1lYzQyYzg5OWMyNzE5NjAxNGE1Mjc4MmRkYzg5ZGQ1NTFlYTU0YTQyJmpzPW9mZg==" style="visibility: hidden; position: absolute; left: -999px; top: -999px;" /></noscript></body>
+		</html>
