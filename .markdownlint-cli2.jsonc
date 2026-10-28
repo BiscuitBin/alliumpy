@@ -14,5 +14,6 @@
     "MD041": false
   },
   "globs": ["**/*.md"],
-  "ignores": ["target", ".tools", ".pixi", "ai_tmp"]
+  // examples/ holds crawl output: generated Markdown is measured, not linted.
+  "ignores": ["target", ".tools", ".pixi", "ai_tmp", "examples/*/samples"]
 }

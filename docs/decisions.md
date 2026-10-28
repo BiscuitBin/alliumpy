@@ -89,6 +89,15 @@ numbered record under `decisions/`; this page is the running log of the smaller 
 
 ## Phase 7: acceptance findings
 
+The final acceptance runs (reports under `examples/`): Microsoft Graph, 200 pages,
+mean `quality_score` 0.9997, 3 low-confidence pages (1.5%), all over HTTP; Gmail,
+200 pages, mean 0.994, 9 low-confidence (4.5%), 40 soft-block escalations tried the
+browser and every one kept the HTTP copy. `verify` reports no broken relative link on
+either tree; the 24 and 4 unresolved fragments are the sites' own stale or client-only
+anchors recorded in the site notes. A second run changed no page or index file on
+either tree, only `crawl-report.json` and the state under `.docmirror/` (the manifest
+and, on devsite, the browser profile's cache).
+
 - A soft block (main text under 10% of the host median) is recorded on the page as
   `soft_block_suspected` and no longer feeds the breaker or makes the page
   low-confidence: devsite's Gmail markup type reference holds dozens of legitimately

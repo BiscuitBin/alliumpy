@@ -2,7 +2,7 @@
 target-version = "py312"
 line-length = 100
 # Normal discovery skips deliberately broken controls; generated paths are gitignored.
-extend-exclude = ["tests/fixtures/py-lint-violation"]
+extend-exclude = ["tests/fixtures/py-lint-violation", "examples/"]
 # Leave force-exclude at its false default: explicitly named positive controls must run.
 
 [lint]
