@@ -213,7 +213,8 @@ and, on devsite, the browser profile's cache).
 - Every update rechecks the tombstoned pages too, after every other URL, so one that
   answers 200 again is restored to its old path, its `_removed/` copy deleted, and it is
   reported as added. When a sitemap, a start URL or a link rediscovers it first, it is
-  fetched at the discovery's priority instead of last.
+  fetched at the discovery's priority instead of last. A page that is still gone keeps
+  its first tombstone and is not reported as removed again.
 
 ## Related pages
 

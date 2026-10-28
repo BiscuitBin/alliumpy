@@ -801,7 +801,9 @@ class Crawler:
 
     def _tombstone(self, url: str, status: int, known: sqlite3.Row | None) -> None:
         self.manifest.frontier_set_status(url, "gone")
-        if known is None or not known["path"]:
+        # A page still gone on a recheck was removed in an earlier run; it keeps its
+        # tombstone and is not reported removed again.
+        if known is None or not known["path"] or known["tombstoned_at"] is not None:
             self.emitter.emit(
                 "page", url=url, path=None, status="gone", tier="http", quality_score=None, flags=[]
             )

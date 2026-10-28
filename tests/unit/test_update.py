@@ -227,6 +227,16 @@ def test_tombstoned_page_that_returns_is_restored(site: FakeSite, tmp_path: Path
     site.gone.add("/docs/c")
     _run(site, out, command="update")
     assert "_removed/c.md" in _snapshot(out)
+    with open_manifest(out) as manifest:
+        first = manifest.get_page(site.server.url_for("/docs/c"))
+    again = _run(site, out, command="update")
+    assert "c.md" not in again.changes.removed
+    assert "_removed/c.md" in _snapshot(out)
+    with open_manifest(out) as manifest:
+        still = manifest.get_page(site.server.url_for("/docs/c"))
+    assert first is not None
+    assert still is not None
+    assert still["tombstoned_at"] == first["tombstoned_at"]
     site.gone.discard("/docs/c")
     report = _run(site, out, command="update")
     after = _snapshot(out)

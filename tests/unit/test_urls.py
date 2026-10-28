@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import importlib.util
+from pathlib import Path
+
 import pytest
 
 from docmirror.frontier.urls import ScopeRules, UrlNormalizer, locale_segment, path_pattern
@@ -65,3 +68,17 @@ def test_helpers() -> None:
     assert path_pattern("https://h/") == "/"
     assert locale_segment("/en-us/graph") == "en-us"
     assert locale_segment("/workspace/gmail") == ""
+
+
+def test_fixture_slug_comes_from_path_and_sorted_query() -> None:
+    script = Path(__file__).resolve().parents[2] / "scripts" / "capture_fixtures.py"
+    spec = importlib.util.spec_from_file_location("capture_fixtures", script)
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    assert (
+        module.slug_for("https://h/en-us/docs/api/get?z=2&view=beta")
+        == "docs-api-get-view-beta-z-2"
+    )
+    assert module.slug_for("https://h/") == "index"
