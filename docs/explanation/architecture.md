@@ -46,13 +46,14 @@ subclass. There is no fallible parse path yet. Public core values are
 `Send + Sync + 'static`, `Clone` and `Debug`; public structs and enums are
 `#[non_exhaustive]`. Python diagnostics are frozen, comparable and hashable.
 
-## The command route remains open
+## The command route
 
-The console shim answers `-V` and `--version` only. S01 compares vendoring upstream's
-CLI modules into the core, bundling a crates.io-built binary behind an exec shim, and
-an upstream pull request exposing `run(args)`. [Record 0014](../decisions/0014-cli-strategy.md)
-remains open until that evidence selects a route. Vendored code, if selected, belongs
-in `crates/alliumpy-core/src/cli/` under the core's quality requirements.
+Until T13 lands, the console shim answers `-V` and `--version` only. S01 compared
+vendoring upstream's CLI modules into the core, bundling a crates.io-built binary behind
+an exec shim, and an upstream pull request exposing `run(args)`, and recommends
+vendoring. T13 builds that route and records it in
+[record 0014](../decisions/0014-cli-strategy.md). Vendored code belongs in
+`crates/alliumpy-core/src/cli/` under the core's quality requirements.
 
 T13 adds the remaining command behaviour and byte-for-byte CLI parity.
 T14 adds the release process and first PyPI publication.

@@ -33,7 +33,8 @@ parity on POSIX only.
 The stable ABI reduces per-Python builds without lowering the floor below 3.11. A green
 local check does not certify macOS x86_64, Windows, musllinux or free-threaded Python.
 Release automation must supply that evidence, including console launchers and exit
-codes. Unsupported platforms may raise the sdist question, still pending S01.
+codes. Unsupported platforms fall back to the sdist, which S01 recommends keeping;
+decision 0014 (T13) records the route.
 
 ## What would reopen this
 

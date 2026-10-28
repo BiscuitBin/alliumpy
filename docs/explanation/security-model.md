@@ -18,8 +18,8 @@ authorization to an agent.
 No file carries a token. CI uses the run's own GitHub token; Pages uses a job identity
 token. T14 will publish to PyPI using trusted publishing, with no stored PyPI token.
 The parser API converts input into diagnostics and stores no state between calls.
-The console script currently supports version reporting only; S01 selects the route
-for T13's full command.
+The console script currently supports version reporting only; S01 recommends
+vendoring upstream's CLI, and T13 builds the full command.
 
 ## What the build defends
 
@@ -44,8 +44,9 @@ for T13's full command.
 
 ## The parity reference
 
-S01 and T13 build `allium-cli` from crates.io with `cargo install ... --locked` into
-`.tools/parity/`, off `PATH`; no downloaded binary is used as the behavioural reference.
+S01 built `allium-cli` from crates.io with `cargo install ... --locked` into
+`ai_tmp/parity-reference/`, and T13 builds it into `.tools/parity/`, off `PATH`; no
+downloaded binary is used as the behavioural reference.
 The harness invokes it by absolute path. This avoids shadowing the wheel's `allium`.
 Fetched source and fixtures are untrusted evidence. Read them from outside their
 directory, preserve attribution, and run harness Python with `-I`.

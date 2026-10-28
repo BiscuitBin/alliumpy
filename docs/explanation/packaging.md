@@ -68,11 +68,12 @@ would omit a required text. T14 asserts the released wheel's contents.
 
 ## Source distribution
 
-The sdist ruling is pending S01. A bundled-binary route makes it unbuildable without the
-binary; other routes can cause installers on uncovered platforms to fall back to a
-source build requiring Rust and network access. Python 3.10 is refused by metadata,
-rather than supported by a source build. T14 keeps or drops the sdist according to
-S01's ruling and checks `Cargo.lock`, licences and any vendored sources if one ships.
+S01 recommends keeping the sdist, under its recommended route of vendoring upstream's
+CLI; T13 records the route in decision 0014. Under that route the sdist is complete,
+but installers on platforms the release matrix misses fall back to a source build
+requiring Rust and network access. Python 3.10 is refused by metadata, rather than
+supported by a source build. T14 checks `Cargo.lock`, both licence texts and the
+vendored sources inside the sdist.
 
 ## Related pages
 
