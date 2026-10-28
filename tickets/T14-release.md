@@ -165,7 +165,9 @@ alliumpy==3.6.1 allium check tests/fixtures/smoke/ok.allium` exits 0. Decision 0
    - The matrix narrowed to decision 6: `linux` keeps `x86_64` and `aarch64` and drops
      `x86`, `armv7`, `s390x` and `ppc64le`; `musllinux` keeps `x86_64` and `aarch64`;
      `windows` keeps `x64` and drops `x86` and the ARM runner; `macos` keeps both of the
-     generator's runners. Record the exact runner labels the generator emitted; whether
+     generator's runners. T01's CI wheel is tagged `manylinux_2_34`, the glibc of the
+     runner that built it; the manylinux target chosen here decides the published floor
+     (`tickets/T01-github-and-ci.md:690-691`). Record the exact runner labels the generator emitted; whether
      each exists for this repository is `CONVENTIONS.md` §12 claim 4, settled by step 7.
      Keep `args: --release --out dist` with `--locked` appended if the generator did not
      (L `tickets/S04-bindings-and-cli.md`: `locked = true` already makes maturin honour
@@ -175,10 +177,15 @@ alliumpy==3.6.1 allium check tests/fixtures/smoke/ok.allium` exits 0. Decision 0
      unless claim 4 fails on it in step 7, in which case it is removed with a comment.
    - The `sdist` job: kept or deleted as S01 ruled (`CONVENTIONS.md` §9, "The sdist"). If
      kept, a step after the build runs `tar tzf dist/*.tar.gz` and fails unless it lists
-     `Cargo.lock`, both `LICENSE` and `LICENSE-allium-tools`, and, if S01 chose vendoring,
-     `crates/alliumpy-core/src/cli/`, each name matched as a whole archive entry
+     `Cargo.lock`, both `LICENSE` and `LICENSE-allium-tools`, and, under the vendoring route
+     S01 recommends, `crates/alliumpy-core/src/cli.rs`, `crates/alliumpy-core/src/cli/main.rs`,
+     `crates/alliumpy-core/src/cli/test_plan.rs` and
+     `crates/alliumpy-core/src/cli/domain_model.rs` (S01's seven paths,
+     `tickets/S01-cli-strategy-spike.md:1048-1053`), each name matched as a whole archive entry
      (`grep -x` or `-F` with the full path and `$`), never as a prefix that
-     `LICENSE-allium-tools` alone would satisfy; the list is quoted. The `sdist` job runs
+     `LICENSE-allium-tools` alone would satisfy; the list is quoted. It also fails on any
+     `_bin/` entry. `tests/fixtures/parity/` is absent from the sdist by design, so
+     `cargo test` from it is not expected to pass (S01:2568-2570). The `sdist` job runs
      this assertion and the `twine check` step below and nothing else: it builds no wheel
      to smoke.
    - **The bundled binary, under S01's route (b) only** (decision 0014; nothing is added
