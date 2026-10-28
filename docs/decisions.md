@@ -87,6 +87,25 @@ numbered record under `decisions/`; this page is the running log of the smaller 
 - `docmirror fetch` keeps its browser profile under `~/.cache/docmirror` (or
   `DOCMIRROR_STATE_DIR`) because it has no output directory.
 
+## Phase 7: acceptance findings
+
+- A soft block (main text under 10% of the host median) is recorded on the page as
+  `soft_block_suspected` and no longer feeds the breaker or makes the page
+  low-confidence: devsite's Gmail markup type reference holds dozens of legitimately
+  tiny pages, and the first acceptance crawl tripped the breaker on them.
+- The "thin text for a large HTML body" render rule applies only when no profile
+  selector matched: a profile match on a short REST reference page is a short page,
+  not a shell, and escalating every one of them to the browser cost timeouts.
+- A browser render that never reaches `networkidle` within the cap settles for
+  `domcontentloaded` plus a short wait rather than failing the page.
+- HTML islands are dedented outside `<pre>` and every blank line inside them is
+  removed, because an indented line of an interrupted HTML block reads as an indented
+  code block; the Markdown-side counter joins island text with spaces so adjacent
+  cells never glue into one token.
+- Learn links to `#non-admin-user-cant-...` while its heading id is
+  `#nonadmin-user-cant-...`: the site's own fragment is stale, `verify` reports it,
+  and no fuzzy matching papers over it.
+
 ## Phase 6: maintenance
 
 - `max_pages` is the mirror's size, not a per-run fetch count: an update re-checks every

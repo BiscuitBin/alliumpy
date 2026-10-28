@@ -42,7 +42,12 @@ def needs_render(
     meta = extraction.metadata
     if profile.main_selector and extraction.extractor != "profile":
         return "main selector absent"
-    if extraction.text_chars < min_text_chars and len(result.body) > LARGE_RAW:
+    if (
+        extraction.extractor != "profile"
+        and extraction.text_chars < min_text_chars
+        and len(result.body) > LARGE_RAW
+    ):
+        # A profile match is trusted: short reference pages are short on purpose.
         return (
             f"main text {extraction.text_chars} chars under {min_text_chars} "
             f"with {len(result.body)} bytes of HTML"
@@ -136,8 +141,9 @@ class FetchLadder:
                 median_text_chars=self.median_text(host_of(url)) if extraction else None,
             )
             if self.on_outcome is not None and (result.ok or verdict.blocked):
-                # Every tier attempt is one outcome for the host's breaker.
-                self.on_outcome(host_of(url), tier, verdict.blocked)
+                # Every tier attempt is one outcome for the host's breaker; a soft block is
+                # a suspicion recorded on the page, not a block the breaker counts.
+                self.on_outcome(host_of(url), tier, verdict.kind in {"hard", "challenge"})
             reason = ""
             if extraction is not None and tier == "http" and not verdict.blocked:
                 reason = needs_render(

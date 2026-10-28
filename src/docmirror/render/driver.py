@@ -15,6 +15,8 @@ import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Protocol
 
+from patchright.async_api import TimeoutError as PlaywrightTimeoutError
+
 from docmirror.fetch.session import FetchResult
 from docmirror.frontier.urls import host_of
 
@@ -77,9 +79,25 @@ class _PlaywrightDriver:
             context = await self._context_for(host)
             page = await context.new_page()
             try:
-                response = await page.goto(
-                    url, wait_until=self.render.wait_until, timeout=self.render.max_wait_s * 1000
-                )
+                try:
+                    response = await page.goto(
+                        url,
+                        wait_until=self.render.wait_until,
+                        timeout=self.render.max_wait_s * 1000,
+                    )
+                except PlaywrightTimeoutError:
+                    # A page that never goes network-idle (analytics, long polling) is still
+                    # rendered once the DOM has loaded; take what is there.
+                    LOG.info(
+                        "%s: %s not reached in %.0fs, settling for domcontentloaded",
+                        url,
+                        self.render.wait_until,
+                        self.render.max_wait_s,
+                    )
+                    response = await page.goto(
+                        url, wait_until="domcontentloaded", timeout=self.render.max_wait_s * 1000
+                    )
+                    await page.wait_for_timeout(1500)
                 status = int(response.status) if response is not None else 0
                 headers = (
                     {k.lower(): v for k, v in (await response.all_headers()).items()}

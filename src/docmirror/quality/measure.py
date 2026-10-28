@@ -91,9 +91,10 @@ def _count_html(fragment: str, counts: MarkdownCounts, text_parts: list[str]) ->
             counts.images += 1
         elif tag == "li":
             counts.list_items += 1
-    for pre in root.iter("pre"):
+    for pre in list(root.iter("pre")):
         pre.drop_tree()
-    text_parts.append(root.text_content())
+    # Joined with spaces: text_content() would glue adjacent cells into one token.
+    text_parts.append(" ".join(root.itertext()))
 
 
 def count_markdown(markdown: str) -> MarkdownCounts:

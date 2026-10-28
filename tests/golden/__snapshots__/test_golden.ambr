@@ -80,61 +80,61 @@
   ### Restricted scopes {#restricted-scopes}
   
   <table>
-    <thead>
-      <tr>
-        <th>Scope code</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><code>https://mail.google.com/</code></td>
-        <td>Read, compose, send, and permanently delete all your email from Gmail.
-        <br>
-        <br>
-        <strong>Note:</strong> Request this scope only if your application needs
-        to immediately and permanently delete threads and messages, bypassing the
-        trash. You can perform all other actions using less permissive scopes.
-        </td>
-      </tr>
-      <tr>
-        <td><code>https://www.googleapis.com/auth/gmail.readonly</code></td>
-        <td>View your email messages and settings.</td>
-      </tr>
-      <tr>
-        <td><code>https://www.googleapis.com/auth/gmail.compose</code></td>
-        <td>Manage drafts and send emails.</td>
-      </tr>
-      <tr>
-        <td><code>https://www.googleapis.com/auth/gmail.insert</code></td>
-        <td>Add emails into your Gmail mailbox.</td>
-      </tr>
-      <tr>
-        <td><code>https://www.googleapis.com/auth/gmail.modify</code></td>
-        <td>Read, compose, and send emails from your Gmail account. This scope
-        does not allow immediate, permanent deletion of threads and messages,
-        bypassing the trash.</td>
-      </tr>
-      <tr>
-        <td><code>https://www.googleapis.com/auth/gmail.metadata</code></td>
-        <td>View your email message metadata such as labels and headers, but not
-        the email body.</td>
-      </tr>
-      <tr>
-        <td><code>https://www.googleapis.com/auth/gmail.settings.basic</code></td>
-        <td>See, edit, create, or change your email settings and filters in Gmail.</td>
-      </tr>
-      <tr>
-        <td><code>https://www.googleapis.com/auth/gmail.settings.sharing</code></td>
-        <td>Manage your sensitive mail settings, including who can manage your mail.
-        <br>
-        <br>
-        <strong>Note:</strong> Operations guarded by this scope are restricted to
-        administrative use only. They are only available to Google Workspace
-        customers using a service account with domain-wide delegation.
-        </td>
-      </tr>
-    </tbody>
+  <thead>
+  <tr>
+  <th>Scope code</th>
+  <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td><code>https://mail.google.com/</code></td>
+  <td>Read, compose, send, and permanently delete all your email from Gmail.
+  <br>
+  <br>
+  <strong>Note:</strong> Request this scope only if your application needs
+  to immediately and permanently delete threads and messages, bypassing the
+  trash. You can perform all other actions using less permissive scopes.
+  </td>
+  </tr>
+  <tr>
+  <td><code>https://www.googleapis.com/auth/gmail.readonly</code></td>
+  <td>View your email messages and settings.</td>
+  </tr>
+  <tr>
+  <td><code>https://www.googleapis.com/auth/gmail.compose</code></td>
+  <td>Manage drafts and send emails.</td>
+  </tr>
+  <tr>
+  <td><code>https://www.googleapis.com/auth/gmail.insert</code></td>
+  <td>Add emails into your Gmail mailbox.</td>
+  </tr>
+  <tr>
+  <td><code>https://www.googleapis.com/auth/gmail.modify</code></td>
+  <td>Read, compose, and send emails from your Gmail account. This scope
+  does not allow immediate, permanent deletion of threads and messages,
+  bypassing the trash.</td>
+  </tr>
+  <tr>
+  <td><code>https://www.googleapis.com/auth/gmail.metadata</code></td>
+  <td>View your email message metadata such as labels and headers, but not
+  the email body.</td>
+  </tr>
+  <tr>
+  <td><code>https://www.googleapis.com/auth/gmail.settings.basic</code></td>
+  <td>See, edit, create, or change your email settings and filters in Gmail.</td>
+  </tr>
+  <tr>
+  <td><code>https://www.googleapis.com/auth/gmail.settings.sharing</code></td>
+  <td>Manage your sensitive mail settings, including who can manage your mail.
+  <br>
+  <br>
+  <strong>Note:</strong> Operations guarded by this scope are restricted to
+  administrative use only. They are only available to Google Workspace
+  customers using a service account with domain-wide delegation.
+  </td>
+  </tr>
+  </tbody>
   </table>
   
   The scopes in the preceding tables indicate their sensitivity, according to the
@@ -235,17 +235,17 @@
     files using label metadata terms defined by the custom label taxonomy.
   
   <table>
-        <tr>
-         <td><img src="https://fonts.gstatic.com/s/i/productlogos/youtube/v9/192px.svg"></td>
-         <td>
-           <div>Want to see the Google Drive API in action?</div>
-           <div>The Google Workspace Developers channel offers videos about tips,
-           tricks, and the latest features.</div>
-           <div><a href="https://www.youtube.com/channel/UCUcg6az6etU_gRtZVAhBXaw">Subscribe now</a>
-           </div>
-         </td>
-        </tr>
-     </table>
+  <tr>
+  <td><img src="https://fonts.gstatic.com/s/i/productlogos/youtube/v9/192px.svg"></td>
+  <td>
+  <div>Want to see the Google Drive API in action?</div>
+  <div>The Google Workspace Developers channel offers videos about tips,
+  tricks, and the latest features.</div>
+  <div><a href="https://www.youtube.com/channel/UCUcg6az6etU_gRtZVAhBXaw">Subscribe now</a>
+  </div>
+  </td>
+  </tr>
+  </table>
   
   ## Related topics {#related-topics}
   
@@ -473,19 +473,19 @@
   when referencing an absolute range of cells.</dd>
   </dl>
   <section>
-      <ul>
-        <li><code>Sheet1!A1:B2</code> refers to all the cells in the first two rows and columns of Sheet1.</li>
-        <li><code>Sheet1!A:A</code> refers to all the cells in the first column of Sheet1.</li>
-        <li><code>Sheet1!1:2</code> refers to all the cells in the first two rows of Sheet1.</li>
-        <li><code>Sheet1!A5:A</code> refers to all the cells of the first column of Sheet 1, from row 5 onward.</li>
-        <li><code>A1:B2</code> refers to all the cells in the first two rows and columns of the first visible sheet.</li>
-        <li><code>Sheet1</code> refers to all the cells in Sheet1.</li>
-        <li><code>'Jon's_Data'!A1:D5</code> refers to all the cells in the first five rows and four columns of a sheet named "Jon's_Data."</li>
-        <li><code>'My Custom Sheet'!A:A</code> refers to all the cells in the first column of a sheet named "My Custom Sheet."</li>
-        <li><code>'My Custom Sheet'</code> refers to all the cells in "My Custom Sheet".</li>
-      </ul>
-      <p>Single quotes are required for sheet names with spaces or special characters.</p>
-      <p><strong>Tip</strong>: Where possible, use distinct names for objects in your spreadsheets. For example, A1 (without quotes) refers to cell A1 in the first visible sheet. <code>'A1'</code> refers to a sheet with the name A1. Similarly, Sheet1 refers to a sheet with the name Sheet1. However, if there's a named range titled "Sheet1", then Sheet1 refers to the named range and <code>'Sheet1'</code> refers to the sheet.</p>
+  <ul>
+  <li><code>Sheet1!A1:B2</code> refers to all the cells in the first two rows and columns of Sheet1.</li>
+  <li><code>Sheet1!A:A</code> refers to all the cells in the first column of Sheet1.</li>
+  <li><code>Sheet1!1:2</code> refers to all the cells in the first two rows of Sheet1.</li>
+  <li><code>Sheet1!A5:A</code> refers to all the cells of the first column of Sheet 1, from row 5 onward.</li>
+  <li><code>A1:B2</code> refers to all the cells in the first two rows and columns of the first visible sheet.</li>
+  <li><code>Sheet1</code> refers to all the cells in Sheet1.</li>
+  <li><code>'Jon's_Data'!A1:D5</code> refers to all the cells in the first five rows and four columns of a sheet named "Jon's_Data."</li>
+  <li><code>'My Custom Sheet'!A:A</code> refers to all the cells in the first column of a sheet named "My Custom Sheet."</li>
+  <li><code>'My Custom Sheet'</code> refers to all the cells in "My Custom Sheet".</li>
+  </ul>
+  <p>Single quotes are required for sheet names with spaces or special characters.</p>
+  <p><strong>Tip</strong>: Where possible, use distinct names for objects in your spreadsheets. For example, A1 (without quotes) refers to cell A1 in the first visible sheet. <code>'A1'</code> refers to a sheet with the name A1. Similarly, Sheet1 refers to a sheet with the name Sheet1. However, if there's a named range titled "Sheet1", then Sheet1 refers to the named range and <code>'Sheet1'</code> refers to the sheet.</p>
   </section>
   <dl>
   <dt id="r1c1-notation"><em>R1C1 notation</em></dt>
@@ -496,12 +496,12 @@
   cell's position.</dd>
   </dl>
   <section>
-          <ul>
-            <li><code>Sheet1!R1C1:R2C2</code> refers to the first two cells in the top two rows of Sheet1.</li>
-            <li><code>R1C1:R2C2</code> refers to the first two cells in the top two rows of the first visible sheet.</li>
-            <li><code>Sheet1!R[3]C[1]</code> refers to the cell that is three rows below and one column to the right of the current cell.</li>
-          </ul>
-      </section>
+  <ul>
+  <li><code>Sheet1!R1C1:R2C2</code> refers to the first two cells in the top two rows of Sheet1.</li>
+  <li><code>R1C1:R2C2</code> refers to the first two cells in the top two rows of the first visible sheet.</li>
+  <li><code>Sheet1!R[3]C[1]</code> refers to the cell that is three rows below and one column to the right of the current cell.</li>
+  </ul>
+  </section>
   <dl>
   <dt id="named-range"><em>Named range</em></dt>
   <dd>A defined cell or range of cells with a custom name to simplify references
@@ -1149,93 +1149,93 @@
   system labels:
   
   <table>
-    <thead>
-      <th>Name</th>
-      <th>Can be manually applied</th>
-      <th>Notes</th>
-    </thead>
-    <tbody>
-      <tr>
-        <td><code>INBOX</code></td>
-        <td>yes</td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><code>SPAM</code></td>
-        <td>yes</td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><code>TRASH</code></td>
-        <td>yes</td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><code>UNREAD</code></td>
-        <td>yes</td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><code>STARRED</code></td>
-        <td>yes</td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><code>IMPORTANT</code></td>
-        <td>yes</td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><code>SENT</code></td>
-        <td>no</td>
-        <td>Applied automatically to messages that are:
-          <ul>
-            <li>sent with <a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/send"><code>drafts.send</code></a> or
-            <a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send"><code>messages.send</code></a>.</li>
-            <li>inserted with <a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/insert"><code>messages.insert</code></a>
-            and the user's email in the <code>From</code> header.</li>
-            <li>sent by the user through the web interface.</li>
-          </ul>
-        </td>
-      </tr>
-      <tr>
-        <td><code>DRAFT</code></td>
-        <td>no</td>
-        <td>Automatically applied to all
-        <a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts"><code>draft</code></a>
-        messages created with the Gmail API or Gmail interface.</td>
-      </tr>
-      <tr>
-        <td><code>CATEGORY_PERSONAL</code></td>
-        <td>yes</td>
-        <td>Corresponds to messages that are displayed in the Personal tab of
-        the Gmail interface.</td>
-      </tr>
-      <tr>
-        <td><code>CATEGORY_SOCIAL</code></td>
-        <td>yes</td>
-        <td>Corresponds to messages that are displayed in the Social tab of the
-        Gmail interface.</td>
-      </tr>
-      <tr>
-        <td><code>CATEGORY_PROMOTIONS</code></td>
-        <td>yes</td>
-        <td>Corresponds to messages that are displayed in the Promotions tab of
-        the Gmail interface.</td>
-      </tr>
-      <tr>
-        <td><code>CATEGORY_UPDATES</code></td>
-        <td>yes</td>
-        <td>Corresponds to messages that are displayed in the Updates tab of the
-        Gmail interface.</td>
-      </tr>
-      <tr>
-        <td><code>CATEGORY_FORUMS</code></td>
-        <td>yes</td>
-        <td>Corresponds to messages that are displayed in the Forums tab of the
-        Gmail interface.</td>
-      </tr>
-    </tbody>
+  <thead>
+  <th>Name</th>
+  <th>Can be manually applied</th>
+  <th>Notes</th>
+  </thead>
+  <tbody>
+  <tr>
+  <td><code>INBOX</code></td>
+  <td>yes</td>
+  <td></td>
+  </tr>
+  <tr>
+  <td><code>SPAM</code></td>
+  <td>yes</td>
+  <td></td>
+  </tr>
+  <tr>
+  <td><code>TRASH</code></td>
+  <td>yes</td>
+  <td></td>
+  </tr>
+  <tr>
+  <td><code>UNREAD</code></td>
+  <td>yes</td>
+  <td></td>
+  </tr>
+  <tr>
+  <td><code>STARRED</code></td>
+  <td>yes</td>
+  <td></td>
+  </tr>
+  <tr>
+  <td><code>IMPORTANT</code></td>
+  <td>yes</td>
+  <td></td>
+  </tr>
+  <tr>
+  <td><code>SENT</code></td>
+  <td>no</td>
+  <td>Applied automatically to messages that are:
+  <ul>
+  <li>sent with <a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/send"><code>drafts.send</code></a> or
+  <a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send"><code>messages.send</code></a>.</li>
+  <li>inserted with <a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/insert"><code>messages.insert</code></a>
+  and the user's email in the <code>From</code> header.</li>
+  <li>sent by the user through the web interface.</li>
+  </ul>
+  </td>
+  </tr>
+  <tr>
+  <td><code>DRAFT</code></td>
+  <td>no</td>
+  <td>Automatically applied to all
+  <a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts"><code>draft</code></a>
+  messages created with the Gmail API or Gmail interface.</td>
+  </tr>
+  <tr>
+  <td><code>CATEGORY_PERSONAL</code></td>
+  <td>yes</td>
+  <td>Corresponds to messages that are displayed in the Personal tab of
+  the Gmail interface.</td>
+  </tr>
+  <tr>
+  <td><code>CATEGORY_SOCIAL</code></td>
+  <td>yes</td>
+  <td>Corresponds to messages that are displayed in the Social tab of the
+  Gmail interface.</td>
+  </tr>
+  <tr>
+  <td><code>CATEGORY_PROMOTIONS</code></td>
+  <td>yes</td>
+  <td>Corresponds to messages that are displayed in the Promotions tab of
+  the Gmail interface.</td>
+  </tr>
+  <tr>
+  <td><code>CATEGORY_UPDATES</code></td>
+  <td>yes</td>
+  <td>Corresponds to messages that are displayed in the Updates tab of the
+  Gmail interface.</td>
+  </tr>
+  <tr>
+  <td><code>CATEGORY_FORUMS</code></td>
+  <td>yes</td>
+  <td>Corresponds to messages that are displayed in the Forums tab of the
+  Gmail interface.</td>
+  </tr>
+  </tbody>
   </table>
   
   > [!NOTE]
@@ -3176,48 +3176,48 @@
   The following table details the query cost for each `gmailmcp.googleapis.com` toolset:
   
   <table>
-    <tr>
-      <th>Endpoint</th>
-      <th>Tool</th>
-      <th>Query cost</th>
-    </tr>
-    <tr>
-      <td rowspan="9"><p><b>/mcp/v1</b></p></td>
-      <td><p><code>create_draft</code></p></td>
-      <td><p>10</p></td>
-    </tr>
-    <tr>
-      <td><p><code>get_thread</code></p></td>
-      <td><p>40</p></td>
-    </tr>
-    <tr>
-      <td><p><code>label_message</code></p></td>
-      <td><p>10</p></td>
-    </tr>
-    <tr>
-      <td><p><code>label_thread</code></p></td>
-      <td><p>10</p></td>
-    </tr>
-    <tr>
-      <td><p><code>list_drafts</code></p></td>
-      <td><p>5</p></td>
-    </tr>
-    <tr>
-      <td><p><code>list_labels</code></p></td>
-      <td><p>1</p></td>
-    </tr>
-    <tr>
-      <td><p><code>search_threads</code></p></td>
-      <td><p>10</p></td>
-    </tr>
-    <tr>
-      <td><p><code>unlabel_message</code></p></td>
-      <td><p>10</p></td>
-    </tr>
-    <tr>
-      <td><p><code>unlabel_thread</code></p></td>
-      <td><p>10</p></td>
-    </tr>
+  <tr>
+  <th>Endpoint</th>
+  <th>Tool</th>
+  <th>Query cost</th>
+  </tr>
+  <tr>
+  <td rowspan="9"><p><b>/mcp/v1</b></p></td>
+  <td><p><code>create_draft</code></p></td>
+  <td><p>10</p></td>
+  </tr>
+  <tr>
+  <td><p><code>get_thread</code></p></td>
+  <td><p>40</p></td>
+  </tr>
+  <tr>
+  <td><p><code>label_message</code></p></td>
+  <td><p>10</p></td>
+  </tr>
+  <tr>
+  <td><p><code>label_thread</code></p></td>
+  <td><p>10</p></td>
+  </tr>
+  <tr>
+  <td><p><code>list_drafts</code></p></td>
+  <td><p>5</p></td>
+  </tr>
+  <tr>
+  <td><p><code>list_labels</code></p></td>
+  <td><p>1</p></td>
+  </tr>
+  <tr>
+  <td><p><code>search_threads</code></p></td>
+  <td><p>10</p></td>
+  </tr>
+  <tr>
+  <td><p><code>unlabel_message</code></p></td>
+  <td><p>10</p></td>
+  </tr>
+  <tr>
+  <td><p><code>unlabel_thread</code></p></td>
+  <td><p>10</p></td>
+  </tr>
   </table>
   
   For more information, see the [Gmail MCP API reference](https://developers.google.com/workspace/gmail/api/reference/mcp).
@@ -3272,801 +3272,801 @@
   ## REST Resource: [v1.users](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users) {#rest-resource:-v1.users}
   
   <table id="v1.users.METHODS_SUMMARY-table">
-              <colgroup>
-                <col>
-                <col>
-              </colgroup>
-              <thead>
-                <tr>
-                  <th colspan="2">Methods</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/getProfile">getProfile</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/profile</code> <br>
-                    Gets the current user's Gmail profile.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/stop">stop</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/stop</code> <br>
-                    Turn off push notification delivery for the given user mailbox.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/watch">watch</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/watch</code> <br>
-                    Set up or update a push notification watch on the given user mailbox.</td>
-                </tr>
-              </tbody>
-            </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2">Methods</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/getProfile">getProfile</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/profile</code> <br>
+  Gets the current user's Gmail profile.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/stop">stop</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/stop</code> <br>
+  Turn off push notification delivery for the given user mailbox.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/watch">watch</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/watch</code> <br>
+  Set up or update a push notification watch on the given user mailbox.</td>
+  </tr>
+  </tbody>
+  </table>
   
   ## REST Resource: [v1.users.drafts](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts) {#rest-resource:-v1.users.drafts}
   
   <table id="v1.users.drafts.METHODS_SUMMARY-table">
-              <colgroup>
-                <col>
-                <col>
-              </colgroup>
-              <thead>
-                <tr>
-                  <th colspan="2">Methods</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/create">create</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/drafts</code> <br>
-                    <code>POST /upload/gmail/v1/users/{userId}/drafts</code> <br>
-                    Creates a draft with the <code>DRAFT</code> label.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/delete">delete</a></code></td>
-                  <td>
-                    <code>DELETE /gmail/v1/users/{userId}/drafts/{id}</code> <br>
-                    Immediately and permanently deletes the specified draft.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/get">get</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/drafts/{id}</code> <br>
-                    Gets the specified draft.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/list">list</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/drafts</code> <br>
-                    Lists the drafts in the user's mailbox.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/send">send</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/drafts/send</code> <br>
-                    <code>POST /upload/gmail/v1/users/{userId}/drafts/send</code> <br>
-                    Sends the specified, existing draft to the recipients in the <code>To</code>, <code>Cc</code>, and <code>Bcc</code> headers.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/update">update</a></code></td>
-                  <td>
-                    <code>PUT /gmail/v1/users/{userId}/drafts/{id}</code> <br>
-                    <code>PUT /upload/gmail/v1/users/{userId}/drafts/{id}</code> <br>
-                    Replaces a draft's content.</td>
-                </tr>
-              </tbody>
-            </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2">Methods</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/create">create</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/drafts</code> <br>
+  <code>POST /upload/gmail/v1/users/{userId}/drafts</code> <br>
+  Creates a draft with the <code>DRAFT</code> label.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/delete">delete</a></code></td>
+  <td>
+  <code>DELETE /gmail/v1/users/{userId}/drafts/{id}</code> <br>
+  Immediately and permanently deletes the specified draft.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/get">get</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/drafts/{id}</code> <br>
+  Gets the specified draft.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/list">list</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/drafts</code> <br>
+  Lists the drafts in the user's mailbox.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/send">send</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/drafts/send</code> <br>
+  <code>POST /upload/gmail/v1/users/{userId}/drafts/send</code> <br>
+  Sends the specified, existing draft to the recipients in the <code>To</code>, <code>Cc</code>, and <code>Bcc</code> headers.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/update">update</a></code></td>
+  <td>
+  <code>PUT /gmail/v1/users/{userId}/drafts/{id}</code> <br>
+  <code>PUT /upload/gmail/v1/users/{userId}/drafts/{id}</code> <br>
+  Replaces a draft's content.</td>
+  </tr>
+  </tbody>
+  </table>
   
   ## REST Resource: [v1.users.history](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.history) {#rest-resource:-v1.users.history}
   
   <table id="v1.users.history.METHODS_SUMMARY-table">
-              <colgroup>
-                <col>
-                <col>
-              </colgroup>
-              <thead>
-                <tr>
-                  <th colspan="2">Methods</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.history/list">list</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/history</code> <br>
-                    Lists the history of all changes to the given mailbox.</td>
-                </tr>
-              </tbody>
-            </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2">Methods</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.history/list">list</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/history</code> <br>
+  Lists the history of all changes to the given mailbox.</td>
+  </tr>
+  </tbody>
+  </table>
   
   ## REST Resource: [v1.users.labels](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels) {#rest-resource:-v1.users.labels}
   
   <table id="v1.users.labels.METHODS_SUMMARY-table">
-              <colgroup>
-                <col>
-                <col>
-              </colgroup>
-              <thead>
-                <tr>
-                  <th colspan="2">Methods</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/create">create</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/labels</code> <br>
-                    Creates a label.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/delete">delete</a></code></td>
-                  <td>
-                    <code>DELETE /gmail/v1/users/{userId}/labels/{id}</code> <br>
-                    Immediately and permanently deletes the specified label and removes it from any messages and threads that it's applied to.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/get">get</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/labels/{id}</code> <br>
-                    Gets the specified label.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/list">list</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/labels</code> <br>
-                    Lists all labels in the user's mailbox.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/patch">patch</a></code></td>
-                  <td>
-                    <code>PATCH /gmail/v1/users/{userId}/labels/{id}</code> <br>
-                    Patch the specified label.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/update">update</a></code></td>
-                  <td>
-                    <code>PUT /gmail/v1/users/{userId}/labels/{id}</code> <br>
-                    Updates the specified label.</td>
-                </tr>
-              </tbody>
-            </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2">Methods</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/create">create</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/labels</code> <br>
+  Creates a label.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/delete">delete</a></code></td>
+  <td>
+  <code>DELETE /gmail/v1/users/{userId}/labels/{id}</code> <br>
+  Immediately and permanently deletes the specified label and removes it from any messages and threads that it's applied to.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/get">get</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/labels/{id}</code> <br>
+  Gets the specified label.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/list">list</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/labels</code> <br>
+  Lists all labels in the user's mailbox.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/patch">patch</a></code></td>
+  <td>
+  <code>PATCH /gmail/v1/users/{userId}/labels/{id}</code> <br>
+  Patch the specified label.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/update">update</a></code></td>
+  <td>
+  <code>PUT /gmail/v1/users/{userId}/labels/{id}</code> <br>
+  Updates the specified label.</td>
+  </tr>
+  </tbody>
+  </table>
   
   ## REST Resource: [v1.users.messages](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages) {#rest-resource:-v1.users.messages}
   
   <table id="v1.users.messages.METHODS_SUMMARY-table">
-              <colgroup>
-                <col>
-                <col>
-              </colgroup>
-              <thead>
-                <tr>
-                  <th colspan="2">Methods</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/batchDelete">batchDelete</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/messages/batchDelete</code> <br>
-                    Deletes many messages by message ID.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/batchModify">batchModify</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/messages/batchModify</code> <br>
-                    Modifies the labels on the specified messages.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/delete">delete</a></code></td>
-                  <td>
-                    <code>DELETE /gmail/v1/users/{userId}/messages/{id}</code> <br>
-                    Immediately and permanently deletes the specified message.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/get">get</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/messages/{id}</code> <br>
-                    Gets the specified message.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/import">import</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/messages/import</code> <br>
-                    <code>POST /upload/gmail/v1/users/{userId}/messages/import</code> <br>
-                    Imports a message into only this user's mailbox, with standard email delivery scanning and classification similar to receiving via SMTP.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/insert">insert</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/messages</code> <br>
-                    <code>POST /upload/gmail/v1/users/{userId}/messages</code> <br>
-                    Directly inserts a message into only this user's mailbox similar to <code>IMAP APPEND</code>, bypassing most scanning and classification.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/list">list</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/messages</code> <br>
-                    Lists the messages in the user's mailbox.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/modify">modify</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/messages/{id}/modify</code> <br>
-                    Modifies the labels on the specified message.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send">send</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/messages/send</code> <br>
-                    <code>POST /upload/gmail/v1/users/{userId}/messages/send</code> <br>
-                    Sends the specified message to the recipients in the <code>To</code>, <code>Cc</code>, and <code>Bcc</code> headers.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/trash">trash</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/messages/{id}/trash</code> <br>
-                    Moves the specified message to the trash.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/untrash">untrash</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/messages/{id}/untrash</code> <br>
-                    Removes the specified message from the trash.</td>
-                </tr>
-              </tbody>
-            </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2">Methods</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/batchDelete">batchDelete</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/messages/batchDelete</code> <br>
+  Deletes many messages by message ID.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/batchModify">batchModify</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/messages/batchModify</code> <br>
+  Modifies the labels on the specified messages.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/delete">delete</a></code></td>
+  <td>
+  <code>DELETE /gmail/v1/users/{userId}/messages/{id}</code> <br>
+  Immediately and permanently deletes the specified message.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/get">get</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/messages/{id}</code> <br>
+  Gets the specified message.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/import">import</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/messages/import</code> <br>
+  <code>POST /upload/gmail/v1/users/{userId}/messages/import</code> <br>
+  Imports a message into only this user's mailbox, with standard email delivery scanning and classification similar to receiving via SMTP.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/insert">insert</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/messages</code> <br>
+  <code>POST /upload/gmail/v1/users/{userId}/messages</code> <br>
+  Directly inserts a message into only this user's mailbox similar to <code>IMAP APPEND</code>, bypassing most scanning and classification.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/list">list</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/messages</code> <br>
+  Lists the messages in the user's mailbox.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/modify">modify</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/messages/{id}/modify</code> <br>
+  Modifies the labels on the specified message.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send">send</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/messages/send</code> <br>
+  <code>POST /upload/gmail/v1/users/{userId}/messages/send</code> <br>
+  Sends the specified message to the recipients in the <code>To</code>, <code>Cc</code>, and <code>Bcc</code> headers.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/trash">trash</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/messages/{id}/trash</code> <br>
+  Moves the specified message to the trash.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/untrash">untrash</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/messages/{id}/untrash</code> <br>
+  Removes the specified message from the trash.</td>
+  </tr>
+  </tbody>
+  </table>
   
   ## REST Resource: [v1.users.messages.attachments](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages.attachments) {#rest-resource:-v1.users.messages.attachments}
   
   <table id="v1.users.messages.attachments.METHODS_SUMMARY-table">
-              <colgroup>
-                <col>
-                <col>
-              </colgroup>
-              <thead>
-                <tr>
-                  <th colspan="2">Methods</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages.attachments/get">get</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/messages/{messageId}/attachments/{id}</code> <br>
-                    Gets the specified message attachment.</td>
-                </tr>
-              </tbody>
-            </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2">Methods</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages.attachments/get">get</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/messages/{messageId}/attachments/{id}</code> <br>
+  Gets the specified message attachment.</td>
+  </tr>
+  </tbody>
+  </table>
   
   ## REST Resource: [v1.users.settings](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings) {#rest-resource:-v1.users.settings}
   
   <table id="v1.users.settings.METHODS_SUMMARY-table">
-              <colgroup>
-                <col>
-                <col>
-              </colgroup>
-              <thead>
-                <tr>
-                  <th colspan="2">Methods</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/getAutoForwarding">getAutoForwarding</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/settings/autoForwarding</code> <br>
-                    Gets the auto-forwarding setting for the specified account.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/getImap">getImap</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/settings/imap</code> <br>
-                    Gets IMAP settings.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/getLanguage">getLanguage</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/settings/language</code> <br>
-                    Gets language settings.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/getPop">getPop</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/settings/pop</code> <br>
-                    Gets POP settings.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/getVacation">getVacation</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/settings/vacation</code> <br>
-                    Gets vacation responder settings.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/updateAutoForwarding">updateAutoForwarding</a></code></td>
-                  <td>
-                    <code>PUT /gmail/v1/users/{userId}/settings/autoForwarding</code> <br>
-                    Updates the auto-forwarding setting for the specified account.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/updateImap">updateImap</a></code></td>
-                  <td>
-                    <code>PUT /gmail/v1/users/{userId}/settings/imap</code> <br>
-                    Updates IMAP settings.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/updateLanguage">updateLanguage</a></code></td>
-                  <td>
-                    <code>PUT /gmail/v1/users/{userId}/settings/language</code> <br>
-                    Updates language settings.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/updatePop">updatePop</a></code></td>
-                  <td>
-                    <code>PUT /gmail/v1/users/{userId}/settings/pop</code> <br>
-                    Updates POP settings.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/updateVacation">updateVacation</a></code></td>
-                  <td>
-                    <code>PUT /gmail/v1/users/{userId}/settings/vacation</code> <br>
-                    Updates vacation responder settings.</td>
-                </tr>
-              </tbody>
-            </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2">Methods</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/getAutoForwarding">getAutoForwarding</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/settings/autoForwarding</code> <br>
+  Gets the auto-forwarding setting for the specified account.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/getImap">getImap</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/settings/imap</code> <br>
+  Gets IMAP settings.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/getLanguage">getLanguage</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/settings/language</code> <br>
+  Gets language settings.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/getPop">getPop</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/settings/pop</code> <br>
+  Gets POP settings.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/getVacation">getVacation</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/settings/vacation</code> <br>
+  Gets vacation responder settings.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/updateAutoForwarding">updateAutoForwarding</a></code></td>
+  <td>
+  <code>PUT /gmail/v1/users/{userId}/settings/autoForwarding</code> <br>
+  Updates the auto-forwarding setting for the specified account.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/updateImap">updateImap</a></code></td>
+  <td>
+  <code>PUT /gmail/v1/users/{userId}/settings/imap</code> <br>
+  Updates IMAP settings.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/updateLanguage">updateLanguage</a></code></td>
+  <td>
+  <code>PUT /gmail/v1/users/{userId}/settings/language</code> <br>
+  Updates language settings.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/updatePop">updatePop</a></code></td>
+  <td>
+  <code>PUT /gmail/v1/users/{userId}/settings/pop</code> <br>
+  Updates POP settings.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings/updateVacation">updateVacation</a></code></td>
+  <td>
+  <code>PUT /gmail/v1/users/{userId}/settings/vacation</code> <br>
+  Updates vacation responder settings.</td>
+  </tr>
+  </tbody>
+  </table>
   
   ## REST Resource: [v1.users.settings.cse.identities](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.identities) {#rest-resource:-v1.users.settings.cse.identities}
   
   <table id="v1.users.settings.cse.identities.METHODS_SUMMARY-table">
-              <colgroup>
-                <col>
-                <col>
-              </colgroup>
-              <thead>
-                <tr>
-                  <th colspan="2">Methods</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.identities/create">create</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/settings/cse/identities</code> <br>
-                    Creates and configures a client-side encryption identity that's authorized to send mail from the user account.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.identities/delete">delete</a></code></td>
-                  <td>
-                    <code>DELETE /gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}</code> <br>
-                    Deletes a client-side encryption identity.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.identities/get">get</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}</code> <br>
-                    Retrieves a client-side encryption identity configuration.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.identities/list">list</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/settings/cse/identities</code> <br>
-                    Lists the client-side encrypted identities for an authenticated user.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.identities/patch">patch</a></code></td>
-                  <td>
-                    <code>PATCH /gmail/v1/users/{userId}/settings/cse/identities/{emailAddress}</code> <br>
-                    Associates a different key pair with an existing client-side encryption identity.</td>
-                </tr>
-              </tbody>
-            </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2">Methods</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.identities/create">create</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/settings/cse/identities</code> <br>
+  Creates and configures a client-side encryption identity that's authorized to send mail from the user account.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.identities/delete">delete</a></code></td>
+  <td>
+  <code>DELETE /gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}</code> <br>
+  Deletes a client-side encryption identity.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.identities/get">get</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}</code> <br>
+  Retrieves a client-side encryption identity configuration.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.identities/list">list</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/settings/cse/identities</code> <br>
+  Lists the client-side encrypted identities for an authenticated user.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.identities/patch">patch</a></code></td>
+  <td>
+  <code>PATCH /gmail/v1/users/{userId}/settings/cse/identities/{emailAddress}</code> <br>
+  Associates a different key pair with an existing client-side encryption identity.</td>
+  </tr>
+  </tbody>
+  </table>
   
   ## REST Resource: [v1.users.settings.cse.keypairs](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.keypairs) {#rest-resource:-v1.users.settings.cse.keypairs}
   
   <table id="v1.users.settings.cse.keypairs.METHODS_SUMMARY-table">
-              <colgroup>
-                <col>
-                <col>
-              </colgroup>
-              <thead>
-                <tr>
-                  <th colspan="2">Methods</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.keypairs/create">create</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/settings/cse/keypairs</code> <br>
-                    Creates and uploads a client-side encryption S/MIME public key certificate chain and private key metadata for the authenticated user.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.keypairs/disable">disable</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:disable</code> <br>
-                    Turns off a client-side encryption key pair.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.keypairs/enable">enable</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:enable</code> <br>
-                    Turns on a client-side encryption key pair that was turned off.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.keypairs/get">get</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}</code> <br>
-                    Retrieves an existing client-side encryption key pair.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.keypairs/list">list</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/settings/cse/keypairs</code> <br>
-                    Lists client-side encryption key pairs for an authenticated user.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.keypairs/obliterate">obliterate</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:obliterate</code> <br>
-                    Deletes a client-side encryption key pair permanently and immediately.</td>
-                </tr>
-              </tbody>
-            </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2">Methods</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.keypairs/create">create</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/settings/cse/keypairs</code> <br>
+  Creates and uploads a client-side encryption S/MIME public key certificate chain and private key metadata for the authenticated user.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.keypairs/disable">disable</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:disable</code> <br>
+  Turns off a client-side encryption key pair.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.keypairs/enable">enable</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:enable</code> <br>
+  Turns on a client-side encryption key pair that was turned off.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.keypairs/get">get</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}</code> <br>
+  Retrieves an existing client-side encryption key pair.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.keypairs/list">list</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/settings/cse/keypairs</code> <br>
+  Lists client-side encryption key pairs for an authenticated user.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.cse.keypairs/obliterate">obliterate</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:obliterate</code> <br>
+  Deletes a client-side encryption key pair permanently and immediately.</td>
+  </tr>
+  </tbody>
+  </table>
   
   ## REST Resource: [v1.users.settings.delegates](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.delegates) {#rest-resource:-v1.users.settings.delegates}
   
   <table id="v1.users.settings.delegates.METHODS_SUMMARY-table">
-              <colgroup>
-                <col>
-                <col>
-              </colgroup>
-              <thead>
-                <tr>
-                  <th colspan="2">Methods</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.delegates/create">create</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/settings/delegates</code> <br>
-                    Adds a delegate with its verification status set directly to <code>accepted</code>, without sending any verification email.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.delegates/delete">delete</a></code></td>
-                  <td>
-                    <code>DELETE /gmail/v1/users/{userId}/settings/delegates/{delegateEmail}</code> <br>
-                    Removes the specified delegate (which can be of any verification status), and revokes any verification that may have been required for using it.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.delegates/get">get</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/settings/delegates/{delegateEmail}</code> <br>
-                    Gets the specified delegate.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.delegates/list">list</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/settings/delegates</code> <br>
-                    Lists the delegates for the specified account.</td>
-                </tr>
-              </tbody>
-            </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2">Methods</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.delegates/create">create</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/settings/delegates</code> <br>
+  Adds a delegate with its verification status set directly to <code>accepted</code>, without sending any verification email.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.delegates/delete">delete</a></code></td>
+  <td>
+  <code>DELETE /gmail/v1/users/{userId}/settings/delegates/{delegateEmail}</code> <br>
+  Removes the specified delegate (which can be of any verification status), and revokes any verification that may have been required for using it.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.delegates/get">get</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/settings/delegates/{delegateEmail}</code> <br>
+  Gets the specified delegate.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.delegates/list">list</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/settings/delegates</code> <br>
+  Lists the delegates for the specified account.</td>
+  </tr>
+  </tbody>
+  </table>
   
   ## REST Resource: [v1.users.settings.filters](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.filters) {#rest-resource:-v1.users.settings.filters}
   
   <table id="v1.users.settings.filters.METHODS_SUMMARY-table">
-              <colgroup>
-                <col>
-                <col>
-              </colgroup>
-              <thead>
-                <tr>
-                  <th colspan="2">Methods</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.filters/create">create</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/settings/filters</code> <br>
-                    Creates a filter.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.filters/delete">delete</a></code></td>
-                  <td>
-                    <code>DELETE /gmail/v1/users/{userId}/settings/filters/{id}</code> <br>
-                    Immediately and permanently deletes the specified filter.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.filters/get">get</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/settings/filters/{id}</code> <br>
-                    Gets a filter.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.filters/list">list</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/settings/filters</code> <br>
-                    Lists the message filters of a Gmail user.</td>
-                </tr>
-              </tbody>
-            </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2">Methods</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.filters/create">create</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/settings/filters</code> <br>
+  Creates a filter.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.filters/delete">delete</a></code></td>
+  <td>
+  <code>DELETE /gmail/v1/users/{userId}/settings/filters/{id}</code> <br>
+  Immediately and permanently deletes the specified filter.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.filters/get">get</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/settings/filters/{id}</code> <br>
+  Gets a filter.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.filters/list">list</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/settings/filters</code> <br>
+  Lists the message filters of a Gmail user.</td>
+  </tr>
+  </tbody>
+  </table>
   
   ## REST Resource: [v1.users.settings.forwardingAddresses](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.forwardingAddresses) {#rest-resource:-v1.users.settings.forwardingaddresses}
   
   <table id="v1.users.settings.forwardingAddresses.METHODS_SUMMARY-table">
-              <colgroup>
-                <col>
-                <col>
-              </colgroup>
-              <thead>
-                <tr>
-                  <th colspan="2">Methods</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.forwardingAddresses/create">create</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/settings/forwardingAddresses</code> <br>
-                    Creates a forwarding address.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.forwardingAddresses/delete">delete</a></code></td>
-                  <td>
-                    <code>DELETE /gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}</code> <br>
-                    Deletes the specified forwarding address and revokes any verification that may have been required.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.forwardingAddresses/get">get</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}</code> <br>
-                    Gets the specified forwarding address.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.forwardingAddresses/list">list</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/settings/forwardingAddresses</code> <br>
-                    Lists the forwarding addresses for the specified account.</td>
-                </tr>
-              </tbody>
-            </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2">Methods</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.forwardingAddresses/create">create</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/settings/forwardingAddresses</code> <br>
+  Creates a forwarding address.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.forwardingAddresses/delete">delete</a></code></td>
+  <td>
+  <code>DELETE /gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}</code> <br>
+  Deletes the specified forwarding address and revokes any verification that may have been required.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.forwardingAddresses/get">get</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}</code> <br>
+  Gets the specified forwarding address.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.forwardingAddresses/list">list</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/settings/forwardingAddresses</code> <br>
+  Lists the forwarding addresses for the specified account.</td>
+  </tr>
+  </tbody>
+  </table>
   
   ## REST Resource: [v1.users.settings.sendAs](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs) {#rest-resource:-v1.users.settings.sendas}
   
   <table id="v1.users.settings.sendAs.METHODS_SUMMARY-table">
-              <colgroup>
-                <col>
-                <col>
-              </colgroup>
-              <thead>
-                <tr>
-                  <th colspan="2">Methods</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs/create">create</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/settings/sendAs</code> <br>
-                    Creates a custom "from" send-as alias.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs/delete">delete</a></code></td>
-                  <td>
-                    <code>DELETE /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}</code> <br>
-                    Deletes the specified send-as alias.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs/get">get</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}</code> <br>
-                    Gets the specified send-as alias.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs/list">list</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/settings/sendAs</code> <br>
-                    Lists the send-as aliases for the specified account.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs/patch">patch</a></code></td>
-                  <td>
-                    <code>PATCH /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}</code> <br>
-                    Patch the specified send-as alias.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs/update">update</a></code></td>
-                  <td>
-                    <code>PUT /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}</code> <br>
-                    Updates a send-as alias.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs/verify">verify</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/verify</code> <br>
-                    Sends a verification email to the specified send-as alias address.</td>
-                </tr>
-              </tbody>
-            </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2">Methods</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs/create">create</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/settings/sendAs</code> <br>
+  Creates a custom "from" send-as alias.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs/delete">delete</a></code></td>
+  <td>
+  <code>DELETE /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}</code> <br>
+  Deletes the specified send-as alias.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs/get">get</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}</code> <br>
+  Gets the specified send-as alias.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs/list">list</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/settings/sendAs</code> <br>
+  Lists the send-as aliases for the specified account.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs/patch">patch</a></code></td>
+  <td>
+  <code>PATCH /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}</code> <br>
+  Patch the specified send-as alias.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs/update">update</a></code></td>
+  <td>
+  <code>PUT /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}</code> <br>
+  Updates a send-as alias.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs/verify">verify</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/verify</code> <br>
+  Sends a verification email to the specified send-as alias address.</td>
+  </tr>
+  </tbody>
+  </table>
   
   ## REST Resource: [v1.users.settings.sendAs.smimeInfo](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs.smimeInfo) {#rest-resource:-v1.users.settings.sendas.smimeinfo}
   
   <table id="v1.users.settings.sendAs.smimeInfo.METHODS_SUMMARY-table">
-              <colgroup>
-                <col>
-                <col>
-              </colgroup>
-              <thead>
-                <tr>
-                  <th colspan="2">Methods</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs.smimeInfo/delete">delete</a></code></td>
-                  <td>
-                    <code>DELETE /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}</code> <br>
-                    Deletes the specified S/MIME config for the specified send-as alias.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs.smimeInfo/get">get</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}</code> <br>
-                    Gets the specified S/MIME config for the specified send-as alias.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs.smimeInfo/insert">insert</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo</code> <br>
-                    Insert (upload) the given S/MIME config for the specified send-as alias.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs.smimeInfo/list">list</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo</code> <br>
-                    Lists S/MIME configs for the specified send-as alias.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs.smimeInfo/setDefault">setDefault</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}/setDefault</code> <br>
-                    Sets the default S/MIME config for the specified send-as alias.</td>
-                </tr>
-              </tbody>
-            </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2">Methods</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs.smimeInfo/delete">delete</a></code></td>
+  <td>
+  <code>DELETE /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}</code> <br>
+  Deletes the specified S/MIME config for the specified send-as alias.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs.smimeInfo/get">get</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}</code> <br>
+  Gets the specified S/MIME config for the specified send-as alias.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs.smimeInfo/insert">insert</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo</code> <br>
+  Insert (upload) the given S/MIME config for the specified send-as alias.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs.smimeInfo/list">list</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo</code> <br>
+  Lists S/MIME configs for the specified send-as alias.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.sendAs.smimeInfo/setDefault">setDefault</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}/setDefault</code> <br>
+  Sets the default S/MIME config for the specified send-as alias.</td>
+  </tr>
+  </tbody>
+  </table>
   
   ## REST Resource: [v1.users.threads](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads) {#rest-resource:-v1.users.threads}
   
   <table id="v1.users.threads.METHODS_SUMMARY-table">
-              <colgroup>
-                <col>
-                <col>
-              </colgroup>
-              <thead>
-                <tr>
-                  <th colspan="2">Methods</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/delete">delete</a></code></td>
-                  <td>
-                    <code>DELETE /gmail/v1/users/{userId}/threads/{id}</code> <br>
-                    Immediately and permanently deletes the specified thread.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/get">get</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/threads/{id}</code> <br>
-                    Gets the specified thread.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/list">list</a></code></td>
-                  <td>
-                    <code>GET /gmail/v1/users/{userId}/threads</code> <br>
-                    Lists the threads in the user's mailbox.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/modify">modify</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/threads/{id}/modify</code> <br>
-                    Modifies the labels applied to the thread.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/trash">trash</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/threads/{id}/trash</code> <br>
-                    Moves the specified thread to the trash.</td>
-                </tr>
-                <tr>
-                  <td>
-                    <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/untrash">untrash</a></code></td>
-                  <td>
-                    <code>POST /gmail/v1/users/{userId}/threads/{id}/untrash</code> <br>
-                    Removes the specified thread from the trash.</td>
-                </tr>
-              </tbody>
-            </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2">Methods</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/delete">delete</a></code></td>
+  <td>
+  <code>DELETE /gmail/v1/users/{userId}/threads/{id}</code> <br>
+  Immediately and permanently deletes the specified thread.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/get">get</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/threads/{id}</code> <br>
+  Gets the specified thread.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/list">list</a></code></td>
+  <td>
+  <code>GET /gmail/v1/users/{userId}/threads</code> <br>
+  Lists the threads in the user's mailbox.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/modify">modify</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/threads/{id}/modify</code> <br>
+  Modifies the labels applied to the thread.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/trash">trash</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/threads/{id}/trash</code> <br>
+  Moves the specified thread to the trash.</td>
+  </tr>
+  <tr>
+  <td>
+  <code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/untrash">untrash</a></code></td>
+  <td>
+  <code>POST /gmail/v1/users/{userId}/threads/{id}/untrash</code> <br>
+  Removes the specified thread from the trash.</td>
+  </tr>
+  </tbody>
+  </table>
   
   '''
 # ---
@@ -4195,14 +4195,14 @@
   An email message.
   
   <table>
-              <thead>
-                <tr>
-                  <th>JSON representation</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><div></div><div><pre><span>{</span>
+  <thead>
+  <tr>
+  <th>JSON representation</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td><div></div><div><pre><span>{</span>
     <span>"id"</span><span>: </span><span>string</span><span>,</span>
     <span>"threadId"</span><span>: </span><span>string</span><span>,</span>
     <span>"labelIds"</span><span>: </span><span>[</span>
@@ -4222,107 +4222,107 @@
       <span>}</span>
     <span>]</span>
   <span>}</span></pre></div></td>
-                </tr>
-              </tbody>
-            </table>
+  </tr>
+  </tbody>
+  </table>
   
   <table id="Message.FIELDS-table">
-              <colgroup>
-                <col>
-                <col>
-              </colgroup>
-              <thead>
-                <tr>
-                  <th colspan="2">Fields</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr id="Message.FIELDS.id">
-                  <td><code>id</code></td>
-                  <td>
-                    <p><code>string</code></p>
-                    <p>The immutable ID of the message.</p>
-                  </td>
-                </tr>
-                <tr id="Message.FIELDS.thread_id">
-                  <td><code>threadId</code></td>
-                  <td>
-                    <p><code>string</code></p>
-                    <p>The ID of the thread the message belongs to. To add a message or draft to a thread, the following criteria must be met: </p><ol><li>The requested <code>threadId</code> must be specified on the <code>Message</code> or <code>Draft.Message</code> you supply with your request.</li> <li>The <code>References</code> and <code>In-Reply-To</code> headers must be set in compliance with the <a href="https://tools.ietf.org/html/rfc2822">RFC 2822</a> standard.</li> <li>The <code>Subject</code> headers must match.</li></ol>
-                  </td>
-                </tr>
-                <tr id="Message.FIELDS.label_ids">
-                  <td><code>labelIds[]</code></td>
-                  <td>
-                    <p><code>string</code></p>
-                    <p>List of IDs of labels applied to this message.</p>
-                  </td>
-                </tr>
-                <tr id="Message.FIELDS.snippet">
-                  <td><code>snippet</code></td>
-                  <td>
-                    <p><code>string</code></p>
-                    <p>A short part of the message text.</p>
-                  </td>
-                </tr>
-                <tr id="Message.FIELDS.history_id">
-                  <td><code>historyId</code></td>
-                  <td>
-                    <p><code>string</code></p>
-                    <p>The ID of the last history record that modified this message.</p>
-                  </td>
-                </tr>
-                <tr id="Message.FIELDS.internal_date">
-                  <td><code>internalDate</code></td>
-                  <td>
-                    <p><code>string (<a href="https://developers.google.com/discovery/v1/type-format">int64</a> format)</code></p>
-                    <p>The internal message creation timestamp (epoch ms), which determines ordering in the inbox. For normal SMTP-received email, this represents the time the message was originally accepted by Google, which is more reliable than the <code>Date</code> header. However, for API-migrated mail, it can be configured by client to be based on the <code>Date</code> header.</p>
-                  </td>
-                </tr>
-                <tr id="Message.FIELDS.payload">
-                  <td><code>payload</code></td>
-                  <td>
-                    <p><code>object (<code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages#Message.MessagePart">MessagePart</a></code>)</code></p>
-                    <p>The parsed email structure in the message parts.</p>
-                  </td>
-                </tr>
-                <tr id="Message.FIELDS.size_estimate">
-                  <td><code>sizeEstimate</code></td>
-                  <td>
-                    <p><code>integer</code></p>
-                    <p>Estimated size in bytes of the message.</p>
-                  </td>
-                </tr>
-                <tr id="Message.FIELDS.raw">
-                  <td><code>raw</code></td>
-                  <td>
-                    <p><code>string (<a href="https://developers.google.com/discovery/v1/type-format">bytes</a> format)</code></p>
-                    <p>The entire email message in an RFC 2822 formatted and base64url encoded string. Returned in <code>messages.get</code> and <code>drafts.get</code> responses when the <code>format=RAW</code> parameter is supplied.</p><p>A base64-encoded string.</p>
-                  </td>
-                </tr>
-                <tr id="Message.FIELDS.classification_label_values">
-                  <td><code>classificationLabelValues[]</code></td>
-                  <td>
-                    <p><code>object (<code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages#Message.ClassificationLabelValue">ClassificationLabelValue</a></code>)</code></p>
-                    <p>Classification Label values on the message. Available Classification Label schemas can be queried using the Google Drive Labels API. Each classification label ID must be unique. If duplicate IDs are provided, only one will be retained, and the selection is arbitrary. Only used for Google Workspace accounts. There's a limit of 20 Classification Label values per request. If the Classification Label values exceeds the maximum allowed number, the request fails.</p>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2">Fields</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr id="Message.FIELDS.id">
+  <td><code>id</code></td>
+  <td>
+  <p><code>string</code></p>
+  <p>The immutable ID of the message.</p>
+  </td>
+  </tr>
+  <tr id="Message.FIELDS.thread_id">
+  <td><code>threadId</code></td>
+  <td>
+  <p><code>string</code></p>
+  <p>The ID of the thread the message belongs to. To add a message or draft to a thread, the following criteria must be met: </p><ol><li>The requested <code>threadId</code> must be specified on the <code>Message</code> or <code>Draft.Message</code> you supply with your request.</li> <li>The <code>References</code> and <code>In-Reply-To</code> headers must be set in compliance with the <a href="https://tools.ietf.org/html/rfc2822">RFC 2822</a> standard.</li> <li>The <code>Subject</code> headers must match.</li></ol>
+  </td>
+  </tr>
+  <tr id="Message.FIELDS.label_ids">
+  <td><code>labelIds[]</code></td>
+  <td>
+  <p><code>string</code></p>
+  <p>List of IDs of labels applied to this message.</p>
+  </td>
+  </tr>
+  <tr id="Message.FIELDS.snippet">
+  <td><code>snippet</code></td>
+  <td>
+  <p><code>string</code></p>
+  <p>A short part of the message text.</p>
+  </td>
+  </tr>
+  <tr id="Message.FIELDS.history_id">
+  <td><code>historyId</code></td>
+  <td>
+  <p><code>string</code></p>
+  <p>The ID of the last history record that modified this message.</p>
+  </td>
+  </tr>
+  <tr id="Message.FIELDS.internal_date">
+  <td><code>internalDate</code></td>
+  <td>
+  <p><code>string (<a href="https://developers.google.com/discovery/v1/type-format">int64</a> format)</code></p>
+  <p>The internal message creation timestamp (epoch ms), which determines ordering in the inbox. For normal SMTP-received email, this represents the time the message was originally accepted by Google, which is more reliable than the <code>Date</code> header. However, for API-migrated mail, it can be configured by client to be based on the <code>Date</code> header.</p>
+  </td>
+  </tr>
+  <tr id="Message.FIELDS.payload">
+  <td><code>payload</code></td>
+  <td>
+  <p><code>object (<code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages#Message.MessagePart">MessagePart</a></code>)</code></p>
+  <p>The parsed email structure in the message parts.</p>
+  </td>
+  </tr>
+  <tr id="Message.FIELDS.size_estimate">
+  <td><code>sizeEstimate</code></td>
+  <td>
+  <p><code>integer</code></p>
+  <p>Estimated size in bytes of the message.</p>
+  </td>
+  </tr>
+  <tr id="Message.FIELDS.raw">
+  <td><code>raw</code></td>
+  <td>
+  <p><code>string (<a href="https://developers.google.com/discovery/v1/type-format">bytes</a> format)</code></p>
+  <p>The entire email message in an RFC 2822 formatted and base64url encoded string. Returned in <code>messages.get</code> and <code>drafts.get</code> responses when the <code>format=RAW</code> parameter is supplied.</p><p>A base64-encoded string.</p>
+  </td>
+  </tr>
+  <tr id="Message.FIELDS.classification_label_values">
+  <td><code>classificationLabelValues[]</code></td>
+  <td>
+  <p><code>object (<code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages#Message.ClassificationLabelValue">ClassificationLabelValue</a></code>)</code></p>
+  <p>Classification Label values on the message. Available Classification Label schemas can be queried using the Google Drive Labels API. Each classification label ID must be unique. If duplicate IDs are provided, only one will be retained, and the selection is arbitrary. Only used for Google Workspace accounts. There's a limit of 20 Classification Label values per request. If the Classification Label values exceeds the maximum allowed number, the request fails.</p>
+  </td>
+  </tr>
+  </tbody>
+  </table>
   
   ### MessagePart {#messagepart}
   
   A single MIME message part.
   
   <table>
-                <thead>
-                  <tr>
-                    <th>JSON representation</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><div></div><div><pre><span>{</span>
+  <thead>
+  <tr>
+  <th>JSON representation</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td><div></div><div><pre><span>{</span>
     <span>"partId"</span><span>: </span><span>string</span><span>,</span>
     <span>"mimeType"</span><span>: </span><span>string</span><span>,</span>
     <span>"filename"</span><span>: </span><span>string</span><span>,</span>
@@ -4340,125 +4340,125 @@
       <span>}</span>
     <span>]</span>
   <span>}</span></pre></div></td>
-                  </tr>
-                </tbody>
-              </table>
+  </tr>
+  </tbody>
+  </table>
   
   <table id="Message.MessagePart.FIELDS-table">
-                <colgroup>
-                  <col>
-                  <col>
-                </colgroup>
-                <thead>
-                  <tr>
-                    <th colspan="2">Fields</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr id="Message.MessagePart.FIELDS.part_id">
-                    <td><code>partId</code></td>
-                    <td>
-                      <p><code>string</code></p>
-                      <p>The immutable ID of the message part.</p>
-                    </td>
-                  </tr>
-                  <tr id="Message.MessagePart.FIELDS.mime_type">
-                    <td><code>mimeType</code></td>
-                    <td>
-                      <p><code>string</code></p>
-                      <p>The MIME type of the message part.</p>
-                    </td>
-                  </tr>
-                  <tr id="Message.MessagePart.FIELDS.filename">
-                    <td><code>filename</code></td>
-                    <td>
-                      <p><code>string</code></p>
-                      <p>The filename of the attachment. Only present if this message part represents an attachment.</p>
-                    </td>
-                  </tr>
-                  <tr id="Message.MessagePart.FIELDS.headers">
-                    <td><code>headers[]</code></td>
-                    <td>
-                      <p><code>object (<code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages#Message.Header">Header</a></code>)</code></p>
-                      <p>List of headers on this message part. For the top-level message part, representing the entire message payload, it will contain the standard RFC 2822 email headers such as <code>To</code>, <code>From</code>, and <code>Subject</code>.</p>
-                    </td>
-                  </tr>
-                  <tr id="Message.MessagePart.FIELDS.body">
-                    <td><code>body</code></td>
-                    <td>
-                      <p><code>object (<code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages.attachments#MessagePartBody">MessagePartBody</a></code>)</code></p>
-                      <p>The message part body for this part, which may be empty for container MIME message parts.</p>
-                    </td>
-                  </tr>
-                  <tr id="Message.MessagePart.FIELDS.parts">
-                    <td><code>parts[]</code></td>
-                    <td>
-                      <p><code>object (<code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages#Message.MessagePart">MessagePart</a></code>)</code></p>
-                      <p>The child MIME message parts of this part. This only applies to container MIME message parts, for example <code>multipart/*</code>. For non- container MIME message part types, such as <code>text/plain</code>, this field is empty. For more information, see <a href="http://www.ietf.org/rfc/rfc1521.txt">RFC 1521</a>.</p>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2">Fields</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr id="Message.MessagePart.FIELDS.part_id">
+  <td><code>partId</code></td>
+  <td>
+  <p><code>string</code></p>
+  <p>The immutable ID of the message part.</p>
+  </td>
+  </tr>
+  <tr id="Message.MessagePart.FIELDS.mime_type">
+  <td><code>mimeType</code></td>
+  <td>
+  <p><code>string</code></p>
+  <p>The MIME type of the message part.</p>
+  </td>
+  </tr>
+  <tr id="Message.MessagePart.FIELDS.filename">
+  <td><code>filename</code></td>
+  <td>
+  <p><code>string</code></p>
+  <p>The filename of the attachment. Only present if this message part represents an attachment.</p>
+  </td>
+  </tr>
+  <tr id="Message.MessagePart.FIELDS.headers">
+  <td><code>headers[]</code></td>
+  <td>
+  <p><code>object (<code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages#Message.Header">Header</a></code>)</code></p>
+  <p>List of headers on this message part. For the top-level message part, representing the entire message payload, it will contain the standard RFC 2822 email headers such as <code>To</code>, <code>From</code>, and <code>Subject</code>.</p>
+  </td>
+  </tr>
+  <tr id="Message.MessagePart.FIELDS.body">
+  <td><code>body</code></td>
+  <td>
+  <p><code>object (<code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages.attachments#MessagePartBody">MessagePartBody</a></code>)</code></p>
+  <p>The message part body for this part, which may be empty for container MIME message parts.</p>
+  </td>
+  </tr>
+  <tr id="Message.MessagePart.FIELDS.parts">
+  <td><code>parts[]</code></td>
+  <td>
+  <p><code>object (<code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages#Message.MessagePart">MessagePart</a></code>)</code></p>
+  <p>The child MIME message parts of this part. This only applies to container MIME message parts, for example <code>multipart/*</code>. For non- container MIME message part types, such as <code>text/plain</code>, this field is empty. For more information, see <a href="http://www.ietf.org/rfc/rfc1521.txt">RFC 1521</a>.</p>
+  </td>
+  </tr>
+  </tbody>
+  </table>
   
   ### Header {#header}
   
   <table>
-                <thead>
-                  <tr>
-                    <th>JSON representation</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><div></div><div><pre><span>{</span>
+  <thead>
+  <tr>
+  <th>JSON representation</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td><div></div><div><pre><span>{</span>
     <span>"name"</span><span>: </span><span>string</span><span>,</span>
     <span>"value"</span><span>: </span><span>string</span>
   <span>}</span></pre></div></td>
-                  </tr>
-                </tbody>
-              </table>
+  </tr>
+  </tbody>
+  </table>
   
   <table id="Message.Header.FIELDS-table">
-                <colgroup>
-                  <col>
-                  <col>
-                </colgroup>
-                <thead>
-                  <tr>
-                    <th colspan="2">Fields</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr id="Message.Header.FIELDS.name">
-                    <td><code>name</code></td>
-                    <td>
-                      <p><code>string</code></p>
-                      <p>The name of the header before the <code>:</code> separator. For example, <code>To</code>.</p>
-                    </td>
-                  </tr>
-                  <tr id="Message.Header.FIELDS.value">
-                    <td><code>value</code></td>
-                    <td>
-                      <p><code>string</code></p>
-                      <p>The value of the header after the <code>:</code> separator. For example, <code>someuser@example.com</code>.</p>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2">Fields</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr id="Message.Header.FIELDS.name">
+  <td><code>name</code></td>
+  <td>
+  <p><code>string</code></p>
+  <p>The name of the header before the <code>:</code> separator. For example, <code>To</code>.</p>
+  </td>
+  </tr>
+  <tr id="Message.Header.FIELDS.value">
+  <td><code>value</code></td>
+  <td>
+  <p><code>string</code></p>
+  <p>The value of the header after the <code>:</code> separator. For example, <code>someuser@example.com</code>.</p>
+  </td>
+  </tr>
+  </tbody>
+  </table>
   
   ### ClassificationLabelValue {#classificationlabelvalue}
   
   Classification Labels applied to the email message. Classification Labels are different from Gmail inbox labels. Only used for Google Workspace accounts. [Learn more about classification labels](https://support.google.com/a/answer/9292382).
   
   <table>
-                <thead>
-                  <tr>
-                    <th>JSON representation</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><div></div><div><pre><span>{</span>
+  <thead>
+  <tr>
+  <th>JSON representation</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td><div></div><div><pre><span>{</span>
     <span>"labelId"</span><span>: </span><span>string</span><span>,</span>
     <span>"fields"</span><span>: </span><span>[</span>
       <span>{</span>
@@ -4466,165 +4466,165 @@
       <span>}</span>
     <span>]</span>
   <span>}</span></pre></div></td>
-                  </tr>
-                </tbody>
-              </table>
+  </tr>
+  </tbody>
+  </table>
   
   <table id="Message.ClassificationLabelValue.FIELDS-table">
-                <colgroup>
-                  <col>
-                  <col>
-                </colgroup>
-                <thead>
-                  <tr>
-                    <th colspan="2">Fields</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr id="Message.ClassificationLabelValue.FIELDS.label_id">
-                    <td><code>labelId</code></td>
-                    <td>
-                      <p><code>string</code></p>
-                      <p>Required. The canonical or raw alphanumeric classification label ID. Maps to the ID  field of the Google Drive Label resource.</p>
-                    </td>
-                  </tr>
-                  <tr id="Message.ClassificationLabelValue.FIELDS.fields">
-                    <td><code>fields[]</code></td>
-                    <td>
-                      <p><code>object (<code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages#Message.ClassificationLabelFieldValue">ClassificationLabelFieldValue</a></code>)</code></p>
-                      <p>Field values for the given classification label ID.</p>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2">Fields</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr id="Message.ClassificationLabelValue.FIELDS.label_id">
+  <td><code>labelId</code></td>
+  <td>
+  <p><code>string</code></p>
+  <p>Required. The canonical or raw alphanumeric classification label ID. Maps to the ID  field of the Google Drive Label resource.</p>
+  </td>
+  </tr>
+  <tr id="Message.ClassificationLabelValue.FIELDS.fields">
+  <td><code>fields[]</code></td>
+  <td>
+  <p><code>object (<code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages#Message.ClassificationLabelFieldValue">ClassificationLabelFieldValue</a></code>)</code></p>
+  <p>Field values for the given classification label ID.</p>
+  </td>
+  </tr>
+  </tbody>
+  </table>
   
   ### ClassificationLabelFieldValue {#classificationlabelfieldvalue}
   
   Field values for a classification label.
   
   <table>
-                <thead>
-                  <tr>
-                    <th>JSON representation</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><div></div><div><pre><span>{</span>
+  <thead>
+  <tr>
+  <th>JSON representation</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td><div></div><div><pre><span>{</span>
     <span>"fieldId"</span><span>: </span><span>string</span><span>,</span>
     <span>"selection"</span><span>: </span><span>string</span>
   <span>}</span></pre></div></td>
-                  </tr>
-                </tbody>
-              </table>
+  </tr>
+  </tbody>
+  </table>
   
   <table id="Message.ClassificationLabelFieldValue.FIELDS-table">
-                <colgroup>
-                  <col>
-                  <col>
-                </colgroup>
-                <thead>
-                  <tr>
-                    <th colspan="2">Fields</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr id="Message.ClassificationLabelFieldValue.FIELDS.field_id">
-                    <td><code>fieldId</code></td>
-                    <td>
-                      <p><code>string</code></p>
-                      <p>Required. The field ID for the Classification Label Value. Maps to the ID  field of the Google Drive <code>Label.Field</code> object.</p>
-                    </td>
-                  </tr>
-                  <tr id="Message.ClassificationLabelFieldValue.FIELDS.selection">
-                    <td><code>selection</code></td>
-                    <td>
-                      <p><code>string</code></p>
-                      <p>Selection choice ID for the selection option. Should only be set if the  field type is <code>SELECTION</code> in the Google Drive <code>Label.Field</code> object.  Maps to the id field of the Google Drive  <code>Label.Field.SelectionOptions</code> resource.</p>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2">Fields</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr id="Message.ClassificationLabelFieldValue.FIELDS.field_id">
+  <td><code>fieldId</code></td>
+  <td>
+  <p><code>string</code></p>
+  <p>Required. The field ID for the Classification Label Value. Maps to the ID  field of the Google Drive <code>Label.Field</code> object.</p>
+  </td>
+  </tr>
+  <tr id="Message.ClassificationLabelFieldValue.FIELDS.selection">
+  <td><code>selection</code></td>
+  <td>
+  <p><code>string</code></p>
+  <p>Selection choice ID for the selection option. Should only be set if the  field type is <code>SELECTION</code> in the Google Drive <code>Label.Field</code> object.  Maps to the id field of the Google Drive  <code>Label.Field.SelectionOptions</code> resource.</p>
+  </td>
+  </tr>
+  </tbody>
+  </table>
   
   <table id="METHODS_SUMMARY-table">
-            <colgroup>
-              <col>
-              <col>
-            </colgroup>
-            <thead>
-              <tr>
-                <th colspan="2"><h2 id="methods">Methods</h2></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>
-                  <h3 id="batchdelete"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/batchDelete">batchDelete</a></code></h3></td>
-                <td>
-                  Deletes many messages by message ID.</td>
-              </tr>
-              <tr>
-                <td>
-                  <h3 id="batchmodify"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/batchModify">batchModify</a></code></h3></td>
-                <td>
-                  Modifies the labels and the Classification Label values on the specified messages.</td>
-              </tr>
-              <tr>
-                <td>
-                  <h3 id="delete"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/delete">delete</a></code></h3></td>
-                <td>
-                  Immediately and permanently deletes the specified message.</td>
-              </tr>
-              <tr>
-                <td>
-                  <h3 id="get"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/get">get</a></code></h3></td>
-                <td>
-                  Gets the specified message.</td>
-              </tr>
-              <tr>
-                <td>
-                  <h3 id="import"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/import">import</a></code></h3></td>
-                <td>
-                  Imports a message into only this user's mailbox, with standard email delivery scanning and classification similar to receiving via SMTP.</td>
-              </tr>
-              <tr>
-                <td>
-                  <h3 id="insert"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/insert">insert</a></code></h3></td>
-                <td>
-                  Directly inserts a message into only this user's mailbox similar to <code>IMAP APPEND</code>, bypassing most scanning and classification.</td>
-              </tr>
-              <tr>
-                <td>
-                  <h3 id="list"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/list">list</a></code></h3></td>
-                <td>
-                  Lists the messages in the user's mailbox.</td>
-              </tr>
-              <tr>
-                <td>
-                  <h3 id="modify"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/modify">modify</a></code></h3></td>
-                <td>
-                  Modifies the labels and the Classification Label values on the specified message.</td>
-              </tr>
-              <tr>
-                <td>
-                  <h3 id="send"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send">send</a></code></h3></td>
-                <td>
-                  Sends the specified message to the recipients in the <code>To</code>, <code>Cc</code>, and <code>Bcc</code> headers.</td>
-              </tr>
-              <tr>
-                <td>
-                  <h3 id="trash"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/trash">trash</a></code></h3></td>
-                <td>
-                  Moves the specified message to the trash.</td>
-              </tr>
-              <tr>
-                <td>
-                  <h3 id="untrash"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/untrash">untrash</a></code></h3></td>
-                <td>
-                  Removes the specified message from the trash.</td>
-              </tr>
-            </tbody>
-          </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2"><h2 id="methods">Methods</h2></th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td>
+  <h3 id="batchdelete"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/batchDelete">batchDelete</a></code></h3></td>
+  <td>
+  Deletes many messages by message ID.</td>
+  </tr>
+  <tr>
+  <td>
+  <h3 id="batchmodify"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/batchModify">batchModify</a></code></h3></td>
+  <td>
+  Modifies the labels and the Classification Label values on the specified messages.</td>
+  </tr>
+  <tr>
+  <td>
+  <h3 id="delete"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/delete">delete</a></code></h3></td>
+  <td>
+  Immediately and permanently deletes the specified message.</td>
+  </tr>
+  <tr>
+  <td>
+  <h3 id="get"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/get">get</a></code></h3></td>
+  <td>
+  Gets the specified message.</td>
+  </tr>
+  <tr>
+  <td>
+  <h3 id="import"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/import">import</a></code></h3></td>
+  <td>
+  Imports a message into only this user's mailbox, with standard email delivery scanning and classification similar to receiving via SMTP.</td>
+  </tr>
+  <tr>
+  <td>
+  <h3 id="insert"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/insert">insert</a></code></h3></td>
+  <td>
+  Directly inserts a message into only this user's mailbox similar to <code>IMAP APPEND</code>, bypassing most scanning and classification.</td>
+  </tr>
+  <tr>
+  <td>
+  <h3 id="list"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/list">list</a></code></h3></td>
+  <td>
+  Lists the messages in the user's mailbox.</td>
+  </tr>
+  <tr>
+  <td>
+  <h3 id="modify"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/modify">modify</a></code></h3></td>
+  <td>
+  Modifies the labels and the Classification Label values on the specified message.</td>
+  </tr>
+  <tr>
+  <td>
+  <h3 id="send"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send">send</a></code></h3></td>
+  <td>
+  Sends the specified message to the recipients in the <code>To</code>, <code>Cc</code>, and <code>Bcc</code> headers.</td>
+  </tr>
+  <tr>
+  <td>
+  <h3 id="trash"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/trash">trash</a></code></h3></td>
+  <td>
+  Moves the specified message to the trash.</td>
+  </tr>
+  <tr>
+  <td>
+  <h3 id="untrash"><code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/untrash">untrash</a></code></h3></td>
+  <td>
+  Removes the specified message from the trash.</td>
+  </tr>
+  </tbody>
+  </table>
   
   '''
 # ---
@@ -4652,77 +4652,77 @@
   ### Path parameters {#path-parameters}
   
   <table id="body.PATH_PARAMETERS-table">
-              <colgroup>
-                <col>
-                <col>
-              </colgroup>
-              <thead>
-                <tr>
-                  <th colspan="2">Parameters</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr id="body.PATH_PARAMETERS.user_id">
-                  <td><code>userId</code></td>
-                  <td>
-                    <p><code>string</code></p>
-                    <p>The user's email address. The special value <code>me</code> can be used to indicate the authenticated user.</p>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2">Parameters</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr id="body.PATH_PARAMETERS.user_id">
+  <td><code>userId</code></td>
+  <td>
+  <p><code>string</code></p>
+  <p>The user's email address. The special value <code>me</code> can be used to indicate the authenticated user.</p>
+  </td>
+  </tr>
+  </tbody>
+  </table>
   
   ### Query parameters {#query-parameters}
   
   <table id="body.QUERY_PARAMETERS-table">
-              <colgroup>
-                <col>
-                <col>
-              </colgroup>
-              <thead>
-                <tr>
-                  <th colspan="2">Parameters</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr id="body.QUERY_PARAMETERS.max_results">
-                  <td><code>maxResults</code></td>
-                  <td>
-                    <p><code>integer (<a href="https://developers.google.com/discovery/v1/type-format">uint32</a> format)</code></p>
-                    <p>Maximum number of messages to return. This field defaults to 100. The maximum allowed value for this field is 500.</p>
-                  </td>
-                </tr>
-                <tr id="body.QUERY_PARAMETERS.page_token">
-                  <td><code>pageToken</code></td>
-                  <td>
-                    <p><code>string</code></p>
-                    <p>Page token to retrieve a specific page of results in the list.</p>
-                  </td>
-                </tr>
-                <tr id="body.QUERY_PARAMETERS.q">
-                  <td><code>q</code></td>
-                  <td>
-                    <p><code>string</code></p>
-                    <p>Only return messages matching the specified query. Supports the same query format as the Gmail search box. For example, <code>"from:someuser@example.com rfc822msgid:&lt;somemsgid@example.com&gt;
-                    is:unread"</code>. Parameter cannot be used when accessing the api using the gmail.metadata scope.</p>
-                  </td>
-                </tr>
-                <tr id="body.QUERY_PARAMETERS.label_ids">
-                  <td><code>labelIds[]</code></td>
-                  <td>
-                    <p><code>string</code></p>
-                    <p>Only return messages with labels that match all of the specified label IDs. Messages in a thread might have labels that other messages in the same thread don't have. To learn more, see <a href="https://developers.google.com/workspace/gmail/api/guides/labels#manage_labels_on_messages_threads">Manage labels on messages and threads</a>.</p>
-                  </td>
-                </tr>
-                <tr id="body.QUERY_PARAMETERS.include_spam_trash">
-                  <td><code>includeSpamTrash</code></td>
-                  <td>
-                    <p><code>boolean</code></p>
-                    <p>Include messages from <code>SPAM</code> and <code>TRASH</code> in the results.</p>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2">Parameters</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr id="body.QUERY_PARAMETERS.max_results">
+  <td><code>maxResults</code></td>
+  <td>
+  <p><code>integer (<a href="https://developers.google.com/discovery/v1/type-format">uint32</a> format)</code></p>
+  <p>Maximum number of messages to return. This field defaults to 100. The maximum allowed value for this field is 500.</p>
+  </td>
+  </tr>
+  <tr id="body.QUERY_PARAMETERS.page_token">
+  <td><code>pageToken</code></td>
+  <td>
+  <p><code>string</code></p>
+  <p>Page token to retrieve a specific page of results in the list.</p>
+  </td>
+  </tr>
+  <tr id="body.QUERY_PARAMETERS.q">
+  <td><code>q</code></td>
+  <td>
+  <p><code>string</code></p>
+  <p>Only return messages matching the specified query. Supports the same query format as the Gmail search box. For example, <code>"from:someuser@example.com rfc822msgid:&lt;somemsgid@example.com&gt;
+  is:unread"</code>. Parameter cannot be used when accessing the api using the gmail.metadata scope.</p>
+  </td>
+  </tr>
+  <tr id="body.QUERY_PARAMETERS.label_ids">
+  <td><code>labelIds[]</code></td>
+  <td>
+  <p><code>string</code></p>
+  <p>Only return messages with labels that match all of the specified label IDs. Messages in a thread might have labels that other messages in the same thread don't have. To learn more, see <a href="https://developers.google.com/workspace/gmail/api/guides/labels#manage_labels_on_messages_threads">Manage labels on messages and threads</a>.</p>
+  </td>
+  </tr>
+  <tr id="body.QUERY_PARAMETERS.include_spam_trash">
+  <td><code>includeSpamTrash</code></td>
+  <td>
+  <p><code>boolean</code></p>
+  <p>Include messages from <code>SPAM</code> and <code>TRASH</code> in the results.</p>
+  </td>
+  </tr>
+  </tbody>
+  </table>
   
   ### Request body {#request-body}
   
@@ -4733,14 +4733,14 @@
   If successful, the response body contains data with the following structure:
   
   <table>
-                  <thead>
-                    <tr>
-                      <th>JSON representation</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td><div></div><div><pre><span>{</span>
+  <thead>
+  <tr>
+  <th>JSON representation</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td><div></div><div><pre><span>{</span>
     <span>"messages"</span><span>: </span><span>[</span>
       <span>{</span>
         <span>object (<code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages#Message">Message</a></code>)</span>
@@ -4749,44 +4749,44 @@
     <span>"nextPageToken"</span><span>: </span><span>string</span><span>,</span>
     <span>"resultSizeEstimate"</span><span>: </span><span>integer</span>
   <span>}</span></pre></div></td>
-                    </tr>
-                  </tbody>
-                </table>
+  </tr>
+  </tbody>
+  </table>
   
   <table id="body.ListMessagesResponse.FIELDS-table">
-                  <colgroup>
-                    <col>
-                    <col>
-                  </colgroup>
-                  <thead>
-                    <tr>
-                      <th colspan="2">Fields</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr id="body.ListMessagesResponse.FIELDS.messages">
-                      <td><code>messages[]</code></td>
-                      <td>
-                        <p><code>object (<code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages#Message">Message</a></code>)</code></p>
-                        <p>List of messages. Note that each message resource contains only an <code>id</code> and a <code>threadId</code>. Additional message details can be fetched using the <a href="https://developers.google.com/workspace/gmail/api/v1/reference/users/messages/get">messages.get</a> method.</p>
-                      </td>
-                    </tr>
-                    <tr id="body.ListMessagesResponse.FIELDS.next_page_token">
-                      <td><code>nextPageToken</code></td>
-                      <td>
-                        <p><code>string</code></p>
-                        <p>Token to retrieve the next page of results in the list.</p>
-                      </td>
-                    </tr>
-                    <tr id="body.ListMessagesResponse.FIELDS.result_size_estimate">
-                      <td><code>resultSizeEstimate</code></td>
-                      <td>
-                        <p><code>integer (<a href="https://developers.google.com/discovery/v1/type-format">uint32</a> format)</code></p>
-                        <p>Estimated total number of results.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+  <colgroup>
+  <col>
+  <col>
+  </colgroup>
+  <thead>
+  <tr>
+  <th colspan="2">Fields</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr id="body.ListMessagesResponse.FIELDS.messages">
+  <td><code>messages[]</code></td>
+  <td>
+  <p><code>object (<code><a href="https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages#Message">Message</a></code>)</code></p>
+  <p>List of messages. Note that each message resource contains only an <code>id</code> and a <code>threadId</code>. Additional message details can be fetched using the <a href="https://developers.google.com/workspace/gmail/api/v1/reference/users/messages/get">messages.get</a> method.</p>
+  </td>
+  </tr>
+  <tr id="body.ListMessagesResponse.FIELDS.next_page_token">
+  <td><code>nextPageToken</code></td>
+  <td>
+  <p><code>string</code></p>
+  <p>Token to retrieve the next page of results in the list.</p>
+  </td>
+  </tr>
+  <tr id="body.ListMessagesResponse.FIELDS.result_size_estimate">
+  <td><code>resultSizeEstimate</code></td>
+  <td>
+  <p><code>integer (<a href="https://developers.google.com/discovery/v1/type-format">uint32</a> format)</code></p>
+  <p>Estimated total number of results.</p>
+  </td>
+  </tr>
+  </tbody>
+  </table>
   
   ### Authorization scopes {#authorization-scopes}
   

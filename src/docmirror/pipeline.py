@@ -57,7 +57,7 @@ SITEMAP_CANDIDATES = ("sitemap.xml", "sitemap_index.xml")
 # stays near the start URL instead of sampling the whole sitemap.
 SITEMAP_DEPTH = 2
 HTTP_OK = 200
-INCOMPLETE_FLAGS = frozenset({"render_needed", "empty_content", "soft_block_suspected"})
+INCOMPLETE_FLAGS = frozenset({"render_needed", "empty_content"})
 HTTP_MULTIPLE = 300
 HTTP_NOT_MODIFIED = 304
 HTTP_NOT_FOUND = 404
@@ -671,7 +671,6 @@ class Crawler:
             page.flags.add("render_needed")
         if verdict.kind == "soft":
             page.flags.add("soft_block_suspected")
-            stats.blocked += 1
         self._store(url, result, page, depth, via, sitemap_lastmod, tier=outcome.tier)
 
     def _conditional_headers(
