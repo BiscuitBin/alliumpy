@@ -40,6 +40,10 @@ def needs_render(
 ) -> str:
     """Why a Tier 0 fetch must escalate, or the empty string."""
     meta = extraction.metadata
+    if meta.spa_shell:
+        return "empty SPA shell"
+    if meta.noscript_needs_js:
+        return "noscript asks for JavaScript"
     if profile.main_selector and extraction.extractor != "profile":
         return "main selector absent"
     if (
@@ -52,10 +56,6 @@ def needs_render(
             f"main text {extraction.text_chars} chars under {min_text_chars} "
             f"with {len(result.body)} bytes of HTML"
         )
-    if meta.noscript_needs_js:
-        return "noscript asks for JavaScript"
-    if meta.spa_shell:
-        return "empty SPA shell"
     return ""
 
 
@@ -126,6 +126,7 @@ class FetchLadder:
         tier = self.start_tier(url, host_tier)
         index = order.index(tier) if tier in order else 0
         outcome: LadderOutcome | None = None
+        first_reason = ""
         while index < len(order):
             tier = order[index]
             if tier == "http" and (etag or last_modified):
@@ -150,6 +151,8 @@ class FetchLadder:
                     extraction, result, self.profile, self.config.render.min_text_chars
                 )
             escalate = bool(reason) or verdict.blocked
+            if reason and not first_reason:
+                first_reason = reason
             outcome = LadderOutcome(
                 result=result,
                 extraction=extraction,
@@ -170,6 +173,13 @@ class FetchLadder:
             index += 1
             outcome.escalated = True
         assert outcome is not None  # noqa: S101 - the loop runs at least once
-        if outcome.escalated and outcome.result.ok and not outcome.verdict.blocked:
+        if (
+            outcome.escalated
+            and outcome.result.ok
+            and not outcome.verdict.blocked
+            and first_reason in {"empty SPA shell", "noscript asks for JavaScript"}
+        ):
+            # Only a structural signal that the site is client-rendered is worth caching
+            # for the whole path pattern; a block or a thin page is about one URL.
             self.cache_tier(host_of(url), path_pattern(url), outcome.tier)
         return outcome

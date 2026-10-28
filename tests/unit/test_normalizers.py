@@ -81,7 +81,7 @@ def test_mixed_tabs_become_headings_below_the_enclosing_level() -> None:
     )
     out = run(fragment)
     assert (
-        "### Windows\n\nUse the installer.\n\n### macOS\n\nUse brew.\n\n```\nbrew install x\n```"
+        "### Windows\n\nUse the installer.\n\n### macOS\n\nUse brew.\n\n```bash\nbrew install x\n```"
         in out
     )
 
@@ -108,6 +108,10 @@ def test_code_language_sources_and_aliases() -> None:
     assert detect_language(pre, PROFILE.code_lang_attrs) == "http"
     pre = html.fromstring("<pre><code class='devsite-terminal'>ls</code></pre>")
     assert detect_language(pre, PROFILE.code_lang_attrs) == "bash"
+    pre = html.fromstring("<pre>gem install google-api-client</pre>")
+    assert detect_language(pre, PROFILE.code_lang_attrs) == "bash"
+    pre = html.fromstring('<pre>{"kind": "x"}</pre>')
+    assert detect_language(pre, PROFILE.code_lang_attrs) == "json"
 
 
 def test_code_block_keeps_whitespace_and_strips_gutters_and_links() -> None:
@@ -186,6 +190,7 @@ def test_images_and_figures() -> None:
 def test_headings_keep_ids_and_single_h1() -> None:
     out = run("<h1 id='a'>A</h1><h1 id='b'>B</h1><h2 id='c'>C <a href='/x'>link</a></h2>")
     assert out == "# A {#a}\n\n## B {#b}\n\n### C [link](https://h/x) {#c}\n"
+    assert run("<h2 id='create_the_script'>Create</h2>") == "## Create {#create_the_script}\n"
     inline = Profile(heading_anchor_style="inline")
     assert run("<h2 id='x'>X</h2>", inline) == '<a id="x"></a>\n\n## X\n'
 

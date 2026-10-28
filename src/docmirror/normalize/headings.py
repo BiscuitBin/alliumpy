@@ -66,7 +66,8 @@ def normalize_headings(
             holder.text = islands.register(f'<a id="{identifier}"></a>')
             heading.addprevious(holder)
             continue
-        suffix = f" {{#{identifier}}}"
+        # The suffix travels as an island so a converter never escapes its underscores.
+        suffix = " " + islands.register(f"{{#{identifier}}}")
         if len(heading):
             last = heading[-1]
             last.tail = (last.tail or "") + suffix

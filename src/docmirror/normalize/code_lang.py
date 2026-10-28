@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 from typing import TYPE_CHECKING
 
@@ -97,8 +98,37 @@ def detect_language(pre: html.HtmlElement, attrs: list[str]) -> str:
                 return normalize_alias(hint)
         if ancestor.tag in {"article", "main", "body"}:
             break
-    if _HTTP_START.match(pre.text_content() or ""):
+    return guess_language(pre.text_content() or "")
+
+
+_SHELL_START = re.compile(
+    r"^\s*(\$ |sudo |gem |pip3? |npm |npx |yarn |apt(-get)? |brew |gcloud |curl |wget |git |"
+    r"python3? -m |dotnet |mvn |gradle |go (get|run|install) |cargo |composer |pwsh )",
+    re.IGNORECASE,
+)
+
+
+def guess_language(text: str) -> str:
+    """A language from the code itself: HTTP samples, shell commands, JSON documents.
+
+    >>> guess_language("GET /me HTTP/1.1"), guess_language("$ pip install x")
+    ('http', 'bash')
+    >>> guess_language('{"a": 1}')
+    'json'
+    >>> guess_language("plain prose")
+    ''
+    """
+    if _HTTP_START.match(text):
         return "http"
+    if _SHELL_START.match(text):
+        return "bash"
+    stripped = text.strip()
+    if stripped[:1] in "{[" and stripped[-1:] in "}]":
+        try:
+            json.loads(stripped)
+        except ValueError:
+            return ""
+        return "json"
     return ""
 
 
