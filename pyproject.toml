@@ -1,75 +1,139 @@
+[build-system]
+requires = ["hatchling==1.28.0"]
+build-backend = "hatchling.build"
+
 [project]
-name = "alliumpy-tooling"
+name = "docmirror"
 version = "0.1.0"
-description = "Repository tooling for alliumpy. The wheel's manifest is crates/alliumpy/pyproject.toml."
-requires-python = ">=3.14"
-dependencies = []
+description = "Mirror a documentation website into a local, interlinked Markdown knowledge base."
+readme = "README.md"
+# The repository keeps its Apache-2.0 licence (decision 0015); the build
+# prompt's MIT choice was declined by the maintainer.
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.12"
+# Every runtime dependency is justified in decision 0015. Lower bounds are the
+# versions the project was built against; pixi.lock is the pin.
+dependencies = [
+  "typer>=0.27.0",
+  "pydantic>=2.11.0",
+  "curl_cffi>=0.13.0",
+  "patchright>=1.55.0",
+  "html-to-markdown>=2.0.0",
+  "markdownify>=1.1.0",
+  "trafilatura>=2.0.0",
+  "readability-lxml>=0.8.4",
+  "lxml>=6.0.0",
+  "selectolax>=0.3.0",
+  "markdown-it-py>=4.0.0",
+  "mdit-py-plugins>=0.5.0",
+  "yake>=0.6.0",
+  "scikit-learn>=1.6.0",
+  "rich>=14.0.0",
+  "protego>=0.5.0",
+  "pyyaml>=6.0.0",
+  "jsonschema>=4.24.0",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Documentation",
+  "Topic :: Text Processing :: Markup :: Markdown",
+]
+
+[project.optional-dependencies]
+# Tier 2 of the fetch ladder; a Firefox download of its own, so opt-in.
+camoufox = ["camoufox>=0.4.0"]
+# What the tests and the gates need beyond the runtime set.
+dev = [
+  "pytest>=9.0.0",
+  "syrupy>=5.0.0",
+  "pytest-httpserver>=1.1.0",
+  "lxml-stubs>=0.5.0",
+  "types-PyYAML>=6.0.0",
+  "types-jsonschema>=4.24.0",
+]
+
+[project.scripts]
+docmirror = "docmirror.cli.app:main"
+
+[project.urls]
+Repository = "https://github.com/BiscuitBin/alliumpy"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/docmirror"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/docmirror", "README.md", "LICENSE"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Opt-in markers: the default run is offline (`live` and `oracle` reach the
+# network and are run by their own recipes).
+markers = [
+  "live: reaches the live target sites (just py-test-live)",
+  "oracle: compares against an upstream Markdown oracle (just py-test-oracle)",
+]
+addopts = "-m 'not live and not oracle' --strict-markers"
+filterwarnings = ["error::DeprecationWarning:docmirror"]
 
 # pixi owns every tool binary and the Python environment (.pixi/envs/default,
-# gitignored; pixi.lock is the pin). rustup owns the compiler: rust is deliberately
-# absent here, so the cargo first on a recipe's PATH is still rustup's proxy and
-# rust-toolchain.toml is honoured (check-toolchain proves it).
+# gitignored; pixi.lock is the pin).
 [tool.pixi.workspace]
 channels = ["conda-forge"]
-# CI is linux-64; the maintainer is osx-arm64. osx-64 joins when a claim verifies it;
-# win-64 never: the Justfile and initialization script are POSIX-only.
+# CI is linux-64; the maintainer is osx-arm64.
 platforms = ["linux-64", "osx-arm64"]
 requires-pixi = ">=0.81.0"
 
 [tool.pixi.dependencies]
 # Exact pins. An unqualified "3.14" would let the linux-64 solve pick 3.15.0rc2.
+# The tooling package needs 3.14; the wheel's floor is 3.12 (ruff and mypy
+# target it, and CI smokes the wheel on 3.12).
 python = "3.14.*"
 just = "==1.58.0"
 prek = "==0.5.3"
-# For tools.txt and tools-source.txt only: cargo-hack and rustqual are not on conda-forge.
-cargo-binstall = "==1.23.0"
-cargo-nextest = "==0.9.146"
-cargo-llvm-cov = "==0.9.1"
-cargo-deny = "==0.20.2"
-cargo-insta = "==1.48.0"
-# conda-forge's newest on 2026-09-24; the pin follows conda-forge, not crates.io.
-cargo-shear = "==1.13.4"
 taplo = "==0.10.0"
-
-# Wheel builder; the nested manifest belongs to maturin alone.
-maturin = "==1.15.0"
-# Installer for maturin develop and offline wheel smoke environments.
+# The link checker, pinned here rather than self-installed by its hook: the hook's
+# installer needs the GitHub API, which not every network allows, and a binary a
+# hook downloads at first run is a pin nothing hashes.
+lychee = "==0.24.2"
+# `just wheel` builds with the environment's hatchling, so the build never
+# reaches the network.
+hatchling = "==1.28.0"
+# Installer for the offline wheel smoke environment.
 uv = "==0.13.5"
-# Binding behaviour tests.
 pytest = "==9.1.1"
 # Python lint and formatting gate.
 ruff = "==0.17.2"
-# Static type checking and runtime stubtest.
+# Static type checking.
 mypy = "==2.4.0"
 
 [tool.pixi.pypi-dependencies]
 biscuit-games-tooling = { git = "https://github.com/steven-cutting/biscuit_games_tooling", tag = "v0.3.0" }
+# The package itself, editable, with its test dependencies: `just sync`
+# installs it so pytest, mypy and the console script see the worktree's
+# sources.
+docmirror = { path = ".", editable = true, extras = ["dev"] }
 
 # typos is configured in _typos.toml; a [tool.typos] here would be ignored.
 
 [tool.biscuit-games-tooling]
 recipes = [
-  "check-toolchain",
   "lock-check",
   "lint",
-  "fmt-check",
   "toml-check",
-  "clippy",
-  "metrics",
-  "features",
-  "test-doc",
-  "coverage",
-  "doc",
-  "deny",
-  "deps-unused",
   "py-lint",
   "py-typecheck",
   "py-test",
-  "py-stubtest",
   "wheel-smoke",
   "version-check",
   "check-docs",
   "check-agents",
-  "snapshots-check",
 ]
 predicates = {}

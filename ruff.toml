@@ -1,6 +1,5 @@
 # Match the wheel's minimum Python, rather than the tooling interpreter.
-target-version = "py311"
-# Match rustfmt's house line width.
+target-version = "py312"
 line-length = 100
 # Normal discovery skips deliberately broken controls; generated paths are gitignored.
 extend-exclude = ["tests/fixtures/py-lint-violation"]
@@ -10,8 +9,17 @@ extend-exclude = ["tests/fixtures/py-lint-violation"]
 # Check every rule so new Python code cannot silently escape a rule family.
 select = ["ALL"]
 ignore = [
-  "COM812", # Conflicts with the formatter's trailing-comma handling.
-  "ISC001", # Conflicts with the formatter's string layout.
+  "COM812",  # Conflicts with the formatter's trailing-comma handling.
+  "ISC001",  # Conflicts with the formatter's string layout.
+  "D203",    # Incompatible with D211 (no blank line before a class docstring).
+  "D213",    # Incompatible with D212 (summary on the first line).
+  "TD002",   # Issue links, not author names, track open work.
+  "TD003",   # A TODO names its construct; the tracker is the ticket, not a link.
+  "FIX002",  # A TODO naming a construct is allowed; the gate is the test's xfail.
+  "CPY001",  # The LICENSE file carries the notice; per-file headers are not used here.
+  "PLR0917", # Typer subcommands take every flag the specification lists, positionally.
+  "TC001",   # Runtime-evaluated annotations (pydantic, Typer) need their imports at runtime.
+  "TC003",   # Same: `Path` in a Typer signature is read at runtime.
 ]
 
 [lint.pydocstyle]
@@ -19,17 +27,19 @@ ignore = [
 convention = "google"
 
 [lint.per-file-ignores]
-"crates/alliumpy/tests/**" = [
-  "S101",    # Assertions express the public API test contract.
+"tests/**" = [
+  "S101",    # Assertions express the test contract.
   "INP001",  # Tests are discovered without an importable test package.
-  "PLR2004", # Reference diagnostic positions are independent integer literals.
-]
-"crates/alliumpy/python/alliumpy/_alliumpy.pyi" = [
-  "PYI021", # CONVENTIONS §9 makes this documented stub the canonical API description.
+  "PLR2004", # Expected values are independent literals.
+  "D1",      # Test names carry the description.
+  "S105",    # Fixture strings that look like secrets are not.
+  "S108",    # Fixtures may name temporary paths.
 ]
 "tests/fixtures/smoke/**" = [
   "INP001", # The isolated wheel smoke is a standalone script.
-  "S101",   # CONVENTIONS §9 specifies assertions as the smoke contract.
+  "S101",   # Assertions are the smoke contract.
+  "S603",   # The smoke runs the console script it was handed, without a shell.
+  "T201",   # The smoke prints its verdict.
 ]
 "scripts/**" = [
   "INP001", # Repository scripts are standalone, not an importable package.
@@ -37,10 +47,14 @@ convention = "google"
   "S603",   # The version checker executes a fixed console-script path without a shell.
 ]
 "scripts/version_check.py" = [
-  "PLR2004", # The frozen version checker requires two version-output words.
+  "PLR2004", # The version checker requires two version-output words.
 ]
-"crates/alliumpy/python/alliumpy/_cli.py" = [
-  "T201", # The console entry point prints its user-facing output.
+"src/docmirror/cli/**" = [
+  "T201",    # The CLI layer prints its user-facing output.
+  "FBT001",  # Typer options are boolean positional parameters by design.
+  "FBT002",  # Typer options carry boolean defaults by design.
+  "PLR0913", # Subcommands take every flag the specification lists.
+  "UP007",   # Typer reads `Optional[...]` annotations at runtime.
 ]
 
 # All formatter settings retain their defaults.

@@ -71,10 +71,9 @@ Only `docs/**/*.md` is in scope.
 
 ## Links that leave the repository
 
-Three pages point outward: [API reference](api.md),
-[Deploy to GitHub Pages](../how-to/deploy-to-github-pages.md), and
-[Install and run](../how-to/install-and-run.md). Every such link is to a whole page,
-never to a heading: nothing checks fragments across that boundary.
+[Site notes](../site-notes.md) points outward, to the target sites and their oracle
+endpoints, and the root `README.md` to the published package. Every such link is to a
+whole page, never to a heading: nothing checks fragments across that boundary.
 The validator and offline link checker skip HTTPS targets, so nothing in `just check`
 resolves them. `just check-links-online` does, by hand and monthly.
 

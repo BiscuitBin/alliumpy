@@ -2,14 +2,14 @@
 # stops at the first configuration file it finds, and finds this one.
 
 [files]
-# Lockfiles and vendored reference carry hashes and names that look like
+# Lockfiles and captured HTML carry hashes and names that look like
 # typos; the environment and tool directories hold binaries.
 extend-exclude = [
-  "tests/fixtures/parity/",
-  "Cargo.lock",
+  "tests/fixtures/mslearn/",
+  "tests/fixtures/devsite/",
+  "examples/",
   "pixi.lock",
   ".pixi/",
-  ".tools/",
   "target/",
   "ai_tmp/",
 ]
@@ -21,3 +21,7 @@ mis = "mis"
 # The tickets name "als" as the word this file once listed and now does not
 # need; the checker's dictionary rewrites it to "also".
 als = "als"
+
+[default.extend-identifiers]
+# ruff's copyright-notice rule family, named in ruff.toml.
+CPY001 = "CPY001"

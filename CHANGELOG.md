@@ -1,12 +1,10 @@
 # Changelog
 
-This is a T00 stub; T12 replaces it.
-
-This document will describe release changes and the upstream version each release wraps for the two-crate workspace and its Python
-wheel. This page is new to this repository. The owning lane will supply the operational details,
-examples, rationale and verification evidence when its ticket is implemented.
-Until then this text records the intended scope and ownership of the document.
+All notable changes to docmirror are recorded here. The format follows Keep a Changelog
+and the versions follow semantic versioning once there is a release to version.
 
 ## [Unreleased]
 
-Release notes will be added when changes are ready for users.
+- The repository is rebuilt around the `docmirror` package, on the toolchain carried from
+  `alliumpy` (pixi, just, prek, ruff, mypy, pytest and the `bg-*` validators).
+- `docmirror init`, `doctor`, `schema` and `report` subcommands.

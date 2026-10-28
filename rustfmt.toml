@@ -1,9 +1,0 @@
-# Keep formatting aligned with the workspace's Rust edition, including old files.
-style_edition = "2024"
-# Match handbook examples and keep signatures readable in a split editor.
-max_width = 100
-# Identical output on the POSIX gate and Windows wheel builders.
-newline_style = "Unix"
-# Prefer Rust's concise field initialization and error propagation syntax.
-use_field_init_shorthand = true
-use_try_shorthand = true

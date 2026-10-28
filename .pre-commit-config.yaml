@@ -6,42 +6,25 @@ exclude: >-
     \.pixi/|
     ai_tmp/|
     target/|
-    \.tools/|
     dist/|
     target/wheel-smoke/|
-    tests/fixtures/parity/.*\.allium$|
-    Cargo\.lock$|
+    tests/fixtures/(mslearn|devsite)/|
+    examples/|
     pixi\.lock$
   )
 repos:
   - repo: local
     hooks:
-      # Rust hooks run through `just`: a git hook does not inherit the Justfile's
+      # Hooks run through `just`: a git hook does not inherit the Justfile's
       # PATH, so routing through the recipe is what lets a hook find the pixi
       # environment's taplo, and it keeps each tool's arguments in exactly one
-      # place. Clippy is deliberately
-      # not a hook: a cold build blocks every commit for minutes, so it is a gate
-      # in `just check` and a CI step instead.
-      - id: fmt-check
-        name: rustfmt check
-        entry: just fmt-check
-        language: system
-        pass_filenames: false
-        files: ^(crates/.*\.rs|rustfmt\.toml)$
-
+      # place.
       - id: toml-check
         name: taplo format and lint
         entry: just toml-check
         language: system
         pass_filenames: false
         types: [toml]
-
-      - id: deps-unused
-        name: Unused dependencies
-        entry: just deps-unused
-        language: system
-        pass_filenames: false
-        files: ^(Cargo\.toml|crates/.*/Cargo\.toml|crates/.*\.rs)$
 
       - id: py-lint
         name: py-lint
@@ -120,34 +103,26 @@ repos:
         # be rewritten in place. This config is the read-only gate: report only.
         args: [--force-exclude]
 
-  - repo: https://github.com/lycheeverse/lychee
-    rev: 2bba271688c1abb1503097a064e6c3bc1d1b6a9b # lychee-v0.24.2
+  # lychee from the pixi environment (pinned in pyproject.toml), not
+  # upstream's auto-installing hook: that hook resolves its binary through the
+  # GitHub API at first run, which fails on a network that allows release
+  # downloads but not the API, and the binary it fetches is hashed by nothing.
+  # The entry names the environment's path because a git hook does not inherit
+  # the Justfile's PATH.
+  - repo: local
     hooks:
-      # LYCHEE_VERSION must lead the arguments, and must match the rev comment
-      # above. Left to itself the hook derives the version by running
-      # `git describe` inside its own cached checkout — but Git exports GIT_DIR
-      # to every hook it runs, so during a real commit that describe resolves
-      # against this repository instead, finds no `lychee-v*` tag, and exits
-      # 100. It only reproduces on the commit path, which is why `just lint`
-      # and `just check-docs` never saw it. Passing the version is the escape
-      # hatch the hook script itself offers, and it keeps the rev a SHA.
       - id: lychee
-        args:
-          [
-            LYCHEE_VERSION=0.24.2,
-            --offline,
-            --cache,
-            --config,
-            lychee.toml,
-            --no-progress,
-            --root-dir,
-            .
-          ]
+        name: lychee
+        entry: .pixi/envs/default/bin/lychee
+        language: system
+        args: [--offline, --cache, --config, lychee.toml, --no-progress, --root-dir, .]
         types: [markdown]
       - id: lychee
         alias: lychee-online
         name: Lychee online (manual)
-        args: [LYCHEE_VERSION=0.24.2, --cache, --config, lychee.toml, --no-progress, --root-dir, .]
+        entry: .pixi/envs/default/bin/lychee
+        language: system
+        args: [--cache, --config, lychee.toml, --no-progress, --root-dir, .]
         types: [markdown]
         stages: [manual]
 

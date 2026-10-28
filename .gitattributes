@@ -1,4 +1,6 @@
 * text=auto eol=lf
 
-Cargo.lock linguist-generated=true
 pixi.lock merge=binary linguist-language=YAML linguist-generated=true -diff
+# Captured pages are evidence, not prose: never reflowed, never diffed by default.
+tests/fixtures/mslearn/** linguist-generated=true -diff
+tests/fixtures/devsite/** linguist-generated=true -diff

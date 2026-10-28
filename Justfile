@@ -2,20 +2,9 @@ set positional-arguments := true
 set shell := ["sh", "-eu", "-c"]
 
 # pixi owns every tool binary and the Python environment (.pixi/envs/default;
-# pyproject.toml is the manifest, pixi.lock the pin). Tools conda-forge lacks
-# (tools.txt, and tools-source.txt for those with no release binary) live in
-# .tools/bin, which holds only what conda-forge lacks. Every recipe, and every hook that
-# runs through a recipe, sees both first; cargo finds cargo-nextest and friends
-# on PATH by name. Neither directory holds a cargo, so rustup's proxy stays
-# first for the compiler (check-toolchain proves it).
-export PATH := justfile_directory() / ".pixi" / "envs" / "default" / "bin" + ":" + justfile_directory() / ".tools" / "bin" + ":" + env("PATH")
-
-# Every cargo invocation compiles the bindings against pixi Python.
-export PYO3_PYTHON := justfile_directory() / ".pixi" / "envs" / "default" / "bin" / "python"
-
-# Line-coverage floor over crates/alliumpy-core/src/**. Lower the complexity, not the
-# number.
-coverage_floor := "90"
+# pyproject.toml is the manifest, pixi.lock the pin). Every recipe, and every
+# hook that runs through a recipe, sees the environment first.
+export PATH := justfile_directory() / ".pixi" / "envs" / "default" / "bin" + ":" + env("PATH")
 
 default:
     @just --list
@@ -26,112 +15,45 @@ default:
 initialize:
     sh scripts/initialize.sh
 
-# The pin in rust-toolchain.toml is honoured only by rustup's cargo proxy. A
-# cargo from pixi, Homebrew or a distribution ignores the file and builds with
-# whatever it is, so the gate refuses it before anything else runs.
-check-toolchain:
-    command -v rustup >/dev/null || { printf '%s\n' 'rustup is not installed; see docs/how-to/develop-locally.md' >&2; exit 2; }
-    case "$(command -v cargo)" in "${CARGO_HOME:-$HOME/.cargo}"/bin/cargo) ;; *) printf '%s\n' "cargo resolves to $(command -v cargo), not rustup's proxy" >&2; exit 2;; esac
-    rustup show active-toolchain
-
-# Installs the toolchain, components and targets rust-toolchain.toml names.
-install-toolchain:
-    rustup toolchain install
-
-# Tools conda-forge lacks into .tools/bin (network). cargo-binstall comes from
-# the pixi environment. tools.txt is binary-only: a release archive or nothing.
-# tools-source.txt holds tools with no release binary, so its loop may compile,
-# and cargo-binstall passes --locked through to `cargo install`. It tries a
-# signed cargo-quickinstall build first, and would take one that appeared for
-# the pin; --only-signed refuses an unsigned one, and an upstream release
-# asset, which nothing would sign, is refused too (decision 0007). That pass runs without a GitHub token, so no build script it
-# compiles can read one; its one quickinstall lookup needs no rate-limit lift.
-# A pass whose list is empty is skipped, since cargo binstall with no crate
-# fails; the guard is plain sh, so it holds for GNU and BSD alike. sed, not
-# grep, strips the comments: it exits 0 on a list with no pins but still fails,
-# and so fails the recipe, when the file is missing or unreadable.
-install-tools:
-    pins=$(sed -e '/^#/d' -e '/^$/d' tools.txt); [ -z "$pins" ] || cargo binstall --root .tools --no-confirm --locked --disable-strategies compile $pins
-    pins=$(sed -e '/^#/d' -e '/^$/d' tools-source.txt); [ -z "$pins" ] || env -u GITHUB_TOKEN -u GH_TOKEN cargo binstall --root .tools --no-confirm --locked --disable-strategies crate-meta-data --only-signed --no-discover-github-token $pins
-
-# Both lockfiles, exactly as committed. Never rewrites either.
+# The lockfile, exactly as committed. Never rewrites it. Installs the package
+# editable with its test extras, so the console script and pytest see the
+# worktree's sources.
 sync:
-    cargo fetch --locked
     pixi install --frozen
 
 lock:
-    cargo update --workspace
     pixi lock
 
 # Within the manifest's constraints only; every direct pin is exact, so this
-# moves transitives (openssl, libcxx, the Python patch level). `pixi upgrade`
-# rewrites the pins themselves and is not this recipe.
+# moves transitives. `pixi upgrade` rewrites the pins themselves and is not
+# this recipe.
 lock-upgrade:
-    cargo update
     pixi update
 
-# Offline, like every gate recipe: a cold Cargo cache fails rather than
-# fetching the registry index (`just sync` fills it), and an offline solve on a
-# stale lock still fails, which is the right answer. --dry-run because pixi
-# would otherwise rewrite a stale lock from that restricted solve.
+# Offline, like every gate recipe: an offline solve on a stale lock fails,
+# which is the right answer. --dry-run because pixi would otherwise rewrite a
+# stale lock from that restricted solve.
 lock-check:
-    cargo update --workspace --locked --offline
     pixi lock --check --offline --dry-run
 
-# The shim, then every hook environment (seven clones; Go under prek's cache;
-# the ripsecrets build with the machine's rustup and the pinned toolchain), so
-# that `just check` never fetches. lychee is `language: script` and downloads
-# its binary at first run, not at prepare, so it is run once here on one
-# Markdown file; its exit status is lint's business, not this recipe's. Its
-# checkout pins `stable`, and its script's cargo-binstall calls rustc, so
-# without RUSTUP_AUTO_INSTALL=0 rustup would install that toolchain.
+# The shim, then every hook environment, so that `just check` never fetches.
+# ripsecrets builds in prek's cache with the machine's rustup; without
+# RUSTUP_AUTO_INSTALL=0 rustup would install a toolchain for it.
 install-hooks:
     git rev-parse --is-inside-work-tree >/dev/null
     test -x .pixi/envs/default/bin/prek || { printf '%s\n' 'the pixi environment is not installed; run just initialize first' >&2; exit 2; }
-    prek install --overwrite --hook-type=pre-commit --prepare-hooks
+    RUSTUP_AUTO_INSTALL=0 prek install --overwrite --hook-type=pre-commit --prepare-hooks
     prek prepare-hooks --config .pre-commit-fix.yaml
-    -RUSTUP_AUTO_INSTALL=0 prek run lychee --files README.md
 
-# ---------------------------------------------------------------- develop ---
-
-build:
-    cargo build --workspace --all-features --locked
-
-# The cdylib test binary needs libpython; its behaviour tests are Python tests.
-# nextest runs the unit and integration tests; it cannot run doctests, so those
-# follow through cargo test. INSTA_UPDATE=no makes a mismatch fail without a
-# pending file, which would trip the gate's worktree check.
-test:
-    INSTA_UPDATE=no cargo nextest run --workspace --exclude alliumpy --all-features --locked
-    cargo test --doc --workspace --exclude alliumpy --all-features --locked
-
-test-doc:
-    cargo test --doc --workspace --exclude alliumpy --all-features --locked
-
-# Gate 22: snapshots match, and every .snap file is referenced by a test.
-# Run the whole suite so the orphan check sees every reference. --check and
-# INSTA_UPDATE=no fail mismatches without writing pending files.
-# cargo-insta 1.48.0 forwards trailing options as test arguments, so nextest
-# rejects --locked. Check the locks first, offline, before cargo-insta runs.
-# Doctests already have their own gate; disabling its extra run avoids a warning.
-snapshots-check: lock-check
-    INSTA_UPDATE=no CARGO_NET_OFFLINE=true cargo insta test --check --unreferenced reject --test-runner nextest --disable-nextest-doctest --workspace --exclude alliumpy --all-features
-
-# Interactive review for a person at a terminal.
-snapshots-review:
-    cargo insta review --workspace
-
-# The snapshot recipe that writes: rerun and accept without a terminal.
-# Read the diff before committing, and explain each intended change. A .snap
-# file no test refers to, left by a renamed or removed test, is deleted, so the
-# deletion shows in the diff instead of blocking the accept.
-snapshots-accept: lock-check
-    INSTA_UPDATE=new CARGO_NET_OFFLINE=true cargo insta test --accept --unreferenced delete --test-runner nextest --disable-nextest-doctest --workspace --exclude alliumpy --all-features
+# The Chromium build patchright drives (network). Tier 1 of the fetch ladder
+# needs it; `docmirror doctor` reports whether it is present.
+install-browser:
+    patchright install chromium
 
 # ----------------------------------------------------------------- format ---
 
 format:
-    cargo fmt --all
+    ruff format .
     taplo fmt
 
 # Automatic repairs. The fix config is run twice because a
@@ -139,7 +61,6 @@ format:
 fix:
     -prek run --all-files --config .pre-commit-fix.yaml
     prek run --all-files --config .pre-commit-fix.yaml
-    cargo clippy --workspace --all-targets --all-features --locked --fix --allow-dirty --allow-staged
     just lint
 
 # ------------------------------------------------------------------ check ---
@@ -147,76 +68,79 @@ fix:
 lint:
     prek run --all-files
 
-fmt-check:
-    cargo fmt --all --check
-
 toml-check:
     taplo fmt --check
     taplo lint
 
-# Every lint the manifests declare, as errors. The manifests say `warn` so a
-# local build never breaks mid-edit; this is where warnings become failures.
-clippy:
-    cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+# Gate: ruff over every Python file ruff.toml names; --show-files must list
+# the package, or an exclude has emptied the gate (ruff exits 0 on no files);
+# then the positive control: the fixture must fail with exit status 1
+# (violations found) and the output must name F401 and E501, the fixture's
+# own violations. Exit 2 is a tool or usage error, not a fired control; a
+# missing fixture is E902 with exit 1, so it is tested first.
+py-lint:
+    ruff check .
+    ruff format --check .
+    ruff check --show-files . | grep -q 'src/docmirror/__init__\.py$' || { printf '%s\n' 'py-lint: ruff did not see the package' >&2; exit 1; }
+    test -f tests/fixtures/py-lint-violation/ruff.py || { printf '%s\n' 'py-lint: the positive control fixture is missing' >&2; exit 1; }
+    status=0; out=$(ruff check --quiet --output-format concise tests/fixtures/py-lint-violation/ruff.py) || status=$?; [ "$status" -eq 1 ] && printf '%s\n' "$out" | grep -q ': F401 ' && printf '%s\n' "$out" | grep -q ': E501 ' || { printf '%s\n' "$out" 'py-lint: the positive control did not fire (exit 1 naming F401 and E501)' >&2; exit 1; }
 
-# Gate 7: complexity, cohesion and coupling, through rustqual against
-# rustqual.toml, once per crate. The version check comes first: rustqual's
-# version decides what the gate reports, so a missing .tools/bin/rustqual must
-# not fall through to another one on PATH.
-metrics:
+# Gate: mypy over the files mypy.ini names (the package, the tests, scripts/),
+# then the positive control: the fixture must fail with exit status 1 (type
+# errors). Exit 2 is a usage or I/O error, not a fired control.
+py-typecheck:
+    mypy
+    status=0; mypy --no-error-summary tests/fixtures/py-lint-violation/mypy.py || status=$?; [ "$status" -eq 1 ] || { printf '%s\n' 'py-typecheck: the positive control did not fire' >&2; exit 1; }
+
+# Gate: the offline suites (unit and golden). `live` and `oracle` are
+# deselected by pyproject.toml's addopts and have recipes of their own.
+py-test:
+    python -m pytest
+
+# The snapshot recipe that writes: rerun the golden suite and accept every
+# changed snapshot. Read the diff before committing, and explain each intended
+# change.
+py-test-accept:
+    python -m pytest tests/golden --snapshot-update
+
+# The live smoke suite: real crawls of the target sites (network).
+py-test-live:
+    python -m pytest -m live --override-ini addopts= tests/live
+
+# The oracle suite: fidelity against upstream Markdown endpoints (network).
+py-test-oracle:
+    python -m pytest -m oracle --override-ini addopts= tests/oracle
+
+# The release wheel into dist/, which is emptied first so a stale wheel can
+# never be smoked. No build isolation: hatchling is pinned in the pixi
+# environment, so the build never reaches the network.
+wheel:
+    rm -rf dist
+    uv build --wheel --no-build-isolation --python .pixi/envs/default/bin/python --out-dir dist
+
+# Gate: the wheel installs and works in a fresh virtual environment, offline.
+# Exactly one wheel, which must exist (an unmatched glob is one literal
+# argument); a venv on the pixi interpreter with no download that sees the
+# environment's site-packages, so the wheel's runtime dependencies resolve
+# from the lock while the wheel itself installs with --no-deps from dist/
+# alone; then the smoke script and the console script. Python runs with -I so
+# nothing in the worktree shadows the package.
+wheel-smoke: wheel
     #!/bin/sh
     set -eu
-    pin=$(sed -n 's/^rustqual@//p' tools-source.txt)
-    have=$(rustqual --version 2>/dev/null | sed -n 's/^rustqual //p')
-    if [ "$have" != "$pin" ]; then
-        printf 'metrics: rustqual %s on PATH, tools-source.txt pins %s; run just install-tools\n' "${have:-missing}" "$pin" >&2
-        exit 1
-    fi
-    rustqual crates/alliumpy-core --config rustqual.toml --fail-on-warnings --format github
-    rustqual crates/alliumpy --config rustqual.toml --fail-on-warnings --format github
+    set -- dist/*.whl
+    [ "$#" -eq 1 ] && [ -f "$1" ] || { printf 'wheel-smoke: expected one wheel in dist/, found: %s\n' "$*" >&2; exit 1; }
+    rm -rf target/wheel-smoke
+    uv venv --python .pixi/envs/default/bin/python --no-python-downloads --offline --system-site-packages target/wheel-smoke/venv
+    uv pip install --python target/wheel-smoke/venv --offline --no-index --no-deps "$1"
+    target/wheel-smoke/venv/bin/python -I tests/fixtures/smoke/smoke.py target/wheel-smoke/venv/bin/docmirror
+    target/wheel-smoke/venv/bin/docmirror --version
 
-# Every feature combination compiles. Not --no-dev-deps: that rewrites Cargo.toml
-# while it runs and would trip the worktree snapshot on a crash.
-features:
-    cargo hack check --workspace --feature-powerset --locked
-
-# Measures the core; pytest exercises the bindings outside llvm-cov.
-# Runs every nextest test under instrumentation and enforces the floor. Doctests
-# are not measured (nightly-only in llvm-cov); test-doc runs them uncovered.
-# llvm-cov does not create the lcov file's directory, so the recipe does.
-# INSTA_UPDATE=no fails a mismatch without a pending file that would trip the
-# gate's worktree check.
-coverage:
-    INSTA_UPDATE=no cargo llvm-cov nextest -p alliumpy-core --all-features --locked --no-report
-    cargo llvm-cov report --fail-under-lines {{coverage_floor}}
-    mkdir -p target/llvm-cov
-    cargo llvm-cov report --lcov --output-path target/llvm-cov/lcov.info
-
-doc:
-    RUSTDOCFLAGS="-D warnings --cfg docsrs" cargo doc --workspace --no-deps --all-features --locked
-
-# What GitHub Pages serves: the API reference `doc` builds, from an empty
-# target/doc so that nothing stale is published, and a root index.html that
-# links to both crates' pages, because stable rustdoc writes none. Not a
-# gate and outside `just check`: `doc` is the gate, and this adds one file
-# to what it built. The flags are `doc`'s own, through the recipe, so the
-# hosted reference is the one the gate proved.
-site:
-    rm -rf target/doc
-    just doc
-    printf '%s\n' '<!doctype html>' '<html lang="en">' '<meta charset="utf-8">' '<title>alliumpy: API reference</title>' '<p><a href="alliumpy_core/index.html">The alliumpy_core API reference</a></p>' '<p><a href="alliumpy/index.html">The alliumpy API reference</a></p>' '</html>' > target/doc/index.html
-
-# Licences, bans and sources are answerable offline once `just sync` has run.
-deny:
-    cargo deny --locked check licenses bans sources
-
-# Advisories need the RustSec database over the network, so this sits outside
-# `just check` for the same reason check-links-online does.
-audit:
-    cargo deny --locked check advisories
-
-deps-unused:
-    cargo shear
+# Gate: one version, in every place it is written. Reads pyproject.toml, the
+# package's `__version__` and the console script's own output from the venv
+# wheel-smoke left; fails if that venv is missing.
+version-check:
+    python -I scripts/version_check.py
 
 # --------------------------------------------------------------- documents ---
 
@@ -229,79 +153,6 @@ check-agents:
 
 check-links-online:
     prek run --all-files --hook-stage manual lychee-online
-
-# ------------------------------------------------------------------ python ---
-
-# Builds the extension into the pixi environment in place (the .so beside
-# __init__.py, gitignored). maturin needs an environment to install into and
-# finds the pixi one through CONDA_PREFIX, set on this line alone; it installs
-# with the pinned uv on PATH. `locked = true` in crates/alliumpy/pyproject.toml
-# makes it honour Cargo.lock. Not a gate: py-test and py-stubtest depend on it.
-py-develop:
-    CONDA_PREFIX="{{ justfile_directory() }}/.pixi/envs/default" maturin develop --manifest-path crates/alliumpy/Cargo.toml
-
-# Gate: ruff over every Python file ruff.toml names; --show-files must list
-# the package, or an exclude has emptied the gate (ruff exits 0 on no files);
-# then the positive control: the fixture must fail with exit status 1
-# (violations found) and the output must name F401 and E501, the fixture's
-# own violations: under select = ALL the file also trips INP001, D100 and
-# the copyright-notice rule, so the exit status alone would fire with F and
-# E dropped. Exit 2
-# is a tool or usage error, not a fired control; a missing fixture is E902
-# with exit 1, so it is tested first.
-py-lint:
-    ruff check .
-    ruff format --check .
-    ruff check --show-files . | grep -q 'crates/alliumpy/python/alliumpy/__init__\.py$' || { printf '%s\n' 'py-lint: ruff did not see the package' >&2; exit 1; }
-    test -f tests/fixtures/py-lint-violation/ruff.py || { printf '%s\n' 'py-lint: the positive control fixture is missing' >&2; exit 1; }
-    status=0; out=$(ruff check --quiet --output-format concise tests/fixtures/py-lint-violation/ruff.py) || status=$?; [ "$status" -eq 1 ] && printf '%s\n' "$out" | grep -q ': F401 ' && printf '%s\n' "$out" | grep -q ': E501 ' || { printf '%s\n' "$out" 'py-lint: the positive control did not fire (exit 1 naming F401 and E501)' >&2; exit 1; }
-
-# Gate: mypy over the files mypy.ini names (the stub, the package, the tests,
-# scripts/), then the positive control: the fixture must fail with exit status
-# 1 (type errors). Exit 2 is a usage or I/O error, not a fired control, and the
-# one error line stays visible for the hand-back (CONVENTIONS.md §11). stubtest,
-# which imports the built module, is py-stubtest.
-py-typecheck:
-    mypy
-    status=0; mypy --no-error-summary tests/fixtures/py-lint-violation/mypy.py || status=$?; [ "$status" -eq 1 ] || { printf '%s\n' 'py-typecheck: the positive control did not fire' >&2; exit 1; }
-
-# Gate: the binding's behaviour tests, against the extension py-develop built.
-py-test: py-develop
-    python -m pytest crates/alliumpy/tests
-
-# Gate: the stub file describes the built module exactly. The allowlist is
-# reviewed in T03 and must stay short; an entry hides a discrepancy.
-py-stubtest: py-develop
-    python -m mypy.stubtest alliumpy._alliumpy --allowlist crates/alliumpy/tests/stubtest-allowlist.txt
-
-# The release wheel for this platform into dist/, which is emptied first so a
-# stale wheel can never be smoked. A release build on every `just check` is
-# the price of smoking the artefact the release ships (CONVENTIONS.md §9).
-wheel:
-    rm -rf dist
-    maturin build --release --manifest-path crates/alliumpy/Cargo.toml --out dist
-
-# Gate: the wheel installs and works in a fresh virtual environment, offline.
-# Exactly one wheel, which must exist (an unmatched glob is one literal argument);
-# a venv on the pixi interpreter with no download; install
-# from dist/ alone; then import, parse the smoke fixtures, and run the console
-# script. Python runs with -I so nothing in the worktree shadows the package.
-wheel-smoke: wheel
-    #!/bin/sh
-    set -eu
-    set -- dist/*.whl
-    [ "$#" -eq 1 ] && [ -f "$1" ] || { printf 'wheel-smoke: expected one wheel in dist/, found: %s\n' "$*" >&2; exit 1; }
-    rm -rf target/wheel-smoke
-    uv venv --python .pixi/envs/default/bin/python --no-python-downloads --offline target/wheel-smoke/venv
-    uv pip install --python target/wheel-smoke/venv --offline --no-index --no-deps "$1"
-    target/wheel-smoke/venv/bin/python -I tests/fixtures/smoke/smoke.py
-    target/wheel-smoke/venv/bin/allium --version
-
-# Gate: one version, in every place it is written (CONVENTIONS.md §9). Reads
-# the Cargo manifests, the wheel manifest and the console script's own output
-# from the venv wheel-smoke left; fails if that venv is missing.
-version-check:
-    python -I scripts/version_check.py
 
 # --------------------------------------------------------------- aggregate ---
 
