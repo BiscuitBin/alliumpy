@@ -9,6 +9,12 @@
 -- and the polite one-URL fetch are specified ahead of the code: until built,
 -- their absence from the code is not drift. Owner testing is the explicitly
 -- requested exception to the original blanket politeness and breaker policy.
+-- Standard runs changed with it and are also ahead of the code: Run.usable_tiers
+-- keeps the browser tier whatever stealth_mode says (the code drops it when
+-- stealth is off); a standard run never escalates on a block, never uses the
+-- stealth tier, ignores remembered protection-driven tier hints, and trips its
+-- breaker without escalating; it refuses robots=ignore; and a retry or breaker
+-- back-off never shortens a host pause or raises a host's rate.
 --
 -- Included:
 --   the commands init, crawl, update, fetch (one URL), verify, index and report;
@@ -44,10 +50,12 @@
 --   sorted_by_path, sorted_by_url, stale_pages, start_from, starting_tier,
 --   status_text, structural_findings, summarise, text_length, tier_installed,
 --   url_text, well_known_sitemaps, with_link_flags, written_this_run.
+--   host_rate, retry_wait, fetch_or_render and fetch_page also take the run's
+--   policy or the run itself; that parameter is specified ahead of the code.
 --   Owner-testing additions: effective_policy,
 --   followup_targets, owner_link_needed, owner_request_problem, request_policy, scope_hash,
 --   standard_fetch_allowed, standard_policy, unresolved_urls. Their contracts
---   are stated at use sites.
+--   are stated at use sites. request_policy appears only in guidance.
 --
 -- Judgements the code could not settle are parked as open questions at the end.
 
@@ -780,7 +788,7 @@ entity CrawlReport {
     mode: RunMode
     baseline_run_id: Integer?
     preceding_run_id: Integer?
-    declared_owned_hosts: Set<String>
+    declared_owned_hosts: Set<String>    -- hosts this run treated as owned; empty on refusal
     requested_owner_test: OwnerTestOptions? -- serialized without access/session contents
     effective_policy: CrawlPolicy?      -- absent when preflight refuses the request
     refusal_reason: String?
@@ -1119,7 +1127,7 @@ rule ReportRefusal {
             config_hash: config_hash(mirror.out_dir, operator), robots_ignored: false,
             mode: if owner_test != null: owner_testing else: standard,
             run_id: null, baseline_run_id: null, preceding_run_id: owner_test?.preceding_run_id,
-            declared_owned_hosts: mirror.config.ownership where owns_website -> host,
+            declared_owned_hosts: {},
             requested_owner_test: owner_test,
             effective_policy: null, refusal_reason: reason, unresolved_urls: {},
             discovered: 0, fetched: 0, converted: 0, skipped_unchanged: 0,
@@ -1131,7 +1139,9 @@ rule ReportRefusal {
     ensures: CommandExited(operator: operator, code: usage)
 
     @guidance
-        -- A refused run records no Run in the manifest. config_hash is the
+        -- A refused run records no Run in the manifest. A refusal treats no
+        -- host as owned, so declared_owned_hosts is empty; requested_owner_test
+        -- carries the hosts the operator asked for. config_hash is the
         -- first 16 hex digits of the SHA-256 of the configuration file's text:
         -- the --config file when one is given, else docmirror.toml.
 }
@@ -1272,16 +1282,19 @@ rule Discover {
                 HostOpened(run: run, name: host_name)
                 SitemapsRequested(run: run, host: host_name)
                 LlmsTxtRequested(run: run, host: host_name)
-        run.report.discovered = if run.mode = owner_testing: run.active_urls.count else: run.mirror.frontier_entries.count
+        if run.mode = standard:
+            run.report.discovered = run.mirror.frontier_entries.count
         FrontierReady(run: run)
 
     @guidance
         -- seeds are start_urls, else root_url. Start URLs are not checked
         -- against scope. Hosts are visited in sorted order. allowed_hosts and
         -- path_prefixes default to the first start URL's host and directory.
-        -- discovered counts every frontier row, including rows from earlier
-        -- runs. A targeted run opens only its targets' hosts, so their
-        -- robots.txt is still read, and walks no seeds, sitemaps or llms.txt.
+        -- A standard run's discovered counts every frontier row, including
+        -- rows from earlier runs. An owner run's discovered is set when the
+        -- run ends, because admitted links keep growing active_urls. A
+        -- targeted run opens only its targets' hosts, so their robots.txt is
+        -- still read, and walks no seeds, sitemaps or llms.txt.
         -- An owner follow-up similarly opens only its seed hosts and performs
         -- no sitemap/llms.txt discovery. Empty follow-ups open no hosts.
 }
@@ -1660,7 +1673,9 @@ rule CountRetryAfter {
 
     @guidance
         -- Counted whether or not another try follows. Sitemap and llms.txt
-        -- fetches go through the same polite fetch and count too.
+        -- fetches go through the same polite fetch and count too. It counts
+        -- on creation rather than AttemptReady because only http attempts
+        -- qualify, and owner challenges are offered only above http.
 }
 
 rule Escalate {
@@ -1705,7 +1720,7 @@ rule SettleWalk {
 }
 
 rule FeedBreaker {
-    when: attempt: FetchAttempt.created
+    when: AttemptReady(attempt)
     requires: attempt.walk.host.run.status = running
     requires: not attempt.retryable
     requires: attempt.ok or attempt.verdict.kind != none
@@ -1718,6 +1733,9 @@ rule FeedBreaker {
     @guidance
         -- Every tier's attempt counts. A soft verdict counts as not blocked.
         -- Transport errors and plain error statuses never reach the breaker.
+        -- An attempt waiting on an owner challenge is not fed until it is
+        -- ready: a resolved challenge feeds only its retry attempt, and an
+        -- abandoned or timed-out one feeds the original attempt once.
 }
 
 rule RememberRenderTier {
@@ -2501,8 +2519,10 @@ invariant RunExitCodeIsReported {
 -- resources and retries. Cookie/test-access scope is checked on every request.
 --
 -- RetainedRunEvidence: run identity, lineage, scope, ownership/policy snapshots
--- and terminal unresolved sets survive subsequent runs and configuration edits.
--- A refused request cannot overwrite that evidence with its refusal report.
+-- and terminal unresolved sets live on each Run and survive subsequent runs and
+-- configuration edits. A refused request never creates or changes a Run; it
+-- replaces only the published crawl report, so later follow-ups still read
+-- their baseline and preceding evidence from the Runs.
 --
 -- OwnershipWarningBeforeRequests: OwnerTestingWarningIssued states that these
 -- settings are only for websites the operator owns, warns against third-party

@@ -13,9 +13,13 @@ the entities it keeps, the rules that move them between states, the invariants t
 always hold and the thresholds it works to. It describes behaviour, not implementation,
 so it names no parser, HTTP client, state store or browser automation library.
 
-The spec was distilled from `src/docmirror/` at commit `f4de0fb`, so it records what the
-code does rather than what anyone intended. Where the spec and the code disagree, the
-code wins until the spec is tended. [Decision 0016](../decisions/0016-keep-a-distilled-allium-spec.md)
+The spec was distilled from `src/docmirror/` at commit `f4de0fb`, so it mostly records
+what the code does rather than what anyone intended. Where the spec and the code
+disagree, the code wins until the spec is tended. The exception is the set of sections
+specified ahead of the code: targeted runs, the observed-link index, owner-authorized
+follow-ups, the polite one-URL fetch, and the stricter standard-run politeness that
+came with them. The spec's header lists them; until they are built, their absence
+from the code is not drift. [Decision 0016](../decisions/0016-keep-a-distilled-allium-spec.md)
 records why the repository keeps it. [Purpose and scope](../project/purpose-and-scope.md)
 says what the tool is for.
 
@@ -32,6 +36,10 @@ says what the tool is for.
 - Extraction, the quality score and flags, and low confidence.
 - The mirror's manifest: pages, paths, aliases, change detection and tombstones.
 - Link rewriting, broken links, the indexes and the crawl report.
+- Targeted runs that fetch only the URLs or page paths an operator names, and the
+  observed-link index.
+- Owner-authorized follow-ups after a normal crawl, which may relax named politeness
+  controls on declared owned hosts and record every relaxation in the report.
 - One `Fidelity` contract for every DOM-normalization rule: never drop content, keep what
   Markdown cannot carry as a sanitized HTML island, make both converter backends agree,
   and measure what survived against what was expected.
