@@ -37,6 +37,7 @@ and what is lossy); this handbook covers how the repository is built and checked
 - [Quality gates](reference/quality-gates.md)
 - [Documentation contract](reference/documentation-contract.md)
 - [Agent contract](reference/agent-contract.md)
+- [Behavioural specification](specs/README.md) — the Allium spec distilled from the code.
 
 ## Run it
 

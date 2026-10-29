@@ -1,0 +1,2014 @@
+-- allium: 3
+-- docmirror: a behavioural specification distilled from src/docmirror/.
+--
+-- docmirror turns a product's documentation website into a local, interlinked
+-- Markdown mirror and keeps that mirror up to date. This file says what the tool
+-- does, not how. It was distilled from the code at commit f4de0fb; where the two
+-- disagree the code wins until the spec is tended. docs/specs/README.md says how
+-- to read it.
+--
+-- Included:
+--   the commands init, crawl, update, fetch (one URL), verify, index and report;
+--   the frontier and discovery, the fetch and render ladder, the circuit breaker
+--   and politeness, extraction, quality, the mirror's manifest, tombstones, links,
+--   indexes, the crawl report and the exit-code ranking; and one Fidelity contract
+--   that stands for every DOM-normalization rule.
+--
+-- Excluded:
+--   the doctor and schema commands; logging and table rendering; size and
+--   duration parsing in configuration; library choices (HTML parsers, the HTTP
+--   client, the state store, browser automation APIs), so browsers appear as one
+--   external BrowserEngine with an opt-in stealth tier; and per-transform DOM
+--   mechanics, which the golden suite under tests/golden/ owns.
+--
+-- Black box functions used below (pure, defined by the code):
+--   append, assign_path, blocked_share, body_size, choose_batch, classify_block,
+--   config_file_exists, config_hash, config_valid, convert, current_operator,
+--   current_run, detect_profile, directory_exists, empty_quality_summary,
+--   etag_of, extract_main_content, extractor_of, fetch_config, fetch_or_render,
+--   fetch_page, file_exists, first_render_reason, frontmatter_of, gate_tallies,
+--   host_for, host_rate, host_reports, host_tripped, html_or_xml, in_scope,
+--   index_entries, initial_config, is_http_url, keywords_for, last_modified_of,
+--   last_n, latest, llms_txt_targets, llms_txt_url, max, measure, min,
+--   most_severe, newer, next_pending, next_tier, normalize, normalize_url,
+--   page_from, page_identity, path_pattern, product_root, profile_extractor,
+--   quality_result, raw_html, render_added_nothing, render_reason_of,
+--   resolve_profile, restore, retry_wait, rewrite_links, robots_allows, seeds,
+--   sha256, sitemap_entries, sorted_by_path, stale_pages, start_from,
+--   starting_tier, status_text, structural_findings, summarise, text_length,
+--   tier_installed, url_text, well_known_sitemaps, with_link_flags,
+--   written_this_run.
+--
+-- Judgements the code could not settle are parked as open questions at the end.
+
+------------------------------------------------------------
+-- External Entities
+------------------------------------------------------------
+
+-- The documentation website being mirrored. It answers fetches, redirects,
+-- declares canonical URLs and may answer with blocks.
+external entity DocumentationSite {
+    root_url: String
+    host: String
+}
+
+-- One host's robots.txt, read once per run. An absent or unreadable file
+-- allows everything.
+external entity Robots {
+    host: String
+    present: Boolean
+    sitemaps: List<String>
+    crawl_delay: Duration?
+}
+
+-- A sitemap or sitemap index named by robots.txt or found at a well-known path.
+external entity Sitemap {
+    url: String
+    is_index: Boolean
+}
+
+-- A host's /llms.txt, whose Markdown link targets seed the frontier.
+external entity LlmsTxt {
+    host: String
+}
+
+-- One engine abstraction for client-side rendering. The browser tier is on by
+-- default; the stealth tier is a hardened engine that is an optional install
+-- and is used only when the operator opts in.
+external entity BrowserEngine {
+    tier: Tier
+    installed: Boolean
+}
+
+-- The HTML-to-Markdown converter behind the Fidelity contract.
+external entity ConverterBackend {
+    name: Backend
+}
+
+-- The person or script running a command.
+external entity Operator {
+    confirmed: Boolean          -- passed --yes
+    json_events: Boolean        -- passed --json: NDJSON progress events on stdout
+}
+
+------------------------------------------------------------
+-- Value Types
+------------------------------------------------------------
+
+-- The identity form of a URL. Scheme and host are lowercased, a default port
+-- is dropped, dot segments collapse, a trailing index.html folds into "/", only
+-- meaningful query parameters survive (sorted), tracking parameters are always
+-- dropped, and the fragment is never part of identity. A trailing slash is kept.
+value CanonicalUrl {
+    scheme: String
+    host: String
+    path: String
+    query: String
+}
+
+value BlockVerdict {
+    kind: BlockKind
+    signature: String           -- human-readable reason; empty when kind = none
+
+    counts_against_host: kind = hard or kind = challenge
+}
+
+-- What normalization says the Markdown must carry: counted over the normalized
+-- tree plus every HTML island, after tab expansion and chrome removal.
+value ExpectedCounts {
+    code_blocks: Integer
+    tables: Integer
+    table_cells: Integer
+    headings: Integer
+    links: Integer
+    images: Integer
+    list_items: Integer
+    tab_panels: Integer
+    tab_panels_emitted: Integer
+}
+
+-- A chunk Markdown cannot carry, cut out before conversion and restored after.
+value Island {
+    payload: String             -- sanitized HTML, or an HTML shell around Markdown
+                                -- converted with the page's backend (details, footnotes)
+}
+
+value NormalizedContent {
+    fragment: String            -- the normalized tree, islands replaced by tokens
+    islands: List<Island>
+    expected: ExpectedCounts
+    flags: Set<QualityFlag>     -- html_table_kept, interactive_omitted
+    anchors: Set<String>
+}
+
+-- low_confidence is fixed when the page is measured: true when a gate failed
+-- or a flag is in config.incomplete_flags. Flags added later by link rewriting
+-- do not change it.
+value QualityResult {
+    score: Decimal              -- weighted share of passed gates, 0 to 1
+    failed: Set<QualityGate>
+    flags: Set<QualityFlag>     -- every failed gate name is also a flag
+    low_confidence: Boolean
+}
+
+-- One converted page before it is stored.
+value ConvertedPage {
+    title: String
+    description: String
+    body: String
+    extractor: String           -- the profile, a configured fallback, or the whole body
+    canonical_url: CanonicalUrl?
+    quality: QualityResult
+    anchors: Set<String>
+    headings: List<String>
+    links: Set<CanonicalUrl>
+}
+
+value HostReport {
+    host: String
+    fetched: Integer
+    blocked: Integer
+    block_rate: Decimal         -- over the last config.breaker_window outcomes
+    tiers_used: Set<Tier>
+    breaker_tripped: Boolean
+    robots_ignored: Boolean
+    render_escalations: Integer
+    retry_after_honored: Integer
+}
+
+value GateFailure {
+    gate: QualityGate
+    pages: Integer
+}
+
+value QualitySummary {
+    mean_score: Decimal         -- 0 when no page was scored
+    p10_score: Decimal          -- the score at index round(p * (n - 1)) of the sorted scores
+    gate_failures: Set<GateFailure>
+}
+
+-- The YAML block at the top of every page file. Keys are sorted and absent
+-- values are omitted.
+value Frontmatter {
+    source_url: String
+    title: String
+    fetched_at: Timestamp
+    content_sha256: String      -- of the body only, never the frontmatter
+    quality_score: Decimal
+    low_confidence: Boolean
+    quality_flags: Set<QualityFlag>
+    render: Tier
+    extractor: String
+    converter: String
+    profile: String
+    keywords: List<String>?     -- filled by the index pass
+    description: String?
+    canonical_url: String?
+    breadcrumbs: List<String>?
+    etag: String?
+    last_modified: String?
+    sitemap_lastmod: Timestamp?
+    version: String?
+    locale: String?
+}
+
+-- One line of index.jsonl.
+value IndexEntry {
+    path: String
+    source_url: String
+    title: String
+    description: String
+    keywords: List<String>
+    headings: List<String>
+    quality_score: Decimal
+    low_confidence: Boolean
+    quality_flags: Set<QualityFlag>
+    content_sha256: String
+    fetched_at: Timestamp
+    last_modified: String?
+    version: String?
+    locale: String?
+    word_count: Integer
+    outbound_internal: Integer
+    inbound_internal: Integer
+}
+
+------------------------------------------------------------
+-- Contracts
+------------------------------------------------------------
+
+-- Every DOM-normalization rule is one obligation of this contract. The golden
+-- suite (tests/golden/) is the witness; this contract says what it witnesses.
+contract Fidelity {
+    normalize: (content: String, profile: Profile) -> NormalizedContent
+    convert: (fragment: String, backend: Backend) -> String
+    restore: (markdown: String, islands: List<Island>) -> String
+    measure: (extracted: String, body: String, expected: ExpectedCounts) -> QualityResult
+
+    @invariant NeverDropCarriedContent
+        -- Every construct in the extracted main content reaches the body with its
+        -- text, links, images, code and structure, as Markdown or as an Island,
+        -- except for the declared reductions below.
+
+    @invariant UncarryableBecomesIsland
+        -- A construct Markdown cannot carry (a complex, header-less or row-header
+        -- table, a block definition list, details, math without TeX, an id-only
+        -- anchor) is replaced by a token before conversion and restored after,
+        -- so one mechanism serves every backend.
+
+    @invariant BackendAgnostic
+        -- Both backends receive the same normalized fragment and must produce
+        -- the same golden output. Fidelity work lives in normalization, never in
+        -- a backend.
+
+    @invariant ExpectedAgainstSurvived
+        -- normalize records ExpectedCounts over the normalized tree plus every
+        -- HTML island; measure counts the same element classes in the body
+        -- (Markdown tokens plus parsed HTML) and compares. Text coverage alone
+        -- compares against the extracted content's words outside code.
+
+    @invariant DeclaredReductions
+        -- The reductions normalization makes on purpose: an interactive embed
+        -- becomes a one-line note keeping its URL or label (flag
+        -- interactive_omitted); links inside code become their text; line-number
+        -- gutters leave code; form controls go and button labels stay; layout
+        -- tables unwrap; footnote back-links go; images keep only src, alt,
+        -- title and id; custom elements keep only id, class and the tab
+        -- language. A table kept as HTML is flagged html_table_kept.
+
+    @invariant SanitizedMeansInert
+        -- A sanitized HTML island keeps structural and linking attributes
+        -- (rowspan, colspan, id, scope, href, src, alt, title, open) and drops
+        -- every other attribute; drops javascript: and vbscript: targets and
+        -- every data: URL except an image source; drops script and style
+        -- subtrees; never removes text; and holds no blank line, so Markdown
+        -- keeps it as one block. A details island is not sanitized this way: it
+        -- wraps Markdown between blank lines.
+
+    @invariant EveryTabPanelEmitted
+        -- Every panel of a tab group reaches the body in source order, never
+        -- only the active one: as a labelled fence when every panel is one code
+        -- sample in a named language, otherwise as a heading plus the panel.
+
+    @invariant BodyShape
+        -- The body uses LF line endings, keeps at most one blank line in a row
+        -- outside fences, leaves fenced code byte-identical, keeps at most one
+        -- level-one heading, and ends with exactly one LF.
+
+    @guidance
+        -- Construct families and how they reach the body (golden evidence in
+        -- tests/golden/__snapshots__/test_golden.ambr):
+        --   simple tables -> pipe tables; complex tables -> islands;
+        --   callouts -> GFM alerts; tabs -> every panel; code -> fences with a
+        --   language; definition lists -> bold term lines, or islands when
+        --   block content; images and figures -> image syntax with alt text;
+        --   heading ids -> {#id} suffixes or anchor islands; embeds ->
+        --   placeholders; sup, sub, kbd and mark -> kept inline HTML;
+        --   math -> TeX delimiters or an island; footnotes -> [^n] with
+        --   definitions; details -> an island with Markdown inside.
+        -- Element counts compare normalized against output, never raw against
+        -- output, because tab expansion adds headings by design.
+        -- When maintainers review a snapshot change, the output that keeps more
+        -- of the page wins.
+}
+
+------------------------------------------------------------
+-- Enumerations
+------------------------------------------------------------
+
+enum Tier { http | browser | stealth }
+
+enum BlockKind { none | hard | challenge | soft }
+
+-- Why an unblocked HTTP answer still needs a browser.
+enum RenderReason { spa_shell | noscript_needs_js | main_selector_absent | thin_text }
+
+-- Severity rises in declaration order: ok 0, partial 1, usage 2, blocked 3,
+-- quality 4. When several apply, the most severe is reported.
+enum ExitCode { ok | partial | usage | blocked | quality }
+
+enum RunKind { crawl | update }
+
+enum DiscoverySource { start | sitemap | llms_txt | link | recheck }
+
+enum LinkKind { internal | uncrawled | external }
+
+-- Published as human-readable text of these two kinds.
+enum BrokenLinkReason { target_removed | fragment_not_found }
+
+enum ChangeKind { added | changed | unchanged | removed | failed }
+
+enum QualityGate { text_coverage | code_blocks | code_lang_rate | tables | table_cells | headings | links | images | list_items | tabs_expanded }
+
+-- Every gate name, plus the flags extraction, normalization and links add.
+enum QualityFlag { text_coverage | code_blocks | code_lang_rate | tables | table_cells | headings | links | images | list_items | tabs_expanded | extractor_fallback | render_needed | interactive_omitted | uncrawled_internal | unresolved_fragment | dangling_inbound | soft_block_suspected | html_table_kept | empty_content }
+
+enum Backend { `html-to-markdown` | markdownify }
+
+enum RobotsMode { respect | ignore }
+
+enum RenderMode { auto | never | always }
+
+enum StealthMode { off | patchright | camoufox }
+
+------------------------------------------------------------
+-- Entities and Variants
+------------------------------------------------------------
+
+-- The resolved configuration of one mirror: built-in defaults, then
+-- docmirror.toml, then DOCMIRROR_<SECTION>__<FIELD> variables, then flags.
+-- Numeric limits live in the config block below.
+entity Config {
+    root_url: String?
+    start_urls: List<String>
+    locale: String?
+    profile: Profile
+    allowed_hosts: Set<String>
+    path_prefixes: List<String>
+    include: List<String>               -- glob, or regex when prefixed re:
+    exclude: List<String>
+    meaningful_query_params: Set<String>
+    robots: RobotsMode
+    render_mode: RenderMode
+    stealth_mode: StealthMode
+    backend: Backend
+    max_age: Duration?
+    prune: Boolean
+    fail_on_low_quality: Boolean
+    unblocking_provider: String?        -- reserved; any value is a configuration error
+
+    usable_tiers:
+        if render_mode = never or stealth_mode = off: [http]
+        else if stealth_mode = patchright: [http, browser]
+        else: [http, browser, stealth]
+}
+
+-- Platform knowledge: which element holds the content, what is chrome, how
+-- tabs, callouts, code languages and anchors are marked. A new platform is a
+-- new profile, never a hostname branch in code.
+entity Profile {
+    name: String
+    main_selectors: List<String>
+    strip_selectors: List<String>
+    meaningful_query_params: Set<String>
+}
+
+-- An output directory and its manifest. Any existing directory a command is
+-- pointed at is a Mirror; its manifest is created on first use.
+entity Mirror {
+    out_dir: String
+    config: Config
+    recorded_root_url: String?
+    recorded_profile: String
+    report: CrawlReport?                -- the last crawl-report.json written
+
+    pages: Page with mirror = this
+    frontier_entries: FrontierEntry with mirror = this
+    aliases: Alias with mirror = this
+    runs: Run with mirror = this
+    render_hints: RenderTierHint with mirror = this
+    index: Index with mirror = this
+
+    written_pages: pages where status = written
+    tombstoned_pages: pages where status = gone
+    is_populated: written_pages.count > 0
+}
+
+entity Run {
+    mirror: Mirror
+    requested: RunKind                  -- the command typed
+    kind: RunKind                       -- recorded: update whenever the mirror holds pages
+    resume: Boolean
+    dry_run: Boolean
+    robots: RobotsMode                  -- the robots choice this run used
+    forced_refetch: Set<CanonicalUrl>   -- pages past max_age when the run started
+    started_at: Timestamp
+    exit_code: ExitCode                 -- starts ok, only ever raised
+    report: CrawlReport
+    status: running | finished | interrupted
+    finished_at: Timestamp when status = finished | interrupted
+    bytes_fetched: Integer
+    crawling: Boolean                   -- set once discovery is done and pages may be fetched
+
+    hosts: Host with run = this
+
+    batch_idle:
+        status = running and crawling
+        and (mirror.frontier_entries where status = in_progress).count = 0
+
+    transitions status {
+        running -> finished
+        running -> interrupted
+        terminal: finished, interrupted
+    }
+}
+
+-- One queue row per canonical URL ever discovered. Rows persist across runs,
+-- so the lifecycle is deliberately cyclic and has no terminal state.
+entity FrontierEntry {
+    mirror: Mirror
+    url: CanonicalUrl
+    depth: Integer
+    discovered_via: DiscoverySource
+    discovered_from: String?
+    sitemap_lastmod: Timestamp?
+    priority: Integer
+    attempts: Integer
+    status: pending | in_progress | done | unchanged | duplicate | gone | blocked | failed | skipped_robots | skipped_blocked | skipped_limit | skipped_not_html
+
+    is_deferred: priority < 0
+
+    transitions status {
+        pending -> in_progress
+        pending -> skipped_limit
+        pending -> skipped_blocked
+        in_progress -> pending
+        in_progress -> done
+        in_progress -> unchanged
+        in_progress -> duplicate
+        in_progress -> gone
+        in_progress -> blocked
+        in_progress -> failed
+        in_progress -> skipped_robots
+        in_progress -> skipped_blocked
+        in_progress -> skipped_not_html
+        -- An update run re-pends the row of every written page, whatever it
+        -- holds, and re-pends tombstoned pages as deferred rechecks.
+        done -> pending
+        unchanged -> pending
+        duplicate -> pending
+        gone -> pending
+        blocked -> pending
+        failed -> pending
+        skipped_robots -> pending
+        skipped_blocked -> pending
+        skipped_limit -> pending
+        skipped_not_html -> pending
+    }
+}
+
+-- A written (or once-written) page of the mirror.
+entity Page {
+    mirror: Mirror
+    url: CanonicalUrl                   -- identity: canonical, else final, else requested URL
+    path: String?                       -- relative .md path; assigned once, never changed
+    title: String
+    description: String
+    render_tier: Tier
+    extractor: String
+    quality: QualityResult
+    raw_sha256: String                  -- of the fetched HTML
+    prewrite_sha256: String             -- of the body before link rewriting
+    content_sha256: String              -- of the published body
+    etag: String?
+    last_modified: String?
+    sitemap_lastmod: Timestamp?
+    fetched_at: Timestamp
+    last_seen: Timestamp
+    last_changed: Timestamp
+    anchors: Set<String>
+    headings: List<String>
+    keywords: List<String>
+    frontmatter: Frontmatter
+    status: written | gone | redirected
+    tombstoned_at: Timestamp when status = gone
+    redirect_to: CanonicalUrl when status = redirected
+
+    links: Link with from = this
+
+    transitions status {
+        written -> gone
+        gone -> written
+        written -> redirected
+        redirected -> written
+    }
+}
+
+-- A URL that resolves to another page: a redirect source or a non-canonical URL.
+entity Alias {
+    mirror: Mirror
+    url: CanonicalUrl
+    target: CanonicalUrl
+}
+
+entity Link {
+    from: Page
+    to_url: CanonicalUrl
+    fragment: String?
+    kind: LinkKind
+    target: Page?                       -- present when kind = internal
+}
+
+-- The starting tier remembered for a host and path pattern on a client-rendered
+-- site. Survives runs.
+entity RenderTierHint {
+    mirror: Mirror
+    host: String
+    path_pattern: String
+    tier: Tier
+}
+
+-- A host as seen by one run: its politeness state and its tallies.
+entity Host {
+    run: Run
+    name: String
+    robots: Robots?                     -- absent when the host has no robots.txt
+    rate: Decimal                       -- requests per second
+    paused_until: Timestamp?
+    median_text: Integer?               -- main-text size; null under config.median_min_pages
+    tiers_used: Set<Tier>
+    fetched: Integer
+    blocked: Integer
+    render_escalations: Integer
+    retry_after_honored: Integer
+
+    breaker: Breaker with host = this
+}
+
+entity Breaker {
+    host: Host
+    tier: Tier                          -- the host's starting tier
+    highest_tier: Tier                  -- the last of the run's usable tiers
+    outcomes: List<Boolean>             -- rolling window; true = counted as a block
+    escalations: Integer
+    since_escalation: Integer
+    status: watching | tripped
+
+    block_rate: blocked_share(outcomes)
+    over_threshold:
+        outcomes.count >= min(config.breaker_window, config.breaker_min_outcomes)
+        and block_rate > config.block_rate_threshold
+    should_act:
+        status = watching and over_threshold
+        and (tier != highest_tier or escalations = 0
+            or since_escalation >= config.breaker_window)
+
+    transitions status {
+        watching -> tripped
+        terminal: tripped
+    }
+}
+
+-- One URL's walk up the tiers. The attempt that stands is the page's fetch.
+entity LadderWalk {
+    entry: FrontierEntry
+    host: Host
+    tiers: List<Tier>
+    conditional: Boolean                -- validators sent with the HTTP try
+    escalated: Boolean
+    standing: FetchAttempt when status = settled
+    status: walking | settled
+
+    attempts: FetchAttempt with walk = this
+    soft_suspect: attempts where verdict.kind = soft and render_reason = null
+
+    render_needed: standing.render_reason != null
+
+    transitions status {
+        walking -> settled
+        terminal: settled
+    }
+}
+
+entity FetchAttempt {
+    walk: LadderWalk
+    tier: Tier
+    try: Integer                        -- HTTP tries are counted from 1
+    final_url: CanonicalUrl
+    status_code: Integer                -- 0 when no response arrived
+    error: String?
+    content_type: String
+    main_text: Integer                  -- extracted text length
+    retry_after: Duration?
+
+    ok: error = null and status_code >= 200 and status_code < 300
+    not_modified: status_code = 304
+    is_html: content_type = "" or html_or_xml(content_type)
+    verdict: classify_block(this)
+    render_reason: if tier = http and ok and verdict.kind = none: render_reason_of(this) else: null
+    retryable:
+        tier = http
+        and (error != null or status_code = 429 or status_code >= 500)
+        and try < config.http_attempts
+    wants_escalation:
+        (render_reason != null or verdict.kind != none)
+        and not (ok and not is_html)
+        and not not_modified
+}
+
+entity CrawlReport {
+    mirror: Mirror
+    command: RunKind
+    exit_code: ExitCode
+    config_hash: String                 -- of the docmirror.toml text only
+    robots_ignored: Boolean
+    discovered: Integer
+    fetched: Integer
+    converted: Integer
+    skipped_unchanged: Integer
+    per_host: List<HostReport>
+    quality_summary: QualitySummary
+    scores: List<Decimal>
+
+    blocked_urls: BlockedUrl with report = this
+    failed_urls: FailedUrl with report = this
+    low_confidence_pages: LowConfidencePage with report = this
+    broken_links: BrokenLink with report = this
+    changes: Change with report = this
+}
+
+entity BlockedUrl {
+    report: CrawlReport
+    url: CanonicalUrl
+    status_code: Integer
+    signature: String
+    tier: Tier
+}
+
+entity FailedUrl {
+    report: CrawlReport
+    url: CanonicalUrl
+    error: String
+    attempts: Integer
+}
+
+entity LowConfidencePage {
+    report: CrawlReport
+    path: String
+    quality_score: Decimal
+    flags: Set<QualityFlag>
+}
+
+entity BrokenLink {
+    report: CrawlReport
+    from_path: String
+    href: String
+    reason: BrokenLinkReason
+}
+
+-- One line of the report's changes block: a page path, or a URL for failures.
+entity Change {
+    report: CrawlReport
+    subject: String
+    kind: ChangeKind
+}
+
+-- index.md, index.jsonl, llms.txt and per-directory _index.md files.
+entity Index {
+    mirror: Mirror
+    entries: List<IndexEntry>           -- sorted by path
+}
+
+------------------------------------------------------------
+-- Config
+------------------------------------------------------------
+
+-- "toml:" names the docmirror.toml key an operator can set; every other value
+-- is fixed in code.
+config {
+    -- Scope and frontier
+    max_depth: Integer = 10                     -- toml: scope.max_depth
+    max_pages: Integer = 5000                   -- toml: scope.max_pages
+    max_bytes: Integer = 2_147_483_648          -- toml: scope.max_bytes (2 GiB)
+    sitemap_max_children: Integer = 40          -- toml: scope.sitemap_max_children
+    sitemap_cap_multiplier: Integer = 4         -- per-host new entries <= max_pages * 4
+    sitemap_depth: Integer = 2
+    llms_txt_depth: Integer = 1
+    start_priority: Integer = 100
+    recheck_priority: Integer = 90
+    sitemap_priority: Integer = 50
+    llms_txt_priority: Integer = 40
+    link_priority: Integer = 0
+    deferred_priority: Integer = -1
+    batch_lookahead: Integer = 4                -- pending rows read = concurrency * 4
+
+    -- Politeness and fetching
+    rate_per_host: Decimal = 2.0                -- toml: fetch.rate_per_host (per second)
+    concurrency_per_host: Integer = 4           -- toml: fetch.concurrency_per_host
+    fetch_timeout: Duration = 30.seconds        -- toml: fetch.timeout_s
+    http_attempts: Integer = 5                  -- toml: fetch.retries (total tries)
+    backoff_base: Duration = 1.second           -- doubles per try
+    max_backoff: Duration = 16.seconds
+    backoff_jitter: Decimal = 0.25
+    retry_after_cap: Duration = 120.seconds
+    min_host_rate: Decimal = 0.05               -- per second; halving never goes below
+
+    -- Rendering
+    render_min_text_chars: Integer = 200        -- toml: render.min_text_chars
+    render_max_wait: Duration = 20.seconds      -- toml: render.max_wait_s
+    large_raw_html: Integer = 5120              -- bytes; thin text on a big page means render
+
+    -- Blocks and the circuit breaker
+    breaker_window: Integer = 50                -- toml: antibot.window
+    block_rate_threshold: Decimal = 0.20        -- toml: antibot.block_rate_threshold
+    breaker_pause: Duration = 30.seconds        -- toml: antibot.pause_s
+    breaker_min_outcomes: Integer = 10
+    soft_block_ratio: Decimal = 0.10            -- main text under 10% of the host median
+    soft_render_gain: Decimal = 2.0             -- a render must double the text to stand
+    median_min_pages: Integer = 5
+
+    -- Quality
+    text_coverage_gate: Decimal = 0.97
+    ratio_gate: Decimal = 0.98                  -- links and list items
+    lang_rate_gate: Decimal = 0.90
+    weight_text_coverage: Decimal = 0.40
+    weight_code_blocks: Decimal = 0.15
+    weight_headings: Decimal = 0.10
+    weight_links: Decimal = 0.10
+    weight_tables: Decimal = 0.075
+    weight_table_cells: Decimal = 0.075
+    weight_code_lang_rate: Decimal = 0.05
+    weight_minor: Decimal = 0.05 / 3            -- each of images, list items, tabs expanded
+    incomplete_flags: Set<QualityFlag> = { render_needed, empty_content }
+
+    -- Extraction
+    description_max_chars: Integer = 200
+
+    -- Paths, links and indexes
+    max_path_chars: Integer = 200
+    collision_hash_chars: Integer = 6
+    keywords_per_page: Integer = 8              -- toml: index.keywords_per_page
+    keywords_min: Integer = 5
+    hierarchical_index_threshold: Integer = 200 -- toml: index.hierarchical_threshold
+    llms_txt_cap: Integer = 2000
+
+    -- Report
+    report_percentile: Decimal = 0.10
+}
+
+------------------------------------------------------------
+-- Rules
+------------------------------------------------------------
+
+-- Several rules share a trigger on purpose: a new FetchAttempt can be retried,
+-- counted, escalated, settled and fed to the breaker, and a settled walk is
+-- both remembered and disposed of. Rules whose effects are all conditional
+-- (discovery that finds nothing in scope, a rediscovery that changes nothing)
+-- are no-ops by design.
+
+------------------------------------------------------------
+-- Setting up a mirror
+------------------------------------------------------------
+
+rule InitialiseMirror {
+    when: OperatorInitialises(operator, site, out_dir, profile_name?)
+    requires: is_http_url(site.root_url)
+    requires: not config_file_exists(out_dir, operator)
+    let chosen_profile = profile_name ?? detect_profile(site.host)
+    let existing = Mirror{out_dir}
+    ensures:
+        if exists existing:
+            existing.config = initial_config(site, resolve_profile(chosen_profile))
+            existing.recorded_root_url = product_root(site.root_url)
+            existing.recorded_profile = chosen_profile
+        else:
+            Mirror.created(
+                out_dir: out_dir,
+                config: initial_config(site, resolve_profile(chosen_profile)),
+                recorded_root_url: product_root(site.root_url),
+                recorded_profile: chosen_profile
+            )
+    ensures: CommandExited(operator: operator, code: ok)
+
+    @guidance
+        -- Writes docmirror.toml with every section and its default. The root
+        -- URL keeps the locale and the first product segment; start_urls holds
+        -- the given URL; allowed_hosts holds its host. init never crawls and
+        -- refuses to overwrite an existing configuration file. The recorded
+        -- profile is the name given or detected, even when no built-in has
+        -- that name.
+}
+
+------------------------------------------------------------
+-- Starting a run
+------------------------------------------------------------
+
+-- Every crawl and update command resolves its configuration from built-in
+-- defaults, then docmirror.toml, then DOCMIRROR_<SECTION>__<FIELD> variables,
+-- then flags, later layers winning key by key. config_valid fails on an
+-- unreadable file, an unknown key or a bad value, naming every bad key path.
+
+rule RefuseRunWithoutOutputDirectory {
+    when: OperatorRequestsRun(operator, out_dir, requested, resume, dry_run)
+    requires: not directory_exists(out_dir)
+    ensures: CommandExited(operator: operator, code: usage)
+    -- No crawl-report.json is written: there is nowhere to write it.
+}
+
+rule RefuseRunOnBadConfig {
+    when: OperatorRequestsRun(operator, out_dir, requested, resume, dry_run)
+    let mirror = Mirror{out_dir}
+    requires: directory_exists(out_dir) and exists mirror
+    requires:
+        not config_valid(out_dir, operator)
+        or (mirror.config.root_url = null and mirror.config.start_urls.count = 0)
+    ensures: RunRefused(operator: operator, mirror: mirror, command: requested)
+}
+
+rule RefuseRunOnChangedRoot {
+    when: OperatorRequestsRun(operator, out_dir, requested, resume, dry_run)
+    let mirror = Mirror{out_dir}
+    requires: directory_exists(out_dir) and exists mirror
+    requires: config_valid(out_dir, operator)
+    requires: mirror.config.root_url != null or mirror.config.start_urls.count > 0
+    requires: mirror.recorded_root_url != null
+    requires: mirror.recorded_root_url != mirror.config.root_url
+    requires: not operator.confirmed
+    ensures: RunRefused(operator: operator, mirror: mirror, command: requested)
+}
+
+rule ReportRefusal {
+    when: RunRefused(operator, mirror, command)
+    ensures:
+        let report = CrawlReport.created(
+            mirror: mirror, command: command, exit_code: usage,
+            config_hash: config_hash(mirror.out_dir, operator), robots_ignored: false,
+            discovered: 0, fetched: 0, converted: 0, skipped_unchanged: 0,
+            per_host: [], quality_summary: empty_quality_summary(), scores: []
+        )
+        mirror.report = report
+    ensures: CommandExited(operator: operator, code: usage)
+
+    @guidance
+        -- A refused run records no Run in the manifest. config_hash is the
+        -- first 16 hex digits of the SHA-256 of the configuration file's text:
+        -- the --config file when one is given, else docmirror.toml.
+}
+
+rule StartRun {
+    when: OperatorRequestsRun(operator, out_dir, requested, resume, dry_run)
+    let mirror = Mirror{out_dir}
+    requires: directory_exists(out_dir) and exists mirror
+    requires: config_valid(out_dir, operator)
+    requires: mirror.config.root_url != null or mirror.config.start_urls.count > 0
+    requires:
+        mirror.recorded_root_url = null
+        or mirror.recorded_root_url = mirror.config.root_url
+        or operator.confirmed
+    let kind = if requested = update or mirror.is_populated: update else: crawl
+    ensures: mirror.recorded_root_url = mirror.config.root_url
+    ensures:
+        let report = CrawlReport.created(
+            mirror: mirror, command: kind, exit_code: ok,
+            config_hash: config_hash(out_dir, operator),
+            robots_ignored: mirror.config.robots = ignore,
+            discovered: 0, fetched: 0, converted: 0, skipped_unchanged: 0,
+            per_host: [], quality_summary: empty_quality_summary(), scores: []
+        )
+        let run = Run.created(
+            mirror: mirror, requested: requested, kind: kind, resume: resume,
+            dry_run: dry_run, robots: mirror.config.robots,
+            forced_refetch: if kind = update: stale_pages(mirror) else: {},
+            started_at: now, exit_code: ok, report: report,
+            status: running, bytes_fetched: 0, crawling: false
+        )
+        for e in mirror.frontier_entries where status = in_progress:
+            e.status = pending
+        if kind = update:
+            for p in mirror.written_pages:
+                let recheck_row = FrontierEntry{mirror, url: p.url}
+                if exists recheck_row:
+                    recheck_row.status = pending
+                else:
+                    FrontierEntry.created(
+                        mirror: mirror, url: p.url, depth: 0, discovered_via: recheck,
+                        priority: config.recheck_priority, attempts: 0, status: pending
+                    )
+            for p in mirror.tombstoned_pages:
+                let gone_row = FrontierEntry{mirror, url: p.url}
+                if exists gone_row:
+                    gone_row.status = pending
+                    gone_row.priority = config.deferred_priority
+                else:
+                    FrontierEntry.created(
+                        mirror: mirror, url: p.url, depth: 0, discovered_via: recheck,
+                        priority: config.deferred_priority, attempts: 0, status: pending
+                    )
+        DiscoveryRequested(run: run)
+
+    @guidance
+        -- --resume and --no-resume both return in-progress rows to pending.
+        -- stale_pages holds every written page whose last_seen is more than
+        -- max_age ago; those are refetched without validators. Tombstoned
+        -- pages are rechecked last, after every other row.
+}
+
+------------------------------------------------------------
+-- Discovery
+------------------------------------------------------------
+
+rule Discover {
+    when: DiscoveryRequested(run)
+    let mirror_config = run.mirror.config
+    ensures:
+        for url in seeds(mirror_config):
+            UrlDiscovered(
+                mirror: run.mirror, url: normalize_url(url), depth: 0,
+                via: start, priority: config.start_priority
+            )
+        for host_name in mirror_config.allowed_hosts:
+            HostOpened(run: run, name: host_name)
+            SitemapsRequested(run: run, host: host_name)
+            LlmsTxtRequested(run: run, host: host_name)
+        run.report.discovered = run.mirror.frontier_entries.count
+        FrontierReady(run: run)
+
+    @guidance
+        -- seeds are start_urls, else root_url. Start URLs are not checked
+        -- against scope. Hosts are visited in sorted order. allowed_hosts and
+        -- path_prefixes default to the first start URL's host and directory.
+        -- discovered counts every frontier row, including rows from earlier
+        -- runs.
+}
+
+rule OpenHost {
+    when: HostOpened(run, name)
+    requires: not exists Host{run, name}
+    let host_robots = Robots{host: name}
+    ensures:
+        let host = Host.created(
+            run: run, name: name, robots: host_robots,
+            rate: host_rate(host_robots, run.robots), tiers_used: {},
+            fetched: 0, blocked: 0, render_escalations: 0, retry_after_honored: 0
+        )
+        Breaker.created(
+            host: host, tier: run.mirror.config.usable_tiers.first,
+            highest_tier: run.mirror.config.usable_tiers.last,
+            outcomes: [], escalations: 0, since_escalation: 0, status: watching
+        )
+
+    @guidance
+        -- A host is opened for each allowed host at discovery and on first use
+        -- for any other host a start URL names. Its rate is
+        -- min(rate_per_host, 1 / crawl_delay) when robots is respected and the
+        -- host declares a crawl delay, and rate_per_host otherwise.
+}
+
+rule WalkSitemaps {
+    when: SitemapsRequested(run, host)
+    let candidates = (Robots{host}?.sitemaps ?? []) + well_known_sitemaps(host)
+    ensures:
+        for entry in sitemap_entries(candidates, host, run.mirror.config):
+            if in_scope(run.mirror.config, entry.url, 1):
+                UrlDiscovered(
+                    mirror: run.mirror, url: entry.url, depth: config.sitemap_depth,
+                    via: sitemap, priority: config.sitemap_priority,
+                    from: entry.sitemap, lastmod: entry.lastmod
+                )
+
+    @guidance
+        -- Sitemaps named by robots.txt or at well-known paths on another host
+        -- are ignored; children of a sitemap index are read wherever they
+        -- live. Each sitemap is read once. A host adds at most
+        -- max_pages * sitemap_cap_multiplier new entries. Child sitemaps are
+        -- ranked: one naming a token of the path prefixes first, then one
+        -- naming the pinned locale; one naming only other locales is dropped;
+        -- at most sitemap_max_children children per host are read.
+}
+
+rule ReadLlmsTxt {
+    when: LlmsTxtRequested(run, host)
+    requires: exists LlmsTxt{host}
+    ensures:
+        for url in llms_txt_targets(LlmsTxt{host}):
+            if in_scope(run.mirror.config, url, 1):
+                UrlDiscovered(
+                    mirror: run.mirror, url: url, depth: config.llms_txt_depth,
+                    via: llms_txt, priority: config.llms_txt_priority,
+                    from: llms_txt_url(host)
+                )
+}
+
+rule Enqueue {
+    when: UrlDiscovered(mirror, url, depth, via, priority, from?, lastmod?)
+    let existing = FrontierEntry{mirror, url}
+    let lastmod_missing = exists existing and existing.sitemap_lastmod = null
+    let deferred_pending = exists existing and existing.status = pending and existing.is_deferred
+    ensures:
+        if not exists existing:
+            FrontierEntry.created(
+                mirror: mirror, url: url, depth: depth, discovered_via: via,
+                discovered_from: from, sitemap_lastmod: lastmod,
+                priority: priority, attempts: 0, status: pending
+            )
+        else:
+            if lastmod_missing and lastmod != null:
+                existing.sitemap_lastmod = lastmod
+            if deferred_pending:
+                existing.priority = priority
+                existing.depth = min(existing.depth, depth)
+
+    @guidance
+        -- Dedup is by canonical URL. Rediscovery keeps the row's status, depth
+        -- and source; it only promotes a deferred recheck and fills a missing
+        -- sitemap lastmod.
+}
+
+rule DryRun {
+    when: FrontierReady(run)
+    requires: run.status = running
+    requires: run.dry_run
+    ensures: run.status = finished
+    ensures: run.finished_at = now
+    ensures: RunEnded(run: run)
+
+    @guidance
+        -- Fetches no pages and lists the frontier as plain text, even under
+        -- --json. Discovery still reads robots.txt, sitemaps and llms.txt, an
+        -- update dry run still re-pends the mirror's rows, the discovered rows
+        -- persist, and the dry run's report replaces the previous one.
+}
+
+rule BeginCrawl {
+    when: FrontierReady(run)
+    requires: run.status = running
+    requires: not run.dry_run
+    ensures: run.crawling = true
+}
+
+------------------------------------------------------------
+-- Scheduling
+------------------------------------------------------------
+
+rule SelectBatch {
+    when: BatchRequested(run)
+    requires: run.status = running
+    let mirror = run.mirror
+    let pending_rows = mirror.frontier_entries where status = pending
+    let concurrency = config.concurrency_per_host * max(1, mirror.config.allowed_hosts.count)
+    let lookahead = next_pending(pending_rows, concurrency * config.batch_lookahead)
+    let open_rows = lookahead where not host_tripped(run, url)
+    let room = config.max_pages - mirror.written_pages.count
+    let chosen = choose_batch(open_rows, mirror.written_pages, room, concurrency)
+    ensures:
+        if run.bytes_fetched >= config.max_bytes:
+            for e in pending_rows: e.status = skipped_limit
+            FrontierExhausted(run: run)
+        else if pending_rows.count = 0:
+            FrontierExhausted(run: run)
+        else if open_rows.count = 0:
+            for e in pending_rows: e.status = skipped_blocked
+            FrontierExhausted(run: run)
+        else if chosen.count = 0:
+            for e in pending_rows: e.status = skipped_limit
+            FrontierExhausted(run: run)
+        else:
+            for e in chosen: e.status = in_progress
+
+    @guidance
+        -- next_pending orders rows non-deferred first, then shallowest, then
+        -- highest priority, then discovery order. choose_batch takes at most
+        -- concurrency rows: a URL that already has a written page is always
+        -- taken; a new URL only while the mirror is under max_pages. When the
+        -- first chosen row, in next_pending order, is at depth 0, only depth-0
+        -- rows run in that batch, so start pages' links queue first. The batch runs
+        -- concurrently.
+}
+
+rule NextBatch {
+    when: run: Run.batch_idle
+    requires: run.status = running
+    ensures: BatchRequested(run: run)
+    -- Fires when crawling starts and each time the last in-progress row of a
+    -- batch settles.
+}
+
+------------------------------------------------------------
+-- Handling one frontier entry
+------------------------------------------------------------
+
+rule SkipTrippedHost {
+    when: entry: FrontierEntry.status transitions_to in_progress
+    let host = host_for(current_run(entry.mirror), entry.url)
+    requires: host.breaker?.status = tripped
+    ensures: entry.status = skipped_blocked
+}
+
+rule SkipRobotsDisallowed {
+    when: entry: FrontierEntry.status transitions_to in_progress
+    let run = current_run(entry.mirror)
+    let host = host_for(run, entry.url)
+    requires: host.breaker?.status = watching
+    requires: not robots_allows(host.robots, run.robots, entry.url)
+    ensures: entry.status = skipped_robots
+
+    @guidance
+        -- robots_allows is always true under robots = ignore, and true when
+        -- the host has no robots.txt. Rules are evaluated for the configured
+        -- user agent, else the agent name docmirror.
+}
+
+rule FetchEntry {
+    when: entry: FrontierEntry.status transitions_to in_progress
+    let run = current_run(entry.mirror)
+    let host = host_for(run, entry.url)
+    let known = Page{mirror: entry.mirror, url: entry.url}
+    requires: host.breaker?.status = watching
+    requires: robots_allows(host.robots, run.robots, entry.url)
+    let tiers = start_from(entry.mirror.config.usable_tiers, starting_tier(entry, host))
+    ensures:
+        let walk = LadderWalk.created(
+            entry: entry, host: host, tiers: tiers, escalated: tiers.first != http,
+            status: walking,
+            conditional:
+                exists known and known.status = written
+                and entry.url not in run.forced_refetch
+                and not newer(entry.sitemap_lastmod, known.sitemap_lastmod)
+        )
+        TierRequested(walk: walk, tier: tiers.first, try: 1)
+
+    @guidance
+        -- starting_tier is the browser tier under render_mode = always;
+        -- otherwise the later of the host breaker's tier and any RenderTierHint
+        -- for the URL's path pattern, else http. A conditional fetch sends the
+        -- stored etag and last-modified; browser tiers never send validators.
+}
+
+rule AttemptTier {
+    when: TierRequested(walk, tier, try)
+    requires: walk.status = walking
+    requires: tier = http or tier_installed(tier)
+    let response = fetch_or_render(walk.entry.url, tier, walk.conditional and tier = http)
+    ensures: FetchAttempt.created(
+        walk: walk, tier: tier, try: try, final_url: response.final_url,
+        status_code: response.status_code, error: response.error,
+        content_type: response.content_type, main_text: response.main_text,
+        retry_after: response.retry_after
+    )
+
+    @guidance
+        -- Every HTTP try and every render first waits for the host: a free
+        -- concurrency slot, the end of any pause, and a token from a bucket
+        -- that starts full at concurrency_per_host and refills at host.rate.
+        -- A render waits for the configured load state, capped at
+        -- render_max_wait; a navigation with no response counts as a success.
+        -- Cookies a browser earns are shared with the host's HTTP session.
+}
+
+rule StealthTierMissing {
+    when: TierRequested(walk, tier, try)
+    requires: walk.status = walking
+    requires: tier != http and not tier_installed(tier)
+    ensures: FetchAttempt.created(
+        walk: walk, tier: tier, try: try, final_url: walk.entry.url,
+        status_code: 0, error: "stealth tier unavailable",
+        content_type: "", main_text: 0
+    )
+}
+
+rule HttpRetry {
+    when: attempt: FetchAttempt.created
+    requires: attempt.retryable
+    ensures: attempt.walk.host.paused_until = now + retry_wait(attempt.try, attempt.retry_after, attempt.status_code)
+    ensures: TierRequested(walk: attempt.walk, tier: http, try: attempt.try + 1)
+
+    @guidance
+        -- The wait is min(backoff_base * 2^(try - 1), max_backoff) with
+        -- backoff_jitter either way; a Retry-After on 429 or 503 lengthens it,
+        -- capped at retry_after_cap. Only the final try is classified and fed
+        -- to the breaker.
+}
+
+rule CountRetryAfter {
+    when: attempt: FetchAttempt.created
+    requires: attempt.tier = http
+    requires: attempt.retry_after != null and attempt.status_code in { 429, 503 }
+    ensures: attempt.walk.host.retry_after_honored = attempt.walk.host.retry_after_honored + 1
+
+    @guidance
+        -- Counted whether or not another try follows. Sitemap and llms.txt
+        -- fetches go through the same polite fetch and count too.
+}
+
+rule Escalate {
+    when: attempt: FetchAttempt.created
+    let walk = attempt.walk
+    requires: not attempt.retryable
+    requires: attempt.wants_escalation
+    requires: next_tier(walk.tiers, attempt.tier) != null
+    requires: not render_added_nothing(walk.soft_suspect, attempt)
+    ensures: walk.escalated = true
+    ensures: TierRequested(walk: walk, tier: next_tier(walk.tiers, attempt.tier), try: 1)
+}
+
+rule SettleWalk {
+    when: attempt: FetchAttempt.created
+    let walk = attempt.walk
+    requires: not attempt.retryable
+    requires:
+        not attempt.wants_escalation
+        or next_tier(walk.tiers, attempt.tier) = null
+        or render_added_nothing(walk.soft_suspect, attempt)
+    let stands = if render_added_nothing(walk.soft_suspect, attempt): latest(walk.soft_suspect) else: attempt
+    let was_escalated = walk.escalated
+    ensures: walk.status = settled
+    ensures: walk.standing = stands
+    ensures: walk.host.tiers_used = walk.host.tiers_used + { stands.tier }
+    ensures:
+        if was_escalated:
+            walk.host.render_escalations = walk.host.render_escalations + 1
+
+    @guidance
+        -- render_added_nothing: an earlier attempt of the walk was
+        -- soft-suspected, this attempt is ok, and its main text is under
+        -- soft_render_gain times the latest such attempt's, so that suspected
+        -- copy stands. A failed render never falls back to it. Only the standing tier joins
+        -- tiers_used, and a walk counts one render escalation whether it
+        -- climbed one rung or two, or only started above http.
+}
+
+rule FeedBreaker {
+    when: attempt: FetchAttempt.created
+    requires: not attempt.retryable
+    requires: attempt.ok or attempt.verdict.kind != none
+    let breaker = attempt.walk.host.breaker
+    requires: exists breaker and breaker.status = watching
+    ensures: breaker.outcomes = last_n(append(breaker.outcomes, attempt.verdict.counts_against_host), config.breaker_window)
+    ensures: breaker.since_escalation = breaker.since_escalation + 1
+
+    @guidance
+        -- Every tier's attempt counts. A soft verdict counts as not blocked.
+        -- Transport errors and plain error statuses never reach the breaker.
+}
+
+rule RememberRenderTier {
+    when: walk: LadderWalk.status transitions_to settled
+    requires: walk.escalated and walk.standing.ok and walk.standing.verdict.kind = none
+    requires: first_render_reason(walk.attempts) in { spa_shell, noscript_needs_js }
+    let hint = RenderTierHint{mirror: walk.entry.mirror, host: walk.host.name, path_pattern: path_pattern(walk.entry.url)}
+    ensures:
+        if exists hint:
+            hint.tier = walk.standing.tier
+        else:
+            RenderTierHint.created(
+                mirror: walk.entry.mirror, host: walk.host.name,
+                path_pattern: path_pattern(walk.entry.url), tier: walk.standing.tier
+            )
+}
+
+------------------------------------------------------------
+-- The circuit breaker
+------------------------------------------------------------
+
+rule BreakerEscalates {
+    when: breaker: Breaker.should_act
+    requires: breaker.tier != breaker.highest_tier
+    let host = breaker.host
+    ensures: breaker.tier = next_tier(host.run.mirror.config.usable_tiers, breaker.tier) ?? breaker.tier
+    ensures: breaker.escalations = breaker.escalations + 1
+    ensures: breaker.outcomes = []
+    ensures: breaker.since_escalation = 0
+    ensures: host.rate = max(host.rate / 2, config.min_host_rate)
+    ensures: host.paused_until = now + config.breaker_pause
+    ensures: HostBackedOff(host: host)
+}
+
+rule BreakerTrips {
+    when: breaker: Breaker.should_act
+    requires: breaker.tier = breaker.highest_tier
+    let host = breaker.host
+    ensures: breaker.status = tripped
+    ensures:
+        for e in host.run.mirror.frontier_entries where status = pending and url.host = host.name:
+            e.status = skipped_blocked
+    ensures: BreakerTripped(host: host)
+
+    @guidance
+        -- No new entry on a tripped host starts a fetch in this run; walks
+        -- already in flight finish their tiers. When only the HTTP tier is
+        -- usable, the first breach trips the breaker with no pause.
+}
+
+------------------------------------------------------------
+-- What a settled fetch becomes
+------------------------------------------------------------
+
+rule DisposeFetch {
+    when: walk: LadderWalk.status transitions_to settled
+    let entry = walk.entry
+    let attempt = walk.standing
+    let known = Page{mirror: entry.mirror, url: entry.url}
+    let run = walk.host.run
+    requires: entry.status = in_progress
+    ensures:
+        if attempt.status_code = 0:
+            EntryFailed(entry: entry, error: attempt.error ?? "no response", attempts: config.http_attempts)
+        else:
+            run.bytes_fetched = run.bytes_fetched + body_size(attempt)
+            if attempt.not_modified and exists known:
+                PageUnchanged(entry: entry, page: known)
+            else if attempt.status_code in { 404, 410 }:
+                PageGone(entry: entry, status_code: attempt.status_code)
+            else if attempt.verdict.kind in { hard, challenge }:
+                entry.status = blocked
+                walk.host.blocked = walk.host.blocked + 1
+                BlockedUrl.created(
+                    report: run.report, url: entry.url, status_code: attempt.status_code,
+                    signature: attempt.verdict.signature, tier: attempt.tier
+                )
+            else if not attempt.ok:
+                EntryFailed(entry: entry, error: status_text(attempt), attempts: 1)
+            else:
+                walk.host.fetched = walk.host.fetched + 1
+                run.report.fetched = run.report.fetched + 1
+                if exists known and known.status = written and known.raw_sha256 = sha256(raw_html(attempt)):
+                    PageUnchanged(entry: entry, page: known)
+                else if not attempt.is_html:
+                    entry.status = skipped_not_html
+                else:
+                    PageFetched(entry: entry, walk: walk)
+
+    @guidance
+        -- Branch order is evaluation order. Every response counts toward
+        -- max_bytes, whatever its status. A 304 for a URL with no stored page
+        -- falls through to failed.
+}
+
+rule EntryFails {
+    when: EntryFailed(entry, error, attempts)
+    requires: entry.status = in_progress
+    let run = current_run(entry.mirror)
+    ensures: entry.status = failed
+    ensures: entry.attempts = entry.attempts + 1
+    ensures: FailedUrl.created(report: run.report, url: entry.url, error: error, attempts: attempts)
+    ensures: Change.created(report: run.report, subject: url_text(entry.url), kind: failed)
+}
+
+rule PageUnchangedRecorded {
+    when: PageUnchanged(entry, page)
+    requires: entry.status = in_progress
+    requires: page.path != null
+    let run = current_run(entry.mirror)
+    ensures: entry.status = unchanged
+    ensures: page.last_seen = now
+    ensures: run.report.skipped_unchanged = run.report.skipped_unchanged + 1
+    ensures: Change.created(report: run.report, subject: page.path, kind: unchanged)
+    ensures: QualityRecorded(report: run.report, path: page.path, quality: page.quality)
+
+    @guidance
+        -- The stored score is carried, not re-measured, so the quality summary
+        -- describes the mirror rather than the run.
+}
+
+------------------------------------------------------------
+-- Tombstones
+------------------------------------------------------------
+
+rule TombstonePage {
+    when: PageGone(entry, status_code)
+    let page = Page{mirror: entry.mirror, url: entry.url}
+    requires: entry.status = in_progress
+    requires: exists page and page.path != null and page.status = written
+    ensures: entry.status = gone
+    ensures: page.status = gone
+    ensures: page.tombstoned_at = now
+    ensures:
+        if entry.mirror.config.prune:
+            PageFileDeleted(page: page)
+        else:
+            PageFileMovedToRemoved(page: page)
+    ensures: Change.created(report: current_run(entry.mirror).report, subject: page.path, kind: removed)
+
+    @guidance
+        -- The page keeps its path, so a return restores it in place. The
+        -- removed copy lives under _removed/ at the same relative path.
+}
+
+rule PageStillGone {
+    when: PageGone(entry, status_code)
+    let page = Page{mirror: entry.mirror, url: entry.url}
+    requires: entry.status = in_progress
+    requires: not exists page or page.path = null or page.status != written
+    ensures: entry.status = gone
+
+    @guidance
+        -- The first tombstone is kept: its timestamp and removed copy stand
+        -- and the page is not reported removed again. A URL that never had a
+        -- written page is only marked gone and is never rechecked.
+}
+
+------------------------------------------------------------
+-- Converting and storing a page
+------------------------------------------------------------
+
+-- normalize, convert, restore and measure are the Fidelity contract's
+-- operations; PageConversion fulfils that contract.
+
+rule ConvertPage {
+    when: PageFetched(entry, walk)
+    requires: walk.status = settled
+    let mirror_config = entry.mirror.config
+    let html = raw_html(walk.standing)
+    let content = extract_main_content(html, mirror_config.profile)
+    let normalized = normalize(content, mirror_config.profile)
+    let body = restore(convert(normalized.fragment, mirror_config.backend), normalized.islands)
+    let measured = measure(content, body, normalized.expected)
+    let flags =
+        measured.flags + normalized.flags
+        + (if extractor_of(content) != profile_extractor(mirror_config.profile): { extractor_fallback } else: {})
+        + (if text_length(content) = 0: { empty_content } else: {})
+        + (if walk.render_needed and walk.standing.tier = http: { render_needed } else: {})
+        + (if walk.standing.verdict.kind = soft: { soft_block_suspected } else: {})
+    ensures: PageConverted(
+        entry: entry, walk: walk,
+        page: page_from(content, body, quality_result(measured.score, measured.failed, flags))
+    )
+
+    @guidance
+        -- extract_main_content tries the profile's main selectors, then each
+        -- configured fallback extractor, then the whole body, so it never
+        -- comes back empty-handed. It strips the profile's strip selectors and
+        -- page chrome and nothing else. A conversion error fails the entry.
+        -- The title is the content's first h1, else og:title, else <title>,
+        -- else the URL; the description is the meta description, else the
+        -- first prose paragraph cut at description_max_chars. quality_result
+        -- sets low_confidence when a gate failed or a flag is in
+        -- incomplete_flags.
+}
+
+rule ResolveIdentity {
+    when: PageConverted(entry, walk, page)
+    requires: walk.status = settled
+    requires: entry.status = in_progress
+    let identity = page_identity(entry.url, walk.standing.final_url, page.canonical_url, entry.mirror.config)
+    let target = Page{mirror: entry.mirror, url: identity}
+    let moved = Page{mirror: entry.mirror, url: entry.url}
+    let target_has_path = exists target and target.path != null
+    let moved_was_written = identity != entry.url and exists moved and moved.status = written
+    let path =
+        (if target_has_path: target.path else if moved_was_written: moved.path else: null)
+        ?? assign_path(entry.mirror, identity)
+    let previous = if exists target: target else if moved_was_written: moved else: null
+    let alias = Alias{mirror: entry.mirror, url: entry.url}
+    ensures:
+        if identity != entry.url:
+            if exists alias:
+                alias.target = identity
+            else:
+                Alias.created(mirror: entry.mirror, url: entry.url, target: identity)
+            if moved_was_written and not target_has_path:
+                moved.status = redirected
+                moved.redirect_to = identity
+                moved.path = null
+        if written_this_run(current_run(entry.mirror), path):
+            entry.status = duplicate
+        else:
+            StorePage(entry: entry, walk: walk, page: page, identity: identity, path: path, previous: previous)
+
+    @guidance
+        -- page_identity starts from the final URL after redirects when it is in
+        -- scope and differs from the requested URL, else the requested URL;
+        -- then the canonical URL replaces it when the canonical is in scope and
+        -- differs. The code records aliases hop by hop (requested URL to final
+        -- URL, then that to the canonical), and link rewriting follows one hop.
+        -- A moved page keeps its file and is compared
+        -- with its old body, so it is reported changed or unchanged, never
+        -- added. assign_path takes candidate_path when it is free: strip the
+        -- scope prefix, name a directory URL "index", drop .html, .htm and
+        -- .aspx, append the mapped version segment, keep [A-Za-z0-9._-] in
+        -- each segment and replace the rest with "-", and avoid reserved
+        -- device names. A candidate that is taken, reserved (index.md,
+        -- index.jsonl, llms.txt, crawl-report.json, docmirror.toml,
+        -- _index.md, _removed/, .docmirror/) or longer than max_path_chars
+        -- becomes a stem cut to max_path_chars - 10, "-", and the first
+        -- collision_hash_chars hex of the URL's SHA-256.
+}
+
+rule StorePageRecord {
+    when: StorePage(entry, walk, page, identity, path, previous)
+    requires: walk.status = settled
+    requires: entry.status = in_progress
+    let mirror = entry.mirror
+    let run = current_run(mirror)
+    let stored = Page{mirror, url: identity}
+    let revived = exists stored and stored.status = gone
+    let was_redirected = exists stored and stored.status = redirected
+    let body_unchanged = exists previous and previous.prewrite_sha256 = sha256(page.body) and file_exists(path)
+    let fm = frontmatter_of(page, walk)
+    ensures: entry.status = done
+    ensures: run.report.converted = run.report.converted + 1
+    ensures: QualityRecorded(report: run.report, path: path, quality: page.quality)
+    ensures:
+        if body_unchanged:
+            run.report.skipped_unchanged = run.report.skipped_unchanged + 1
+            Change.created(report: run.report, subject: path, kind: unchanged)
+        else:
+            PageFileWritten(path: path, frontmatter: fm, body: page.body)
+            if revived:
+                PageFileRemovedCopyDeleted(path: path)
+            if not exists previous or revived:
+                Change.created(report: run.report, subject: path, kind: added)
+            else:
+                Change.created(report: run.report, subject: path, kind: changed)
+    ensures:
+        if exists stored:
+            stored.status = written
+            if was_redirected:
+                stored.redirect_to = null
+            if revived:
+                stored.tombstoned_at = null
+            stored.path = path
+            stored.title = page.title
+            stored.description = page.description
+            stored.extractor = page.extractor
+            stored.quality = page.quality
+            stored.render_tier = walk.standing.tier
+            stored.raw_sha256 = sha256(raw_html(walk.standing))
+            stored.etag = etag_of(walk.standing)
+            stored.last_modified = last_modified_of(walk.standing)
+            stored.sitemap_lastmod = entry.sitemap_lastmod
+            stored.anchors = page.anchors
+            stored.headings = page.headings
+            stored.last_seen = now
+            if not body_unchanged:
+                stored.prewrite_sha256 = sha256(page.body)
+                stored.content_sha256 = sha256(page.body)
+                stored.fetched_at = now
+                stored.last_changed = now
+                stored.frontmatter = fm
+        else:
+            Page.created(
+                mirror: mirror, url: identity, path: path, status: written,
+                title: page.title, description: page.description,
+                render_tier: walk.standing.tier, extractor: page.extractor,
+                quality: page.quality, raw_sha256: sha256(raw_html(walk.standing)),
+                prewrite_sha256: if body_unchanged: "" else: sha256(page.body),
+                content_sha256: if body_unchanged: "" else: sha256(page.body),
+                etag: etag_of(walk.standing), last_modified: last_modified_of(walk.standing),
+                sitemap_lastmod: entry.sitemap_lastmod,
+                fetched_at: now, last_seen: now, last_changed: now,
+                anchors: page.anchors, headings: page.headings, keywords: [],
+                frontmatter: fm
+            )
+    ensures: LinksFound(page_url: identity, mirror: mirror, depth: entry.depth, links: page.links)
+
+    @guidance
+        -- Change detection compares the body before link rewriting. When the
+        -- body is unchanged the page file is left alone, so its fetched_at and
+        -- frontmatter keep the earlier measurement while the manifest takes
+        -- the new one. A moved page whose body is unchanged gets a new identity
+        -- record with no body hash, so the next run rewrites its file and
+        -- reports it added. A written page's file is replaced atomically before its
+        -- record commits, so an interrupted run leaves at most one page to
+        -- refetch.
+}
+
+rule QualityTallied {
+    when: QualityRecorded(report, path, quality)
+    ensures: report.scores = append(report.scores, quality.score)
+    ensures:
+        if quality.low_confidence:
+            LowConfidencePage.created(report: report, path: path, quality_score: quality.score, flags: quality.flags)
+}
+
+rule EnqueuePageLinks {
+    when: LinksFound(page_url, mirror, depth, links)
+    ensures:
+        for url in links:
+            if url != page_url and in_scope(mirror.config, url, depth + 1):
+                UrlDiscovered(
+                    mirror: mirror, url: url, depth: depth + 1, via: link,
+                    priority: config.link_priority, from: url_text(page_url)
+                )
+
+    @guidance
+        -- Only a page that was written queues its links. Self-links are
+        -- skipped. At this point a link counts as internal when in scope at
+        -- depth + 1, uncrawled when on an allowed host but out of scope, and
+        -- external otherwise; the link rewrite at the end of the run replaces
+        -- these classifications with its own.
+}
+
+------------------------------------------------------------
+-- Finishing a run
+------------------------------------------------------------
+
+rule FinishRun {
+    when: FrontierExhausted(run)
+    requires: run.status = running
+    ensures:
+        for page in run.mirror.written_pages where path != null and file_exists(path):
+            LinksRewritten(page: page, report: run.report)
+    ensures: IndexesRequested(mirror: run.mirror)
+    ensures: run.exit_code = most_severe([
+        run.exit_code,
+        if run.report.failed_urls.count > 0 or run.report.blocked_urls.count > 0: partial else: ok,
+        if run.hosts.any(h => h.breaker?.status = tripped): blocked else: ok,
+        if run.mirror.config.fail_on_low_quality and run.report.low_confidence_pages.count > 0: quality else: ok
+    ])
+    ensures: run.status = finished
+    ensures: run.finished_at = now
+    ensures: RunEnded(run: run)
+}
+
+rule OperatorInterrupt {
+    when: OperatorInterrupts(operator, mirror)
+    let run = Run{mirror: mirror, status: running}
+    requires: exists run
+    ensures: RunInterrupted(run: run)
+}
+
+rule InterruptRun {
+    when: RunInterrupted(run)
+    requires: run.status = running
+    ensures:
+        for e in run.mirror.frontier_entries where status = in_progress:
+            e.status = pending
+    ensures: run.exit_code = most_severe([run.exit_code, partial])
+    ensures: run.status = interrupted
+    ensures: run.finished_at = now
+    ensures: RunEnded(run: run)
+
+    @guidance
+        -- An operator interrupt or a cancellation ends here.
+}
+
+-- RunErrored is raised by the runtime when an uncaught error escapes the run.
+rule RunCrashes {
+    when: RunErrored(run)
+    requires: run.status = running
+    ensures: run.exit_code = most_severe([run.exit_code, partial])
+    ensures: run.status = interrupted
+    ensures: run.finished_at = now
+    ensures: RunEnded(run: run)
+
+    @guidance
+        -- An uncaught error writes the report with exit partial and then
+        -- propagates, so the process ends with a traceback. In-progress rows
+        -- stay in progress until the next run returns them to pending.
+}
+
+rule WriteReport {
+    when: RunEnded(run)
+    ensures: run.report.exit_code = run.exit_code
+    ensures: run.report.per_host = host_reports(run.hosts)
+    ensures: run.report.quality_summary = summarise(run.report.scores, run.report.low_confidence_pages)
+    ensures: run.mirror.report = run.report
+    ensures: BrowserEnginesClosed(run: run)
+    ensures: CommandExited(operator: current_operator(run), code: run.exit_code)
+
+    @guidance
+        -- Written in a finally around the whole run and replaced atomically.
+        -- Hosts, low-confidence pages, every changes list and gate names are
+        -- sorted; blocked and failed URLs are in arrival order. Mean and
+        -- percentile scores are rounded to four places. The progress stream
+        -- ends with one done event.
+}
+
+------------------------------------------------------------
+-- Links
+------------------------------------------------------------
+
+rule RewritePageLinks {
+    when: LinksRewritten(page, report)
+    requires: page.path != null
+    let outcome = rewrite_links(page)
+    let old_links = page.links
+    ensures: page.quality = with_link_flags(page.quality, outcome.flags)
+    ensures: page.content_sha256 = sha256(outcome.body)
+    ensures:
+        for old in old_links:
+            not exists old
+        for l in outcome.links:
+            Link.created(from: page, to_url: l.url, fragment: l.fragment, kind: l.kind, target: l.target)
+        for b in outcome.broken:
+            BrokenLink.created(report: report, from_path: page.path, href: b.href, reason: b.reason)
+
+    @guidance
+        -- with_link_flags starts from the flags in the page file's frontmatter,
+        -- drops uncrawled_internal, unresolved_fragment and dangling_inbound,
+        -- adds the outcome's flags, and leaves score and low_confidence as the
+        -- manifest holds them. Code fences and inline code are never touched.
+        -- A link to a written page becomes a relative path plus its fragment;
+        -- a self-link with a fragment becomes a bare fragment. A link already
+        -- rewritten to a relative path whose target is now tombstoned reverts
+        -- to the absolute URL with dangling_inbound and a target_removed
+        -- broken link; an absolute link to a tombstoned page, or an in-scope
+        -- link with no page, stays absolute with uncrawled_internal. Anything
+        -- else is external and stays absolute. A fragment that matches no
+        -- anchor, {#id} suffix or id attribute of the target adds
+        -- unresolved_fragment and a fragment_not_found broken link. mailto:,
+        -- tel:, javascript: and data: targets are kept. The file is rewritten
+        -- only when its text changes, and rewriting is idempotent.
+}
+
+------------------------------------------------------------
+-- Indexes
+------------------------------------------------------------
+
+rule WriteIndexes {
+    when: IndexesRequested(mirror)
+    let pages = mirror.written_pages where path != null and file_exists(path)
+    let entries = sorted_by_path(index_entries(pages))
+    ensures:
+        for p in pages:
+            p.keywords = keywords_for(p, pages)
+    ensures:
+        if exists mirror.index:
+            mirror.index.entries = entries
+        else:
+            Index.created(mirror: mirror, entries: entries)
+    ensures: IndexFilesWritten(mirror: mirror, entries: entries)
+
+    @guidance
+        -- Keywords are cached by content_sha256, so an unchanged page keeps
+        -- its keywords; the uncached pages form the corpus for distinctive
+        -- terms. Each page gets up to keywords_per_page terms, topped up to
+        -- keywords_min, and a page file whose frontmatter keywords differ is
+        -- rewritten. index.md groups entries under one heading per top-level
+        -- directory and marks low-confidence pages; a top-level directory other
+        -- than the root with over hierarchical_index_threshold pages gets its
+        -- own _index.md instead.
+        -- index.jsonl holds one IndexEntry per line in path order. llms.txt
+        -- lists every page; past llms_txt_cap pages, a directory that has its
+        -- own _index.md is listed as one link, and root pages are always
+        -- listed. Everything is offline and deterministic.
+}
+
+------------------------------------------------------------
+-- Other commands
+------------------------------------------------------------
+
+rule FetchOneUrl {
+    when: OperatorFetchesUrl(operator, url, tier?)
+    requires: tier = null or tier = http or tier_installed(tier)
+    let result = fetch_page(url, tier, fetch_config(operator, url))
+    requires: result.ok
+    ensures: PagePrinted(operator: operator, body: result.body)
+    ensures: CommandExited(operator: operator, code: ok)
+
+    @guidance
+        -- Prints the Markdown of one page and writes nothing into a mirror.
+        -- Without --config it uses built-in defaults and the detected profile.
+        -- --tier is checked against the installed engines only. An
+        -- unavailable tier or a failed fetch exits partial.
+}
+
+rule VerifyMirror {
+    when: OperatorVerifies(operator, mirror)
+    requires: config_valid(mirror.out_dir, operator)
+    let findings = structural_findings(mirror)
+    ensures: VerifyReported(operator: operator, findings: findings, gate_tallies: gate_tallies(mirror))
+    ensures: CommandExited(operator: operator, code: if findings.count = 0: ok else: quality)
+
+    @guidance
+        -- Structural findings: a recorded page whose file is missing;
+        -- frontmatter missing a required key or failing the published model;
+        -- content_sha256 not matching the body; a .md file the manifest does
+        -- not know; a relative link outside code whose file or fragment is
+        -- missing. Gate tallies are reported and never change the exit code.
+}
+
+rule RebuildIndex {
+    when: OperatorRebuildsIndex(operator, mirror)
+    requires: config_valid(mirror.out_dir, operator)
+    ensures: IndexesRequested(mirror: mirror)
+    ensures: CommandExited(operator: operator, code: ok)
+}
+
+rule ShowReport {
+    when: OperatorShowsReport(operator, mirror)
+    requires: mirror.report != null
+    ensures: ReportShown(operator: operator, report: mirror.report)
+    ensures: CommandExited(operator: operator, code: ok)
+}
+
+------------------------------------------------------------
+-- Invariants
+------------------------------------------------------------
+
+invariant OneFrontierEntryPerUrl {
+    for a in FrontierEntries:
+        for b in FrontierEntries:
+            a != b and a.mirror = b.mirror implies a.url != b.url
+}
+
+invariant PagePathsUnique {
+    for a in Pages:
+        for b in Pages:
+            a != b and a.mirror = b.mirror and a.path != null implies a.path != b.path
+}
+
+invariant ScoreIsAFraction {
+    for p in Pages:
+        p.quality.score >= 0 and p.quality.score <= 1
+}
+
+invariant StealthIsOptIn {
+    for c in Configs:
+        c.usable_tiers.any(t => t = stealth) implies c.stealth_mode = camoufox
+}
+
+invariant NoUnblockingProvider {
+    for c in Configs:
+        c.unblocking_provider = null
+}
+
+invariant RobotsChoiceRecorded {
+    for r in Runs:
+        r.report.robots_ignored = (r.robots = ignore)
+}
+
+invariant BreakerNeverPassesHighestTier {
+    for b in Breakers:
+        b.tier in b.host.run.mirror.config.usable_tiers
+}
+
+invariant RunExitCodeIsReported {
+    for r in Runs:
+        r.status != running implies r.report.exit_code = r.exit_code
+}
+
+-- Prose invariants: properties over time or across runs that a single state
+-- cannot express.
+--
+-- ReportOnEveryExit: once the output directory exists, every crawl or update,
+-- including a refused, dry, interrupted or failed one, leaves crawl-report.json
+-- with its exit code.
+--
+-- MeasuredQuality: every written page's frontmatter carries a measured
+-- quality_score and low_confidence. When a refetch leaves the body unchanged,
+-- the frontmatter keeps the earlier measurement (see the open questions).
+--
+-- PathStable: once a page has a path it never changes; a tombstoned page keeps
+-- it and a moved page hands it to its new identity.
+--
+-- DeterministicOutput: two runs over an unchanged site change no page file;
+-- indexes are sorted; files are LF-terminated UTF-8; and content_sha256 covers
+-- the body only, so a frontmatter edit never moves it.
+--
+-- NoNewFetchOnTrippedHost: after a host's breaker trips, no new entry on that
+-- host starts a fetch in the same run; walks already in flight finish.
+--
+-- PolitenessFirst: every request to a host waits for its rate, its concurrency
+-- cap and any pause, and Crawl-delay slows a host below rate_per_host. No
+-- proxy, CAPTCHA solver or paid unblocking service is ever used.
+
+------------------------------------------------------------
+-- Surfaces
+------------------------------------------------------------
+
+surface MirrorSetup {
+    facing operator: Operator
+
+    provides:
+        OperatorInitialises(operator, site, out_dir, profile_name?)
+        OperatorRequestsRun(operator, out_dir, requested, resume, dry_run)
+        OperatorFetchesUrl(operator, url, tier?)
+
+    @guarantee RejectedCommandExitsUsage
+        -- A command whose preconditions fail exits usage (2) and says why,
+        -- except fetch, which exits partial (1) for an unavailable tier or a
+        -- failed fetch.
+}
+
+surface MirrorMaintenance {
+    facing operator: Operator
+    context mirror: Mirror
+
+    exposes:
+        mirror.report?.exit_code
+        mirror.report?.command
+        mirror.report?.robots_ignored
+        mirror.report?.per_host
+        mirror.report?.changes
+        mirror.report?.low_confidence_pages
+        mirror.report?.broken_links
+        mirror.report?.quality_summary
+        mirror.index?.entries
+
+    provides:
+        OperatorRequestsRun(operator, mirror.out_dir, requested, resume, dry_run)
+        OperatorInterrupts(operator, mirror)
+        OperatorVerifies(operator, mirror)
+        OperatorRebuildsIndex(operator, mirror)
+        OperatorShowsReport(operator, mirror) when mirror.report != null
+
+    @guarantee ReportOnEveryExit
+        -- crawl and update leave crawl-report.json in the output directory
+        -- on every exit once the directory exists.
+
+    @guarantee ProgressOnRequest
+        -- With --json, progress arrives as one JSON event per line on stdout:
+        -- start, page, host_backoff, breaker_tripped and done. A dry run
+        -- still prints its frontier as plain text.
+}
+
+surface PageConversion {
+    facing converter: ConverterBackend
+
+    exposes:
+        converter.name
+
+    contracts:
+        fulfils Fidelity
+
+    @guarantee BothBackendsAgree
+        -- Either backend, given the same captured page, yields the same body.
+}
+
+------------------------------------------------------------
+-- Open Questions
+------------------------------------------------------------
+
+-- Commands
+open question "fetch uses neither the polite limiter, robots.txt nor the breaker, and skips the environment and flag layers without --config; should one-URL fetches be held to the same politeness as crawls?"
+open question "fetch exits ok when the ladder judged the page blocked, and an unavailable --tier exits partial rather than usage; are those the intended codes?"
+open question "fetch --tier stealth runs the stealth tier whenever it is installed, even when the configuration does not opt in; should --tier respect the configured tiers?"
+open question "quality (4) outranks blocked (3), so a tripped breaker under fail_on_low_quality reports 4; is that ranking intended?"
+open question "verify exits quality (4) for structural problems and ignores fail_on_low_quality; should structural damage have its own code?"
+open question "init names specific documentation platforms in command code, against the rule that only profiles name a site; should that knowledge move into profiles?"
+open question "An unknown profile name silently resolves to the generic profile and is recorded as given; should it fail with usage?"
+open question "--resume and --no-resume behave identically; what should a fresh run reset?"
+open question "crawl on a populated mirror is recorded as an update; should the report keep the command the operator typed?"
+open question "A refused run records robots_ignored false and no Run in the manifest, and a missing output directory writes no report at all; are these the intended exceptions to report-on-every-exit?"
+open question "An uncaught error writes the report with exit partial while the process itself ends with a traceback; should the report record the error?"
+open question "config_hash covers only the configuration file's text, so --robots=ignore or --stealth from flags or the environment do not change it; should it hash the resolved configuration?"
+open question "stealth = off also removes the browser tier, so it disables all rendering; is that coupling intended?"
+
+-- Frontier
+open question "Start URLs are queued without a scope check; should they be held to scope like discovered URLs?"
+open question "Sitemap entries are scope-checked at depth 1 but stored at depth 2; which depth is meant?"
+open question "Rediscovery never lowers the depth of a non-deferred row, so a URL first found deep stays deep; intended?"
+open question "Failed, blocked and skipped rows are never retried by a later run unless their URL has a written page; should an update retry them?"
+open question "A row's sitemap lastmod is only filled when empty, so a newer lastmod on a later run never forces a refetch; intended?"
+open question "Deferred tombstone rechecks count against max_pages as new URLs, so a full mirror cannot restore a returned page; intended?"
+open question "robots.txt is fetched outside the polite limiter, and its Sitemap lines are used even under --robots=ignore; intended?"
+open question "With impersonation on, no User-Agent names docmirror while robots rules are evaluated for the agent docmirror; does that meet the visibility invariant?"
+open question "Any two-letter first path segment is treated as a locale and drops a URL out of scope under a pinned locale; should locales come from the profile?"
+open question "Children of a sitemap index are read from any host; should they be held to the allowed hosts?"
+
+-- Fetching and the breaker
+open question "The breaker counts every tier's attempt, so one page can count three times, while transport errors and plain 5xx never count; should it count pages, and should hard failures count?"
+open question "A walk that only started above http, from a remembered hint or the host's tier, counts as a render escalation; should render_escalations count only climbs?"
+open question "A halved host rate is never restored within the run, and the min_host_rate floor can speed up a host whose crawl delay is over 20 seconds; should both change?"
+open question "A missing stealth engine turns a blocked browser attempt into a failed page instead of keeping the blocked verdict; intended?"
+open question "fetch.retries is the total number of tries, not retries after the first; should the name or the count change?"
+
+-- Pages and quality
+open question "Low confidence has two definitions: any failed gate (the report's default) and a failed gate or an incomplete flag (the page's); which is canonical?"
+open question "soft_block_suspected does not make a page low confidence, though the page may be a challenge page; intended?"
+open question "Link rewriting adds link flags after measurement but never recomputes low_confidence or the report's low-confidence entries; should it?"
+open question "A page whose body is unchanged counts as both converted and skipped_unchanged, and its frontmatter is not refreshed; intended?"
+open question "Change detection compares the body before link rewriting while content_sha256 covers the body after it; should one hash serve both?"
+open question "The report declares a moved list that nothing fills, and the failed list holds URLs where the others hold paths; what should they carry?"
+open question "The extraction pass and the link rewrite classify uncrawled links differently, and the rewrite's classification is what persists; which definition is meant?"
+open question "A redirect to an out-of-scope URL is still recorded as an alias, so links to that page resolve to the out-of-scope URL; intended?"
+open question "Aliases are recorded hop by hop and rewriting follows one hop, so a redirect whose target declares the original URL canonical leaves an alias cycle and links to the page are marked uncrawled; should aliases resolve to the final identity?"
+open question "A moved page whose body is unchanged gets a new identity record with no body hash, so the next run rewrites the file and reports it added; intended?"
+open question "After a refetch with an unchanged body, the link rewrite rebuilds the manifest's flags from the stale frontmatter while the score and low_confidence keep the new measurement; which should the manifest hold?"
+
+-- Determinism
+open question "blocked_urls and failed_urls are published in arrival order, so two runs can differ; should they be sorted?"
+open question "For an empty mirror index.md's Last updated falls back to the current time; should it be stable?"
+open question "Keywords for new pages use only the uncached pages as the corpus, so an update's keywords differ from a full crawl's; intended?"
+open question "Which URL gets the plain path and which gets a hashed suffix depends on crawl order; should collisions resolve independently of order?"
+
+-- Fidelity
+open question "The golden suite runs only the default backend, so BothBackendsAgree is witnessed by four unit tests alone; should the golden set run both?"
+open question "No captured fixture holds math, footnotes, details or kbd, so those rules have unit tests but no golden test; should fixtures be added?"
+open question "Markdown inside a details island is measured but never expected, so a faithful details block holding a heading or code fails the headings and code_blocks gates; should islands carrying Markdown be counted?"
+open question "tabs_expanded cannot fail as implemented, because both counts come from the same panel list; what should it measure?"
+open question "A definition list's children other than dt and dd are dropped on the inline path, and an island token the converter loses is left silently in the body; should both raise a flag?"
+open question "Hidden tab panels survive extraction only when the hidden element is a section; should any hidden panel survive?"
+open question "Three different attribute keep-sets sanitize islands; should sanitized have one definition?"

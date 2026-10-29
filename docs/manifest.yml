@@ -119,6 +119,20 @@
       "requires": []
     },
     {
+      "path": "specs/README.md",
+      "title": "Behavioural specification",
+      "kind": "reference",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "behavioural_specification"
+      ],
+      "requires": []
+    },
+    {
       "path": "site-notes.md",
       "title": "Site notes",
       "kind": "reference",
@@ -202,6 +216,20 @@
       "canonical_for": [
         "decision_docmirror_host",
         "decision_dependency_policy"
+      ],
+      "requires": []
+    },
+    {
+      "path": "decisions/0016-keep-a-distilled-allium-spec.md",
+      "title": "Decision 0016: Keep a distilled Allium spec",
+      "kind": "decision",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_behavioural_spec"
       ],
       "requires": []
     }

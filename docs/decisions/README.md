@@ -23,6 +23,7 @@ with lasting consequences for the repository gets a numbered record here.
 | --- | --- |
 | [0002](0002-hook-runner-and-checkers.md) | Hook runner and checkers |
 | [0015](0015-docmirror-in-place-of-alliumpy.md) | docmirror in place of alliumpy, on its toolchain |
+| [0016](0016-keep-a-distilled-allium-spec.md) | Keep a distilled Allium spec |
 
 Records 0001 and 0003 to 0014 belonged to `alliumpy` and were removed with the Rust
 crates, 0006 among them because its tool list was the Rust one; their numbers stay retired so that a citation in the hosting repository's
