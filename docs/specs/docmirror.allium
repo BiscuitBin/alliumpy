@@ -5,14 +5,16 @@
 -- Markdown mirror and keeps that mirror up to date. This file says what the tool
 -- does, not how. It was distilled from the code at commit f4de0fb; where the two
 -- disagree the code wins until the spec is tended. docs/specs/README.md says how
--- to read it.
+-- to read it. Targeted runs and the observed-link index are specified ahead of
+-- the code: until they are built, their absence from the code is not drift.
 --
 -- Included:
 --   the commands init, crawl, update, fetch (one URL), verify, index and report;
 --   the frontier and discovery, the fetch and render ladder, the circuit breaker
 --   and politeness, extraction, quality, the mirror's manifest, tombstones, links,
---   indexes, the crawl report and the exit-code ranking; and one Fidelity contract
---   that stands for every DOM-normalization rule.
+--   indexes, the crawl report and the exit-code ranking; targeted runs that
+--   fetch only the URLs or page paths an operator names; the observed-link index;
+--   and one Fidelity contract that stands for every DOM-normalization rule.
 --
 -- Excluded:
 --   the doctor and schema commands; logging and table rendering; size and
@@ -29,15 +31,15 @@
 --   fetch_page, file_exists, first_render_reason, frontmatter_of, gate_tallies,
 --   host_for, host_rate, host_reports, host_tripped, html_or_xml, in_scope,
 --   index_entries, initial_config, is_http_url, keywords_for, last_modified_of,
---   last_n, latest, llms_txt_targets, llms_txt_url, max, measure, min,
---   most_severe, newer, next_pending, next_tier, normalize, normalize_url,
---   page_from, page_identity, path_pattern, product_root, profile_extractor,
---   quality_result, raw_html, render_added_nothing, render_reason_of,
---   resolve_profile, restore, retry_wait, rewrite_links, robots_allows, seeds,
---   sha256, sitemap_entries, sorted_by_path, stale_pages, start_from,
---   starting_tier, status_text, structural_findings, summarise, text_length,
---   tier_installed, url_text, well_known_sitemaps, with_link_flags,
---   written_this_run.
+--   last_n, latest, link_index_entries, llms_txt_targets, llms_txt_url, max,
+--   measure, min, most_severe, newer, next_pending, next_tier, normalize,
+--   normalize_url, page_from, page_identity, path_pattern, product_root,
+--   profile_extractor, quality_result, raw_html, render_added_nothing,
+--   render_reason_of, resolve_profile, resolve_targets, restore, retry_wait,
+--   rewrite_links, robots_allows, seeds, sha256, sitemap_entries,
+--   sorted_by_path, sorted_by_url, stale_pages, start_from, starting_tier,
+--   status_text, structural_findings, summarise, text_length, tier_installed,
+--   url_text, well_known_sitemaps, with_link_flags, written_this_run.
 --
 -- Judgements the code could not settle are parked as open questions at the end.
 
@@ -233,6 +235,17 @@ value IndexEntry {
     inbound_internal: Integer
 }
 
+-- One line of links.jsonl: a URL docmirror has seen, whether or not it holds
+-- a page for it, and where it was seen.
+value LinkIndexEntry {
+    url: CanonicalUrl
+    kind: LinkKind
+    path: String?                       -- when a written page holds the URL
+    frontier_status: FrontierStatus?    -- absent when the URL was never queued
+    seen_in: Set<DiscoverySource>
+    cited_by: List<String>              -- sorted paths of the pages that link to it
+}
+
 ------------------------------------------------------------
 -- Contracts
 ------------------------------------------------------------
@@ -329,7 +342,10 @@ enum ExitCode { ok | partial | usage | blocked | quality }
 
 enum RunKind { crawl | update }
 
-enum DiscoverySource { start | sitemap | llms_txt | link | recheck }
+-- named: a URL or page path the operator gave a targeted run.
+enum DiscoverySource { start | sitemap | llms_txt | link | recheck | named }
+
+enum FrontierStatus { pending | in_progress | done | unchanged | duplicate | gone | blocked | failed | skipped_robots | skipped_blocked | skipped_limit | skipped_not_html }
 
 enum LinkKind { internal | uncrawled | external }
 
@@ -408,9 +424,11 @@ entity Mirror {
     runs: Run with mirror = this
     render_hints: RenderTierHint with mirror = this
     index: Index with mirror = this
+    observed_urls: ObservedUrl with mirror = this
 
     written_pages: pages where status = written
     tombstoned_pages: pages where status = gone
+    page_paths: pages where path != null -> path
     is_populated: written_pages.count > 0
 }
 
@@ -421,7 +439,8 @@ entity Run {
     resume: Boolean
     dry_run: Boolean
     robots: RobotsMode                  -- the robots choice this run used
-    forced_refetch: Set<CanonicalUrl>   -- pages past max_age when the run started
+    targets: Set<CanonicalUrl>          -- the URLs a targeted run fetches; empty otherwise
+    forced_refetch: Set<CanonicalUrl>   -- the targets, else pages past max_age when the run started
     started_at: Timestamp
     exit_code: ExitCode                 -- starts ok, only ever raised
     report: CrawlReport
@@ -432,6 +451,7 @@ entity Run {
 
     hosts: Host with run = this
 
+    targeted: targets.count > 0
     batch_idle:
         status = running and crawling
         and (mirror.frontier_entries where status = in_progress).count = 0
@@ -454,7 +474,7 @@ entity FrontierEntry {
     sitemap_lastmod: Timestamp?
     priority: Integer
     attempts: Integer
-    status: pending | in_progress | done | unchanged | duplicate | gone | blocked | failed | skipped_robots | skipped_blocked | skipped_limit | skipped_not_html
+    status: FrontierStatus
 
     is_deferred: priority < 0
 
@@ -473,7 +493,8 @@ entity FrontierEntry {
         in_progress -> skipped_blocked
         in_progress -> skipped_not_html
         -- An update run re-pends the row of every written page, whatever it
-        -- holds, and re-pends tombstoned pages as deferred rechecks.
+        -- holds, and re-pends tombstoned pages as deferred rechecks; a targeted
+        -- run re-pends only its targets' rows.
         done -> pending
         unchanged -> pending
         duplicate -> pending
@@ -537,6 +558,16 @@ entity Link {
     fragment: String?
     kind: LinkKind
     target: Page?                       -- present when kind = internal
+}
+
+-- A URL seen in a sitemap or llms.txt, in scope or not. Page links are Link
+-- rows and queued URLs are frontier rows; this keeps the sightings discovery
+-- would otherwise drop. Survives runs.
+entity ObservedUrl {
+    mirror: Mirror
+    url: CanonicalUrl
+    sources: Set<DiscoverySource>
+    last_seen: Timestamp
 }
 
 -- The starting tier remembered for a host and path pattern on a client-rendered
@@ -640,6 +671,7 @@ entity CrawlReport {
     mirror: Mirror
     command: RunKind
     exit_code: ExitCode
+    targets: Set<CanonicalUrl>          -- empty unless the run was targeted
     config_hash: String                 -- of the docmirror.toml text only
     robots_ignored: Boolean
     discovered: Integer
@@ -693,10 +725,11 @@ entity Change {
     kind: ChangeKind
 }
 
--- index.md, index.jsonl, llms.txt and per-directory _index.md files.
+-- index.md, index.jsonl, links.jsonl, llms.txt and per-directory _index.md files.
 entity Index {
     mirror: Mirror
     entries: List<IndexEntry>           -- sorted by path
+    links: List<LinkIndexEntry>         -- sorted by URL
 }
 
 ------------------------------------------------------------
@@ -827,16 +860,18 @@ rule InitialiseMirror {
 -- defaults, then docmirror.toml, then DOCMIRROR_<SECTION>__<FIELD> variables,
 -- then flags, later layers winning key by key. config_valid fails on an
 -- unreadable file, an unknown key or a bad value, naming every bad key path.
+-- A run given URLs or page paths is a targeted run: the refusals below are
+-- checked in order, so a request is refused once, for its first problem.
 
 rule RefuseRunWithoutOutputDirectory {
-    when: OperatorRequestsRun(operator, out_dir, requested, resume, dry_run)
+    when: OperatorRequestsRun(operator, out_dir, requested, resume, dry_run, urls?, paths?)
     requires: not directory_exists(out_dir)
     ensures: CommandExited(operator: operator, code: usage)
     -- No crawl-report.json is written: there is nowhere to write it.
 }
 
 rule RefuseRunOnBadConfig {
-    when: OperatorRequestsRun(operator, out_dir, requested, resume, dry_run)
+    when: OperatorRequestsRun(operator, out_dir, requested, resume, dry_run, urls?, paths?)
     let mirror = Mirror{out_dir}
     requires: directory_exists(out_dir) and exists mirror
     requires:
@@ -846,7 +881,7 @@ rule RefuseRunOnBadConfig {
 }
 
 rule RefuseRunOnChangedRoot {
-    when: OperatorRequestsRun(operator, out_dir, requested, resume, dry_run)
+    when: OperatorRequestsRun(operator, out_dir, requested, resume, dry_run, urls?, paths?)
     let mirror = Mirror{out_dir}
     requires: directory_exists(out_dir) and exists mirror
     requires: config_valid(out_dir, operator)
@@ -857,11 +892,53 @@ rule RefuseRunOnChangedRoot {
     ensures: RunRefused(operator: operator, mirror: mirror, command: requested)
 }
 
+rule RefuseOffHostTarget {
+    when: OperatorRequestsRun(operator, out_dir, requested, resume, dry_run, urls?, paths?)
+    let mirror = Mirror{out_dir}
+    requires: directory_exists(out_dir) and exists mirror
+    requires: config_valid(out_dir, operator)
+    requires: mirror.config.root_url != null or mirror.config.start_urls.count > 0
+    requires:
+        mirror.recorded_root_url = null
+        or mirror.recorded_root_url = mirror.config.root_url
+        or operator.confirmed
+    requires:
+        urls != null
+        and urls.any(u => not is_http_url(u) or normalize_url(u).host not in mirror.config.allowed_hosts)
+    ensures: RunRefused(operator: operator, mirror: mirror, command: requested)
+
+    @guidance
+        -- A named URL must be http(s) on an allowed host. Path prefixes and
+        -- include and exclude patterns are waived for it.
+}
+
+rule RefuseUnknownTargetPath {
+    when: OperatorRequestsRun(operator, out_dir, requested, resume, dry_run, urls?, paths?)
+    let mirror = Mirror{out_dir}
+    requires: directory_exists(out_dir) and exists mirror
+    requires: config_valid(out_dir, operator)
+    requires: mirror.config.root_url != null or mirror.config.start_urls.count > 0
+    requires:
+        mirror.recorded_root_url = null
+        or mirror.recorded_root_url = mirror.config.root_url
+        or operator.confirmed
+    requires:
+        urls = null
+        or urls.all(u => is_http_url(u) and normalize_url(u).host in mirror.config.allowed_hosts)
+    requires: paths != null and paths.any(p => p not in mirror.page_paths)
+    ensures: RunRefused(operator: operator, mirror: mirror, command: requested)
+
+    @guidance
+        -- A named path must be one the manifest holds: a written or
+        -- tombstoned page's relative .md path. A redirected page has no path,
+        -- so its old path is refused.
+}
+
 rule ReportRefusal {
     when: RunRefused(operator, mirror, command)
     ensures:
         let report = CrawlReport.created(
-            mirror: mirror, command: command, exit_code: usage,
+            mirror: mirror, command: command, exit_code: usage, targets: {},
             config_hash: config_hash(mirror.out_dir, operator), robots_ignored: false,
             discovered: 0, fetched: 0, converted: 0, skipped_unchanged: 0,
             per_host: [], quality_summary: empty_quality_summary(), scores: []
@@ -876,7 +953,7 @@ rule ReportRefusal {
 }
 
 rule StartRun {
-    when: OperatorRequestsRun(operator, out_dir, requested, resume, dry_run)
+    when: OperatorRequestsRun(operator, out_dir, requested, resume, dry_run, urls?, paths?)
     let mirror = Mirror{out_dir}
     requires: directory_exists(out_dir) and exists mirror
     requires: config_valid(out_dir, operator)
@@ -885,11 +962,20 @@ rule StartRun {
         mirror.recorded_root_url = null
         or mirror.recorded_root_url = mirror.config.root_url
         or operator.confirmed
+    requires:
+        urls = null
+        or urls.all(u => is_http_url(u) and normalize_url(u).host in mirror.config.allowed_hosts)
+    requires: paths = null or paths.all(p => p in mirror.page_paths)
     let kind = if requested = update or mirror.is_populated: update else: crawl
+    let targets = resolve_targets(mirror, urls, paths)
+    let forced =
+        if targets.count > 0: targets
+        else if kind = update: stale_pages(mirror)
+        else: {}
     ensures: mirror.recorded_root_url = mirror.config.root_url
     ensures:
         let report = CrawlReport.created(
-            mirror: mirror, command: kind, exit_code: ok,
+            mirror: mirror, command: kind, exit_code: ok, targets: targets,
             config_hash: config_hash(out_dir, operator),
             robots_ignored: mirror.config.robots = ignore,
             discovered: 0, fetched: 0, converted: 0, skipped_unchanged: 0,
@@ -897,14 +983,26 @@ rule StartRun {
         )
         let run = Run.created(
             mirror: mirror, requested: requested, kind: kind, resume: resume,
-            dry_run: dry_run, robots: mirror.config.robots,
-            forced_refetch: if kind = update: stale_pages(mirror) else: {},
+            dry_run: dry_run, robots: mirror.config.robots, targets: targets,
+            forced_refetch: forced,
             started_at: now, exit_code: ok, report: report,
             status: running, bytes_fetched: 0, crawling: false
         )
         for e in mirror.frontier_entries where status = in_progress:
             e.status = pending
-        if kind = update:
+        if targets.count > 0:
+            for t in targets:
+                let target_row = FrontierEntry{mirror, url: t}
+                if exists target_row:
+                    target_row.status = pending
+                    if target_row.is_deferred:
+                        target_row.priority = config.start_priority
+                else:
+                    FrontierEntry.created(
+                        mirror: mirror, url: t, depth: 0, discovered_via: named,
+                        priority: config.start_priority, attempts: 0, status: pending
+                    )
+        else if kind = update:
             for p in mirror.written_pages:
                 let recheck_row = FrontierEntry{mirror, url: p.url}
                 if exists recheck_row:
@@ -931,6 +1029,11 @@ rule StartRun {
         -- stale_pages holds every written page whose last_seen is more than
         -- max_age ago; those are refetched without validators. Tombstoned
         -- pages are rechecked last, after every other row.
+        -- resolve_targets normalizes each named URL and maps each named path
+        -- to the URL of the page that holds it, so naming a URL that already
+        -- has a page refreshes it. A targeted run re-pends only its targets
+        -- and refetches them without validators; a tombstoned target is a
+        -- recheck. Its kind and command follow the same rule as any run.
 }
 
 ------------------------------------------------------------
@@ -941,15 +1044,19 @@ rule Discover {
     when: DiscoveryRequested(run)
     let mirror_config = run.mirror.config
     ensures:
-        for url in seeds(mirror_config):
-            UrlDiscovered(
-                mirror: run.mirror, url: normalize_url(url), depth: 0,
-                via: start, priority: config.start_priority
-            )
-        for host_name in mirror_config.allowed_hosts:
-            HostOpened(run: run, name: host_name)
-            SitemapsRequested(run: run, host: host_name)
-            LlmsTxtRequested(run: run, host: host_name)
+        if run.targeted:
+            for t in run.targets:
+                HostOpened(run: run, name: t.host)
+        else:
+            for url in seeds(mirror_config):
+                UrlDiscovered(
+                    mirror: run.mirror, url: normalize_url(url), depth: 0,
+                    via: start, priority: config.start_priority
+                )
+            for host_name in mirror_config.allowed_hosts:
+                HostOpened(run: run, name: host_name)
+                SitemapsRequested(run: run, host: host_name)
+                LlmsTxtRequested(run: run, host: host_name)
         run.report.discovered = run.mirror.frontier_entries.count
         FrontierReady(run: run)
 
@@ -958,7 +1065,8 @@ rule Discover {
         -- against scope. Hosts are visited in sorted order. allowed_hosts and
         -- path_prefixes default to the first start URL's host and directory.
         -- discovered counts every frontier row, including rows from earlier
-        -- runs.
+        -- runs. A targeted run opens only its targets' hosts, so their
+        -- robots.txt is still read, and walks no seeds, sitemaps or llms.txt.
 }
 
 rule OpenHost {
@@ -989,6 +1097,7 @@ rule WalkSitemaps {
     let candidates = (Robots{host}?.sitemaps ?? []) + well_known_sitemaps(host)
     ensures:
         for entry in sitemap_entries(candidates, host, run.mirror.config):
+            UrlObserved(mirror: run.mirror, url: entry.url, via: sitemap)
             if in_scope(run.mirror.config, entry.url, 1):
                 UrlDiscovered(
                     mirror: run.mirror, url: entry.url, depth: config.sitemap_depth,
@@ -1011,12 +1120,29 @@ rule ReadLlmsTxt {
     requires: exists LlmsTxt{host}
     ensures:
         for url in llms_txt_targets(LlmsTxt{host}):
+            UrlObserved(mirror: run.mirror, url: url, via: llms_txt)
             if in_scope(run.mirror.config, url, 1):
                 UrlDiscovered(
                     mirror: run.mirror, url: url, depth: config.llms_txt_depth,
                     via: llms_txt, priority: config.llms_txt_priority,
                     from: llms_txt_url(host)
                 )
+}
+
+rule RecordObservation {
+    when: UrlObserved(mirror, url, via)
+    let seen = ObservedUrl{mirror, url}
+    ensures:
+        if exists seen:
+            seen.sources = seen.sources + { via }
+            seen.last_seen = now
+        else:
+            ObservedUrl.created(mirror: mirror, url: url, sources: { via }, last_seen: now)
+
+    @guidance
+        -- Every sitemap and llms.txt entry is observed, in scope or not, and
+        -- whether or not the per-host cap admits it to the frontier. An
+        -- observation is never forgotten.
 }
 
 rule Enqueue {
@@ -1054,8 +1180,9 @@ rule DryRun {
 
     @guidance
         -- Fetches no pages and lists the frontier as plain text, even under
-        -- --json. Discovery still reads robots.txt, sitemaps and llms.txt, an
-        -- update dry run still re-pends the mirror's rows, the discovered rows
+        -- --json. Discovery still reads robots.txt, sitemaps and llms.txt (a
+        -- targeted dry run reads only its targets' robots.txt), an update or
+        -- targeted dry run still re-pends its rows, the discovered rows
         -- persist, and the dry run's report replaces the previous one.
 }
 
@@ -1074,7 +1201,9 @@ rule SelectBatch {
     when: BatchRequested(run)
     requires: run.status = running
     let mirror = run.mirror
-    let pending_rows = mirror.frontier_entries where status = pending
+    let pending_rows =
+        if run.targeted: mirror.frontier_entries where status = pending and url in run.targets
+        else: mirror.frontier_entries where status = pending
     let concurrency = config.concurrency_per_host * max(1, mirror.config.allowed_hosts.count)
     let lookahead = next_pending(pending_rows, concurrency * config.batch_lookahead)
     let open_rows = lookahead where not host_tripped(run, url)
@@ -1102,7 +1231,9 @@ rule SelectBatch {
         -- taken; a new URL only while the mirror is under max_pages. When the
         -- first chosen row, in next_pending order, is at depth 0, only depth-0
         -- rows run in that batch, so start pages' links queue first. The batch runs
-        -- concurrently.
+        -- concurrently. A targeted run selects only its targets' rows; every
+        -- other pending row, including the links a target queues, stays
+        -- pending for a later run, and no sweep below touches it.
 }
 
 rule NextBatch {
@@ -1310,7 +1441,8 @@ rule BreakerTrips {
     ensures: breaker.status = tripped
     ensures:
         for e in host.run.mirror.frontier_entries where status = pending and url.host = host.name:
-            e.status = skipped_blocked
+            if not host.run.targeted or e.url in host.run.targets:
+                e.status = skipped_blocked
     ensures: BreakerTripped(host: host)
 
     @guidance
@@ -1329,6 +1461,9 @@ rule DisposeFetch {
     let attempt = walk.standing
     let known = Page{mirror: entry.mirror, url: entry.url}
     let run = walk.host.run
+    let raw_unchanged =
+        exists known and known.status = written
+        and known.raw_sha256 = sha256(raw_html(attempt))
     requires: entry.status = in_progress
     ensures:
         if attempt.status_code = 0:
@@ -1351,7 +1486,7 @@ rule DisposeFetch {
             else:
                 walk.host.fetched = walk.host.fetched + 1
                 run.report.fetched = run.report.fetched + 1
-                if exists known and known.status = written and known.raw_sha256 = sha256(raw_html(attempt)):
+                if raw_unchanged and entry.url not in run.targets:
                     PageUnchanged(entry: entry, page: known)
                 else if not attempt.is_html:
                     entry.status = skipped_not_html
@@ -1361,7 +1496,9 @@ rule DisposeFetch {
     @guidance
         -- Branch order is evaluation order. Every response counts toward
         -- max_bytes, whatever its status. A 304 for a URL with no stored page
-        -- falls through to failed.
+        -- falls through to failed. A target is always reconverted, even when
+        -- its raw HTML is unchanged; StorePageRecord still leaves the file
+        -- alone when the body comes out the same.
 }
 
 rule EntryFails {
@@ -1508,7 +1645,7 @@ rule ResolveIdentity {
         -- .aspx, append the mapped version segment, keep [A-Za-z0-9._-] in
         -- each segment and replace the rest with "-", and avoid reserved
         -- device names. A candidate that is taken, reserved (index.md,
-        -- index.jsonl, llms.txt, crawl-report.json, docmirror.toml,
+        -- index.jsonl, links.jsonl, llms.txt, crawl-report.json, docmirror.toml,
         -- _index.md, _removed/, .docmirror/) or longer than max_path_chars
         -- becomes a stem cut to max_path_chars - 10, "-", and the first
         -- collision_hash_chars hex of the URL's SHA-256.
@@ -1626,6 +1763,9 @@ rule EnqueuePageLinks {
 rule FinishRun {
     when: FrontierExhausted(run)
     requires: run.status = running
+    let target_skipped =
+        (run.mirror.frontier_entries where url in run.targets
+            and status in { skipped_robots, skipped_blocked, skipped_limit, skipped_not_html }).count > 0
     ensures:
         for page in run.mirror.written_pages where path != null and file_exists(path):
             LinksRewritten(page: page, report: run.report)
@@ -1633,12 +1773,18 @@ rule FinishRun {
     ensures: run.exit_code = most_severe([
         run.exit_code,
         if run.report.failed_urls.count > 0 or run.report.blocked_urls.count > 0: partial else: ok,
+        if target_skipped: partial else: ok,
         if run.hosts.any(h => h.breaker?.status = tripped): blocked else: ok,
         if run.mirror.config.fail_on_low_quality and run.report.low_confidence_pages.count > 0: quality else: ok
     ])
     ensures: run.status = finished
     ensures: run.finished_at = now
     ensures: RunEnded(run: run)
+
+    @guidance
+        -- A target that ends skipped makes the run partial. A target that is
+        -- gone is a legitimate outcome, reported as removed when it held a
+        -- written page.
 }
 
 rule OperatorInterrupt {
@@ -1689,8 +1835,8 @@ rule WriteReport {
 
     @guidance
         -- Written in a finally around the whole run and replaced atomically.
-        -- Hosts, low-confidence pages, every changes list and gate names are
-        -- sorted; blocked and failed URLs are in arrival order. Mean and
+        -- Targets, hosts, low-confidence pages, every changes list and gate
+        -- names are sorted; blocked and failed URLs are in arrival order. Mean and
         -- percentile scores are rounded to four places. The progress stream
         -- ends with one done event.
 }
@@ -1740,15 +1886,19 @@ rule WriteIndexes {
     when: IndexesRequested(mirror)
     let pages = mirror.written_pages where path != null and file_exists(path)
     let entries = sorted_by_path(index_entries(pages))
+    let links = sorted_by_url(link_index_entries(
+        mirror.config, pages, mirror.aliases, mirror.frontier_entries, mirror.observed_urls
+    ))
     ensures:
         for p in pages:
             p.keywords = keywords_for(p, pages)
     ensures:
         if exists mirror.index:
             mirror.index.entries = entries
+            mirror.index.links = links
         else:
-            Index.created(mirror: mirror, entries: entries)
-    ensures: IndexFilesWritten(mirror: mirror, entries: entries)
+            Index.created(mirror: mirror, entries: entries, links: links)
+    ensures: IndexFilesWritten(mirror: mirror, entries: entries, links: links)
 
     @guidance
         -- Keywords are cached by content_sha256, so an unchanged page keeps
@@ -1763,6 +1913,16 @@ rule WriteIndexes {
         -- lists every page; past llms_txt_cap pages, a directory that has its
         -- own _index.md is listed as one link, and root pages are always
         -- listed. Everything is offline and deterministic.
+        -- links.jsonl holds one LinkIndexEntry per canonical URL, without
+        -- fragment, sorted by URL: every link target of a written page, every
+        -- frontier row and every observed URL. mailto:, tel:, javascript: and
+        -- data: targets are left out. A cited URL takes the kind link
+        -- rewriting gave it; any other URL is internal when a written page
+        -- holds it, after following an alias, uncrawled when on an allowed
+        -- host, and external otherwise. path is that written page's path;
+        -- frontier_status is the row's status; seen_in joins the row's
+        -- discovered_via, the observed sources, and link when a page cites it;
+        -- cited_by lists the citing pages' paths, sorted.
 }
 
 ------------------------------------------------------------
@@ -1849,6 +2009,11 @@ invariant RobotsChoiceRecorded {
         r.report.robots_ignored = (r.robots = ignore)
 }
 
+invariant TargetsRecorded {
+    for r in Runs:
+        r.report.targets = r.targets
+}
+
 invariant BreakerNeverPassesHighestTier {
     for b in Breakers:
         b.tier in b.host.run.mirror.config.usable_tiers
@@ -1893,13 +2058,14 @@ surface MirrorSetup {
 
     provides:
         OperatorInitialises(operator, site, out_dir, profile_name?)
-        OperatorRequestsRun(operator, out_dir, requested, resume, dry_run)
+        OperatorRequestsRun(operator, out_dir, requested, resume, dry_run, urls?, paths?)
         OperatorFetchesUrl(operator, url, tier?)
 
     @guarantee RejectedCommandExitsUsage
         -- A command whose preconditions fail exits usage (2) and says why,
-        -- except fetch, which exits partial (1) for an unavailable tier or a
-        -- failed fetch.
+        -- including a targeted run naming a URL that is not http(s) on an
+        -- allowed host or a path the manifest does not hold; except fetch,
+        -- which exits partial (1) for an unavailable tier or a failed fetch.
 }
 
 surface MirrorMaintenance {
@@ -1909,6 +2075,7 @@ surface MirrorMaintenance {
     exposes:
         mirror.report?.exit_code
         mirror.report?.command
+        mirror.report?.targets
         mirror.report?.robots_ignored
         mirror.report?.per_host
         mirror.report?.changes
@@ -1916,9 +2083,10 @@ surface MirrorMaintenance {
         mirror.report?.broken_links
         mirror.report?.quality_summary
         mirror.index?.entries
+        mirror.index?.links
 
     provides:
-        OperatorRequestsRun(operator, mirror.out_dir, requested, resume, dry_run)
+        OperatorRequestsRun(operator, mirror.out_dir, requested, resume, dry_run, urls?, paths?)
         OperatorInterrupts(operator, mirror)
         OperatorVerifies(operator, mirror)
         OperatorRebuildsIndex(operator, mirror)
@@ -1965,6 +2133,11 @@ open question "A refused run records robots_ignored false and no Run in the mani
 open question "An uncaught error writes the report with exit partial while the process itself ends with a traceback; should the report record the error?"
 open question "config_hash covers only the configuration file's text, so --robots=ignore or --stealth from flags or the environment do not change it; should it hash the resolved configuration?"
 open question "stealth = off also removes the browser tier, so it disables all rendering; is that coupling intended?"
+
+-- Targeted runs and the link index
+open question "Sitemap and llms.txt observations are never forgotten, so a URL dropped from every sitemap stays in links.jsonl; should it leave?"
+open question "A new targeted URL counts against max_pages, so a full mirror skips it and the run exits partial; should an operator-named URL be exempt?"
+open question "A targeted run records its command as crawl or update by the usual rule; should it have its own value?"
 
 -- Frontier
 open question "Start URLs are queued without a scope check; should they be held to scope like discovered URLs?"
