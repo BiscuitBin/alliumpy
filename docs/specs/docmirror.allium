@@ -2699,6 +2699,7 @@ open question "Rediscovery never lowers the depth of a non-deferred row, so a UR
 open question "Normal updates do not retry failed, blocked and skipped rows unless they have a written page; should they, in addition to the explicit owner-follow-up path?"
 open question "A row's sitemap lastmod is only filled when empty, so a newer lastmod on a later run never forces a refetch; intended?"
 open question "Deferred tombstone rechecks count against max_pages as new URLs, so a full mirror cannot restore a returned page; intended?"
+open question "robots.txt is fetched outside the polite limiter, and its Sitemap lines are used even under --robots=ignore; intended?"
 open question "With impersonation on, no User-Agent names docmirror while robots rules are evaluated for the agent docmirror; does that meet the visibility invariant?"
 open question "Any two-letter first path segment is treated as a locale and drops a URL out of scope under a pinned locale; should locales come from the profile?"
 open question "Children of a sitemap index are read from any host; should they be held to the allowed hosts?"
