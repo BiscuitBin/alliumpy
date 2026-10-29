@@ -38,6 +38,7 @@ snapshot.
 | T14 | Release: the rehearsed matrix, `release-pypi.yml` by trusted publishing, `alliumpy 3.6.1` on PyPI | `T14-release.md` | T12 | T15 | open |
 | T15 | Mutation testing, benchmarks and fuzzing over `alliumpy-core` | `T15-mutants-bench-fuzz.md` | T11 | T12, T13, T14 | open |
 | T17 | Renovate over every pin except the upstream crate; the upstream-bump runbook | `T17-renovate.md` | T14, T15 | none | open |
+| T18 | Verification gaps: the checks the wave-0 and wave-1 hand-backs did not run | `T18-verification-gaps.md` | T11 | T12, T13, T14, T15, T17 | open |
 
 The ids follow pachinko's where the ticket is the same kind of work, so that the two
 repositories stay comparable, and fill the gaps pachinko left: T03 and S01 are new here;
@@ -54,7 +55,8 @@ T00 ─┬─ T01 ──────────────┐
      ├─ T03 ──────────────┤
      ├─ T05 ──────────────┼─ T11 ─┬─ T13 ── T12 ── T14 ─┐
      ├─ T07 ──────────────┤       │                     ├─ T17
-     └─ S01 ──────────────┘       └─ T15 ───────────────┘
+     └─ S01 ──────────────┘       ├─ T15 ───────────────┘
+                                  └─ T18
 ```
 
 The graph is acyclic: T00, then six wave-1 lanes, then T11, then wave 2.
