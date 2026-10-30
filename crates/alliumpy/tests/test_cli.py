@@ -11,7 +11,6 @@ import errno
 import hashlib
 import json
 import os
-import pty
 import select
 import signal
 import subprocess
@@ -20,6 +19,9 @@ import time
 from pathlib import Path
 
 import pytest
+
+# POSIX-only, as parity is; on Windows the module skips instead of failing to collect.
+pty = pytest.importorskip("pty")
 
 ROOT = Path(__file__).resolve().parents[3]
 SMOKE = ROOT / "tests/fixtures/smoke"

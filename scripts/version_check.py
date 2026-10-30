@@ -7,6 +7,9 @@ import sys
 import tomllib
 from pathlib import Path
 
+# A reference that hangs is a failed read, not a gate that never returns.
+REFERENCE_TIMEOUT_SECONDS = 60
+
 
 def reference_output(reference: Path) -> str | None:
     """The reference's `--version` output, empty when it is missing, None when it fails."""
@@ -14,12 +17,17 @@ def reference_output(reference: Path) -> str | None:
         return ""
     try:
         result = subprocess.run(
-            [str(reference), "--version"], capture_output=True, text=True, check=False
+            [str(reference), "--version"],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=REFERENCE_TIMEOUT_SECONDS,
         )
-    except OSError as error:
+    except (OSError, subprocess.TimeoutExpired) as error:
         print(f"version-check: the reference {reference} fails to run: {error}", file=sys.stderr)
         return None
-    if result.returncode != 0:
+    # Only a well-formed `allium x.y.z` line can be stale; anything else is a failed read.
+    if result.returncode != 0 or re.match(r"allium [0-9]+\.[0-9]+\.[0-9]+", result.stdout) is None:
         print(f"version-check: invalid reference version output: {result!r}", file=sys.stderr)
         return None
     return result.stdout
@@ -39,7 +47,8 @@ def version_string(root: Path, pin: str, source: str, console: str) -> int:
         )
         return 1
     # The reference is built by a network recipe outside check: a missing or stale
-    # one is a note, not drift (T13). One that exists but fails to run is a failed read.
+    # one is a note, not drift (T13). One that exists but fails to run or prints no
+    # version line is a failed read.
     output = reference_output(root / ".tools/parity/bin/allium")
     if output is None:
         return 1
