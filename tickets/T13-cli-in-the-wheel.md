@@ -1467,6 +1467,32 @@ version-check: all five versions agree: 3.6.1
 version-check: the reference prints the same: allium 3.6.1 (language versions: 1, 2, 3)
 ```
 
+### Pull request review: inherited SIGINT
+
+Copilot's review of #26 at `6f4aef1` (one finding, medium,
+[`_cli.py:15`](https://github.com/BiscuitBin/alliumpy/pull/26#discussion_r4421132702)): a
+command started with SIGINT ignored keeps ignoring it under upstream, but `_cli.py`
+reset it to the default. Valid, reproduced before the fix with SIGINT 2 s into `check`
+of a FIFO (`ai_tmp/sigign_probe.py`):
+
+```text
+reference, inherited SIG_DFL: alive after SIGINT=False returncode=-2 stderr=b''
+reference, inherited SIG_IGN: alive after SIGINT=True returncode=0 stderr=b''
+candidate, inherited SIG_DFL: alive after SIGINT=False returncode=-2 stderr=b''
+candidate, inherited SIG_IGN: alive after SIGINT=False returncode=-2 stderr=b''
+```
+
+Python leaves an inherited `SIG_IGN` in place at startup, and S01's shim overrode it. Test
+first: `test_sigint_inherited_as_ignored_stays_ignored` (through `sh -c 'trap "" INT;
+exec ...'`) passed against the reference and failed against the candidate. The fix:
+`_cli.py` restores the default only when `signal.getsignal(signal.SIGINT)` is not
+`SIG_IGN`, a deviation from S01's drafted shim; decision 0014's sentence,
+`architecture.md` and `testing.md` say so. Then the candidate printed the reference's two
+lines above; `just parity` exit 0, `202 compared, 0 differ`, both controls fired, `49
+passed, 2 skipped` (macOS); Linux container `202 compared, 0 differ` and `51 passed`
+against both binaries; `just check` exit 0, `All checks passed and the worktree is
+unchanged.`
+
 ## Open points
 
 - Whether stderr joins the byte comparison, as S01 recommended or declined; the harness

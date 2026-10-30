@@ -230,6 +230,36 @@ def test_sigint_during_a_blocked_read_kills_the_command(tmp_path: Path) -> None:
         child.communicate()
 
 
+def test_sigint_inherited_as_ignored_stays_ignored(tmp_path: Path) -> None:
+    """Started with SIGINT ignored, `check` survives it and ends as the reference does.
+
+    The reference measured on PR #26: alive after the signal, then exit 0, empty stderr.
+    """
+    fifo = tmp_path / "blocked.allium"
+    os.mkfifo(fifo)
+    child = subprocess.Popen(  # noqa: S603  A fixed script; the command is a positional parameter.
+        ["/bin/sh", "-c", 'trap "" INT; exec "$0" check "$1"', binary(), str(fifo)],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    try:
+        time.sleep(2)
+        child.send_signal(signal.SIGINT)
+        time.sleep(1)
+        assert child.poll() is None
+        descriptor = os.open(fifo, os.O_WRONLY | os.O_NONBLOCK)
+        os.write(descriptor, b"-- allium: 3\n")
+        os.close(descriptor)
+        _, stderr = child.communicate(timeout=6)
+        assert (child.returncode, stderr) == (0, b"")
+    finally:
+        if child.poll() is None:
+            release(fifo)
+            child.kill()
+        child.communicate()
+
+
 def on_a_terminal(args: list[str]) -> tuple[int, bytes]:
     """Run the command with stdout and stderr on one pseudo-terminal; return all it wrote."""
     primary, secondary = pty.openpty()

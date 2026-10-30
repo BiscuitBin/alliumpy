@@ -101,7 +101,7 @@ corpus, not every input.
 
 `crates/alliumpy/tests/test_cli.py` then runs against the same candidate what no
 argument list reaches: a broken pipe, a full or closed stdout, an argument that is not
-UTF-8, SIGINT during a blocked read and the order of both streams on a terminal, each
+UTF-8, SIGINT during a blocked read (with its default action and inherited as ignored) and the order of both streams on a terminal, each
 against the reference's recorded result, plus `alliumpy.parse` against `allium check`'s
 leading diagnostics over the corpus. It reads `ALLIUMPY_SMOKE_BIN`, which only
 `just parity` sets, and is skipped under `py-test`. `test_run_cli.py` covers the

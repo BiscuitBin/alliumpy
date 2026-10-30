@@ -29,7 +29,7 @@ the handles, a failed write still panics as upstream's does, and `run` returns 1
 panic as upstream's binary exits; `run_os` takes the arguments as the operating system
 passed them and returns 101 for one that is not UTF-8, as upstream's `std::env::args`
 panics. `--version` prints `ALLIUM_VERSION_STRING`. The bindings expose `_run_cli`,
-which writes to the process's own streams; `_cli.py` restores SIGINT's default action
+which writes to the process's own streams; `_cli.py` restores SIGINT's default action (unless it was inherited as ignored)
 and points a closed standard descriptor at the null device, as Rust's runtime does for
 upstream's binary, then passes `sys.argv[1:]` and exits with the status. `serde` and `serde_json` join the core's
 dependencies under [decision 0004](0004-dependency-policy.md).

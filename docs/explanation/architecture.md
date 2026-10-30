@@ -52,7 +52,7 @@ The `allium` command is upstream's, vendored. Upstream's `main.rs`, `test_plan.r
 `domain_model.rs` at the pinned tag live in `crates/alliumpy-core/src/cli/`, transformed
 so that `alliumpy_core::cli::run(args, stdout, stderr)` returns the exit status; the
 bindings expose it as the private `_run_cli`, and the console shim `_cli.py` restores
-SIGINT's default, points a closed standard descriptor at the null device, and exits
+SIGINT's default unless it was inherited as ignored, points a closed standard descriptor at the null device, and exits
 with that status. [Record 0014](../decisions/0014-cli-strategy.md) gives the route and
 why S01 chose it over bundling a binary or waiting for upstream. `just parity` proves
 stdout and exit-code parity with upstream's `allium-cli` at the pin.
