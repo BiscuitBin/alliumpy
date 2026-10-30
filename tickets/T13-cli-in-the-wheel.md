@@ -1224,8 +1224,7 @@ exit 0
 ```
 
 With `.tools/parity` moved aside: `version-check: note: no reference allium 3.6.1 to
-compare; run just install-parity-reference`, exit 0. The CI log of this step is pending
-the pull request. `wheel-smoke` ends with `allium check tests/fixtures/smoke/ok.allium`,
+compare; run just install-parity-reference`, exit 0. The CI log of this step is under Pull request below. `wheel-smoke` ends with `allium check tests/fixtures/smoke/ok.allium`,
 exit 0 (its JSON's last lines `"spec_file": "tests/fixtures/smoke/ok.allium"` and `}`).
 
 ### The green parity run (step 7)
@@ -1253,7 +1252,7 @@ On Linux, in a `python:3.13-bookworm` container with the wheel built from this w
 content at `d0a6841` (`alliumpy-3.6.1-cp311-abi3-manylinux_2_34_aarch64.whl`, toolchain
 1.99.1) and the reference built there: the harness exit 0 with the same four lines, and
 `test_cli.py` `50 passed` with no skip, against the candidate and against the reference
-(`ai_tmp/linux-parity.sh`). The `parity` CI job is the record; its run is pending.
+(`ai_tmp/linux-parity.sh`). The `parity` CI job's first run is under Pull request below.
 
 ### CI (step 8)
 
@@ -1305,7 +1304,7 @@ README.md
 ```
 
 `just --evaluate PATH` prints no newline, so its `exit 0` joins the line. The PATH grep
-for `parity` and the `from T13` grep each exit 1. `gh pr checks` waits for step 11. `just check` after this file's commit is
+for `parity` and the `from T13` grep each exit 1. `gh pr checks` is under Pull request below. `just check` after this file's commit is
 quoted in the pull request, since a file cannot quote the run on its own commit.
 
 ### What an upstream bump costs under route (a), for T17
@@ -1439,11 +1438,34 @@ parse diagnostics over 30 files: 1
 ======================== 48 passed, 2 skipped in 6.51s =========================
 ```
 
-### Not done here
+### Pull request (step 11)
 
-Step 11: push and pull request, with the `parity` job's first run, summary line and URL,
-and the acceptance criterion "the `parity` CI job is green on the pull request". They
-wait for the maintainer's authorisation.
+Authorised by the maintainer: [#26](https://github.com/BiscuitBin/alliumpy/pull/26),
+head `6f4aef1`. `gh pr checks 26 --repo BiscuitBin/alliumpy`, every check `pass`:
+`audit`, `check`, `coverage`, `deny`, `documents`, `parity`, `python`, `rust`,
+`wheel-smoke-py311`. The `parity` job's first run,
+<https://github.com/BiscuitBin/alliumpy/actions/runs/41010864182/job/123916480113>, on
+`ubuntu-latest` (toolchain `1.99.1-x86_64-unknown-linux-gnu`): its reference cache
+missed (`Cache not found for input keys: Linux-X64-parity-cc78c869…`), so
+`install-parity-reference` built it and printed `allium 3.6.1 (language versions: 1, 2,
+3)`; the wheel was `alliumpy-3.6.1-cp311-abi3-manylinux_2_34_x86_64.whl`. `just parity`:
+
+```text
+positive control: check <corpus>/alliumpy/xmod/app/orders.allium exits 1 under the reference
+202 compared, 0 differ
+negative control: candidate plus one byte, check <corpus>/alliumpy/xmod/app/orders.allium: fired (stdout differs)
+negative control: candidate forced to exit 0, check <corpus>/alliumpy/xmod/app/orders.allium: fired (exit status: reference 1, candidate 0)
+parse diagnostics over 30 files: 1
+============================= 50 passed in 10.39s ==============================
+```
+
+No `skipped` count and no `SKIPPED` line on Linux: the `/dev/full` cases ran. `just
+version-check`, the reference clause firing in CI:
+
+```text
+version-check: all five versions agree: 3.6.1
+version-check: the reference prints the same: allium 3.6.1 (language versions: 1, 2, 3)
+```
 
 ## Open points
 
