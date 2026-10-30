@@ -66,7 +66,7 @@ and `fuzz-build` are reports or proofs a person runs, never part of `check`.
 | `site` | Empty `target/doc`, run doc, then write a root index linking both crates. Outside check. |
 | `deny` | Offline licence, ban and source checks. |
 | `audit` | Advisory check requiring the RustSec database; outside check. |
-| `mutants` | Require a non-empty mutant list, then run cargo-mutants over the core on a copy of the tree; a report outside check. |
+| `mutants` | Check the locks offline, require a non-empty mutant list for the selection, then run cargo-mutants over the core on a copy of the tree; a report outside check. |
 | `deps-unused` | Report declared dependencies no crate uses. |
 
 ## Documents

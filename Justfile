@@ -269,8 +269,10 @@ audit:
 # needs libpython. The first line is the positive control over the same selection
 # the run uses, the caller's filters included: a filter that matched nothing would
 # otherwise print a green summary over zero mutants. Exit 2
-# means a mutant survived, 3 a timeout, 4 a failing baseline.
-mutants *args:
+# means a mutant survived, 3 a timeout, 4 a failing baseline. lock-check runs
+# first: the listing pass's `cargo metadata` takes no --locked and would rewrite a
+# stale Cargo.lock.
+mutants *args: lock-check
     [ "$(cargo mutants --list --package alliumpy-core --all-features "$@" | grep -c .)" -gt 0 ] || { printf '%s\n' 'mutants: no mutants found; the filters select nothing' >&2; exit 1; }
     cargo mutants --package alliumpy-core --all-features --gitignore=true --cargo-arg=--locked "$@"
 

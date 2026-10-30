@@ -534,6 +534,45 @@ The checkpoint's questions:
 After the fixes, at `1c5f5bb`, the Verification block was re-run (quoted above). The
 final `just check` is quoted below.
 
+### Code review (`/code-review medium`, after the notes commit)
+
+It ran over `main...HEAD` at `7ceabb1` and returned ten findings. Two were applied in the
+last commit:
+
+- **`mutants` now depends on `lock-check`.** cargo-mutants' listing pass runs `cargo
+  metadata` without `--locked`, which would rewrite a stale `Cargo.lock`. This is the
+  `snapshots-check` pattern.
+- **`fuzz.yml` sets `cancel-in-progress: false`**, as P does. A manual dispatch could
+  otherwise cancel the scheduled run and discard its crash upload.
+
+After both, `just mutants` runs both offline lock lines first and reports
+`7 mutants tested in 9s: 5 caught, 2 unviable`, exit 0.
+
+Not applied, and handed back for the maintainer:
+
+- **The weekly `fuzz.yml` will stop at the known upstream crash every week**, so it can
+  find nothing new until upstream ships a fix. Running with libFuzzer's `-fork` and
+  `-ignore_crashes` would keep it exploring, but that is a design change to the ticket's
+  recipe.
+- **`fuzz/Cargo.lock` is outside cargo-deny.** Neither `deny` nor `audit` checks it, so
+  libfuzzer-sys, cc and jobserver go unaudited. A
+  `cargo deny --manifest-path fuzz/Cargo.toml` line belongs to a follow-up. It touches
+  `deny.toml` and the audit recipe, outside Files touched.
+- **The fuzz manifest repeats only the `forbid` rust lints and the clippy table.**
+  `[workspace.lints.rust]` levels such as `missing_docs` and `unreachable_pub`, and the
+  rustdoc table, are not repeated. The ticket asked for the `forbid` table.
+- **The two Cargo lockfiles resolve the shared graph separately** and could drift, so the
+  fuzzer would test other transitive versions than the wheel ships. Today they agree
+  (step 5).
+- **A job timeout counts as cancelled**, so `mutants.yml`'s `!cancelled()` upload would
+  skip the partial report; that is L's shape. Raise `timeout-minutes` before it bites.
+- **Low, left as they are:**
+  - the guard's message hides a failing `--list` behind "the filters select nothing"
+    (the guard still fails closed);
+  - `bench` keeps L's `--workspace` form;
+  - AGENTS.md's "not network" wording assumes `just install-tools` has installed
+    cargo-fuzz, as every `tools.txt` tool assumes.
+
 ### Stops awaiting separate authorisation
 
 - the push

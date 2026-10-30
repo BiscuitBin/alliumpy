@@ -16,7 +16,9 @@ permissions:
 
 concurrency:
   group: fuzz-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # A dispatch waits for the scheduled run rather than cancelling it, which
+  # would discard a crash the cancelled run had found.
+  cancel-in-progress: false
 
 env:
   CARGO_TERM_COLOR: always
