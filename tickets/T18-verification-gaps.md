@@ -546,6 +546,27 @@ empty after it. Not pushed; no pull request opened. Item 8's evidence, after a
 separately authorised post-merge action and `ci.yml` run, follows in its own evidence
 commit (step 13).
 
+### Rebase onto `origin/main` (2026-10-30)
+
+`git fetch origin` found `main` at `eb141cb` (T15 merged). The branch was rebased onto
+it; the one conflict, the two `quality-gates.md` rows, kept T18's `check-toolchain` row
+and T15's `lock-check` row. The SHAs quoted above are the commits the evidence ran at;
+after the rebase they are `f476bd5` → `5a01a44`, `9da65ce` → `7ddfa28`, `e6ed03d` →
+`b164dd4`, `cc8e96b` → `6b8fe7e`, `b02f420` → `343f6f4` and `25a2c2e` → `18af4dd`. T15
+added `exclude = ["fuzz"]` to the workspace; `cargo metadata` leaves the fuzz crate out,
+as review finding B1 intended. Requoted at `18af4dd`:
+
+```text
+$ just check            → exit 0, "All checks passed and the worktree is unchanged."
+$ just version-check    → "version-check: all 7 versions agree: 3.6.1", exit 0
+$ just check-toolchain  → "1.99.1-aarch64-apple-darwin (overridden by ...)", exit 0
+$ RUSTUP_TOOLCHAIN=1.98.1 just check-toolchain
+the active toolchain is 1.98.1-aarch64-apple-darwin, not the pinned 1.99.1   (exit 2)
+$ # scratch copy, alliumpy-core version = "9.9.9"; just version-check
+version-check: workspace version='3.6.1' differs from crate alliumpy-core version='9.9.9'   (exit 1)
+$ git status --short    → 0 lines
+```
+
 ## Open points
 
 - Items 3, 4, 7, 9, 10 and 12 may close by a maintainer ruling instead of a run; the
