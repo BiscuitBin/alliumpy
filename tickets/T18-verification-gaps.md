@@ -492,7 +492,9 @@ the Breakage lens bullet, worded:
 Two read-only Codex reviewers (`gpt-6-astra`, `codex exec -s read-only`), one per lens,
 read the ticket, `CONVENTIONS.md` and `git diff main...HEAD` plus the uncommitted
 changes at `9da65ce` (`ai_tmp/review/T18-1/`). `/code-review` (medium) then read the
-branch at `e6ed03d`. Triage, by the executing agent:
+branch at `e6ed03d`. Deviation from §14 Phase 2, as the approved plan directed: the
+executing agent triaged and applied the fixes, not separate triage subagents.
+Triage:
 
 - B1 (medium, `version_check.py`): glob membership misses a path-dependency member and
   ignores `exclude`. Valid; fixed in `e6ed03d` (`cargo metadata`), control above.
@@ -508,10 +510,13 @@ branch at `e6ed03d`. Triage, by the executing agent:
   selects, so `<pin>-<other host>` passed. Valid; fixed in `cc8e96b` (rustup's default
   host), control above.
 - R3 (`Justfile:37`): the proxy's `rustc` could auto-install a missing toolchain.
-  Valid, and it applies to `rustup show active-toolchain` as well: while the review ran,
-  `1.99.1-x86_64-apple-darwin` was installed into `~/.rustup` at 22:26:39, a download
-  nothing authorised. Fixed in `cc8e96b` (no `rustc`, `RUSTUP_AUTO_INSTALL=0`); that
-  toolchain is still installed and is the maintainer's to remove.
+  Valid. While the review ran, its probe of a `1.99.1-x86_64-apple-darwin` override
+  (it reported running `rustup show active-toolchain` and `rustc -vV`) installed that
+  toolchain into `~/.rustup` at 22:26:39, a download nothing authorised; which of the
+  two calls installed it was not established, and the unguarded path was not retried.
+  Fixed in `cc8e96b`: no `rustc` runs, and `RUSTUP_AUTO_INSTALL=0` on both rustup calls
+  makes an uninstalled toolchain a refusal (the 1.97.0 control above). That toolchain
+  is still installed and is the maintainer's to remove.
 - R4 (`Justfile:37`): `rustc` resolved through the pixi and `.tools` directories first.
   Removed with R2's fix.
 - R5 (`pyproject.toml`): no gate asserts the wheel holds no bytecode. Valid; the
