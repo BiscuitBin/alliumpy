@@ -45,7 +45,8 @@ deliberate runtime/stub mismatch must fail. mypy checks declared types; it does 
 wheel, creates a fresh venv on pixi's interpreter with no Python download, and installs
 with `--offline --no-index --no-deps`. Isolated Python (`-I`) imports that installation,
 parses the clean and broken smoke fixtures and checks versions. The installed console
-script must print upstream's version string. T13 adds a clean `check` invocation.
+script must print upstream's version string and exit 0 from `allium check` on the clean
+fixture.
 A release build on every gate is the cost of testing the artefact that will ship.
 
 ## Coverage
@@ -86,12 +87,25 @@ cargo-insta cannot forward `--locked`, snapshot recipes validate both locks and 
 offline. Review a changed picture, run `snapshots-accept` for intended changes, read its
 diff and explain it. `snapshots-review` offers interactive review at a terminal.
 
-## Future evidence
+## Command parity
 
-T13 adds POSIX parity: the exact crates.io-built CLI reference stays off PATH, the
-harness compares stdout byte for byte and exit status across upstream files and directory
-inputs, and an empty corpus or a non-firing positive control fails. This proves the
+`just parity` is POSIX-only and outside `check`, because its reference needs the network
+to build; the `parity` CI job runs it on Linux. The reference is upstream's `allium-cli`
+built from crates.io at the pin into `.tools/parity/`, off `PATH`.
+`tests/parity/run.py` runs both commands over `tests/fixtures/parity/` (upstream's
+`.allium` files at the tag, plus one cross-module pair of this repository's) and the
+argument matrix in `tests/parity/README.md`, and compares stdout bytes and exit status;
+stderr is reported, never compared. It fails closed on an empty corpus, runs a positive
+control and two negative controls, and prints `N compared, M differ`. This proves the
 corpus, not every input.
+
+`crates/alliumpy/tests/test_cli.py` then runs against the same candidate what no
+argument list reaches: a broken pipe, a full or closed stdout, an argument that is not
+UTF-8, SIGINT during a blocked read and the order of both streams on a terminal, each
+against the reference's recorded result, plus `alliumpy.parse` against `allium check`'s
+leading diagnostics over the corpus. It reads `ALLIUMPY_SMOKE_BIN`, which only
+`just parity` sets, and is skipped under `py-test`. `test_run_cli.py` covers the
+`_run_cli` binding itself.
 
 ## Mutation testing
 

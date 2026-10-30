@@ -66,8 +66,10 @@ Tests assert observable results rather than that an internal function was called
 The linter positive controls must fail with the fixture's own named violations;
 a missing input or a tool error is no evidence. The offline wheel smoke installs the
 release artefact into a fresh environment and runs Python with `-I`, so an editable
-checkout cannot hide a broken wheel. T13 adds byte-for-byte stdout and exit-code parity
-against a reference built from the exact upstream release; an empty corpus must fail.
+checkout cannot hide a broken wheel. `just parity` compares the command byte for byte on
+stdout and exactly on exit status against a reference built from the exact upstream
+release; an empty corpus fails, and two negative controls must each be reported as the
+difference they plant before any result is printed.
 
 ## Upstream is the arbiter
 

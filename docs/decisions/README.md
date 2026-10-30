@@ -38,8 +38,8 @@ until evidence supports a decision.
 | [0016](0016-mutation-bench-and-fuzz.md) | Mutation testing, benchmarks and fuzzing |
 
 Records 0015 and 0017 are written by T14 and T17 respectively, which register their
-new pages and add rows when those decisions are taken; T15 wrote 0016. S01 drafted record 0014,
-and T13 lands it in place of the stub.
+new pages and add rows when those decisions are taken; T15 wrote 0016. Record 0014 is
+S01's draft, landed by T13.
 
 ## The numbering
 

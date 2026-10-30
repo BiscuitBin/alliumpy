@@ -14,3 +14,4 @@ Release notes will be added when changes are ready for users.
 - Mutation testing (`just mutants`, weekly `mutants.yml`), a divan benchmark (`just bench`)
   and a stable fuzz target over `alliumpy_core::parse` (`just fuzz`, weekly `fuzz.yml`),
   all reports outside the gate (decision 0016).
+- The `allium` command is upstream's `allium-cli` 3.6.1, vendored, with stdout and exit-code parity proved by `just parity` (decision 0014).

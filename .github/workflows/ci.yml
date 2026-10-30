@@ -28,7 +28,7 @@ env:
 # Ubuntu only: two crates and a wheel, with eol=lf forced by .gitattributes
 # and rustfmt, so a second operating system would prove nothing here the
 # first does not; the other platforms' wheels are the release workflow's.
-# `check`, last, is the one required check; the six gate jobs are its
+# `check`, last, is the one required check; the seven gate jobs are its
 # `needs`, so no name carries a slash or a space. wheel-smoke-py311 is the
 # one gate job not on the setup action: it installs the wheel `python`
 # built on Python 3.11, an interpreter pixi does not have, and must not
@@ -127,6 +127,36 @@ jobs:
           venv/bin/pip install --no-index --no-deps dist/*.whl
           venv/bin/python -I tests/fixtures/smoke/smoke.py
           venv/bin/allium --version
+          venv/bin/allium check tests/fixtures/smoke/ok.allium
+
+  # Byte-for-byte stdout and exit-code parity with upstream's allium-cli at the
+  # pin, and the behaviours beyond the corpus (decision 0014). After python, so
+  # that python's post-job save of the setup action's .tools cache always
+  # precedes this job and .tools/parity never enters that tools-keyed cache.
+  # The reference has its own cache, keyed on the runner and on Cargo.toml,
+  # which holds the pin; a hit leaves cargo install nothing to build. The one
+  # job where the reference exists, so version-check's reference clause fires.
+  parity:
+    name: parity
+    needs: [python]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          cache-key: parity
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .tools/parity
+          key: ${{ runner.os }}-${{ runner.arch }}-parity-${{ hashFiles('Cargo.toml') }}
+      - run: just install-parity-reference
+      - run: just parity
+      - run: just version-check
+      # For the reason rust's last step gives.
+      - run: just check-clean
 
   coverage:
     name: coverage
@@ -198,7 +228,7 @@ jobs:
   # no setup action, and no `${{ }}` inside a shell line.
   check:
     name: check
-    needs: [rust, python, wheel-smoke-py311, coverage, deny, documents]
+    needs: [rust, python, wheel-smoke-py311, parity, coverage, deny, documents]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
