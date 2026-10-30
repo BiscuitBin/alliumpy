@@ -1,6 +1,7 @@
 # Copyright 2026 Steven Cutting
 """Compare independently written release versions with the installed console script."""
 
+import json
 import re
 import subprocess
 import sys
@@ -68,6 +69,39 @@ def version_string(root: Path, pin: str, source: str, console: str) -> int:
     return 0
 
 
+def member_versions(root: Path) -> dict[str, str] | None:
+    """Each workspace member's version as cargo resolves it, or None after an error.
+
+    A member manifest either inherits the workspace version or writes its own; an
+    explicit one would drift silently past the workspace table. Cargo, not a glob over
+    members, decides membership: a path dependency joins the workspace and an excluded
+    directory does not.
+    """
+    metadata = subprocess.run(
+        [  # noqa: S607 - check-toolchain proves PATH's cargo is rustup's proxy.
+            "cargo",
+            "metadata",
+            "--no-deps",
+            "--format-version=1",
+            "--locked",
+            "--offline",
+            "--manifest-path",
+            str(root / "Cargo.toml"),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if metadata.returncode != 0:
+        print(f"version-check: cargo metadata failed: {metadata.stderr}", file=sys.stderr)
+        return None
+    packages = json.loads(metadata.stdout)["packages"]
+    if not packages:
+        print("version-check: no workspace member crate was found", file=sys.stderr)
+        return None
+    return {f"{package['name']} version": package["version"] for package in packages}
+
+
 def main(argv: list[str]) -> int:
     """Fail with both names and values when release metadata drifts."""
     root = Path(__file__).resolve().parents[1]
@@ -106,24 +140,10 @@ def main(argv: list[str]) -> int:
         "ALLIUM_VERSION": match[1],
         "console version": words[1],
     }
-    # Each member manifest either inherits the workspace version or writes its own;
-    # an explicit one would drift silently past the workspace table, and an absent
-    # one is 0.0.0 to cargo.
-    members = [
-        path
-        for pattern in cargo["workspace"]["members"]
-        for path in sorted(root.glob(pattern))
-        if (path / "Cargo.toml").is_file()
-    ]
-    if not members:
-        print("version-check: no workspace member crate was found", file=sys.stderr)
+    members = member_versions(root)
+    if members is None:
         return 1
-    for member in members:
-        package = tomllib.loads((member / "Cargo.toml").read_text())["package"]
-        version = package.get("version", "0.0.0")
-        if version == {"workspace": True}:
-            version = versions["workspace version"]
-        versions[f"{package['name']} version"] = version
+    versions.update(members)
     expected = versions["workspace version"]
     for name, value in versions.items():
         if value != expected:
