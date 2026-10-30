@@ -54,13 +54,15 @@ install-tools:
     pins=$(sed -e '/^#/d' -e '/^$/d' tools.txt); [ -z "$pins" ] || cargo binstall --root .tools --no-confirm --locked --disable-strategies compile $pins
     pins=$(sed -e '/^#/d' -e '/^$/d' tools-source.txt); [ -z "$pins" ] || env -u GITHUB_TOKEN -u GH_TOKEN cargo binstall --root .tools --no-confirm --locked --disable-strategies crate-meta-data --only-signed --no-discover-github-token $pins
 
-# Both lockfiles, exactly as committed. Never rewrites either.
+# All three lockfiles, exactly as committed. Never rewrites any.
 sync:
     cargo fetch --locked
+    cargo fetch --locked --manifest-path fuzz/Cargo.toml
     pixi install --frozen
 
 lock:
     cargo update --workspace
+    cargo update --workspace --manifest-path fuzz/Cargo.toml
     pixi lock
 
 # Within the manifest's constraints only; every direct pin is exact, so this
@@ -68,6 +70,7 @@ lock:
 # rewrites the pins themselves and is not this recipe.
 lock-upgrade:
     cargo update
+    cargo update --manifest-path fuzz/Cargo.toml
     pixi update
 
 # Offline, like every gate recipe: a cold Cargo cache fails rather than
@@ -76,6 +79,7 @@ lock-upgrade:
 # would otherwise rewrite a stale lock from that restricted solve.
 lock-check:
     cargo update --workspace --locked --offline
+    cargo update --workspace --locked --offline --manifest-path fuzz/Cargo.toml
     pixi lock --check --offline --dry-run
 
 # The shim, then every hook environment (seven clones; Go under prek's cache;
@@ -93,6 +97,36 @@ install-hooks:
     -RUSTUP_AUTO_INSTALL=0 prek run lychee --files README.md
 
 # ---------------------------------------------------------------- develop ---
+
+# Benchmarks, by hand: timings measure the machine and its load as much as the
+# code, so never a gate and never in CI. Bench targets only: without --bench '*'
+# cargo also runs every unit test in bench mode, as ignored. just clippy already
+# compiles the benches, so a bench that stops building fails the gate.
+bench *args:
+    cargo bench --workspace --all-features --locked --bench '*' "$@"
+
+# Fuzzing, by hand: nondeterministic, so never a gate. On the pinned stable
+# toolchain without a sanitizer: AddressSanitizer needs nightly, and every crate
+# forbids unsafe code. cargo-fuzz takes no --locked and would rewrite a stale
+# fuzz/Cargo.lock, so the first line refuses one offline; `cargo fetch` would be
+# a network command, and this is not a network recipe (`just sync` fills the
+# cache). CARGO_NET_OFFLINE keeps cargo-fuzz's own build offline too. --target
+# because cargo-fuzz defaults to the triple it was built for, and its macOS
+# binary is x86_64. seconds bounds the fuzzing, not the build.
+fuzz target seconds="300":
+    cargo update --workspace --locked --offline --manifest-path fuzz/Cargo.toml
+    CARGO_NET_OFFLINE=true cargo fuzz run --sanitizer none --target "$(rustc -vV | sed -n 's/^host: //p')" "$1" -- -max_total_time="$2"
+
+# The fuzz crate compiles on the pinned stable, without running it. The weekly
+# job would otherwise be the only thing that notices a fuzz target that no
+# longer builds, and weekly jobs rot. Not in check's recipe list: clippy
+# already lints the crate every run; this is the one line ci.yml runs so a
+# broken target names itself in the step list. cargo-fuzz takes no --locked
+# and would rewrite a stale fuzz/Cargo.lock, so the offline lock guard runs first,
+# and CARGO_NET_OFFLINE keeps the build itself offline, as in fuzz.
+fuzz-build:
+    cargo update --workspace --locked --offline --manifest-path fuzz/Cargo.toml
+    CARGO_NET_OFFLINE=true cargo fuzz build --sanitizer none --target "$(rustc -vV | sed -n 's/^host: //p')"
 
 build:
     cargo build --workspace --all-features --locked
@@ -132,6 +166,7 @@ snapshots-accept: lock-check
 
 format:
     cargo fmt --all
+    cargo fmt --manifest-path fuzz/Cargo.toml
     taplo fmt
 
 # Automatic repairs. The fix config is run twice because a
@@ -139,7 +174,9 @@ format:
 fix:
     -prek run --all-files --config .pre-commit-fix.yaml
     prek run --all-files --config .pre-commit-fix.yaml
+    cargo fmt --manifest-path fuzz/Cargo.toml
     cargo clippy --workspace --all-targets --all-features --locked --fix --allow-dirty --allow-staged
+    cargo clippy --manifest-path fuzz/Cargo.toml --all-targets --locked --fix --allow-dirty --allow-staged
     just lint
 
 # ------------------------------------------------------------------ check ---
@@ -147,8 +184,10 @@ fix:
 lint:
     prek run --all-files
 
+# cargo fmt --all skips the fuzz crate, which is outside the workspace.
 fmt-check:
     cargo fmt --all --check
+    cargo fmt --manifest-path fuzz/Cargo.toml --check
 
 toml-check:
     taplo fmt --check
@@ -156,8 +195,13 @@ toml-check:
 
 # Every lint the manifests declare, as errors. The manifests say `warn` so a
 # local build never breaks mid-edit; this is where warnings become failures.
+# The fuzz crate is outside the workspace, so --workspace skips it, and its own
+# lint tables (invariants 4 and 5) hold only if something compiles it.
+# libfuzzer-sys's build script compiles libFuzzer's C++ through cc, so this line
+# makes a C++ compiler a prerequisite of the gate.
 clippy:
     cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+    cargo clippy --manifest-path fuzz/Cargo.toml --all-targets --locked -- -D warnings
 
 # Gate 7: complexity, cohesion and coupling, through rustqual against
 # rustqual.toml, once per crate. The version check comes first: rustqual's
@@ -214,6 +258,23 @@ deny:
 # `just check` for the same reason check-links-online does.
 audit:
     cargo deny --locked check advisories
+
+# Mutation testing, a report and never a gate: it grows with the core towards
+# hours, and a mutant that survives asks for a judgement. It mutates a copy of the
+# tree, so the worktree gains only mutants.out/, which Git ignores; the copy leaves
+# out what Git ignores, or it would carry .pixi/ and .tools/ into every build.
+# `cargo test`, not nextest, because nextest skips doctests and a mutant only a
+# doc example catches would be reported missed. The core alone: the pyo3 crate's
+# tests are Python's, so every mutant there would be missed, and its test binary
+# needs libpython. The first line is the positive control over the same selection
+# the run uses, the caller's filters included: a filter that matched nothing would
+# otherwise print a green summary over zero mutants. Exit 2
+# means a mutant survived, 3 a timeout, 4 a failing baseline. lock-check runs
+# first: the listing pass's `cargo metadata` takes no --locked and would rewrite a
+# stale Cargo.lock.
+mutants *args: lock-check
+    [ "$(cargo mutants --list --package alliumpy-core --all-features "$@" | grep -c .)" -gt 0 ] || { printf '%s\n' 'mutants: no mutants found; the filters select nothing' >&2; exit 1; }
+    cargo mutants --package alliumpy-core --all-features --gitignore=true --cargo-arg=--locked "$@"
 
 deps-unused:
     cargo shear

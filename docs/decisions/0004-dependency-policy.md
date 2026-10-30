@@ -44,6 +44,15 @@ The one deliberate exception is `allium-parser = "=3.6.1"`: upstream behaviour i
 product being packaged, and [decision 0011](0011-exact-pin-on-allium-parser.md) owns the
 reason for its exact pin. A bump is a release, not a routine dependency update.
 
+Two dependencies sit outside the shipped graph
+([decision 0016](0016-mutation-bench-and-fuzz.md)). divan is a development dependency of
+the core, in `[workspace.dependencies]` like every other range, so it is outside the
+graph the wheel resolves and outside cargo-deny's, which excludes development
+dependencies. libfuzzer-sys is a full caret range in `fuzz/Cargo.toml`, a crate
+outside the workspace that is never published or shipped; it cannot use
+`[workspace.dependencies]`, and its own committed `fuzz/Cargo.lock` is its pin, under the
+same `--locked` rule through `sync`, `lock-check` and the fuzz recipes' offline guard.
+
 ## Consequences
 
 The consequences that hurt. Tests and shipped wheels use the locked Rust resolution;
@@ -69,3 +78,4 @@ pins everywhere.
 
 - [Maintain dependencies](../how-to/maintain-dependencies.md)
 - [Configuration](../reference/configuration.md)
+- [Decision 0016: Mutation testing, benchmarks and fuzzing](0016-mutation-bench-and-fuzz.md)

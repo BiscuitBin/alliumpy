@@ -91,11 +91,55 @@ diff and explain it. `snapshots-review` offers interactive review at a terminal.
 T13 adds POSIX parity: the exact crates.io-built CLI reference stays off PATH, the
 harness compares stdout byte for byte and exit status across upstream files and directory
 inputs, and an empty corpus or a non-firing positive control fails. This proves the
-corpus, not every input. T15 adds mutation testing, benchmarks and fuzzing outside the
-aggregate gate; their tools and results are not present yet.
+corpus, not every input.
+
+## Mutation testing
+
+`just mutants` runs cargo-mutants over `alliumpy-core` alone, on a copy of the tree that
+leaves out what Git ignores, and writes `mutants.out/`. Each mutant is a small edit to
+the core, such as a `+` turned into `-` or a function body replaced by a default. A
+caught mutant failed a test; a missed one passed every test, so an assertion is missing;
+an unviable one did not compile; a timed-out one ran past the limit cargo-mutants set
+from the baseline. The run uses `cargo test`, not nextest, so a doctest can catch a
+mutant. Exit 2 means a mutant was missed, 3 a timeout and 4 a failing baseline.
+
+The scope is the core, never upstream's parser and never the pyo3 crate, whose tests are
+Python's: every mutant there would be missed. The recipe's first line is a positive
+control: a `--package` filter that matched nothing would otherwise report a green run
+over zero mutants. cargo-mutants never mutates a function named `new` and leaves some
+expressions alone, such as the `code` conversion's `map`, so tests a person wrote are the
+only guard there. A missed mutant is answered with a test; only a mutant that makes no
+observable difference is excluded, in `.cargo/mutants.toml`, which does not exist until
+one needs it. `mutants.yml` runs the recipe weekly and by hand.
+
+## Benchmarks
+
+`just bench` runs the divan benchmarks under `crates/alliumpy-core/benches/` by hand.
+`parse.rs` times `alliumpy_core::parse` over the two smoke fixtures, `ok.allium` and
+`broken.allium`, each passed through `divan::black_box`. Timings measure the machine and
+its load, so no benchmark runs in CI or the gate; `just clippy` compiles the bench, so
+one that stops building still fails the gate.
+
+## Fuzzing
+
+`fuzz/` is its own crate outside the workspace, with its own `fuzz/Cargo.lock`. An
+excluded crate cannot inherit `[workspace.lints]`, so its manifest repeats the root's
+`forbid` levels and its Clippy table; `lock-check`, `fmt-check` and `clippy` reach it
+by `--manifest-path`. Its one target, `parse`, decodes arbitrary bytes as UTF-8 and, when
+they are valid, passes them through `alliumpy_core::parse`, asserting that every line and
+column is at least one. A panic anywhere below that call is a crash libFuzzer records
+under `fuzz/artifacts/parse/`.
+
+`just fuzz <target> [seconds]` runs on the pinned stable toolchain with
+`--sanitizer none`, because AddressSanitizer needs nightly and every crate forbids unsafe
+code. `just fuzz-build` only compiles the targets; the `rust` CI job runs it. `fuzz.yml`
+fuzzes each target for 300 seconds weekly and uploads any crash. A crash inside
+upstream's parser is reported upstream, not fixed here; the first local run found one
+([decision 0016](../decisions/0016-mutation-bench-and-fuzz.md)).
 
 ## Related pages
 
 - [Quality gates](quality-gates.md)
 - [Quality philosophy](../explanation/quality-philosophy.md)
 - [Decision 0005](../decisions/0005-rust-quality-gate.md)
+- [Decision 0016](../decisions/0016-mutation-bench-and-fuzz.md)

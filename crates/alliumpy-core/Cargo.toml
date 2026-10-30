@@ -31,3 +31,12 @@ name = "alliumpy_core"
 
 [dependencies]
 allium-parser = { workspace = true }
+
+[dev-dependencies]
+# Benchmarks only (decision 0016).
+divan = { workspace = true }
+
+# divan supplies its own main, so the libtest harness is off.
+[[bench]]
+name = "parse"
+harness = false

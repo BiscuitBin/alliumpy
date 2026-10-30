@@ -15,6 +15,8 @@ requires: []
 | `rustup` | Installs the exact toolchain `rust-toolchain.toml` pins, and provides the only cargo the gate accepts. `~/.cargo/bin` must come ahead of `~/.pixi/bin` on `PATH`, or run `pixi global uninstall rust`. |
 | `pixi`, 0.81.0 or newer | Installs every other tool, and the Python environment the hook gate runs on, from `pixi.lock` into the gitignored `.pixi/envs/default`. |
 | `just` | The task runner, and the only supported interface to the checks. `pixi global install just` provides one. Any `just` launches the recipes, because the pinned one in the environment runs every nested call and CI; `pixi run --frozen just <recipe>` is the escape hatch when no global `just` is installed. |
+| A C++ compiler | libfuzzer-sys's build script compiles libFuzzer's C++ whenever the fuzz crate builds, so `just check`'s `clippy` line over `fuzz/` needs one: Xcode's command-line tools on macOS, `g++` on Ubuntu, which the runner image carries. That line is plain cargo and needs nothing else. |
+| Rosetta 2, on Apple silicon | For `just fuzz` and `just fuzz-build` only: cargo-fuzz 0.13.2 publishes an x86_64 macOS binary and no arm64 one (`softwareupdate --install-rosetta`). |
 | `gh` | Only for the pin-bump commands in [Maintain dependencies](maintain-dependencies.md). |
 
 Nothing else: not uv, not cargo-binstall. `rust-toolchain.toml` names the exact
@@ -58,8 +60,8 @@ just initialize
 ```
 
 This installs the pixi environment from `pixi.lock`, installs the pinned toolchain,
-refuses a cargo that is not rustup's, installs cargo-hack from `tools.txt` and builds
-rustqual from `tools-source.txt` into `.tools/bin`, syncs both
+refuses a cargo that is not rustup's, installs cargo-hack and cargo-fuzz from `tools.txt` and builds
+rustqual from `tools-source.txt` into `.tools/bin`, syncs the three
 lockfiles, and installs the pre-commit hook with every hook
 environment. Run it once per clone. It needs the network for the pixi environment, the
 toolchain, cargo-hack, rustqual's source, `cargo fetch` and the hook clones. It never stages, commits, tags or pushes.
@@ -115,7 +117,8 @@ After pulling, re-sync so the installed dependencies match the lockfiles:
 just sync
 ```
 
-It installs a moved `pixi.lock` exactly as committed and fetches what `Cargo.lock` names.
+It installs a moved `pixi.lock` exactly as committed and fetches what `Cargo.lock` and
+`fuzz/Cargo.lock` name.
 After `tools.txt` or `tools-source.txt` has moved, run `just install-tools` as well; it
 skips a version that is already there.
 

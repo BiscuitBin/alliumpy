@@ -10,3 +10,7 @@ Until then this text records the intended scope and ownership of the document.
 ## [Unreleased]
 
 Release notes will be added when changes are ready for users.
+
+- Mutation testing (`just mutants`, weekly `mutants.yml`), a divan benchmark (`just bench`)
+  and a stable fuzz target over `alliumpy_core::parse` (`just fuzz`, weekly `fuzz.yml`),
+  all reports outside the gate (decision 0016).

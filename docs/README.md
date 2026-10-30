@@ -60,3 +60,4 @@ which also provides the `allium` console script.
 ## Decisions
 
 - [Architecture decisions](decisions/README.md) — the record of what was chosen and why.
+- [Decision 0016: Mutation testing, benchmarks and fuzzing](decisions/0016-mutation-bench-and-fuzz.md)

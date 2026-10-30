@@ -23,7 +23,7 @@ reason for two Python manifests and a static wheel version.
 | `PREK_HOME` | Hook cache; CI places it outside the workspace. |
 | `GITHUB_TOKEN`, `GH_TOKEN` | Release lookup credentials; unset for install-tools' source-build pass, with token discovery disabled. |
 | `INSTA_UPDATE` | no during checks; new during snapshot acceptance. |
-| `CARGO_NET_OFFLINE` | true after lock validation in the snapshot recipes. |
+| `CARGO_NET_OFFLINE` | true after lock validation in the snapshot recipes, `fuzz` and `fuzz-build`. |
 | `CARGO_TERM_COLOR`, `CARGO_INCREMENTAL`, `CARGO_NET_RETRY`, `RUST_BACKTRACE` | CI log colour, incremental policy, fetch retries and panic traces. |
 
 There is no `.cargo/config.toml`. A global RUSTFLAGS there would change fingerprints
@@ -35,14 +35,15 @@ stay on the recipe.
 | File | Owns |
 | --- | --- |
 | `rust-toolchain.toml` | Exact compiler, minimal profile, rustfmt, clippy and llvm-tools-preview components. |
-| `Cargo.toml` | Workspace members, inherited package fields and version, shared dependencies, workspace lints, release/test profiles. |
+| `Cargo.toml` | Workspace members, the excluded `fuzz/` crate, inherited package fields and version, shared dependencies, workspace lints, release/test profiles. |
 | `Cargo.lock` | Committed Cargo resolution. |
-| `crates/alliumpy-core/Cargo.toml` | rlib, upstream dependency and inherited workspace lint table. |
+| `crates/alliumpy-core/Cargo.toml` | rlib, upstream dependency, inherited workspace lint table, and the divan dev-dependency with the `parse` bench. |
+| `fuzz/Cargo.toml`, `fuzz/Cargo.lock` | The fuzz crate outside the workspace: its libfuzzer-sys range, the path dependency on the core, the repeated `forbid` and Clippy tables, and its own committed resolution. |
 | `crates/alliumpy/Cargo.toml` | cdylib, path dependency on core, pyo3 and the bindings crate's own lint table. |
 | `pyproject.toml` | pixi tooling environment, exact tool pins, supported tooling platforms and ordered gate recipes. No Rust compiler package. |
 | `pixi.lock` | Generated tooling resolution; never hand-edited. |
 | `crates/alliumpy/pyproject.toml` | maturin build backend, static distribution metadata, entry point, module layout, locked builds and trusted-publishing settings; no pixi table. |
-| `tools.txt` | Binary-only extra tools, currently cargo-hack. |
+| `tools.txt` | Binary-only extra tools, currently cargo-hack and cargo-fuzz. |
 | `tools-source.txt` | Extras whose source build is accepted, currently rustqual. |
 | `rustfmt.toml` | Stable Rust formatting settings and style edition. |
 | `clippy.toml` | Complexity thresholds, test relaxations and deterministic collection guidance. |
@@ -69,6 +70,8 @@ stay on the recipe.
 | `.github/actions/setup/action.yml` | T01's shared pinned setup and cache preparation. |
 | `.github/workflows/ci.yml` | CI gate layout: six gate jobs and the required `check` aggregate. |
 | `.github/workflows/audit.yml`, `.github/workflows/pages.yml` | T01's scheduled advisory checks and conditional API deployment. |
+| `.github/workflows/mutants.yml`, `.github/workflows/fuzz.yml` | Weekly and manual mutation and fuzzing reports outside the aggregate gate; never in `check`'s `needs`. |
+| `.cargo/mutants.toml` | cargo-mutants' exclusion file, as `exclude_re` with a comment for an equivalent mutant. Absent until one needs it. |
 
 ### Planned configuration
 
@@ -77,8 +80,6 @@ These files are assigned by the repository plan and do not exist yet:
 | File | Future owner and purpose |
 | --- | --- |
 | `.github/workflows/release-pypi.yml` | T14: release builds and publication. |
-| `.github/workflows/mutants.yml`, `.github/workflows/fuzz.yml` | T15: mutation and fuzzing runs outside the aggregate gate. |
-| `.cargo/mutants.toml` | T15: created only if an equivalent mutant needs configuration. |
 | `renovate.json` | T17: dependency-update automation. |
 
 ### The lint tables

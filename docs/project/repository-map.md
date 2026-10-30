@@ -8,7 +8,8 @@ requires: []
 
 # Repository map
 
-The repository root is a Cargo workspace with two members. Their responsibilities
+The repository root is a Cargo workspace with two members, and excludes the fuzz
+crate under `fuzz/`, which has its own lockfile. Their responsibilities
 follow [Architecture](../explanation/architecture.md); the dependency direction is
 [Layering](../explanation/layering.md)'s.
 
@@ -25,6 +26,7 @@ follow [Architecture](../explanation/architecture.md); the dependency direction 
 ├── crates/
 │   ├── alliumpy-core/
 │   │   ├── Cargo.toml
+│   │   ├── benches/parse.rs   divan benchmark of parse, run by just bench
 │   │   └── src/lib.rs         Conversion, public values, unit tests and doctests
 │   └── alliumpy/
 │       ├── Cargo.toml         Thin pyo3 crate and its lint table
@@ -34,6 +36,8 @@ follow [Architecture](../explanation/architecture.md); the dependency direction 
 │       ├── tests/            pytest and stubtest allowlist
 │       ├── LICENSE           Apache-2.0 copy for wheel
 │       └── LICENSE-allium-tools  Upstream MIT text and attribution
+├── fuzz/                      Fuzz crate outside the workspace, its own Cargo.lock
+│   └── fuzz_targets/parse.rs  Arbitrary bytes through alliumpy_core::parse
 ├── tests/fixtures/            Smoke inputs and linter positive controls
 ├── docs/                      Handbook, manifest and decisions
 ├── tickets/                   Work and acceptance evidence

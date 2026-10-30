@@ -53,6 +53,9 @@ jobs:
       - run: just fmt-check
       - run: just toml-check
       - run: just clippy
+      # The fuzz crate still builds under cargo-fuzz; clippy above lints it,
+      # and this is the only CI line that compiles it the way fuzz.yml does.
+      - run: just fuzz-build
       - run: just metrics
       - run: just features
       - run: just test
