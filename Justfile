@@ -28,11 +28,13 @@ initialize:
 
 # The pin in rust-toolchain.toml is honoured only by rustup's cargo proxy. A
 # cargo from pixi, Homebrew or a distribution ignores the file and builds with
-# whatever it is, so the gate refuses it before anything else runs.
+# whatever it is, so the gate refuses it before anything else runs. The proxy
+# still obeys RUSTUP_TOOLCHAIN or a `rustup override`, so the gate then requires
+# the active toolchain to be the channel the file pins.
 check-toolchain:
     command -v rustup >/dev/null || { printf '%s\n' 'rustup is not installed; see docs/how-to/develop-locally.md' >&2; exit 2; }
     case "$(command -v cargo)" in "${CARGO_HOME:-$HOME/.cargo}"/bin/cargo) ;; *) printf '%s\n' "cargo resolves to $(command -v cargo), not rustup's proxy" >&2; exit 2;; esac
-    rustup show active-toolchain
+    pin=$(sed -n 's/^channel = "\(.*\)"$/\1/p' rust-toolchain.toml); [ -n "$pin" ] || { printf '%s\n' 'rust-toolchain.toml names no channel' >&2; exit 2; }; active=$(rustup show active-toolchain); case "${active%% *}" in "$pin"-*) ;; *) printf '%s\n' "the active toolchain is ${active%% *}, not the pinned $pin" >&2; exit 2;; esac; printf '%s\n' "$active"
 
 # Installs the toolchain, components and targets rust-toolchain.toml names.
 install-toolchain:

@@ -14,7 +14,7 @@ read-only; an ignored path is outside the snapshot.
 
 | Order | Gate | Proves |
 | --- | --- | --- |
-| 1 | `check-toolchain` | Cargo resolves to the expected rustup proxy path; the selected toolchain is printed. |
+| 1 | `check-toolchain` | Cargo resolves to the expected rustup proxy path, and the active toolchain is the channel `rust-toolchain.toml` pins; the selected toolchain is printed. |
 | 2 | `lock-check` | `Cargo.lock`, `fuzz/Cargo.lock` and `pixi.lock` match their manifests offline. |
 | 3 | `lint` | The complete read-only hook gate passes. |
 | 4 | `fmt-check` | Rust formatting matches rustfmt, in the workspace and the fuzz crate. |

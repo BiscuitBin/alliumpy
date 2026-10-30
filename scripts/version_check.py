@@ -106,6 +106,24 @@ def main(argv: list[str]) -> int:
         "ALLIUM_VERSION": match[1],
         "console version": words[1],
     }
+    # Each member manifest either inherits the workspace version or writes its own;
+    # an explicit one would drift silently past the workspace table, and an absent
+    # one is 0.0.0 to cargo.
+    members = [
+        path
+        for pattern in cargo["workspace"]["members"]
+        for path in sorted(root.glob(pattern))
+        if (path / "Cargo.toml").is_file()
+    ]
+    if not members:
+        print("version-check: no workspace member crate was found", file=sys.stderr)
+        return 1
+    for member in members:
+        package = tomllib.loads((member / "Cargo.toml").read_text())["package"]
+        version = package.get("version", "0.0.0")
+        if version == {"workspace": True}:
+            version = versions["workspace version"]
+        versions[f"{package['name']} version"] = version
     expected = versions["workspace version"]
     for name, value in versions.items():
         if value != expected:
@@ -114,7 +132,7 @@ def main(argv: list[str]) -> int:
                 file=sys.stderr,
             )
             return 1
-    print(f"version-check: all five versions agree: {expected}")
+    print(f"version-check: all {len(versions)} versions agree: {expected}")
     return version_string(root, pin, source, result.stdout)
 
 
