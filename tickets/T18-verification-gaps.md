@@ -50,8 +50,8 @@ closes edits nothing. A route that needs a path not listed here stops and is han
 | --- | --- | --- |
 | `scripts/version_check.py` | shared, own lines | item 1: each member crate's inherited or explicit version |
 | `Justfile` | shared, own lines | item 2: the `check-toolchain` recipe only |
-| `docs/reference/commands.md` | shared, own lines | item 2: the `check-toolchain` row |
-| `docs/reference/quality-gates.md` | shared, own lines | item 2: the `check-toolchain` row |
+| `docs/reference/commands.md` | shared, own lines | item 2: the `check-toolchain` row; item 1: the `version-check` row (widened by the maintainer, 2026-10-30) |
+| `docs/reference/quality-gates.md` | shared, own lines | item 2: the `check-toolchain` row and the toolchain troubleshooting paragraph; item 1: the `version-check` row (widened by the maintainer, 2026-10-30) |
 | `.github/workflows/ci.yml` | shared, own lines | item 10: only the points the maintainer accepts |
 | `.github/workflows/audit.yml` | shared, own lines | item 10: only the points the maintainer accepts |
 | `.github/actions/setup/action.yml` | shared, own lines | item 10: only the points the maintainer accepts |
@@ -566,6 +566,43 @@ $ # scratch copy, alliumpy-core version = "9.9.9"; just version-check
 version-check: workspace version='3.6.1' differs from crate alliumpy-core version='9.9.9'   (exit 1)
 $ git status --short    → 0 lines
 ```
+
+### PR #28 review (Copilot, 2026-10-30)
+
+Copilot reviewed pull request #28 at `24f52ed` and left two inline findings; the
+executing agent found a third. Deviation from §14 Phase 2, as for the review above: the
+executing agent triaged and applied the fixes, not separate triage subagents.
+
+- C1 (medium, `version_check.py`): `cargo metadata` ran through rustup's proxy without
+  `RUSTUP_AUTO_INSTALL=0`, and `just version-check` alone does not run
+  `check-toolchain` first, so an uninstalled `RUSTUP_TOOLCHAIN` would be downloaded.
+  Valid; this branch added the call. Fixed in `2a6f990`: the call's environment sets
+  `RUSTUP_AUTO_INSTALL=0`, so the existing `cargo metadata failed` path refuses it.
+- C2 (low, `quality-gates.md`): the troubleshooting paragraph still said the toolchain
+  gate does not compare with `rust-toolchain.toml`, contradicting row 1. Valid; fixed
+  in `2a6f990`.
+- S1 (low, `quality-gates.md` row 19, `commands.md` `version-check` row): neither named
+  the member-crate versions item 1 added. Valid; fixed in `2a6f990`, with the Files
+  touched cells widened by the maintainer.
+- Handed back (§14, "Scope guard"): every other standalone cargo recipe (`clippy`,
+  `test` and the rest) has C1's exposure. It predates this ticket and lies outside its
+  `Justfile` scope (`check-toolchain` only); a `Justfile`-wide
+  `export RUSTUP_AUTO_INSTALL := "0"` is a candidate for a later ticket.
+
+At `2a6f990`, with `rustup 1.29.2` and 1.97.0 not installed (the negative control ran
+after the fix, never before it):
+
+```text
+$ RUSTUP_TOOLCHAIN=1.97.0 just version-check
+version-check: cargo metadata failed: error: toolchain '1.97.0-aarch64-apple-darwin' is not installed   (exit 1)
+$ rustup toolchain list → identical before and after
+$ just version-check    → "version-check: all 7 versions agree: 3.6.1", exit 0
+$ just py-lint; just py-typecheck; just check-docs → exit 0 each
+```
+
+At `2a6f990`, with these notes uncommitted, `just check` ended `exit 0` with
+`All checks passed and the worktree is unchanged.`; the notes commit is re-checked the
+same way and `git status --short` is empty after it.
 
 ## Open points
 
