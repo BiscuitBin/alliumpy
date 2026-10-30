@@ -14,6 +14,13 @@ trim_trailing_whitespace = true
 [*.rs]
 indent_size = 4
 
+# Upstream's CLI, vendored unchanged under the core's src/cli/ (decision 0014),
+# indents its help text and its tests' Allium sources inside string literals by
+# upstream's amounts; reindenting would change the command's output. Only the
+# indent-size rule is lifted; cli.rs and any other file under src/cli/ stay checked.
+[crates/alliumpy-core/src/cli/{main,test_plan,domain_model}.rs]
+indent_size = unset
+
 [Justfile]
 indent_size = 4
 

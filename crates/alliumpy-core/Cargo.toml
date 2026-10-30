@@ -31,6 +31,8 @@ name = "alliumpy_core"
 
 [dependencies]
 allium-parser = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
 
 [dev-dependencies]
 # Benchmarks only (decision 0016).

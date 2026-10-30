@@ -28,7 +28,7 @@ description: Review a change in this repository against its invariants, specific
      the parser pin and the command version. `just version-check` rejects a bare pin bump.
 3. Check the change against upstream at the pin: a reinterpreted diagnostic, reordered
    field or different exit code is a finding unless a decision record authorises it.
-   Check command changes with `just parity` (from T13).
+   Check command changes with `just parity`.
 4. Check evidence: a core unit test asserts the converted upstream value; a pytest case
    exercises an exposed item; stubtest covers a stub change. A test that only asserts
    a function was called is insufficient. A public core item without an asserting

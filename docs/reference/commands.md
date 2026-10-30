@@ -87,8 +87,15 @@ and `fuzz-build` are reports or proofs a person runs, never part of `check`.
 | `py-test` | Rebuild with py-develop, then run pytest on the binding. |
 | `py-stubtest` | Rebuild, then compare the imported native module with its canonical stub and reviewed allowlist. |
 | `wheel` | Empty dist and build a locked release wheel for this platform. |
-| `wheel-smoke` | Build the wheel, require exactly one, install offline into a fresh venv, run isolated Python smoke and console version. |
-| `version-check` | Compare version copies with the installed wheel-smoke command; a missing smoke venv fails. |
+| `wheel-smoke` | Build the wheel, require exactly one, install offline into a fresh venv, run isolated Python smoke, the console version and `allium check` on the clean fixture. |
+| `version-check` | Compare version copies with the installed wheel-smoke command, and its whole `--version` output with `ALLIUM_VERSION_STRING` and, when built at the pin, the parity reference's; a missing smoke venv fails. |
+
+## Parity
+
+| Recipe | Purpose |
+| --- | --- |
+| `install-parity-reference` | Build upstream's `allium-cli` at the pin from crates.io, locked, into `.tools/parity/`, off `PATH`. Network; outside check. |
+| `parity` | Run wheel-smoke, then compare the wheel's `allium` with the reference byte for byte on stdout and exactly on exit status over the parity corpus, with its controls, then run `test_cli.py`. POSIX; outside check. |
 
 ## Aggregate
 

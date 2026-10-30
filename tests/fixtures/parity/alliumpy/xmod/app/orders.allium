@@ -1,0 +1,15 @@
+-- allium: 3
+-- Written for alliumpy (T13) as a cross-module parity pair, after S01's; no upstream text.
+
+use "../core.allium" as core
+
+entity Order {
+    account: core/Account
+    total: Integer
+}
+
+rule CloseAccount {
+    when: CloseRequested(account)
+    requires: account.status = active
+    ensures: account.status = closed
+}

@@ -2,6 +2,8 @@
 
 use pyo3::prelude::*;
 use pyo3::types::PyString;
+use std::ffi::OsString;
+use std::io::Write;
 
 pyo3::create_exception!(
     alliumpy,
@@ -85,11 +87,22 @@ fn parse(source: &str) -> Vec<Diagnostic> {
         .collect()
 }
 
+/// Run upstream's `allium` command on the process's own stdout and stderr.
+#[pyfunction(name = "_run_cli")]
+fn run_cli(args: Vec<OsString>) -> i32 {
+    let mut stdout = std::io::stdout();
+    let status = alliumpy_core::cli::run_os(args, &mut stdout, &mut std::io::stderr());
+    // Upstream's binary flushes stdout as it exits and ignores a failure there.
+    let _ = stdout.flush();
+    status
+}
+
 /// The native module used by the Python package.
 #[pymodule]
 fn _alliumpy(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<Diagnostic>()?;
     module.add_function(wrap_pyfunction!(parse, module)?)?;
+    module.add_function(wrap_pyfunction!(run_cli, module)?)?;
     module.add("AlliumError", module.py().get_type::<AlliumError>())?;
     module.add("ALLIUM_VERSION", alliumpy_core::ALLIUM_VERSION)?;
     module.add(

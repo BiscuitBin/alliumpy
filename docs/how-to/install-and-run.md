@@ -62,11 +62,15 @@ describes each exported name.
 
 ## Command behaviour
 
-On this main, `allium` answers `-V` and `--version` only. Other arguments return status 2
-with a message that the command arrives in T13. T13 brings the remaining command behaviour.
-Upstream's `allium check` prints one pretty JSON object per file to stdout: status 0
-means clean, 1 means at least one error or warning, and 2 means no inputs. These are
-upstream's semantics to preserve in T13, not commands available here yet.
+`allium` is upstream's command at the pinned version: `check`, `analyse`, `parse`,
+`plan`, `model`, `help`, `-h`, `--help`, `-V` and `--version`, with upstream's stdout and
+exit codes. `allium check` prints one pretty JSON object per file to stdout: status 0
+means clean, 1 means at least one error or warning, and 2 means no inputs.
+
+```sh
+allium check path/to/specs
+allium help check
+```
 
 Upstream language documentation is at <https://github.com/juxt/allium-tools>.
 

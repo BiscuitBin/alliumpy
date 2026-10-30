@@ -3,7 +3,14 @@
 
 from typing import final
 
-__all__ = ["ALLIUM_VERSION", "ALLIUM_VERSION_STRING", "AlliumError", "Diagnostic", "parse"]
+__all__ = [
+    "ALLIUM_VERSION",
+    "ALLIUM_VERSION_STRING",
+    "AlliumError",
+    "Diagnostic",
+    "_run_cli",
+    "parse",
+]
 
 ALLIUM_VERSION: str
 """Version of the wrapped upstream parser."""
@@ -41,3 +48,6 @@ class Diagnostic:
 
 def parse(source: str) -> list[Diagnostic]:
     """Return upstream's parse diagnostics in source order."""
+
+def _run_cli(args: list[str]) -> int:
+    """Run upstream's allium command on the process's stdout and stderr; return its status."""

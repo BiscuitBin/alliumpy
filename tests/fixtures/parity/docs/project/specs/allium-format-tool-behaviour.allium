@@ -1,0 +1,110 @@
+-- allium: 3
+-- allium-format-tool-behaviour.allium
+-- Scope: Standalone CLI behavior for formatting Allium specification files.
+-- Includes:
+--   - CLI argument parsing
+--   - Input resolution for files, directories, and wildcard patterns
+--   - Text normalization and write/check behavior
+-- Excludes:
+--   - VS Code editor formatting integration
+--   - Full semantic reformatting of Allium syntax
+
+value FormatMode {
+    value: write | check_only
+}
+
+entity FormatRun {
+    mode: FormatMode
+    files: Set<String>
+}
+
+rule MissingInputsAreRejected {
+    when: FormatCommandInvokedWithoutInputs()
+
+    ensures: UsagePrinted()
+    ensures: ProcessExit(code: 2)
+}
+
+rule MissingResolvedFilesAreRejected {
+    when: FormatCommandInvokedWithInputs(inputs)
+    requires: ResolveAlliumFiles(inputs).is_empty = true
+
+    ensures: UserInformed(message: "No .allium files found for the provided inputs.")
+    ensures: ProcessExit(code: 2)
+}
+
+rule FormatterNormalizesText {
+    when: FileFormatted(file)
+
+    ensures: file.line_endings = lf
+    ensures: file.trailing_whitespace_removed = true
+    ensures: file.ends_with_single_newline = true
+    ensures: file.block_indentation = normalized
+    ensures: file.top_level_blocks_separated_by_single_blank_line = true
+    ensures: file.declaration_headers_use_single_space_before_opening_brace = true
+    ensures: file.pipe_delimited_literals_use_single_space_around_pipe = true
+}
+
+rule CheckModeFailsIfFormattingNeeded {
+    when: FormatRunCompleted(run)
+    requires: run.mode = check_only
+    requires: run.files.any_needs_formatting = true
+
+    ensures: ProcessExit(code: 1)
+}
+
+rule WriteModeAppliesFormatting {
+    when: FormatRunCompleted(run)
+    requires: run.mode = write
+
+    ensures: FilesPersistedWithFormatting()
+    ensures: EntityTypeObserved(kind: FormatRun)
+    ensures: ProcessExit(code: 0)
+}
+
+rule ReleasedCliPackageExposesFormatCommand {
+    when: CliPackageInstalledFromReleaseNpmArtifact()
+
+    ensures: CommandAvailable(name: "allium-format")
+}
+
+rule FormatterSupportsConfigurableIndentAndSpacing {
+    when: FormatCommandInvokedWithOptions(indent_width, top_level_spacing)
+    requires: indent_width >= 1 and indent_width <= 8
+    requires: top_level_spacing >= 0 and top_level_spacing <= 3
+
+    ensures: FormattingAppliedWith(indent_width, top_level_spacing)
+}
+
+rule DryRunPreviewsFormattingWithoutWriting {
+    when: FormatCommandInvokedWithOptions(option)
+    requires: option = "--dryrun"
+
+    ensures: FormattedPreviewPrinted()
+    ensures: FileUnchanged(path: "<input>.allium")
+}
+
+rule FormatterSupportsStdinStdoutPipeline {
+    when: FormatCommandInvokedWithOptions(option)
+    requires: option = "--stdin"
+
+    ensures: ReadsFromStandardInput()
+    ensures: WritesFormattedOutputToStandardOutput()
+}
+
+rule FormatterConfigDefaultsCanBeLoadedFromWorkspaceFile {
+    when: FormatCommandInvokedWithInputs(inputs)
+    requires: FileExists(path: "allium-config-file")
+    requires: not command_args.contains("--no-config")
+
+    ensures: ConfigDefaultsLoaded(section: format)
+}
+
+rule FormatterCanUseProjectSpecPathsFromConfig {
+    when: FormatCommandInvokedWithoutInputs()
+    requires: FileExists(path: "allium-config-file")
+    requires: not command_args.contains("--no-config")
+    requires: ConfigContainsProjectSpecPaths()
+
+    ensures: FormatCommandUsesConfiguredProjectSpecPaths()
+}

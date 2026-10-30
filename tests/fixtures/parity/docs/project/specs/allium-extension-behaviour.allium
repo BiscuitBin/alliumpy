@@ -1,0 +1,989 @@
+-- allium: 3
+-- allium-extension-behaviour.allium
+-- Scope: VS Code runtime behavior for Allium diagnostics and quick fixes.
+-- Includes:
+--   - Document analysis triggers
+--   - Analyzer findings and severities
+--   - Diagnostics mode effects
+--   - Quick-fix generation behavior
+-- Excludes:
+--   - TextMate grammar implementation details
+--   - Snippet definitions
+--   - VS Code packaging and publish mechanics
+
+value Document {
+    uri: String
+    language_id: String
+    text: String
+}
+
+value FindingRange {
+    start_line: Integer
+    start_character: Integer
+    end_line: Integer
+    end_character: Integer
+}
+
+entity Finding {
+    code: String
+    message: String
+    severity: error | warning | info
+    range: FindingRange
+}
+
+entity DiagnosticsMode {
+    value: strict | relaxed
+}
+
+entity DiagnosticCollection {
+    documents: Set<Document>
+}
+
+config {
+    duplicateKey: String = "allium.config.duplicateKey"
+    undefinedReference: String = "allium.config.undefinedReference"
+    invalidParameter: String = "allium.config.invalidParameter"
+    undefinedExternalReference: String = "allium.config.undefinedExternalReference"
+}
+
+rule RefreshAlliumDiagnostics {
+    when: DocumentOpened(document) or DocumentChanged(document) or DocumentSaved(document)
+    requires: document.language_id = "allium"
+
+    ensures: FindingsComputed(document)
+    ensures: DiagnosticsStored(document)
+    ensures: CollectionTypeObserved(kind: DiagnosticCollection)
+}
+
+rule IgnoreNonAlliumDocuments {
+    when: DocumentOpened(document) or DocumentChanged(document) or DocumentSaved(document)
+    requires: document.language_id != "allium"
+
+    ensures: NoDiagnosticsChange(document)
+}
+
+rule ClearDiagnosticsOnClose {
+    when: DocumentClosed(document)
+
+    ensures: DiagnosticsRemoved(document)
+}
+
+rule RefreshOnDiagnosticsModeChange {
+    when: ConfigurationChanged("allium.diagnostics.mode")
+
+    ensures: OpenAlliumDocumentsReanalyzed()
+}
+
+rule RunChecksWithoutAlliumEditor {
+    when: CommandInvoked("allium.runChecks")
+    requires: ActiveEditorMissing() or ActiveEditorLanguage() != "allium"
+
+    ensures: UserInformed(message: "Open an .allium file to run checks.")
+}
+
+rule RunChecksWithAlliumEditor {
+    when: CommandInvoked("allium.runChecks")
+    requires: ActiveEditorLanguage() = "allium"
+
+    ensures: FindingsComputed(ActiveEditorDocument())
+    ensures: DiagnosticsStored(ActiveEditorDocument())
+    ensures: UserInformed(message: "Allium checks completed.")
+}
+
+rule ApplyAllSafeFixesCommand {
+    when: CommandInvoked("allium.applySafeFixes")
+    requires: ActiveEditorLanguage() = "allium"
+
+    ensures: SafeQuickFixesApplied()
+    ensures: UserInformed(message: "Applied all safe Allium fixes.")
+}
+
+rule ShowSpecHealthCommand {
+    when: CommandInvoked("allium.showSpecHealth")
+
+    ensures: WorkspaceAlliumFilesAnalyzed(mode: strict)
+    ensures: HealthSummaryPresented()
+}
+
+rule RuleMustHaveWhenTrigger {
+    when: RuleBlockParsed(rule)
+    requires: rule.has_when = false
+
+    ensures: Finding.created(
+    code: "allium.rule.missingWhen",
+    severity: error
+    )
+    ensures: FindingRangeAnchoredTo(rule.declaration_name)
+}
+
+rule InvalidRuleTriggerIsError {
+    when: RuleBlockParsed(rule)
+    requires: rule.when_trigger_shape_not_supported = true
+
+    ensures: Finding.created(
+    code: "allium.rule.invalidTrigger",
+    severity: error
+    )
+}
+
+rule RuleShouldHaveEnsuresClause {
+    when: RuleBlockParsed(rule)
+    requires: rule.has_ensures = false
+
+    ensures: Finding.created(
+    code: "allium.rule.missingEnsures",
+    severity: error
+    )
+}
+
+rule TemporalTriggerNeedsGuardInStrictMode {
+    when: RuleBlockParsed(rule)
+    requires: rule.when_is_temporal = true
+    requires: rule.has_requires = false
+    requires: DiagnosticsMode.value = strict
+
+    ensures: Finding.created(
+    code: "allium.temporal.missingGuard",
+    severity: warning
+    )
+}
+
+rule DuplicateLetBindingIsError {
+    when: RuleBlockParsed(rule)
+    requires: rule.contains_duplicate_let_name = true
+
+    ensures: Finding.created(
+    code: "allium.let.duplicateBinding",
+    severity: error
+    )
+}
+
+rule DuplicateConfigKeyIsError {
+    when: ConfigBlockParsed(config_block)
+    requires: config_block.contains_duplicate_key = true
+
+    ensures: Finding.created(
+    code: "allium.config.duplicateKey",
+    severity: error
+    )
+}
+
+rule DuplicateDefaultInstanceNameIsError {
+    when: DefaultDeclarationParsed(default_instance)
+    requires: default_instance.name_declared_multiple_times = true
+
+    ensures: Finding.created(
+    code: "allium.default.duplicateName",
+    severity: error
+    )
+}
+
+rule UndefinedDefaultTypeIsError {
+    when: DefaultDeclarationParsed(default_instance)
+    requires: default_instance.type_not_declared_locally_or_imported = true
+
+    ensures: Finding.created(
+    code: "allium.default.undefinedType",
+    severity: error
+    )
+}
+
+rule UndefinedDefaultImportedAliasIsError {
+    when: DefaultDeclarationParsed(default_instance)
+    requires: default_instance.type_reference.matches("<alias>/<TypeName>")
+    requires: not default_instance.alias_declared_in_use_imports
+
+    ensures: Finding.created(
+    code: "allium.default.undefinedImportedAlias",
+    severity: error
+    )
+}
+
+rule ConfigParameterNeedsTypeAndDefault {
+    when: ConfigBlockParsed(config_block)
+    requires: config_block.parameter_missing_type_or_default = true
+
+    ensures: Finding.created(
+    code: "allium.config.invalidParameter",
+    severity: error
+    )
+}
+
+rule UndefinedConfigReferenceSeverityDependsOnMode {
+    when: ConfigReferenceParsed(reference)
+    requires: ConfigKeyDeclared(reference.key) = false
+    requires: DiagnosticsMode.value = strict
+
+    ensures: Finding.created(
+    code: "allium.config.undefinedReference",
+    severity: warning
+    )
+}
+
+rule UndefinedConfigReferenceIsInfoInRelaxedMode {
+    when: ConfigReferenceParsed(reference)
+    requires: ConfigKeyDeclared(reference.key) = false
+    requires: DiagnosticsMode.value = relaxed
+
+    ensures: Finding.created(
+    code: "allium.config.undefinedReference",
+    severity: info
+    )
+}
+
+rule UnknownExternalConfigAliasIsError {
+    when: ConfigReferenceParsed(reference)
+    requires: reference.matches("<alias>/config.<key>")
+    requires: not reference.alias_declared_in_use_imports
+
+    ensures: Finding.created(
+    code: "allium.config.undefinedExternalReference",
+    severity: error
+    )
+}
+
+rule OpenQuestionEmitsWarningFinding {
+    when: OpenQuestionParsed(open_question)
+
+    ensures: Finding.created(
+    code: "allium.openQuestion.present",
+    severity: warning
+    )
+}
+
+rule UnusedNamedDefinitionIsWarning {
+    when: ValueOrEnumOrNamedDefaultParsed(definition)
+    requires: definition.has_no_references = true
+
+    ensures: Finding.created(
+    code: "allium.definition.unused",
+    severity: warning
+    )
+}
+
+rule RuleTriggerWithoutProducerOrProviderIsWarning {
+    when: RuleBlockParsed(rule)
+    requires: rule.when_is_external_trigger_call = true
+    requires: rule.trigger_name_is_qualified = false
+    requires: TriggerProvidedBySurface(rule.trigger_name) = false
+    requires: TriggerEmittedByRule(rule.trigger_name) = false
+
+    ensures: Finding.created(
+    code: "allium.rule.unreachableTrigger",
+    severity: info
+    )
+    ensures: FindingRangeAnchoredTo(rule.when_trigger_call)
+}
+
+rule QualifiedTriggerSubscriptionNotFlaggedInSingleFileAnalysis {
+    when: RuleBlockParsed(rule)
+    requires: rule.when_is_external_trigger_call = true
+    requires: rule.trigger_name_is_qualified = true
+
+    ensures: FindingNotObserved(code: "allium.rule.unreachableTrigger", rule: rule)
+}
+
+rule EnsuresBranchEmissionCountsAsTriggerEmission {
+    when: RuleBlockParsed(rule)
+    requires: rule.ensures_branch_or_iteration_leads_with_trigger_call = true
+
+    ensures: BranchLeadingTriggerEmissionCounted(rule)
+}
+
+rule EqualityLiteralTypeMismatchIsError {
+    when: RuleClauseParsed(clause)
+    requires: clause.compares_string_literal_with_numeric_literal_using_equality = true
+
+    ensures: Finding.created(
+    code: "allium.expression.typeMismatch",
+    severity: error
+    )
+}
+
+rule DuplicateEnumLiteralIsError {
+    when: EnumBlockParsed(enum_block)
+    requires: enum_block.contains_duplicate_literal = true
+
+    ensures: Finding.created(
+    code: "allium.enum.duplicateLiteral",
+    severity: error
+    )
+}
+
+rule EmptyEnumIsWarning {
+    when: EnumBlockParsed(enum_block)
+    requires: enum_block.literal_count = 0
+
+    ensures: Finding.created(
+    code: "allium.enum.empty",
+    severity: warning
+    )
+}
+
+rule DiscriminatorMustResolveToVariants {
+    when: EntityDiscriminatorParsed(entity, discriminator)
+    requires: DiscriminatorNamesIncludeUndeclaredVariant(discriminator)
+    requires: discriminator.has_at_least_one_declared_variant = true
+
+    ensures: Finding.created(
+    code: "allium.sum.discriminatorUnknownVariant",
+    severity: error
+    )
+}
+
+rule V1InlineEnumSyntaxIsError {
+    when: EntityDiscriminatorParsed(entity, discriminator)
+    requires: discriminator.all_names_missing_variant_declarations = true
+    requires: discriminator.base_entity_has_zero_variant_declarations = true
+
+    ensures: Finding.created(
+    code: "allium.sum.v1InlineEnum",
+    severity: error
+    )
+}
+
+rule InvalidDiscriminatorLiteralShapeIsError {
+    when: EntityDiscriminatorParsed(entity, discriminator)
+    requires: discriminator.contains_non_literal_or_unsupported_item = true
+
+    ensures: Finding.created(
+    code: "allium.sum.invalidDiscriminator",
+    severity: error
+    )
+}
+
+rule VariantMustAppearInBaseDiscriminator {
+    when: VariantParsed(variant, base_entity)
+    requires: not VariantNameInBaseDiscriminator(variant, base_entity)
+
+    ensures: Finding.created(
+    code: "allium.sum.variantMissingInDiscriminator",
+    severity: error
+    )
+}
+
+rule SumTypeBaseCannotBeInstantiatedDirectly {
+    when: EnsuresCreationCallParsed(call)
+    requires: call.target_is_base_entity_with_discriminator = true
+
+    ensures: Finding.created(
+    code: "allium.sum.baseInstantiation",
+    severity: error
+    )
+}
+
+rule VariantDeclarationRequiresVariantKeyword {
+    when: TopLevelDeclarationParsed(declaration)
+        requires: declaration.text.matches("<Name> : <Base> {")
+        requires: declaration.keyword != variant
+
+        ensures: Finding.created(
+        code: "allium.sum.missingVariantKeyword",
+        severity: error
+        )
+    }
+
+    rule UndefinedTypeReferenceIsError {
+        when: FieldTypeReferenceParsed(type_ref)
+        requires: not type_ref.declared_locally_or_imported
+
+        ensures: Finding.created(
+        code: "allium.type.undefinedReference",
+        severity: error
+        )
+    }
+
+    rule UndefinedImportedTypeAliasIsError {
+        when: FieldTypeReferenceParsed(type_ref)
+        requires: type_ref.matches("<alias>/<TypeName>")
+        requires: not type_ref.alias_declared_in_use_imports
+
+        ensures: Finding.created(
+        code: "allium.type.undefinedImportedAlias",
+        severity: error
+        )
+    }
+
+    rule UndefinedRelationshipTargetIsError {
+        when: RelationshipFieldParsed(relationship)
+        requires: relationship.target_type_not_declared_locally_or_imported = true
+
+        ensures: Finding.created(
+        code: "allium.relationship.undefinedTarget",
+        severity: error
+        )
+    }
+
+    rule UndefinedRelationshipImportedAliasIsError {
+        when: RelationshipFieldParsed(relationship)
+        requires: relationship.target_type_reference.matches("<alias>/<TypeName>")
+        requires: not relationship.alias_declared_in_use_imports
+
+        ensures: Finding.created(
+        code: "allium.relationship.undefinedImportedAlias",
+        severity: error
+        )
+    }
+
+    rule NonSingularRelationshipTargetIsWarning {
+        when: RelationshipFieldParsed(relationship)
+        requires: relationship.target_type_name_looks_plural = true
+
+        ensures: Finding.created(
+        code: "allium.relationship.nonSingularTarget",
+        severity: warning
+        )
+    }
+
+    rule UndefinedRuleTypeReferenceIsError {
+        when: RuleTypeReferenceParsed(type_ref)
+        requires: not type_ref.declared_locally_or_imported
+
+        ensures: Finding.created(
+        code: "allium.rule.undefinedTypeReference",
+        severity: error
+        )
+    }
+
+    rule UndefinedRuleImportedAliasIsError {
+        when: RuleTypeReferenceParsed(type_ref)
+        requires: type_ref.matches("<alias>/<TypeName>")
+        requires: not type_ref.alias_declared_in_use_imports
+
+        ensures: Finding.created(
+        code: "allium.rule.undefinedImportedAlias",
+        severity: error
+        )
+    }
+
+    rule UndefinedStatusAssignmentValueIsError {
+        when: RuleEnsuresAssignmentParsed(assignment)
+        requires: assignment.target = "<bound_var>.status"
+        requires: assignment.value not in assignment.entity.status_enum
+
+        ensures: Finding.created(
+        code: "allium.status.undefinedValue",
+        severity: error
+        )
+    }
+
+    -- Status-lifecycle entity resolution (issue #18):
+    --   - A rule `when:` binding takes its entity type from the surface
+    --     `provides:` declaration of the command it subscribes to, matched
+    --     positionally (e.g. `Cancel(admin, sub: Subscription)` types `sub`).
+    --     This disambiguates status values shared by several entities.
+    --   - A negated `requires: x.status != v` counts as an observed exit for
+    --     every other value of the entity's status enum.
+
+    rule UnreachableStatusValueIsWarning {
+        when: EntityStatusEnumParsed(entity_status)
+        requires: entity_status.value_not_assigned_by_any_rule_ensures = true
+        requires: entity_status.no_rule_assigns_status_from_variable = true
+
+        ensures: Finding.created(
+        code: "allium.status.unreachableValue",
+        severity: warning
+        )
+    }
+
+    rule NonTerminalStatusWithoutExitIsWarning {
+        when: EntityStatusEnumParsed(entity_status)
+        requires: entity_status.is_non_terminal = true
+        requires: entity_status.has_no_observed_transition_exit = true
+        requires: entity_status.no_rule_assigns_status_from_variable = true
+
+        ensures: Finding.created(
+        code: "allium.status.noExit",
+        severity: warning
+        )
+    }
+
+    rule ContradictoryRequiresWarnsNeverFires {
+        when: RuleBlockParsed(rule)
+        requires: rule.requires_constraints_are_contradictory = true
+
+        ensures: Finding.created(
+        code: "allium.rule.neverFires",
+        severity: warning
+        )
+    }
+
+    rule ExpressionTypeMismatchIsError {
+        when: RuleExpressionParsed(expression)
+        requires: expression.ordered_comparison_or_arithmetic_has_type_mismatch = true
+
+        ensures: Finding.created(
+        code: "allium.expression.typeMismatch",
+        severity: error
+        )
+    }
+
+    rule CircularDerivedDependencyIsError {
+        when: EntityDerivedFieldParsed(derived_field)
+        requires: derived_field.participates_in_cycle = true
+
+        ensures: Finding.created(
+        code: "allium.derived.circularDependency",
+        severity: error
+        )
+    }
+
+    rule UnguardedVariantFieldAccessIsError {
+        when: RuleExpressionParsed(expression)
+        requires: expression.accesses_variant_specific_field = true
+        requires: expression.variant_guard_not_present = true
+
+        ensures: Finding.created(
+        code: "allium.sum.unguardedVariantFieldAccess",
+        severity: error
+        )
+    }
+
+    rule UnusedEntityIsWarning {
+        when: EntityParsed(entity)
+        requires: entity.referenced_elsewhere_in_module = false
+
+        ensures: Finding.created(
+        code: "allium.entity.unused",
+        severity: warning
+        )
+    }
+
+    rule UnusedFieldIsInfo {
+        when: EntityFieldParsed(field)
+        requires: field.referenced_elsewhere_in_module = false
+
+        ensures: Finding.created(
+        code: "allium.field.unused",
+        severity: info
+        )
+    }
+
+    rule ExternalEntityWithoutSourceHintIsWarning {
+        when: ExternalEntityParsed(entity, current_module)
+        requires: current_module.has_no_use_imports = true
+
+        ensures: Finding.created(
+        code: "allium.externalEntity.missingSourceHint",
+        severity: warning when entity.referenced_in_rule_logic = false,
+        severity: info when entity.referenced_in_rule_logic = true
+        )
+    }
+
+    rule DeferredSpecificationWithoutLocationHintIsWarning {
+        when: DeferredSpecificationParsed(deferred_spec)
+        requires: deferred_spec.location_hint_present = false
+
+        ensures: Finding.created(
+        code: "allium.deferred.missingLocationHint",
+        severity: warning
+        )
+    }
+
+    rule DuplicateContextBindingIsError {
+        when: GivenBlockParsed(context_block)
+        requires: context_block.contains_duplicate_binding_name = true
+
+        ensures: Finding.created(
+        code: "allium.context.duplicateBinding",
+        severity: error
+        )
+    }
+
+    rule UndefinedContextBindingTypeIsError {
+        when: GivenBlockParsed(context_block)
+        requires: context_block.binding_type_not_declared_locally_or_imported = true
+
+        ensures: Finding.created(
+        code: "allium.context.undefinedType",
+        severity: error
+        )
+    }
+
+    rule UndefinedRuleBindingIsError {
+        when: RuleClauseParsed(clause)
+        requires: clause.references_unqualified_binding_or_exists_for_source = true
+        requires: not ReferencedBindingResolvedFromScopes(clause.referenced_binding)
+
+        ensures: Finding.created(
+        code: "allium.rule.undefinedBinding",
+        severity: error
+        )
+    }
+
+    rule SurfaceActorLinkValidation {
+        when: SurfaceBlockParsed(surface)
+        requires: surface.actor_reference_missing_locally = true
+
+        ensures: Finding.created(
+        code: "allium.surface.missingActor",
+        severity: warning
+        )
+    }
+
+    rule UnusedActorReported {
+        when: ActorBlockParsed(actor)
+        requires: actor.referenced_by_local_surface = false
+
+        ensures: Finding.created(
+        code: "allium.actor.unused",
+        severity: info
+        )
+    }
+
+    rule UndefinedRelatedSurfaceIsError {
+        when: SurfaceBlockParsed(surface)
+        requires: surface.related_clause_surface_name_unknown = true
+
+        ensures: Finding.created(
+        code: "allium.surface.relatedUndefined",
+        severity: error
+        )
+        -- related: clauses are parsed as SurfaceName[(binding)] [when guard];
+        -- only the leading surface name is checked, not binding or guard tokens
+    }
+
+    rule UnusedSurfaceBindingIsWarning {
+        when: SurfaceBlockParsed(surface)
+        requires: surface.facing_or_context_binding_unused = true
+        requires: surface.binding_name != "_"
+
+        ensures: Finding.created(
+        code: "allium.surface.unusedBinding",
+        severity: warning
+        )
+        -- the discard binding _ is explicitly excluded since it signals
+        -- that the binding is intentionally unused
+    }
+
+    rule UndefinedSurfacePathIsError {
+        when: SurfaceClausePathParsed(path)
+        requires: path.unresolvable_from_surface_bindings_and_types = true
+
+        ensures: Finding.created(
+        code: "allium.surface.undefinedPath",
+        severity: error
+        )
+    }
+
+    rule SurfaceIterationMustUseCollectionIsError {
+        when: SurfaceForIterationParsed(iteration)
+        requires: iteration.target_expression_is_not_collection_typed = true
+
+        ensures: Finding.created(
+        code: "allium.surface.nonCollectionIteration",
+        severity: error
+        )
+    }
+
+    rule SurfacePathWithoutRuleCoverageIsInfo {
+        when: SurfaceClausePathParsed(path)
+        requires: path.not_observed_in_any_rule_field_references = true
+
+        ensures: Finding.created(
+        code: "allium.surface.unusedPath",
+        severity: info
+        )
+    }
+
+    rule SurfaceContradictoryWhenIsWarning {
+        when: SurfaceConditionParsed(condition)
+        requires: condition.contains_contradictory_equalities = true
+
+        ensures: Finding.created(
+        code: "allium.surface.impossibleWhen",
+        severity: warning
+        )
+    }
+
+    rule DuplicateNamedRequiresBlockIsError {
+        when: SurfaceBlockParsed(surface)
+        requires: surface.named_requires_block_names_not_unique = true
+
+        ensures: Finding.created(
+        code: "allium.surface.duplicateRequiresBlock",
+        severity: error
+        )
+    }
+
+    rule NamedRequiresBlockWithoutDeferredHintIsWarning {
+        when: SurfaceBlockParsed(surface)
+        requires: surface.named_requires_block_name_has_no_matching_deferred_hint = true
+
+        ensures: Finding.created(
+        code: "allium.surface.requiresWithoutDeferred",
+        severity: warning
+        )
+        -- a deferred hint matches by its full name, its trailing dotted
+        -- segment, or — for module-qualified names like billing/InvoiceWorkflow —
+        -- the unqualified part after the alias; the alias alone never matches
+    }
+
+    rule DuplicateNamedProvidesBlockIsError {
+        when: SurfaceBlockParsed(surface)
+        requires: surface.named_provides_block_names_not_unique = true
+
+        ensures: Finding.created(
+        code: "allium.surface.duplicateProvidesBlock",
+        severity: error
+        )
+    }
+
+    rule UndefinedProvidesTriggerIsError {
+        when: SurfaceProvidesEntryParsed(entry)
+        requires: not entry.trigger_name_defined_as_external_stimulus_trigger
+
+        ensures: Finding.created(
+        code: "allium.surface.undefinedProvidesTrigger",
+        severity: error
+        )
+    }
+
+    rule ImplicitLambdaShorthandIsError {
+        when: CollectionOperatorCallParsed(call)
+        requires: call.operator in [any, all, each]
+        requires: call.argument.is_identifier_shorthand
+
+        ensures: Finding.created(
+        code: "allium.expression.implicitLambda",
+        severity: error
+        )
+    }
+
+    rule SuppressionCommentDisablesDiagnostic {
+        when: SuppressionDirectiveParsed(line, code, finding)
+        requires: code = "all" or code = finding.code
+        requires: finding.line = line or finding.line = line + 1
+
+        ensures: FindingSuppressed(finding)
+    }
+
+    rule QuickFixForMissingEnsures {
+        when: QuickFixRequestedForFinding(finding)
+        requires: finding.code = "allium.rule.missingEnsures"
+
+        ensures: EditProposed(
+        title: "Insert ensures scaffold",
+        insertion: "    ensures: TODO()"
+        )
+        ensures: PreferredQuickFix()
+    }
+
+    rule QuickFixForTemporalMissingGuard {
+        when: QuickFixRequestedForFinding(finding)
+        requires: finding.code = "allium.temporal.missingGuard"
+
+        ensures: EditProposed(
+        title: "Insert requires guard",
+        insertion: "requires: /* add temporal guard */"
+        )
+    }
+
+    rule QuickFixForUndefinedProvidesTrigger {
+        when: QuickFixRequestedForFinding(finding)
+        requires: finding.code = "allium.surface.undefinedProvidesTrigger"
+
+        ensures: EditProposed(
+        title: "Create external trigger rule scaffold",
+        insertion: "when: external_stimulus(<trigger>(event))"
+        )
+    }
+
+    rule QuickFixForDiagnosticSuppression {
+        when: QuickFixRequestedForFinding(finding)
+        requires: finding.code.starts_with("allium.")
+
+        ensures: EditProposed(
+        title: "Suppress this diagnostic here",
+        insertion: "-- allium-ignore <finding.code>"
+        )
+    }
+
+    rule RefactorTemporalWhenToGuardedRule {
+        when: RefactorRequestedFromSelection(selection)
+        requires: selection.line.starts_with("when:")
+        requires: selection.when_clause_is_temporal = true
+        requires: selection.containing_rule.has_requires = false
+
+        ensures: EditProposed(
+        title: "Add temporal requires guard",
+        insertion: "requires: /* add temporal guard */"
+        )
+    }
+
+    rule RefactorExtractRepeatedLiteralToConfig {
+        when: RefactorRequestedFromSelection(selection)
+        requires: SelectionValueIsStringOrIntegerLiteral(selection)
+        requires: selection.value_appears_multiple_times_in_document = true
+
+        ensures: EditProposed(
+        title: "Extract repeated literal to config",
+        insertion: "config.<generated_key>"
+        )
+    }
+
+    rule RefactorInlineEnumToNamedEnum {
+        when: RefactorRequestedFromSelection(selection)
+        requires: selection.line.contains(selection.inline_enum_field)
+        requires: selection.inline_enum_field.values_are_lowercase_literals = true
+
+        ensures: EditProposed(
+        title: "Extract inline enum to named enum",
+        insertion: "enum <GeneratedName> { <values> }"
+        )
+        ensures: EditProposed(
+        title: "Extract inline enum to named enum",
+        replacement: "<field>: <GeneratedName>"
+        )
+    }
+
+    rule BuildOutlineSymbols {
+        when: OutlineRequested(document)
+        requires: document.language_id = "allium"
+
+        ensures: SymbolListed(kind: config, label: "config")
+        ensures: SymbolListed(kind: entity, label: "<entity_name>")
+        ensures: SymbolListed(kind: external_entity, label: "<external_entity_name>")
+        ensures: SymbolListed(kind: value, label: "<value_name>")
+        ensures: SymbolListed(kind: variant, label: "<variant_name>")
+        ensures: SymbolListed(kind: enum, label: "<enum_name>")
+        ensures: SymbolListed(kind: default, label: "<default_instance_name>")
+        ensures: SymbolListed(kind: rule, label: "<rule_name>")
+        ensures: SymbolListed(kind: surface, label: "<surface_name>")
+        ensures: SymbolListed(kind: actor, label: "<actor_name>")
+    }
+
+    rule BuildWorkspaceSymbols {
+        when: WorkspaceSymbolSearchRequested(query)
+
+        ensures: SymbolListed(kind: entity, label: "<entity_name>")
+        ensures: SymbolListed(kind: rule, label: "<rule_name>")
+        ensures: SymbolListFilteredByQuery(query)
+    }
+
+    rule ResolveLocalDefinitions {
+        when: DefinitionRequested(document, symbol_at_cursor)
+        requires: document.language_id = "allium"
+        requires: SymbolAtCursorReferencesLocalDeclarationOrConfigKey(symbol_at_cursor)
+
+        ensures: DefinitionLocationReturned()
+    }
+
+    rule ResolveDefinitionsAcrossUseImports {
+        when: DefinitionRequested(document, symbol_at_cursor)
+        requires: symbol_at_cursor.references_imported_alias_symbol = true
+        requires: use_import_target_file_exists = true
+
+        ensures: DefinitionLocationReturned()
+    }
+
+    rule ParseImportedAliasSymbolWithDotOrSlash {
+        when: ImportedSymbolReferenceParsed(reference)
+        requires: reference.qualified_with_alias_separator in [".", "/"]
+
+        ensures: ImportedAliasAndSymbolResolved()
+    }
+
+    rule ProvideDocumentLinksForUseImports {
+        when: DocumentLinksRequested(document)
+        requires: document.language_id = "allium"
+        requires: document.contains_use_import_alias_statement = true
+
+        ensures: LinkReturned(for: quoted_use_import_path)
+        ensures: LinkTargetResolvesRelativeToCurrentDocument()
+    }
+
+    rule FindReferencesForDeclaredSymbol {
+        when: ReferencesRequested(document, symbol_at_cursor)
+        requires: SymbolAtCursorReferencesLocalSymbolOrConfigKey(symbol_at_cursor)
+
+        ensures: ReferenceLocationsReturned()
+        ensures: ReferenceLocationsExcludeCommentOnlyMatches()
+    }
+
+    rule FindReferencesForImportedSymbol {
+        when: ReferencesRequested(document, symbol_at_cursor)
+        requires: symbol_at_cursor.references_imported_alias_symbol = true
+        requires: use_import_target_file_exists = true
+
+        ensures: ReferenceLocationsReturned(from: import_target_document)
+    }
+
+    rule RenameDeclaredSymbol {
+        when: RenameRequested(document, symbol_at_cursor, new_name)
+        requires: new_name.is_valid_identifier
+        requires: symbol_at_cursor.references_locally_declared_symbol = true
+
+        ensures: SymbolOccurrencesRewritten(document)
+        ensures: CommentOnlyMatchesNotRewritten()
+    }
+
+    rule ProvideKeywordHoverDocumentation {
+        when: HoverRequested(document, token_at_cursor)
+        requires: document.language_id = "allium"
+        requires: token_at_cursor in [entity, rule, when, requires, ensures, config, surface, actor, open_question, deferred, given, facing]
+
+        ensures: HoverDocumentationReturned()
+        ensures: HoverIncludesDeclarationContextWhenAvailable()
+    }
+
+    rule ProvideTopLevelFoldingRanges {
+        when: FoldingRangesRequested(document)
+        requires: document.language_id = "allium"
+
+        ensures: FoldingRangeReturned(for: top_level_blocks)
+    }
+
+    rule FormatDocumentWithAlliumFormatter {
+        when: DocumentFormattingRequested(document)
+        requires: document.language_id = "allium"
+
+        ensures: DocumentRewrittenWithAlliumFormatter()
+        ensures: FormatterSettingsApplied(indent_width_setting: "allium.format.indentWidth", top_level_spacing_setting: "allium.format.topLevelSpacing")
+    }
+
+    rule ProvideSemanticTokens {
+        when: SemanticTokensRequested(document)
+        requires: document.language_id = "allium"
+
+        ensures: SemanticTokensReturned(for: keywords)
+        ensures: SemanticTokensReturned(for: declarations)
+        ensures: SemanticTokensReturned(for: literals_and_comments)
+    }
+
+    rule ProvideKeywordAndConfigCompletions {
+        when: CompletionRequested(document, cursor)
+        requires: document.language_id = "allium"
+
+        ensures: CompletionItemAvailable(kind: keyword)
+        ensures: CompletionItemAvailable(label: enum)
+        ensures: CompletionItemAvailable(label: given)
+        ensures: CompletionItemAvailable(label: module)
+        ensures: CompletionItemAvailable(label: with)
+        ensures: CompletionItemAvailable(label: exists)
+        ensures: CompletionItemAvailable(label: identified_by)
+        ensures: CompletionAfterConfigDotIncludesDeclaredConfigKeys()
+    }
+
+    rule SpecDriftCommandLoadsWorkspaceDriftConfig {
+        when: CommandInvoked("allium.checkSpecDrift")
+        requires: FileExists(path: "allium-config-file")
+        requires: not command_args.contains("--no-config")
+
+        ensures: ConfigDefaultsLoaded(section: drift)
+    }
+
+    rule SpecDriftCommandUsesConfiguredWorkspaceInputs {
+        when: CommandInvoked("allium.checkSpecDrift")
+        requires: ConfigContainsDriftSourceAndSpecInputs()
+
+        ensures: DriftInputsResolvedFromConfig()
+        ensures: DriftReportRendered()
+    }
+
+    rule SpecDriftCommandHonorsConfiguredExcludeDirectories {
+        when: CommandInvoked("allium.checkSpecDrift")
+        requires: ConfigContainsDriftExcludeDirectories()
+
+        ensures: DriftScanSkipsConfiguredDirectoryNames()
+    }

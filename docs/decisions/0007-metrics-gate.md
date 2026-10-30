@@ -47,6 +47,8 @@ that limitation.
 has a row below; none is left to rustqual's default. Most rows keep the default rustqual
 documents at 1.8.3, now as a choice, and three depart from it: the file length and the
 two limits on test code. They are carried without tuning to this tree.
+One key, `exclude_files`, keeps upstream's vendored CLI out of the gate
+([decision 0014](0014-cli-strategy.md)).
 
 The four clippy can also check carry the same number in `clippy.toml`, but the two tools
 do not count alike. rustqual measures a function from its opening brace to its closing

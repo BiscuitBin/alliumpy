@@ -48,14 +48,15 @@ subclass. There is no fallible parse path yet. Public core values are
 
 ## The command route
 
-Until T13 lands, the console shim answers `-V` and `--version` only. S01 compared
-vendoring upstream's CLI modules into the core, bundling a crates.io-built binary behind
-an exec shim, and an upstream pull request exposing `run(args)`, and recommends
-vendoring. T13 builds that route and records it in
-[record 0014](../decisions/0014-cli-strategy.md). Vendored code belongs in
-`crates/alliumpy-core/src/cli/` under the core's quality requirements.
+The `allium` command is upstream's, vendored. Upstream's `main.rs`, `test_plan.rs` and
+`domain_model.rs` at the pinned tag live in `crates/alliumpy-core/src/cli/`, transformed
+so that `alliumpy_core::cli::run(args, stdout, stderr)` returns the exit status; the
+bindings expose it as the private `_run_cli`, and the console shim `_cli.py` restores
+SIGINT's default unless it was inherited as ignored, points a closed standard descriptor at the null device, and exits
+with that status. [Record 0014](../decisions/0014-cli-strategy.md) gives the route and
+why S01 chose it over bundling a binary or waiting for upstream. `just parity` proves
+stdout and exit-code parity with upstream's `allium-cli` at the pin.
 
-T13 adds the remaining command behaviour and byte-for-byte CLI parity.
 T14 adds the release process and first PyPI publication.
 T15 adds mutation testing, benchmarks and fuzzing; [Testing](../reference/testing.md)
 will carry their evidence.

@@ -18,6 +18,8 @@ name = "alliumpy-core"
 version = "3.6.1"
 dependencies = [
  "allium-parser",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

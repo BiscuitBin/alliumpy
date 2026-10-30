@@ -1,0 +1,815 @@
+// Vendored from juxt/allium-tools at v3.6.1: crates/allium/src/main.rs
+// (https://github.com/juxt/allium-tools/blob/v3.6.1/crates/allium/src/main.rs).
+// MIT License, Copyright (c) 2026, as upstream's LICENSE reads at that tag; the full
+// text ships as crates/alliumpy/LICENSE-allium-tools. Changes from upstream are listed in
+// crates/alliumpy-core/src/cli.rs; nothing else differs.
+#![expect(clippy::bool_to_int_with_if, reason = "upstream's code, vendored unchanged (decision 0014)")]
+#![expect(clippy::cognitive_complexity, reason = "upstream's code, vendored unchanged (decision 0014)")]
+#![expect(clippy::disallowed_types, reason = "upstream's hash iteration, vendored unchanged; its output order is proved only as far as the parity corpus exercises it (decision 0014)")]
+#![expect(clippy::excessive_nesting, reason = "upstream's code, vendored unchanged (decision 0014)")]
+#![expect(clippy::iter_over_hash_type, reason = "upstream's hash iteration, vendored unchanged; its output order is proved only as far as the parity corpus exercises it (decision 0014)")]
+#![expect(clippy::manual_let_else, reason = "upstream's code, vendored unchanged (decision 0014)")]
+#![expect(clippy::redundant_closure_for_method_calls, reason = "upstream's code, vendored unchanged (decision 0014)")]
+#![expect(clippy::str_to_string, reason = "upstream's code, vendored unchanged (decision 0014)")]
+#![expect(clippy::too_many_lines, reason = "upstream's code, vendored unchanged (decision 0014)")]
+#![expect(clippy::unnested_or_patterns, reason = "upstream's code, vendored unchanged (decision 0014)")]
+#![expect(clippy::unreachable, reason = "upstream panics here, vendored unchanged; cli::run returns 101 for it, as upstream's binary exits (decision 0014)")]
+#![expect(clippy::unwrap_used, reason = "upstream panics here, vendored unchanged; cli::run returns 101 for it, as upstream's binary exits (decision 0014)")]
+use super::{domain_model, test_plan};
+use allium_parser::diagnostic::Severity;
+use allium_parser::lexer::SourceMap;
+use allium_parser::{AmbiguousImports, ReverseContributions};
+use std::collections::{BTreeMap, HashMap, HashSet};
+use std::path::{Path, PathBuf};
+use std::io::Write;
+
+const HELP: &str = "\
+allium - validate, parse and analyse Allium specification files
+
+Usage: allium <command> [arguments]
+       allium [-h | --help] [-V | --version]
+
+Commands:
+  check    Validate spec files and report structural diagnostics (JSON)
+  analyse  Analyse process completeness: data flow, reachability, conflicts (JSON)
+  parse    Parse a spec file and print the AST as JSON
+  plan     Derive test obligations from a spec
+  model    Extract the domain model as structured data
+  help     Print help for the CLI or for a specific command
+
+Options:
+  -h, --help     Show this help message and exit
+  -V, --version  Print version information and exit
+
+Run `allium help <command>` or `allium <command> --help` for per-command help.
+";
+
+const CHECK_HELP: &str = "\
+allium check - validate spec files and report structural diagnostics
+
+Usage: allium check <path>...
+
+Each <path> is a .allium file or a directory. Directories are searched
+recursively for .allium files. Outputs JSON with a diagnostics array
+containing line-level structural warnings and errors.
+
+Exit codes:
+  0  No errors or warnings
+  1  One or more errors or warnings were reported
+  2  No inputs provided, or no .allium files could be resolved
+";
+
+const ANALYSE_HELP: &str = "\
+allium analyse - analyse process completeness
+
+Usage: allium analyse <path>...
+
+Runs structural checks (same as `check`) plus process-level analysis:
+data flow tracing, edge reachability, deadlock detection, conflict
+detection, and invariant verification. Outputs JSON with both a
+diagnostics array and a findings array.
+
+Exit codes:
+  0  No findings
+  1  One or more findings were produced
+  2  No inputs provided, or no .allium files could be resolved
+";
+
+const PARSE_HELP: &str = "\
+allium parse - parse a spec file and print the AST as JSON
+
+Usage: allium parse <file.allium>
+
+Prints a JSON document describing the parsed module and any diagnostics
+produced during parsing. Exits non-zero if the spec carries an
+error-severity diagnostic (e.g. it does not parse).
+";
+
+const PLAN_HELP: &str = "\
+allium plan - derive test obligations from a spec
+
+Usage: allium plan <file.allium>
+
+Prints a JSON document describing the test plan implied by the spec,
+including invariants, rule pre- and post-conditions, and transitions.
+
+The output carries a `diagnostics` array mirroring `check`. Exits
+non-zero if the spec carries an error-severity diagnostic, so an empty
+obligation set from a spec that does not parse is not mistaken for a
+valid spec that legitimately has none.
+";
+
+const MODEL_HELP: &str = "\
+allium model - extract the domain model as structured data
+
+Usage: allium model <file.allium>
+
+Prints a JSON document describing entities, value types and generators
+derived from the spec. The output carries a `diagnostics` array mirroring
+`check`, and exits non-zero if the spec carries an error-severity
+diagnostic.
+";
+
+pub(super) fn main(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
+    if args.is_empty() {
+        eprintln_to!(stderr, "allium: missing command");
+        eprintln_to!(stderr, "Run `allium --help` for usage.");
+        return 2;
+    }
+
+    match args[0].as_str() {
+        "--help" | "-h" => {
+            print_to!(stdout, "{HELP}");
+            return 0;
+        }
+        "--version" | "-V" => {
+            println_to!(stdout, "{}", crate::ALLIUM_VERSION_STRING);
+            return 0;
+        }
+        "help" => return cmd_help(&args[1..], stdout, stderr),
+        _ => {}
+    }
+
+    let subcommand = args[0].as_str();
+    let rest = &args[1..];
+
+    match subcommand {
+        "check" | "analyse" | "parse" | "plan" | "model" => {
+            if rest.iter().any(|a| a == "--help" || a == "-h") {
+                print_to!(stdout, "{}", subcommand_help(subcommand));
+                return 0;
+            }
+            match subcommand {
+                "check" => cmd_check(rest, stdout, stderr),
+                "analyse" => cmd_analyse(rest, stdout, stderr),
+                "parse" => cmd_parse(rest, stdout, stderr),
+                "plan" => cmd_plan(rest, stdout, stderr),
+                "model" => cmd_model(rest, stdout, stderr),
+                _ => unreachable!(),
+            }
+        }
+        other => {
+            eprintln_to!(stderr, "allium: unknown command `{other}`");
+            eprintln_to!(stderr, "Run `allium --help` for available commands.");
+            2
+        }
+    }
+}
+
+fn cmd_help(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
+    match args.first().map(String::as_str) {
+        None => {
+            print_to!(stdout, "{HELP}");
+            0
+        }
+        Some("check") | Some("analyse") | Some("parse") | Some("plan") | Some("model") => {
+            print_to!(stdout, "{}", subcommand_help(args[0].as_str()));
+            0
+        }
+        Some(other) => {
+            eprintln_to!(stderr, "allium: unknown command `{other}`");
+            eprintln_to!(stderr, "Run `allium --help` for available commands.");
+            2
+        }
+    }
+}
+
+fn subcommand_help(name: &str) -> &'static str {
+    match name {
+        "check" => CHECK_HELP,
+        "analyse" => ANALYSE_HELP,
+        "parse" => PARSE_HELP,
+        "plan" => PLAN_HELP,
+        "model" => MODEL_HELP,
+        _ => HELP,
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Multi-file commands: check, analyse
+// ---------------------------------------------------------------------------
+
+/// Per-file analysis result fed back from the closure to the multi-file loop.
+struct FileResult {
+    diagnostics: Vec<serde_json::Value>,
+    findings: Vec<serde_json::Value>,
+    has_issues: bool,
+}
+
+/// A parsed file ready for analysis.
+struct ParsedFile {
+    path: PathBuf,
+    source: String,
+    result: allium_parser::ParseResult,
+}
+
+/// Cross-module context computed once and passed to each file's analysis.
+struct CrossModuleContext {
+    /// Per-file: declaration names referenced by other modules.
+    external_refs: HashMap<PathBuf, HashSet<String>>,
+    /// Per-file: use path strings that resolved to files in the check set.
+    resolved_use_paths: HashMap<PathBuf, HashSet<String>>,
+    /// Per-file: `use` alias → trigger names the aliased module provides or
+    /// emits. Aliases whose targets are outside the check set are absent.
+    imported_triggers: HashMap<PathBuf, HashMap<String, HashSet<String>>>,
+    /// Per-file: `use` alias → (imported entity/value type → declared field
+    /// names). Lets a qualified `default alias/Type` literal be validated
+    /// against the imported schema. Aliases whose targets are outside the check
+    /// set are absent.
+    imported_entity_fields: HashMap<PathBuf, HashMap<String, HashMap<String, HashSet<String>>>>,
+    /// Per-file: `use` alias → every trigger name the aliased module references.
+    /// Lets a qualified `provides: alias/Trigger` entry be validated (#72).
+    /// Aliases whose targets are outside the check set are absent.
+    imported_referenced_triggers: HashMap<PathBuf, HashMap<String, HashSet<String>>>,
+    /// Per-file: names and triggers that more than one imported module could
+    /// resolve, so unqualified references to them are ambiguous (issue #15).
+    ambiguous_imports: HashMap<PathBuf, AmbiguousImports>,
+    /// Per-imported-file: contributions its importers make back to it (qualified
+    /// creations, provides and witnessed transitions). Keyed by the imported
+    /// (target) module, aggregated across all its importers in the check set.
+    reverse_contributions: HashMap<PathBuf, ReverseContributions>,
+    /// Per-file: imported entity name → its declared status values, flattened
+    /// across every `use` alias whose target is in the check set. Lets the
+    /// importer's conflict pass attribute a rule to an imported entity.
+    imported_entity_statuses: HashMap<PathBuf, HashMap<String, HashSet<String>>>,
+    /// Per-file: use path strings that resolve neither to a file in the check
+    /// set nor to a file on disk — broken imports, as opposed to out-of-set
+    /// ones. References through their aliases are diagnosed per reference.
+    missing_use_paths: HashMap<PathBuf, HashSet<String>>,
+}
+
+/// Shared loop for commands that process multiple .allium files.
+///
+/// Parses all files first, builds the cross-module reference map, then
+/// analyses each file with knowledge of which declarations are referenced
+/// externally and which use paths resolved.
+fn run_multi_file(
+    command: &str,
+    args: &[String],
+    stdout: &mut dyn Write,
+    stderr: &mut dyn Write,
+    analyse_file: impl Fn(&Path, &str, &allium_parser::ParseResult, &SourceMap, &HashSet<String>, &HashSet<String>, &HashMap<String, HashSet<String>>, &HashMap<String, HashMap<String, HashSet<String>>>, &AmbiguousImports, &ReverseContributions, &HashMap<String, HashSet<String>>, &HashMap<String, HashSet<String>>, &HashSet<String>) -> FileResult,
+) -> i32 {
+    let files = resolve_files(args);
+    if files.is_empty() {
+        eprintln_to!(stderr, "No .allium files found.");
+        return 2;
+    }
+
+    // Pass 1: parse all files.
+    let mut parsed: Vec<ParsedFile> = Vec::new();
+    let mut any_issues = false;
+
+    for path in &files {
+        let source = match std::fs::read_to_string(path) {
+            Ok(s) => s,
+            Err(e) => {
+                eprintln_to!(stderr, "{}: {e}", path.display());
+                any_issues = true;
+                continue;
+            }
+        };
+        let result = allium_parser::parse(&source);
+        parsed.push(ParsedFile {
+            path: path.clone(),
+            source,
+            result,
+        });
+    }
+
+    // Pass 2: build cross-module context.
+    let ctx = build_cross_module_context(&parsed);
+
+    // Pass 3: analyse each file with cross-module context.
+    let no_ambiguity = AmbiguousImports::default();
+    let no_reverse = ReverseContributions::default();
+    for pf in &parsed {
+        let source_map = SourceMap::new(&pf.source);
+        let key = canonical_key(&pf.path);
+        let refs = ctx.external_refs.get(&key).cloned().unwrap_or_default();
+        let use_paths = ctx.resolved_use_paths.get(&key).cloned().unwrap_or_default();
+        let imports = ctx.imported_triggers.get(&key).cloned().unwrap_or_default();
+        let imported_fields = ctx.imported_entity_fields.get(&key).cloned().unwrap_or_default();
+        let ambiguous = ctx.ambiguous_imports.get(&key).unwrap_or(&no_ambiguity);
+        let reverse = ctx.reverse_contributions.get(&key).unwrap_or(&no_reverse);
+        let referenced = ctx.imported_referenced_triggers.get(&key).cloned().unwrap_or_default();
+        let imported_statuses = ctx.imported_entity_statuses.get(&key).cloned().unwrap_or_default();
+        let missing = ctx.missing_use_paths.get(&key).cloned().unwrap_or_default();
+        let file_result = analyse_file(&pf.path, &pf.source, &pf.result, &source_map, &refs, &use_paths, &imports, &imported_fields, ambiguous, reverse, &referenced, &imported_statuses, &missing);
+
+        if file_result.has_issues {
+            any_issues = true;
+        }
+
+        let output = serde_json::json!({
+            "command": command,
+            "spec_file": pf.path.display().to_string(),
+            "diagnostics": file_result.diagnostics,
+            "findings": file_result.findings,
+        });
+
+        println_to!(stdout, "{}", serde_json::to_string_pretty(&output).unwrap());
+    }
+
+    if any_issues { 1 } else { 0 }
+}
+
+/// Build both cross-module maps by examining all parsed files.
+fn build_cross_module_context(parsed: &[ParsedFile]) -> CrossModuleContext {
+    // Set of canonical paths in the check set, for resolving use targets.
+    let check_set: HashSet<PathBuf> = parsed
+        .iter()
+        .map(|pf| canonical_key(&pf.path))
+        .collect();
+
+    // Pre-compute each file's declared names so we can match unqualified
+    // references against imported module declarations.
+    let declared: HashMap<PathBuf, HashSet<String>> = parsed
+        .iter()
+        .map(|pf| {
+            (
+                canonical_key(&pf.path),
+                allium_parser::collect_declared_names(&pf.result.module),
+            )
+        })
+        .collect();
+
+    // Pre-compute each file's provided/emitted trigger names so importing
+    // files can resolve `alias/Trigger` subscriptions across the check set.
+    let trigger_outputs: HashMap<PathBuf, HashSet<String>> = parsed
+        .iter()
+        .map(|pf| {
+            (
+                canonical_key(&pf.path),
+                allium_parser::collect_trigger_outputs(&pf.result.module),
+            )
+        })
+        .collect();
+
+    // Pre-compute each file's entity/value type → field-name schema so importing
+    // files can validate `default alias/Type = { ... }` literals against the
+    // imported type's declared fields.
+    let entity_field_outputs: HashMap<PathBuf, HashMap<String, HashSet<String>>> = parsed
+        .iter()
+        .map(|pf| {
+            (
+                canonical_key(&pf.path),
+                allium_parser::collect_entity_field_schemas(&pf.result.module),
+            )
+        })
+        .collect();
+
+    // Each file's entity → status-values schema, so an importer's conflict pass
+    // can attribute a rule to an imported entity by the statuses it references.
+    let entity_status_outputs: HashMap<PathBuf, HashMap<String, HashSet<String>>> = parsed
+        .iter()
+        .map(|pf| {
+            (
+                canonical_key(&pf.path),
+                allium_parser::collect_entity_status_schemas(&pf.result.module),
+            )
+        })
+        .collect();
+
+    // Pre-compute every trigger name each file references (provides, emits or
+    // listens for), so an importing file can validate a qualified `provides:`
+    // entry against the aliased module (#72).
+    let referenced_triggers: HashMap<PathBuf, HashSet<String>> = parsed
+        .iter()
+        .map(|pf| {
+            (
+                canonical_key(&pf.path),
+                allium_parser::collect_referenced_trigger_names(&pf.result.module),
+            )
+        })
+        .collect();
+
+    // Imported module AST by canonical key, so an importer's contributions can
+    // be resolved against the module it imports (types, status values).
+    let module_by_key: HashMap<PathBuf, &allium_parser::Module> = parsed
+        .iter()
+        .map(|pf| (canonical_key(&pf.path), &pf.result.module))
+        .collect();
+
+    let mut external_refs: HashMap<PathBuf, HashSet<String>> = HashMap::new();
+    let mut resolved_use_paths: HashMap<PathBuf, HashSet<String>> = HashMap::new();
+    let mut imported_triggers: HashMap<PathBuf, HashMap<String, HashSet<String>>> = HashMap::new();
+    let mut imported_referenced_triggers: HashMap<PathBuf, HashMap<String, HashSet<String>>> =
+        HashMap::new();
+    let mut reverse_contributions: HashMap<PathBuf, ReverseContributions> = HashMap::new();
+    let mut imported_entity_fields: HashMap<
+        PathBuf,
+        HashMap<String, HashMap<String, HashSet<String>>>,
+    > = HashMap::new();
+    let mut imported_entity_statuses: HashMap<PathBuf, HashMap<String, HashSet<String>>> =
+        HashMap::new();
+    let mut ambiguous_imports: HashMap<PathBuf, AmbiguousImports> = HashMap::new();
+    let mut missing_use_paths: HashMap<PathBuf, HashSet<String>> = HashMap::new();
+
+    for pf in parsed {
+        // For bare filenames (no directory component), parent() returns "".
+        // Joining "" with a relative use path still works because canonicalize
+        // resolves it against the process working directory.
+        let base = pf.path.parent().unwrap_or(Path::new("."));
+        let file_key = canonical_key(&pf.path);
+
+        // Collect use declarations: alias → use-path string, and resolve each
+        // against the check set. Also build alias → canonical target key, and
+        // note paths that resolve neither in the check set nor on disk — a
+        // broken import, distinct from an on-disk file merely outside a
+        // narrower check set (a single-file check of one member of a pair).
+        let mut aliases: HashMap<&str, String> = HashMap::new();
+        let mut alias_targets: HashMap<&str, PathBuf> = HashMap::new();
+        let mut resolved_for_file: HashSet<String> = HashSet::new();
+        let mut missing_for_file: HashSet<String> = HashSet::new();
+
+        for d in &pf.result.module.declarations {
+            if let allium_parser::ast::Decl::Use(u) = d {
+                let path_text = u.path.text();
+                let target = base.join(&path_text);
+                let target_key = canonical_key(&target);
+
+                if check_set.contains(&target_key) {
+                    resolved_for_file.insert(path_text.clone());
+                } else if path_text.ends_with(".allium") && !target.exists() {
+                    // Only local file references (ending .allium) can be
+                    // broken. Registry coordinates (`github.com/org/spec/sha`)
+                    // are immutable remote references that are not expected on
+                    // disk; they stay out-of-set, never broken.
+                    //
+                    // This `exists()` makes `check` output depend on the
+                    // filesystem, not just its input files: a wrong-case local
+                    // path reads as present on a case-insensitive filesystem
+                    // (macOS, Windows) and broken on a case-sensitive one
+                    // (Linux CI), so the same spec can diagnose differently by
+                    // platform. The divergence runs in the safe direction: CI
+                    // is the stricter of the two, so nothing dead slips the
+                    // gate that a developer saw as clean.
+                    missing_for_file.insert(path_text.clone());
+                }
+
+                if let Some(alias) = &u.alias {
+                    alias_targets.insert(alias.name.as_str(), target_key);
+                    aliases.insert(alias.name.as_str(), path_text);
+                }
+            }
+        }
+        missing_use_paths.insert(file_key.clone(), missing_for_file);
+
+        // 0. Reverse contributions — for each alias resolving to a module in the
+        //    check set, the contributions this importer makes back to it
+        //    (qualified creations, provides, witnessed transitions), aggregated
+        //    against the imported (target) module.
+        for (alias, target_key) in &alias_targets {
+            if let Some(target_module) = module_by_key.get(target_key) {
+                let contrib = allium_parser::collect_reverse_contributions(
+                    &pf.result.module,
+                    alias,
+                    target_module,
+                );
+                if !contrib.is_empty() {
+                    reverse_contributions
+                        .entry(target_key.clone())
+                        .or_default()
+                        .merge(contrib);
+                }
+            }
+        }
+
+        // 1. Qualified references (core/InputEvent) and alias-member
+        //    references (core.EntityMap) — both produce (qualifier, name)
+        //    pairs from collect_qualified_references.
+        let qrefs = allium_parser::collect_qualified_references(&pf.result.module);
+        for (qualifier, name) in &qrefs {
+            if let Some(target_key) = alias_targets.get(qualifier.as_str()) {
+                external_refs.entry(target_key.clone()).or_default().insert(name.clone());
+            }
+        }
+
+        // 2. Unqualified references — any uppercase ident used in this file
+        //    that matches a declaration in an imported module. This covers
+        //    bare entity names in rule bodies and type names in contract
+        //    signatures. Subtract locally-declared names first so that a
+        //    local declaration doesn't spuriously suppress a same-named
+        //    declaration in an imported module.
+        let all_idents = allium_parser::collect_all_referenced_idents(&pf.result.module);
+        let local_names = allium_parser::collect_declared_names(&pf.result.module);
+        let imported_idents: HashSet<&String> = all_idents.difference(&local_names).collect();
+        for target_key in alias_targets.values() {
+            if let Some(target_decls) = declared.get(target_key) {
+                for name in &imported_idents {
+                    if target_decls.contains(name.as_str()) {
+                        external_refs.entry(target_key.clone()).or_default().insert((*name).clone());
+                    }
+                }
+            }
+        }
+
+        // 3. Imported triggers — for each alias whose target is in the check
+        //    set, the trigger names the target module provides or emits.
+        let mut imported_for_file: HashMap<String, HashSet<String>> = HashMap::new();
+        for (alias, target_key) in &alias_targets {
+            if let Some(triggers) = trigger_outputs.get(target_key) {
+                imported_for_file.insert((*alias).to_string(), triggers.clone());
+            }
+        }
+        imported_triggers.insert(file_key.clone(), imported_for_file);
+
+        // 3a. Referenced triggers — for each alias whose target is in the check
+        //     set, every trigger name that module references. Lets a qualified
+        //     `provides: alias/Trigger` entry be validated against it (#72).
+        let mut referenced_for_file: HashMap<String, HashSet<String>> = HashMap::new();
+        for (alias, target_key) in &alias_targets {
+            if let Some(triggers) = referenced_triggers.get(target_key) {
+                referenced_for_file.insert((*alias).to_string(), triggers.clone());
+            }
+        }
+        imported_referenced_triggers.insert(file_key.clone(), referenced_for_file);
+
+        // 3b. Imported entity field schemas — for each alias whose target is in
+        //     the check set, that module's entity/value type → field names.
+        let mut imported_fields_for_file: HashMap<String, HashMap<String, HashSet<String>>> =
+            HashMap::new();
+        for (alias, target_key) in &alias_targets {
+            if let Some(fields) = entity_field_outputs.get(target_key) {
+                imported_fields_for_file.insert((*alias).to_string(), fields.clone());
+            }
+        }
+        imported_entity_fields.insert(file_key.clone(), imported_fields_for_file);
+
+        // 3c. Imported entity status vocabularies, flattened across aliases to
+        //     entity name → status values, so the importer's conflict pass can
+        //     attribute a rule to an imported entity by the statuses it uses.
+        let mut imported_statuses_for_file: HashMap<String, HashSet<String>> = HashMap::new();
+        for target_key in alias_targets.values() {
+            if let Some(statuses) = entity_status_outputs.get(target_key) {
+                for (entity, values) in statuses {
+                    imported_statuses_for_file
+                        .entry(entity.clone())
+                        .or_default()
+                        .extend(values.iter().cloned());
+                }
+            }
+        }
+        imported_entity_statuses.insert(file_key.clone(), imported_statuses_for_file);
+
+        // 4. Ambiguous imports — names declared, and triggers provided or
+        //    emitted, by more than one distinct imported file. Keyed by
+        //    distinct target so that two aliases for the same file are not
+        //    counted as ambiguous (issue #15).
+        let mut name_sources: HashMap<&String, BTreeMap<&PathBuf, &str>> = HashMap::new();
+        let mut trigger_sources: HashMap<&String, BTreeMap<&PathBuf, &str>> = HashMap::new();
+        for (alias, target_key) in &alias_targets {
+            if let Some(decls) = declared.get(target_key) {
+                for name in decls {
+                    let by_target = name_sources.entry(name).or_default();
+                    let entry = by_target.entry(target_key).or_insert(alias);
+                    if *alias < *entry {
+                        *entry = alias;
+                    }
+                }
+            }
+            if let Some(triggers) = trigger_outputs.get(target_key) {
+                for name in triggers {
+                    let by_target = trigger_sources.entry(name).or_default();
+                    let entry = by_target.entry(target_key).or_insert(alias);
+                    if *alias < *entry {
+                        *entry = alias;
+                    }
+                }
+            }
+        }
+        let collapse = |sources: HashMap<&String, BTreeMap<&PathBuf, &str>>| -> HashMap<String, Vec<String>> {
+            sources
+                .into_iter()
+                .filter(|(_, by_target)| by_target.len() >= 2)
+                .map(|(name, by_target)| {
+                    let mut aliases: Vec<String> =
+                        by_target.values().map(|a| a.to_string()).collect();
+                    aliases.sort();
+                    (name.clone(), aliases)
+                })
+                .collect()
+        };
+        ambiguous_imports.insert(
+            file_key.clone(),
+            AmbiguousImports {
+                names: collapse(name_sources),
+                triggers: collapse(trigger_sources),
+            },
+        );
+
+        resolved_use_paths.insert(file_key, resolved_for_file);
+    }
+
+    CrossModuleContext {
+        external_refs,
+        resolved_use_paths,
+        imported_triggers,
+        imported_entity_fields,
+        imported_referenced_triggers,
+        ambiguous_imports,
+        reverse_contributions,
+        imported_entity_statuses,
+        missing_use_paths,
+    }
+}
+
+/// Normalise a path for use as a map key. Uses canonicalize when possible,
+/// falls back to the raw path. This assumes that all files in a single check
+/// invocation will either all canonicalise successfully or all fail — if some
+/// canonicalise and others don't (e.g. broken symlinks), the same underlying
+/// file could produce different keys and cross-module lookups would miss.
+fn canonical_key(path: &Path) -> PathBuf {
+    path.canonicalize().unwrap_or_else(|_| path.to_path_buf())
+}
+
+fn cmd_check(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
+    run_multi_file("check", args, stdout, stderr, |path, source, result, source_map, external_refs, resolved_use_paths, imported_triggers, imported_entity_fields, ambiguous_imports, reverse, referenced_triggers, _imported_entity_statuses, missing_use_paths| {
+        // `check` emits diagnostics only, not findings, so it needs no imported
+        // status vocabulary (conflicts are findings, surfaced by `analyse`).
+        let analysis = allium_parser::analyze_with_cross_module(&result.module, source, external_refs, resolved_use_paths, imported_triggers, imported_entity_fields, ambiguous_imports, reverse, referenced_triggers, missing_use_paths);
+        let diagnostics: Vec<serde_json::Value> = result
+            .diagnostics
+            .iter()
+            .chain(analysis.iter())
+            .map(|d| diagnostic_to_json(d, path, source_map))
+            .collect();
+        let has_issues = diagnostics.iter().any(|d| {
+            d["severity"] == "error" || d["severity"] == "warning"
+        });
+        FileResult { diagnostics, findings: vec![], has_issues }
+    })
+}
+
+fn cmd_analyse(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
+    run_multi_file("analyse", args, stdout, stderr, |path, source, result, source_map, external_refs, resolved_use_paths, imported_triggers, imported_entity_fields, ambiguous_imports, reverse, referenced_triggers, imported_entity_statuses, missing_use_paths| {
+        let analyse_result = allium_parser::analyse_with_cross_module(&result.module, source, external_refs, resolved_use_paths, imported_triggers, imported_entity_fields, ambiguous_imports, reverse, referenced_triggers, imported_entity_statuses, missing_use_paths);
+        let diagnostics: Vec<serde_json::Value> = result
+            .diagnostics
+            .iter()
+            .chain(analyse_result.diagnostics.iter())
+            .map(|d| diagnostic_to_json(d, path, source_map))
+            .collect();
+        let has_issues = !analyse_result.findings.is_empty();
+        FileResult { diagnostics, findings: analyse_result.findings, has_issues }
+    })
+}
+
+// ---------------------------------------------------------------------------
+// Single-file commands: parse, plan, model
+// ---------------------------------------------------------------------------
+
+/// Non-zero exit when the parse carries an error-severity diagnostic.
+///
+/// The parser is error-tolerant: a spec that does not parse still yields a
+/// (partial, possibly empty) `Module` plus diagnostics rather than failing
+/// outright. Every single-file command routes its exit code through here so
+/// that "the spec did not parse" cannot be laundered into a plausible-looking
+/// empty success. See `docs/versioning.md` and issue #80.
+fn single_file_exit(diagnostics: &[allium_parser::Diagnostic]) -> i32 {
+    if diagnostics.iter().any(|d| d.severity == Severity::Error) {
+        1
+    } else {
+        0
+    }
+}
+
+/// Shared handler for commands that take a single .allium file, parse it, and
+/// print a JSON-serialisable result.
+///
+/// The transformed output is an object; parse diagnostics are merged into it
+/// under a `diagnostics` key (mirroring `check`) so a consumer can tell an
+/// empty-but-valid result apart from a parse failure without a second
+/// invocation. The exit code reflects error-severity diagnostics.
+fn run_single_file(
+    usage: &str,
+    args: &[String],
+    stdout: &mut dyn Write,
+    stderr: &mut dyn Write,
+    transform: impl FnOnce(&allium_parser::Module, &str) -> serde_json::Value,
+) -> i32 {
+    if args.len() != 1 {
+        eprintln_to!(stderr, "Usage: {usage}");
+        return 2;
+    }
+
+    let path = Path::new(&args[0]);
+    let source = match std::fs::read_to_string(path) {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln_to!(stderr, "{}: {e}", path.display());
+            return 1;
+        }
+    };
+
+    let result = allium_parser::parse(&source);
+    let source_map = SourceMap::new(&source);
+    let diagnostics: Vec<serde_json::Value> = result
+        .diagnostics
+        .iter()
+        .map(|d| diagnostic_to_json(d, path, &source_map))
+        .collect();
+
+    let mut output = transform(&result.module, &source);
+    if let serde_json::Value::Object(map) = &mut output {
+        map.insert("diagnostics".to_string(), serde_json::Value::Array(diagnostics));
+    }
+    println_to!(stdout, "{}", serde_json::to_string_pretty(&output).unwrap());
+    single_file_exit(&result.diagnostics)
+}
+
+fn cmd_parse(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
+    // Parse is slightly different: it serialises the full ParseResult, which
+    // already carries diagnostics. It still shares the single-file exit
+    // contract so a spec that does not parse exits non-zero.
+    if args.len() != 1 {
+        eprintln_to!(stderr, "Usage: allium parse <file.allium>");
+        return 2;
+    }
+
+    let path = Path::new(&args[0]);
+    let source = match std::fs::read_to_string(path) {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln_to!(stderr, "{}: {e}", path.display());
+            return 1;
+        }
+    };
+
+    let result = allium_parser::parse(&source);
+    println_to!(stdout, "{}", serde_json::to_string_pretty(&result).unwrap());
+    single_file_exit(&result.diagnostics)
+}
+
+fn cmd_plan(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
+    run_single_file("allium plan <file.allium>", args, stdout, stderr, |module, source| {
+        let plan = test_plan::generate_test_plan(module, source);
+        serde_json::to_value(plan).unwrap()
+    })
+}
+
+fn cmd_model(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
+    run_single_file("allium model <file.allium>", args, stdout, stderr, |module, source| {
+        let model = domain_model::extract_domain_model(module, source);
+        serde_json::to_value(model).unwrap()
+    })
+}
+
+// ---------------------------------------------------------------------------
+// Shared helpers
+// ---------------------------------------------------------------------------
+
+fn diagnostic_to_json(
+    d: &allium_parser::Diagnostic,
+    path: &Path,
+    source_map: &SourceMap,
+) -> serde_json::Value {
+    let (line, col) = source_map.line_col(d.span.start);
+    let severity = match d.severity {
+        Severity::Error => "error",
+        Severity::Warning => "warning",
+        Severity::Info => "info",
+    };
+    serde_json::json!({
+        "code": d.code,
+        "severity": severity,
+        "message": d.message,
+        "location": {
+            "file": path.display().to_string(),
+            "line": line + 1,
+            "col": col + 1,
+        }
+    })
+}
+
+fn resolve_files(args: &[String]) -> Vec<PathBuf> {
+    let mut files = Vec::new();
+    for arg in args {
+        let path = Path::new(arg);
+        if path.is_dir() {
+            collect_allium_files(path, &mut files);
+        } else if path.extension().is_some_and(|e| e == "allium") {
+            files.push(path.to_path_buf());
+        } else {
+            // Try as-is (might be a glob pattern the shell expanded)
+            files.push(path.to_path_buf());
+        }
+    }
+    files
+}
+
+fn collect_allium_files(dir: &Path, out: &mut Vec<PathBuf>) {
+    let entries = match std::fs::read_dir(dir) {
+        Ok(e) => e,
+        Err(_) => return,
+    };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            collect_allium_files(&path, out);
+        } else if path.extension().is_some_and(|e| e == "allium") {
+            out.push(path);
+        }
+    }
+}

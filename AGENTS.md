@@ -34,7 +34,7 @@ These hold everywhere. Breaking one is a defect, not a trade-off.
 
 1. Upstream decides behaviour. The `allium` command in the wheel has stdout and
    exit-code parity with `allium-cli` at the pinned version over the corpus; `just
-   parity` proves it (from T13). The Python API's results are the parser's, converted,
+   parity` proves it. The Python API's results are the parser's, converted,
    never reinterpreted.
 2. `alliumpy` depends on `alliumpy-core`, which depends on `allium-parser`; never the
    reverse, and pyo3 appears only in `crates/alliumpy`.
@@ -70,7 +70,7 @@ Once `release-pypi.yml` exists (T14), a tag is a release; once Pages deploys fro
 (decision 0008), a push there is a deployment. The recipes that reach the network are
 `just initialize`, `just install-toolchain`, `just install-tools`, `just sync`,
 `just lock`, `just lock-upgrade`, `just install-hooks`, `just audit`,
-`just check-links-online` and `just install-parity-reference` (from T13);
+`just check-links-online` and `just install-parity-reference`;
 each runs only when the task authorises it. `just fuzz` and `just fuzz-build` are not
 among them: their lock guard is `--offline`. Never read, print or commit a credential.
 Scratch notes and intermediate output go in `ai_tmp/`, never in a commit. Work on one
