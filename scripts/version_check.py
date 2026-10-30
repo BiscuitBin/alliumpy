@@ -8,6 +8,23 @@ import tomllib
 from pathlib import Path
 
 
+def reference_output(reference: Path) -> str | None:
+    """The reference's `--version` output, empty when it is missing, None when it fails."""
+    if not reference.is_file():
+        return ""
+    try:
+        result = subprocess.run(
+            [str(reference), "--version"], capture_output=True, text=True, check=False
+        )
+    except OSError as error:
+        print(f"version-check: the reference {reference} fails to run: {error}", file=sys.stderr)
+        return None
+    if result.returncode != 0:
+        print(f"version-check: invalid reference version output: {result!r}", file=sys.stderr)
+        return None
+    return result.stdout
+
+
 def version_string(root: Path, pin: str, source: str, console: str) -> int:
     """Compare the whole console output with the literal and, at the pin, the reference."""
     literal = re.search(r'pub const ALLIUM_VERSION_STRING: &str = "([^"]+)";', source)
@@ -22,13 +39,10 @@ def version_string(root: Path, pin: str, source: str, console: str) -> int:
         )
         return 1
     # The reference is built by a network recipe outside check: a missing or stale
-    # one is a note, not drift (T13).
-    reference = root / ".tools/parity/bin/allium"
-    output = ""
-    if reference.is_file():
-        output = subprocess.run(
-            [str(reference), "--version"], capture_output=True, text=True, check=False
-        ).stdout
+    # one is a note, not drift (T13). One that exists but fails to run is a failed read.
+    output = reference_output(root / ".tools/parity/bin/allium")
+    if output is None:
+        return 1
     if output.split()[1:2] != [pin]:
         print(
             f"version-check: note: no reference allium {pin} to compare;"

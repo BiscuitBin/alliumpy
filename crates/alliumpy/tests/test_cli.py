@@ -12,6 +12,7 @@ import hashlib
 import json
 import os
 import pty
+import select
 import signal
 import subprocess
 import sys
@@ -95,6 +96,19 @@ def no_traceback(stderr: bytes) -> bool:
 def test_exit_status_is_upstreams(args: list[str | bytes], status: int) -> None:
     """Exit 0 on a clean file, 1 on an error and 2 with no arguments."""
     assert run(args).returncode == status
+
+
+# Every corpus file parses cleanly, so the parity matrix never sees the parser-error
+# status of these commands; T13 measured each on the reference allium-cli 3.6.1
+# (`analyse` reports no parser error and exits 0).
+@pytest.mark.parametrize(
+    ("command", "status"),
+    [("parse", 1), ("plan", 1), ("model", 1), ("analyse", 0)],
+)
+def test_a_parser_error_gives_upstreams_status(command: str, status: int) -> None:
+    """On a file with a parser error, each command exits with the reference's status."""
+    result = run([command, "tests/fixtures/smoke/broken.allium"])
+    assert (result.returncode, no_traceback(result.stderr)) == (status, True)
 
 
 def test_an_empty_directory_exits_2(tmp_path: Path) -> None:
@@ -228,9 +242,18 @@ def on_a_terminal(args: list[str]) -> tuple[int, bytes]:
     finally:
         os.close(secondary)
     chunks = []
+    deadline = time.monotonic() + TIMEOUT_SECONDS
     try:
-        while chunk := os.read(primary, 65536):
+        # A command that hangs with the terminal open would block os.read for ever.
+        while select.select([primary], [], [], max(deadline - time.monotonic(), 0))[0]:
+            chunk = os.read(primary, 65536)
+            if not chunk:
+                break
             chunks.append(chunk)
+        else:
+            child.kill()
+            child.wait()
+            pytest.fail(f"no end of output within {TIMEOUT_SECONDS} s; killed the command")
     except OSError as error:
         # Linux reports the closed terminal as EIO, macOS as end of file.
         if error.errno != errno.EIO:
@@ -276,17 +299,18 @@ def api_diagnostics(path: Path) -> list[DiagnosticValue]:
     ]
 
 
-def command_output(command: str, path: Path) -> dict[str, list[dict[str, object]]]:
-    """The JSON object the command prints for one file, named relative to the root."""
-    output = json.loads(run([command, path.relative_to(ROOT).as_posix()]).stdout)
+def command_output(command: str, path: Path) -> tuple[int, dict[str, list[dict[str, object]]]]:
+    """The exit status and the JSON object the command prints for one file."""
+    result = run([command, path.relative_to(ROOT).as_posix()])
+    output = json.loads(result.stdout)
     assert isinstance(output, dict)
-    return output
+    return result.returncode, output
 
 
 def check_diagnostics(path: Path) -> list[tuple[object, ...]]:
     """The diagnostics `check` prints for one file, in the Python API's tuple order."""
     values: list[tuple[object, ...]] = []
-    for diagnostic in command_output("check", path)["diagnostics"]:
+    for diagnostic in command_output("check", path)[1]["diagnostics"]:
         location = diagnostic["location"]
         assert isinstance(location, dict)
         values.append(
@@ -310,7 +334,11 @@ def test_the_python_api_matches_the_commands_leading_diagnostics(path: Path) -> 
     expected = api_diagnostics(path)
     assert check_diagnostics(path)[: len(expected)] == expected
     # `allium parse` prints the parser's own diagnostics, spans and all: the count compares.
-    assert len(command_output("parse", path)["diagnostics"]) == len(expected)
+    # Its status is the reference's, as T13 measured it: 0 on every corpus file, 1 on
+    # broken.allium.
+    status, output = command_output("parse", path)
+    assert len(output["diagnostics"]) == len(expected)
+    assert status == (1 if path == SMOKE / "broken.allium" else 0)
 
 
 def test_the_python_api_case_compares_at_least_one_diagnostic(
