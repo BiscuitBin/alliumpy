@@ -583,16 +583,30 @@ All checks passed and the worktree is unchanged.
 
 `git status --short` printed nothing.
 
-### Stops awaiting separate authorisation
+### Post-merge dispatches
 
-- the push
-- the pull request
-- the post-merge `workflow_dispatch` of `mutants.yml`, then reading its artefact
-- the post-merge `workflow_dispatch` of `fuzz.yml`, then reading its log, which is
-  expected to show the upstream crash
-- reporting the `parser.rs:109` crash upstream
+The maintainer authorised the push, the pull request (#25) and, after it merged, one
+`workflow_dispatch` of each weekly workflow. Both ran at `eb141cb`, the merge commit.
 
-The two dispatch run URLs therefore do not exist yet.
+[`mutants.yml`](https://github.com/BiscuitBin/alliumpy/actions/runs/41008754940)
+concluded `success`; its `mutants` artefact's `outcomes.json` records 5 caught, 0 missed,
+0 timeout and 2 unviable, and the log ended:
+
+```text
+7 mutants tested in 16s: 5 caught, 2 unviable
+```
+
+[`fuzz.yml`](https://github.com/BiscuitBin/alliumpy/actions/runs/41008757263)
+concluded `failure` at the step `just fuzz "$TARGET" 300`, on the known upstream crash
+with another Cyrillic character, and uploaded the `fuzz-parse` artefact:
+
+```text
+panicked at .../allium-parser-3.6.1/src/parser.rs:109:21:
+end byte index 5 is not a char boundary; it is inside 'Ӧ' (bytes 4..6 of string)
+SUMMARY: libFuzzer: deadly signal
+```
+
+Reporting the `parser.rs:109` crash upstream still awaits separate authorisation.
 
 ## Open points
 
