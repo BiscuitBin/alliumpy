@@ -32,7 +32,7 @@ read-only; an ignored path is outside the snapshot.
 | 16 | `py-test` | The rebuilt extension passes pytest. |
 | 17 | `py-stubtest` | The built native API agrees with the stub and reviewed allowlist. |
 | 18 | `wheel-smoke` | One freshly built release wheel installs and works offline in an isolated venv. |
-| 19 | `version-check` | The suffix-stripped wheel version, root workspace version, upstream pin, core constant and installed version output agree, and the whole output equals `ALLIUM_VERSION_STRING`. |
+| 19 | `version-check` | The suffix-stripped wheel version, root workspace version, each workspace member crate's version as cargo resolves it, upstream pin, core constant and installed version output agree, and the whole output equals `ALLIUM_VERSION_STRING`. |
 | 20 | `check-docs` | The documentation contract, spelling, Markdown and local links pass. |
 | 21 | `check-agents` | The canonical instructions, adapters, skills and bridges satisfy their contract. |
 | 22 | `snapshots-check` | All core snapshots match and no committed snapshot is unreferenced; locks are checked first and tests run offline. |
@@ -45,9 +45,10 @@ snapshot. A green dirty baseline means the checks changed nothing; hand-back add
 requires a committed clean worktree. Gates 4 and 5 also run inside lint deliberately,
 so a failure has a named place in the aggregate list.
 
-The toolchain gate does not compare the selected compiler with `rust-toolchain.toml`.
-Check its printed selection: `RUSTUP_TOOLCHAIN` or a directory override can supersede
-the repository pin. Remove an unintended override before running the gate.
+The toolchain gate refuses an active toolchain other than the pinned channel for
+rustup's default host. When `RUSTUP_TOOLCHAIN` or a `rustup override` supersedes the
+repository pin, the gate names the toolchain it selects on stderr: remove the override
+and rerun. An uninstalled override is refused, never downloaded.
 
 ## Evidence that checks can fail
 

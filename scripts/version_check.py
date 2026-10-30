@@ -2,6 +2,7 @@
 """Compare independently written release versions with the installed console script."""
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -76,9 +77,13 @@ def member_versions(root: Path) -> dict[str, str] | None:
     explicit one would drift silently past the workspace table. Cargo, not a glob over
     members, decides membership: a path dependency joins the workspace and an excluded
     directory does not.
+
+    The recipe runs without check-toolchain, so an override that names an uninstalled
+    toolchain must fail here: RUSTUP_AUTO_INSTALL=0 makes rustup's proxy refuse it
+    rather than download it.
     """
     metadata = subprocess.run(
-        [  # noqa: S607 - check-toolchain proves PATH's cargo is rustup's proxy.
+        [  # noqa: S607 - just check's check-toolchain proves PATH's cargo is rustup's proxy.
             "cargo",
             "metadata",
             "--no-deps",
@@ -91,6 +96,7 @@ def member_versions(root: Path) -> dict[str, str] | None:
         capture_output=True,
         text=True,
         check=False,
+        env={**os.environ, "RUSTUP_AUTO_INSTALL": "0"},
     )
     if metadata.returncode != 0:
         print(f"version-check: cargo metadata failed: {metadata.stderr}", file=sys.stderr)
