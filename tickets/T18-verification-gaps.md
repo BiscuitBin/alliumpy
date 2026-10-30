@@ -1,7 +1,7 @@
 ---
 id: T18
 title: "Verification gaps: the checks the wave-0 and wave-1 hand-backs did not run"
-status: open
+status: done
 depends_on: [T11]
 parallel_with: [T12, T13, T14, T15, T17]
 branch: ticket/t18-verification-gaps
@@ -186,8 +186,360 @@ The other items' commands depend on the route each takes; quote each with its ex
 
 ## Hand-back notes
 
-To be written by the executing agent: the baseline, then one entry per item with its
-evidence or ruling, and the review record (`CONVENTIONS.md` §14).
+### Baseline
+
+At `c09f6fa` (`main`, untouched worktree), `just check` ended `exit 0` with:
+
+```text
+All checks passed and the worktree is unchanged.
+```
+
+### Maintainer answers (2026-10-29)
+
+Before the work started the maintainer ruled: run items 3, 4 and 7; item 9's two
+halves are moot while the repository is public; rule out all seven item 10 points; add
+item 12's sentence to `CONVENTIONS.md` §14 with the wording quoted under item 12.
+During the work the maintainer also authorised `just sync` in item 4's scratch clone and
+approved item 11's `[tool.maturin]` exclusion (both 2026-10-29).
+
+### Item 1: member-crate versions
+
+`f476bd5`, then `e6ed03d` and `cc8e96b` after review findings B1 and R6:
+`scripts/version_check.py` adds each workspace member's version, as
+`cargo metadata --no-deps --locked --offline` resolves it (inherited or explicit), as an
+entry `"crate <name> version"`, and fails when cargo reports no member. Cargo decides membership, so a path-dependency member counts and an excluded
+directory does not. The message counts the entries instead of saying "five".
+`just py-lint` and `just py-typecheck` exited 0.
+
+Controls at `cc8e96b`, in an `rsync` copy of the worktree with `target`, `.pixi` and
+`.tools` symlinked. `crates/alliumpy-core/Cargo.toml` set to `version = "9.9.9"`:
+
+```text
+$ just version-check; echo "exit $?"
+python -I scripts/version_check.py
+version-check: workspace version='3.6.1' differs from crate alliumpy-core version='9.9.9'
+error: recipe `version-check` failed on line 308 with exit code 1
+exit 1
+```
+
+B1's scenario, `members = ["crates/alliumpy"]` with `alliumpy-core` at `version = "3.6.2"`
+(core still a member through the path dependency):
+
+```text
+version-check: workspace version='3.6.1' differs from crate alliumpy-core version='3.6.2'
+exit 1
+```
+
+Restored (`diff -r` against the worktree exited 0), then:
+
+```text
+$ just version-check; echo "exit $?"
+python -I scripts/version_check.py
+version-check: all 7 versions agree: 3.6.1
+exit 0
+```
+
+### Item 2: `check-toolchain` against the pin
+
+`f476bd5`, then `e6ed03d` and `cc8e96b` after review findings B2, R2, R3 and R4: after
+the proxy check, the recipe reads `channel` from `rust-toolchain.toml` with `sed` and
+rustup's `Default host:` from `rustup show`, failing if either is empty, and requires
+the first word of `rustup show active-toolchain` to be exactly the pin or
+`<pin>-<host>`, naming both on stderr and exiting 2 otherwise. No `rustc` runs, and both
+rustup calls carry `RUSTUP_AUTO_INSTALL=0`, so an uninstalled toolchain is refused
+rather than downloaded. The two reference rows (`commands.md`, `quality-gates.md`) say
+so. CI installs through `rust-toolchain.toml` with no `RUSTUP_TOOLCHAIN`
+(`.github/actions/setup/action.yml:35-39`), so its runner matches. `just check-docs`
+exited 0. At `cc8e96b`, in this worktree (1.98.1 and `1.99.1-x86_64-apple-darwin` are
+installed, 1.97.0 is not):
+
+```text
+$ RUSTUP_TOOLCHAIN=1.98.1 just check-toolchain; echo "exit $?"
+the active toolchain is 1.98.1-aarch64-apple-darwin, not the pinned 1.99.1
+error: recipe `check-toolchain` failed on line 39 with exit code 2
+exit 2
+$ RUSTUP_TOOLCHAIN=1.99.1-x86_64-apple-darwin just check-toolchain; echo "exit $?"
+the active toolchain is 1.99.1-x86_64-apple-darwin, not the pinned 1.99.1
+error: recipe `check-toolchain` failed on line 39 with exit code 2
+exit 2
+$ RUSTUP_TOOLCHAIN=1.97.0 just check-toolchain; echo "exit $?"
+info: the active toolchain `1.97.0-aarch64-apple-darwin` is not installed
+error: override toolchain '1.97.0-aarch64-apple-darwin' is not installed: the RUSTUP_TOOLCHAIN environment variable specifies an uninstalled toolchain
+error: recipe `check-toolchain` failed on line 39 with exit code 1
+exit 1
+$ just check-toolchain; echo "exit $?"
+1.99.1-aarch64-apple-darwin (overridden by '<worktree>/rust-toolchain.toml')
+exit 0
+```
+
+`rustup toolchain list` was the same before and after the 1.97.0 control.
+
+### Item 3: the primary checkout's hook shim
+
+In `/Users/scutting/projects/biscuitbin/alliumpy` (clean, `main` at `c09f6fa`, shim
+naming that checkout's `.pixi/envs/default/bin/prek`): an untracked
+`t18-hook-control.txt` holding one line with trailing whitespace was staged and
+committed.
+
+```text
+$ git commit -m "T18 item 3 hook control (must be refused)"; echo "commit exit $?"
+EditorConfig.............................................................Failed
+- hook id: editorconfig-checker
+- description: This runs editorconfig-checker to validate files against your .editorconfig
+- exit code: 1
+
+  t18-hook-control.txt:
+          1: Trailing whitespace
+
+  1 errors found
+commit exit 1
+$ git log --oneline -1
+c09f6fa Merge pull request #24 from BiscuitBin/ticket/t11-integration
+```
+
+The hook indents its finding with a tab, shown here as spaces. After
+`git restore --staged t18-hook-control.txt` and removing the file, `git status --short`
+printed nothing (`exit 0`, 0 lines).
+
+### Item 4: `snapshots-accept` and `snapshots-review`
+
+In a `git clone` of this branch at `f476bd5` in the session scratchpad, with `.pixi` and
+`.tools` symlinked: `insta = "1.48.0"` added to `alliumpy-core`'s `[dev-dependencies]`
+(resolved to 1.49.0) and a test `t18_snapshot_control` asserting
+`"t18 accept control"`. `just lock` exited 0 (15 packages added; `pixi lock` unchanged).
+`INSTA_UPDATE=new cargo nextest run -p alliumpy-core` failed the test (exit 100) and
+stored `src/snapshots/alliumpy_core__tests__t18_snapshot_control.snap.new`.
+
+Finding: the first `just snapshots-accept` then failed before any test ran, because
+cargo-insta's `cargo metadata` runs under `CARGO_NET_OFFLINE=true` and needed a crate
+the lock added but nothing fetched:
+
+```text
+error: failed to load cargo metadata: `cargo metadata` exited with an error: error: failed to download `encode_unicode v1.0.0`
+  attempting to make an HTTP request, but --offline was specified
+error: recipe `snapshots-accept` failed on line 131 with exit code 1
+```
+
+The ticket that first adds `insta` runs `just sync` after `just lock`. Here, with the
+maintainer's authorisation, `just sync`'s `cargo fetch --locked` downloaded
+`encode_unicode v1.0.0`; its `pixi install --frozen` refused the symlinked environment
+("the environment directory has moved") and changed nothing (`pixi install --frozen` in
+this worktree afterwards: "The default environment has been installed.", exit 0). Then:
+
+```text
+$ just snapshots-accept; echo "snapshots-accept exit $?"
+        PASS [   0.053s] (7/7) alliumpy-core tests::t18_snapshot_control
+     Summary [   0.054s] 7 tests run: 7 passed, 0 skipped
+info: no unreferenced snapshots found
+insta review finished
+accepted:
+  crates/alliumpy-core/src/lib.rs (t18_snapshot_control.snap)
+snapshots-accept exit 0
+$ find crates -name '*.snap*'
+crates/alliumpy-core/src/snapshots/alliumpy_core__tests__t18_snapshot_control.snap
+$ cat crates/alliumpy-core/src/snapshots/alliumpy_core__tests__t18_snapshot_control.snap
+---
+source: crates/alliumpy-core/src/lib.rs
+expression: "\"t18 accept control\""
+---
+t18 accept control
+```
+
+`snapshots-review`: a second test, `t18_review_control`, left a fresh
+`alliumpy_core__tests__t18_review_control.snap.new`. The maintainer ran
+`just snapshots-review; echo "exit $?"` in that clone at a terminal on 2026-10-30,
+accepted with `a`, and pasted the end of the session (the interactive prompt itself was
+not captured):
+
+```text
+insta review finished
+accepted:
+  crates/alliumpy-core/src/lib.rs (t18_review_control.snap)
+exit 0
+```
+
+Afterwards the clone held no `.snap.new`, only the two accepted snapshots, and
+`alliumpy_core__tests__t18_review_control.snap` read:
+
+```text
+---
+source: crates/alliumpy-core/src/lib.rs
+expression: "\"t18 review control\""
+---
+t18 review control
+```
+
+The scratch clone, with its `insta` dependency, test and lock change, was then deleted;
+none of it reached this branch.
+
+### Items 5 and 6: `PYO3_BUILD_EXTENSION_MODULE` and the installer
+
+At `f476bd5`, `RUST_LOG=maturin=debug just py-develop` exited 0 (maturin 1.15.0); the
+log is in `ai_tmp/t18/item5-6-py-develop.log`. With the ANSI codes stripped, line 28
+(maturin's cargo command, cut at the program name) and line 22:
+
+```text
+maturin::compile: Running env -u CARGO CARGO_ENCODED_RUSTFLAGS="-C\u{1f}link-arg=-undefined\u{1f}-C\u{1f}link-arg=dynamic_lookup" PYO3_BUILD_EXTENSION_MODULE="1" ... "cargo" "rustc"
+maturin::develop::install_backend: Found uv binary in PATH version=uv 0.13.5 (aarch64-apple-darwin)
+```
+
+The install step's own command is not logged; within the `install_wheel` span maturin
+then runs `UV_PYTHON="<worktree>/.pixi/envs/default/bin/python" "uv" "pip" "show"
+"--files" "alliumpy"`, and ends with `🛠 Installed alliumpy-3.6.1`.
+
+### Item 7: initialisation with no global cache
+
+A fresh `git clone` of this branch at `f476bd5` in the scratchpad, with its own `.git` and
+no `.pixi` or `.tools`. `RUSTUP_HOME`, `CARGO_HOME`, `PIXI_CACHE_DIR`, `UV_CACHE_DIR` and
+`PREK_HOME` pointed at new empty directories; `$CARGO_HOME/bin` held only symlinks named
+`rustup`, `cargo`, `cargo-clippy`, `cargo-fmt`, `clippy-driver`, `rustc`, `rustdoc` and
+`rustfmt` to `~/.cargo/bin/rustup`, first on `PATH`. The tail of `just initialize`:
+
+```text
+prek install --overwrite --hook-type=pre-commit --prepare-hooks
+Installed Git hook at `.git/hooks/pre-commit`
+prek prepare-hooks --config .pre-commit-fix.yaml
+RUSTUP_AUTO_INSTALL=0 prek run lychee --files README.md
+lychee...................................................................Passed
+
+Ready. Next: just check.
+Nothing has been formatted, staged, committed, tagged, or pushed.
+initialize exit 0
+```
+
+and of `just check`:
+
+```text
+==> just check-clean
+bg-project-check clean "$1"
+The worktree matches the check baseline.
+
+All checks passed and the worktree is unchanged.
+check exit 0
+```
+
+`git status --short` in the clone printed 0 lines. The caches were filled from empty:
+`rustup` 605M (toolchain `1.99.1-aarch64-apple-darwin`, "downloading 6 components"),
+`cargo` 28M, `pixi` 384M, `prek` 966M, `uv` 856K. Initialisation's own
+`check-toolchain` printed `1.99.1-aarch64-apple-darwin`. The clone's hook names the
+clone's `prek`; the primary checkout's still names its own. The clone was deleted.
+
+### Item 8: claim 10, the full run (open)
+
+Left open (2026-10-29). The pixi cache key has been unchanged since 2026-10-24, so every
+`ci.yml` run on `main` hits it. Closing it needs a separately authorised post-merge
+action (deleting the pixi cache, or a `pixi.lock` change), then a `ci.yml` run on `main`
+quoting the setup-pixi cache miss and B's fetch with no credential.
+
+### Item 9: claim 11, both halves (ruling)
+
+Maintainer ruling, 2026-10-29: both halves, Pages availability on a private repository
+and the private skip, are moot while the repository is public. It has been public since
+2026-10-24 (`gh repo view` reports `PUBLIC`).
+
+### Item 10: T01's seven review points (ruling)
+
+Maintainer ruling, 2026-10-29: all seven points are ruled out, and no workflow changes.
+The reasons:
+
+- The full setup in `audit`, and the setup action's "no step reaches the network"
+  comment against `audit`'s RustSec fetch: `audit.yml` was green in 10 of its 10 most
+  recent runs, each taking 31 to 42 s.
+- `check-toolchain` only in `rust`, `py-develop` twice in `python`, and
+  `snapshots-check` and nextest each run twice: the repeated builds and test runs cost
+  minutes and nothing else.
+- Seven rust-cache keys: the three that compile nothing are 3.9 MiB each, and the
+  caches total about 1.5 GB of the 10 GB quota.
+- No `overwrite: true` on the uploads: still unverified, and no CI run has ever had a
+  second attempt that would reach the conflict.
+
+### Item 11: Python bytecode in the wheel
+
+At `f476bd5`, `just wheel` exited 0, and
+`python -I -m zipfile -l dist/alliumpy-3.6.1-cp311-abi3-macosx_11_0_arm64.whl` exited 0.
+Bytecode shipped, copied from the `__pycache__` the Python gates leave beside the
+source:
+
+```text
+alliumpy/__init__.py                           1980-01-01 00:00:00          339
+alliumpy/__pycache__/__init__.cpython-314.pyc  1980-01-01 00:00:00          519
+```
+
+With the maintainer's approval (2026-10-29), `9da65ce` adds
+`exclude = ["**/__pycache__/**", "**/*.pyc"]` under `[tool.maturin]`. With
+`crates/alliumpy/python/alliumpy/__pycache__/__init__.cpython-314.pyc` still present in
+the source tree, `just wheel` exited 0 and the listing exited 0; the positive control
+`grep -c 'alliumpy/__init__.py'` printed `1` (exit 0) and
+`grep -cE '__pycache__|\.pyc'` printed `0` (exit 1). `just wheel-smoke` then exited 0,
+ending `allium 3.6.1 (language versions: 1, 2, 3)`.
+
+### Item 12: the verification-template rule
+
+Maintainer approval, 2026-10-29: the sentence goes in `CONVENTIONS.md` §14, at the end of
+the Breakage lens bullet, worded:
+
+> A verification command separates the producer from any filter that reads its output,
+> checks each one's exit status, and keeps a positive control that must produce
+> nonempty output, so a filter cannot return its expected exit after the producer
+> failed.
+
+`f476bd5` adds it there verbatim.
+
+### Close-out
+
+#### Review record (`CONVENTIONS.md` §14)
+
+Two read-only Codex reviewers (`gpt-6-astra`, `codex exec -s read-only`), one per lens,
+read the ticket, `CONVENTIONS.md` and `git diff main...HEAD` plus the uncommitted
+changes at `9da65ce` (`ai_tmp/review/T18-1/`). `/code-review` (medium) then read the
+branch at `e6ed03d`. Triage, by the executing agent:
+
+- B1 (medium, `version_check.py`): glob membership misses a path-dependency member and
+  ignores `exclude`. Valid; fixed in `e6ed03d` (`cargo metadata`), control above.
+- B2 (low, `Justfile:37`): the `"$pin"-*` prefix accepts a dated or other channel
+  sharing the prefix. Valid; fixed in `e6ed03d` (exact pin or `<pin>-<host>`).
+- B3 and C1 (medium): `status: done` while item 8 is open. Kept: the maintainer chose
+  `done` (2026-10-29), with item 8's post-merge evidence commit to follow (step 13).
+- B4 and C2 (medium): item 4's review half and the scratch clone's cleanup. Closed
+  under item 4.
+- C3 (medium): no final `just check` on the reviewed state. Closed below.
+- R1 (`/code-review`): placeholders while `done`. Closed by these notes.
+- R2 (`Justfile:37`): the host came from a `rustc` that the override under test
+  selects, so `<pin>-<other host>` passed. Valid; fixed in `cc8e96b` (rustup's default
+  host), control above.
+- R3 (`Justfile:37`): the proxy's `rustc` could auto-install a missing toolchain.
+  Valid, and it applies to `rustup show active-toolchain` as well: while the review ran,
+  `1.99.1-x86_64-apple-darwin` was installed into `~/.rustup` at 22:26:39, a download
+  nothing authorised. Fixed in `cc8e96b` (no `rustc`, `RUSTUP_AUTO_INSTALL=0`); that
+  toolchain is still installed and is the maintainer's to remove.
+- R4 (`Justfile:37`): `rustc` resolved through the pixi and `.tools` directories first.
+  Removed with R2's fix.
+- R5 (`pyproject.toml`): no gate asserts the wheel holds no bytecode. Valid; the
+  assertion belongs in `wheel-smoke`, outside this ticket's `Justfile` scope
+  (`check-toolchain` only), so it is handed back (§14, "Scope guard").
+- R6 (`version_check.py`): a member named like a fixed key could overwrite it. Valid;
+  fixed in `cc8e96b` (`crate <name> version`).
+- R7 (`version_check.py`): unguarded `json.loads`. No change: the script still exits
+  non-zero, only with a traceback.
+- R8 (`Justfile:37`): one long line. No change: it matches the recipe's existing
+  one-line style.
+- R9 (`pyproject.toml`): `PYTHONDONTWRITEBYTECODE=1` for the Python recipes would stop
+  the bytecode at its source. Handed back with R5: a `Justfile` export outside
+  `check-toolchain`.
+
+#### Final gate
+
+At `cc8e96b`, with these notes and the status cells uncommitted, `just check` ended
+`exit 0` with:
+
+```text
+All checks passed and the worktree is unchanged.
+```
+
+The notes commit that follows is re-checked the same way, and `git status --short` is
+empty after it. Not pushed; no pull request opened. Item 8's evidence, after a
+separately authorised post-merge action and `ci.yml` run, follows in its own evidence
+commit (step 13).
 
 ## Open points
 
