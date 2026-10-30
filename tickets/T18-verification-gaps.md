@@ -604,6 +604,37 @@ At `2a6f990`, with these notes uncommitted, `just check` ended `exit 0` with
 `All checks passed and the worktree is unchanged.`; the notes commit is re-checked the
 same way and `git status --short` is empty after it.
 
+### Rebase onto `origin/main` after T13 (2026-10-30)
+
+After the push of `bfedb96`, `main` moved to `02f69b1` (T13 and T15's results merged),
+pull request #28 conflicted and no CI run started. At the maintainer's direction the
+branch was rebased onto `02f69b1` and force-pushed. T13 had rewritten
+`version_check.py`'s tail; the resolution keeps both: T13's `reference_output`,
+`version_string`, `main(argv)` and `--print-pin`, then T18's `member_versions`, whose
+count replaces T13's fixed "all five versions" line before `version_string` runs. Both
+`version-check` rows keep T13's `ALLIUM_VERSION_STRING` clause and add the member-crate
+versions. After the rebase, `24f52ed` → `e819991`, `2a6f990` → `1b5800c` and `bfedb96` →
+`e88df1c`. The first `just check` on the rebased tree failed `py-lint`: T13's
+`--print-pin` return and `member_versions`' return took `main` to seven returns, past
+ruff's PLR0911 limit of six. Fixed at the root in `17500db`: the comparison loop moves
+into `versions_agree`, with the same messages. Requoted at `17500db`, after
+`just wheel-smoke` rebuilt the venv with T13's command:
+
+```text
+$ RUSTUP_TOOLCHAIN=1.97.0 just version-check
+version-check: cargo metadata failed: error: toolchain '1.97.0-aarch64-apple-darwin' is not installed   (exit 1)
+$ rustup toolchain list → identical before and after
+$ just version-check
+version-check: all 7 versions agree: 3.6.1
+version-check: note: no reference allium 3.6.1 to compare; run just install-parity-reference   (exit 0)
+$ # scratch copy, alliumpy-core version = "9.9.9"; python -I scripts/version_check.py
+version-check: workspace version='3.6.1' differs from crate alliumpy-core version='9.9.9'   (exit 1)
+```
+
+At `17500db`, with these notes uncommitted, `just check` ended `exit 0` with
+`All checks passed and the worktree is unchanged.`; the notes commit is re-checked the
+same way and `git status --short` is empty after it.
+
 ## Open points
 
 - Items 3, 4, 7, 9, 10 and 12 may close by a maintainer ruling instead of a run; the
