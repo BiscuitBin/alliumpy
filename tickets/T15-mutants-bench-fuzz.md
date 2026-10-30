@@ -1,7 +1,7 @@
 ---
 id: T15
 title: "Mutation testing, benchmarks and fuzzing over `alliumpy-core`"
-status: open
+status: done
 depends_on: [T11]
 parallel_with: [T12, T13, T14]
 branch: ticket/t15-mutants-bench-fuzz
@@ -297,17 +297,253 @@ protection was deferred, say so and quote the `rg` line instead.
 
 ## Hand-back notes
 
-To be written by the executing agent: the pins and the day, divan's maintenance status
-and the choice made; the mutant summary and any test added for a missed mutant; the bench
-table; the fuzz run and the `--sanitizer none` outcome on the pin; whether the Rosetta
-row stayed; whether T13 had merged and the bench covered the parity corpus (how many
-files); the two dispatch run URLs; the review record for each checkpoint
-(`CONVENTIONS.md` §14); where this ticket departed from L's drafts and P's tickets. This
-ticket owns no `CONVENTIONS.md` §12 claim, so T17 carries nothing from these notes; the
-`--sanitizer none` outcome answers P's §12 claim 8 and is stated plainly here and in
-decision 0016. If it failed on the pin, that is a design change handed back as a `main`
-pull request on `CONVENTIONS.md` (§12's preamble), never fixed by installing nightly or
-edited from this lane.
+Implemented on `ticket/15-mutants-bench-fuzz`, the branch this worktree was created on.
+The frontmatter names `ticket/t15-mutants-bench-fuzz`; the name differs, the content does
+not. Commits: `72159e0` (the change), `1c5f5bb` (review checkpoint 1 fixes), then this
+notes commit. Nothing is pushed.
+
+### Headline: the first fuzz run crashed inside upstream's parser
+
+`just fuzz parse 60` does not end clean on this pin, and that is the finding, not a
+wiring fault. `allium-parser` 3.6.1 slices its source at a byte offset inside a
+multi-byte character, at `src/parser.rs:109` (`Parser::text`). The smallest input found
+is `z/х` (Cyrillic `х`); through the Python API, `alliumpy.parse("z/х")` raises pyo3's
+`PanicException`. Following invariant 1, it is neither fixed nor masked here: the target
+is as specified (no ASCII-only filter, no `catch_unwind`, no `#[should_panic]` pinning
+it), decision 0016 records it, and `fuzz.yml` is expected to be red until the pin moves
+to an upstream release that fixes it. Whether `allium-cli` 3.6.1 panics on the same input
+is **unverified**: that needs T13's reference install. Reporting it upstream is a separate
+outward action and waits for authorisation. Reproducers are kept, uncommitted, under
+`ai_tmp/T15/crash-*`.
+
+### Baseline (step 1)
+
+`git fetch origin`: `origin/main` was `c09f6fa`, the same as HEAD, so no wave-2 ticket had
+merged and there was nothing to rebase. T13 had **not** merged: no
+`crates/alliumpy-core/src/cli/` and no `tests/fixtures/parity/`. So there is no `src/cli/`
+mutants exclusion, the bench covers the two smoke files and no parity corpus (0 parity
+files), and a second fuzz target over CLI arguments belongs to T13 or a follow-up.
+`just initialize` exited 0 (`Ready. Next: just check.`). At `c09f6fa`, `just check`:
+
+```text
+All checks passed and the worktree is unchanged.
+```
+
+### Pins (step 2), read 2026-10-30 UTC
+
+- **cargo-mutants**: `pixi search cargo-mutants` found 27.1.0 for `linux-64`
+  (`hf19af3b_0`; depends on `libgcc >=15`, `__glibc`) and `osx-arm64` (`hc2d82ec_0`;
+  depends on `__osx >=11.0`). Neither has a `rust` dependency, and both reads exited 0.
+  `pixi lock` added it on both platforms. The relock also dropped ruff's PyPI purl
+  (`pkg:pypi/ruff?source=compressed-mapping` → `[]`); that is pixi's mapping drift, kept
+  as regenerated.
+- **cargo-fuzz**: `pixi search cargo-fuzz` found nothing on either platform (exit 1,
+  `No packages found`), so the pin stays in `tools.txt`. The newest release is 0.13.2
+  (2026-06-09). Its assets are x86_64 only: `x86_64-apple-darwin`,
+  `x86_64-pc-windows-msvc` and `x86_64-unknown-linux-musl`. There is no
+  `aarch64-apple-darwin` archive, so **the Rosetta row stays**. The installed binary is
+  `Mach-O 64-bit executable x86_64`.
+- **libfuzzer-sys**: 0.4.13 (`cargo search`).
+- **divan**: 0.1.21 (`cargo search`). `gh api repos/nvzqz/divan` gives `archived=false`,
+  last pushed 2026-07-19T21:31:51Z (exit 0); the repository has no GitHub releases. So
+  divan was kept and criterion was not needed.
+
+### Mutation testing (step 3)
+
+At `1c5f5bb`: `cargo mutants --list --package alliumpy-core --all-features | grep -c .`
+gives `7`. `just mutants`:
+
+```text
+Found 7 mutants to test
+ok       Unmutated baseline in 8s build + 0s test
+7 mutants tested in 10s: 5 caught, 2 unviable
+exit 0
+```
+
+- No mutant was missed or timed out, so no test was added.
+- The two unviable mutants replace a return value with `Default::default()` on types that
+  have no `Default`.
+- cargo-mutants generates no mutant for the `code` conversion's `map`; testing.md names
+  that blind spot.
+- `.cargo/mutants.toml` was not created.
+
+The control fires on a filter that selects nothing:
+
+- with `--package no-such-crate`: `mutants: no mutants found; …`, exit 1;
+- after review, with `just mutants --file crates/alliumpy-core/src/missing.rs`: exit 1,
+  stopping before the run.
+
+### Benchmark (step 4)
+
+At `1c5f5bb`, `just bench`:
+
+```text
+parse      fastest       │ slowest       │ median        │ mean          │ samples │ iters
+├─ broken  582.7 ns      │ 399.2 µs      │ 666.7 ns      │ 4.837 µs      │ 100     │ 100
+╰─ ok      1.082 µs      │ 35.54 µs      │ 1.207 µs      │ 1.748 µs      │ 100     │ 100
+```
+
+- divan adds 16 packages to `Cargo.lock`, against 9 in L's resolution: anstyle, bitflags,
+  cfg-if, clap, clap_builder, clap_lex, condtype, divan, divan-macros, errno,
+  linux-raw-sys, rustix, syn 2.0.119 (a second major beside syn 3.0.9), terminal_size,
+  windows-link and windows-sys.
+- `just deps-unused` passes (`✓ no issues found`).
+- `just deny` reports `bans ok, licenses ok, sources ok`, with the same six
+  unmatched-licence-allowance warnings as the baseline log, so it is unchanged.
+- `--workspace --bench '*'` selects only the core's bench; the pyo3 crate has no bench
+  target, so no `--exclude` was needed.
+
+### Fuzzing (step 5)
+
+Order of work:
+
+1. `just install-tools` installed cargo-fuzz.
+2. `cargo fuzz init --target parse` worked at the virtual-workspace root and wrote only
+   `fuzz/Cargo.toml`, `fuzz/.gitignore` (`target`, `corpus`, `artifacts`, `coverage`) and
+   the stub target. It wrote no lockfile.
+3. `exclude = ["fuzz"]` was already in the root, added with the bench edits.
+4. The fuzz manifest was rewritten: the path dependency `../crates/alliumpy-core`,
+   `libfuzzer-sys = "0.4.13"` with the 0004 note, `publish = false`, edition 2024,
+   rust-version 1.99, the lint tables, and the package name `alliumpy-core-fuzz` in place
+   of the generated `alliumpy-fuzz`.
+5. Only then, `cargo generate-lockfile --manifest-path fuzz/Cargo.toml` locked 24
+   packages, and `just sync` ran.
+
+The packages the two lockfiles share resolve to the same versions in both.
+
+**`--sanitizer none` on the pin:** it builds and runs on Rust 1.99.1 stable with no
+nightly installed, which answers P's §12 claim 8 (yes).
+
+At `1c5f5bb`, `just fuzz parse 60` exited 1:
+
+```text
+thread '<unnamed>' panicked at …/allium-parser-3.6.1/src/parser.rs:109:21:
+end byte index 22 is not a char boundary; it is inside 'Ѥ' (bytes 21..23 of string)
+#116343 REDUCE cov: 289 ft: 1301 corp: 562/10032b lim: 135 exec/s: 0 rss: 28Mb L: 4/134 MS: 1 EraseBytes-
+exit 1
+```
+
+The first run, at the uncommitted tree, crashed at the same line after 6,652 executions
+on the eight bytes `20 7a 2f d1 85 0d 30 2e` (a space, `z/х`, a carriage return, `0.`). The Verification block puts `# must be 0` on `just mutants` only, so a
+quoted non-zero exit for `just fuzz parse 60` is the true answer, not a missed criterion.
+`just fuzz-build` exited 0.
+
+Toolchain evidence:
+
+```text
+$ rustup toolchain list
+stable-aarch64-apple-darwin
+1.98.1-aarch64-apple-darwin
+1.99.1-aarch64-apple-darwin (active)
+RUSTUP_TOOLCHAIN=unset
+```
+
+`just --show fuzz` and `just --show fuzz-build` name no `+toolchain`; both bodies are in
+the Justfile as committed.
+
+**Controls.**
+
+- **Planted `unsafe {}`** at the top of the target's function: `just clippy` exited 101,
+  with `error: usage of an \`unsafe\` block … requested on the command line with \`-F
+  unsafe-code\``. The plant was then removed.
+- **Planted `panic!("planted control")`** on the line after the `alliumpy_core::parse`
+  loop, inside the valid-UTF-8 branch. `fuzz/artifacts/` had been emptied first. `just
+  fuzz parse 5` exited 1, panicking at `fuzz_targets/parse.rs:18:9` (`planted control`),
+  not at `parser.rs:109`, and wrote `fuzz/artifacts/parse/crash-da39a3ee…` (the empty
+  input). libFuzzer runs the empty input first, and it parses cleanly, so the upstream
+  crash cannot win the race. The plant and the artefact were then removed.
+- After the controls and the Verification block, `git status --short` printed nothing.
+
+**Timings** (the open point), on this Apple-silicon workstation:
+
+| Command | Cold | Warm |
+| --- | --- | --- |
+| fuzz `clippy` line | 4.5 s | 0.08 s |
+| `just fuzz-build` | 21.4 s | 0.3 s |
+
+`just check` took 24.5 s warm. Both lines stay where the ticket puts them; moving them to
+`fuzz.yml` is the maintainer's call.
+
+### Workflows (step 6)
+
+- `mutants.yml` follows L's draft.
+- `fuzz.yml` is weekly and by hand, with matrix `[parse]`, `fail-fast: false`,
+  `just fuzz "$TARGET" 300` through `env:`, and an artefact upload under `if: failure()`.
+- Action SHAs were taken from this repository's `ci.yml`: checkout `3d3c42e5…` (v7.0.1)
+  and upload-artifact `043fb46d…` (v7.0.1). P's workflows use upload-artifact v7.0.2.
+- `ci.yml`'s `rust` job runs `just fuzz-build` after `just clippy`.
+- `rg -n 'needs:' .github/workflows/ci.yml` gives `201: needs: [rust, python,
+  wheel-smoke-py311, coverage, deny, documents]`. Protection read:
+  `[{"app_id":15368,"context":"check"}]` (exit 0), so `check` is still the only required
+  check.
+- `just lint` (actionlint) passes.
+
+### Acceptance chain
+
+At `1c5f5bb`, `just deps-unused && just deny && just features && just coverage` exited 0.
+Coverage is 100.00% of lines over the core alone; the fuzz crate is excluded.
+
+### Departures from L's drafts, P's tickets and this ticket's text
+
+- **Fuzz lint tables.** `fuzz/Cargo.toml` repeats the whole `[workspace.lints.clippy]`
+  table as well as the `forbid` levels, as P does, so invariant 5 holds there. L's draft
+  repeated only `forbid`.
+- **Offline fuzz recipes.** `fuzz` and `fuzz-build` also set `CARGO_NET_OFFLINE=true` on
+  the cargo-fuzz line, beside the ticket's offline lock guard. `fuzz-build`'s body
+  therefore differs from the ticket's text by that prefix.
+- **Mutants guard** (review checkpoint 1). The guard lists with the caller's `"$@"`, so a
+  filter that selects nothing fails. Its message reads `the filters select nothing`.
+  Both differ from the ticket's quoted line.
+- **`fix`.** It also runs `cargo fmt --manifest-path fuzz/Cargo.toml`, as P's `fix` does
+  (review checkpoint 1); the ticket named only the clippy line.
+- **Fuzz path dependency.** It names no version, as in P. A version bump therefore
+  refreshes `fuzz/Cargo.lock` through `just lock`, and `lock-check` refuses it until then.
+  0016 and maintain-dependencies.md say so.
+- **Fuzz crate name.** `alliumpy-core-fuzz`, in place of the generated `alliumpy-fuzz`.
+- **Fuzz assertion.** The target folds the line and column checks into one `assert!`
+  that prints the diagnostic.
+- **Files left alone.** `tickets/README.md`'s index row was not in Files touched, so it
+  was not changed. Outside Files touched and left alone:
+  `.github/actions/setup/action.yml`'s comment still says `.tools` holds "cargo-hack from
+  tools.txt", which is now incomplete; and AGENTS.md's project map does not list `fuzz/`.
+
+### Adversarial review, checkpoint 1
+
+At `72159e0`, two reviewers ran: Codex `gpt-6-astra`, read-only, with the conformance and
+breakage lenses (`ai_tmp/review/T15-1/`). Triage and the fixes were done by a separate
+fresh Claude subagent (`verdicts.md`).
+
+| Finding | Severity | Verdict and reason | Outcome |
+| --- | --- | --- | --- |
+| conformance-1, breakage-1 | Medium | Valid, one issue: the zero-mutant guard ignored the caller's filters, so `just mutants --file <missing>` passed the guard and cargo-mutants 27.1.0 exits 0 on an empty selection. | Applied: `"$@"` is forwarded to `--list`. |
+| conformance-2 | Low | Valid: `fix` did not format the fuzz crate, which `cargo fmt --all` skips. | Applied: P's line. |
+
+No high-severity finding was valid, so there was no second round. Nothing was handed back.
+
+The checkpoint's questions:
+
+1. Zero mutants now fail closed, including under filters.
+2. The target compiles on stable with no nightly.
+3. No added recipe reaches the network inside `check`.
+4. `check-clean` cannot see the fuzz outputs or `mutants.out/`: `git check-ignore`
+   confirms all four are ignored.
+5. No missed mutant was explained away.
+6. The pyo3 crate is excluded from all three tools, stated in 0016.
+7. The upstream crash does not mask either control.
+
+After the fixes, at `1c5f5bb`, the Verification block was re-run (quoted above). The
+final `just check` is quoted below.
+
+### Stops awaiting separate authorisation
+
+- the push
+- the pull request
+- the post-merge `workflow_dispatch` of `mutants.yml`, then reading its artefact
+- the post-merge `workflow_dispatch` of `fuzz.yml`, then reading its log, which is
+  expected to show the upstream crash
+- reporting the `parser.rs:109` crash upstream
+
+The two dispatch run URLs therefore do not exist yet.
 
 ## Open points
 
