@@ -108,6 +108,20 @@ def member_versions(root: Path) -> dict[str, str] | None:
     return {f"crate {package['name']} version": package["version"] for package in packages}
 
 
+def versions_agree(versions: dict[str, str]) -> bool:
+    """Whether every version equals the workspace version, naming both values when not."""
+    expected = versions["workspace version"]
+    for name, value in versions.items():
+        if value != expected:
+            print(
+                f"version-check: workspace version={expected!r} differs from {name}={value!r}",
+                file=sys.stderr,
+            )
+            return False
+    print(f"version-check: all {len(versions)} versions agree: {expected}")
+    return True
+
+
 def main(argv: list[str]) -> int:
     """Fail with both names and values when release metadata drifts."""
     root = Path(__file__).resolve().parents[1]
@@ -147,18 +161,8 @@ def main(argv: list[str]) -> int:
         "console version": words[1],
     }
     members = member_versions(root)
-    if members is None:
+    if members is None or not versions_agree(versions | members):
         return 1
-    versions.update(members)
-    expected = versions["workspace version"]
-    for name, value in versions.items():
-        if value != expected:
-            print(
-                f"version-check: workspace version={expected!r} differs from {name}={value!r}",
-                file=sys.stderr,
-            )
-            return 1
-    print(f"version-check: all {len(versions)} versions agree: {expected}")
     return version_string(root, pin, source, result.stdout)
 
 
