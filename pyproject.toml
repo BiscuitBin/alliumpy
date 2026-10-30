@@ -30,6 +30,9 @@ cargo-insta = "==1.48.0"
 # conda-forge's newest on 2026-09-24; the pin follows conda-forge, not crates.io.
 cargo-shear = "==1.13.4"
 taplo = "==0.10.0"
+# A weekly report, never a gate (mutants.yml). conda-forge's build depends on no
+# rust, so rustup's cargo stays first on PATH.
+cargo-mutants = "==27.1.0"
 
 # Wheel builder; the nested manifest belongs to maturin alone.
 maturin = "==1.15.0"

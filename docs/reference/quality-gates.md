@@ -15,11 +15,11 @@ read-only; an ignored path is outside the snapshot.
 | Order | Gate | Proves |
 | --- | --- | --- |
 | 1 | `check-toolchain` | Cargo resolves to the expected rustup proxy path; the selected toolchain is printed. |
-| 2 | `lock-check` | Both lockfiles match their manifests offline. |
+| 2 | `lock-check` | `Cargo.lock`, `fuzz/Cargo.lock` and `pixi.lock` match their manifests offline. |
 | 3 | `lint` | The complete read-only hook gate passes. |
-| 4 | `fmt-check` | Rust formatting matches rustfmt. |
+| 4 | `fmt-check` | Rust formatting matches rustfmt, in the workspace and the fuzz crate. |
 | 5 | `toml-check` | TOML formatting and lint pass. |
-| 6 | `clippy` | Both lint tables pass over every target and feature, with warnings as errors. |
+| 6 | `clippy` | Both lint tables pass over every target and feature, and the fuzz crate's repeated tables over its targets, with warnings as errors. |
 | 7 | `metrics` | The pinned rustqual passes once per crate against the configured thresholds. |
 | 8 | `features` | Every feature combination compiles. |
 | 9 | `test-doc` | Core doc examples compile and pass. |
@@ -80,9 +80,15 @@ CI runs six gate jobs: `rust`, `python`, `wheel-smoke-py311`, `coverage`, `deny`
 `documents`. The aggregate `check` job fails if any dependency fails, is cancelled or
 skipped. The Python job uploads the Linux wheel and the Python 3.11 job installs that
 same artefact. The Rust job runs test where the local aggregate runs test-doc and
-coverage.
+coverage, and runs `fuzz-build` after `clippy`, so a fuzz target that no longer builds
+names itself in the step list without waiting for the weekly run.
 
-Audit and online links need network services and sit outside the gate. Pages also sits
+Audit and online links need network services and sit outside the gate. Mutation
+testing, benchmarks and fuzzing sit outside it on purpose: a surviving mutant or a crash
+asks for a judgement, mutation runs grow towards hours, fuzzing is nondeterministic, and
+timings measure the machine. `mutants.yml` and `fuzz.yml` run weekly and by hand and are
+never in `check`'s `needs`; no benchmark runs in CI
+([decision 0016](../decisions/0016-mutation-bench-and-fuzz.md)). Pages also sits
 outside it: a deployment failure blocks no merge, and deployment runs only for main
 while the repository is public (`github.event.repository.private == false`). The
 repository is public, and branch protection on main requires the `check` job alone.

@@ -43,9 +43,15 @@ target/
 *.profraw
 lcov.info
 
-# What cargo-mutants writes, if T15 adopts it; ignored now so a first run can
-# never trip the snapshot.
+# What `just mutants` writes (T15): each run renames the previous report to
+# mutants.out.old, so both are ignored and a run never trips the snapshot.
 mutants.out*/
+
+# What `just fuzz` writes beside the generated fuzz/.gitignore, so this file is
+# complete on its own; the root target/ above already covers fuzz/target/.
+fuzz/corpus/
+fuzz/artifacts/
+fuzz/coverage/
 
 # A test run outside the recipes may leave pending snapshots. A file Git can
 # see would abort the gate's worktree check; reviewed .snap files are committed.

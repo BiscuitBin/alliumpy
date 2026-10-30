@@ -558,6 +558,20 @@
         "decision_cli_strategy"
       ],
       "requires": []
+    },
+    {
+      "path": "decisions/0016-mutation-bench-and-fuzz.md",
+      "title": "Decision 0016: Mutation testing, benchmarks and fuzzing",
+      "kind": "decision",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_mutation_bench_fuzz"
+      ],
+      "requires": []
     }
   ]
 }

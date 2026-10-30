@@ -20,10 +20,19 @@ RustSec advisory database every Monday, as well as on every pull request, and it
 a required check, so a failure there blocks nothing and is easy to miss. An advisory
 against a crate in `Cargo.lock` is fixed by moving that crate, not by ignoring it.
 
+In the same weekly pass, read the `mutants` and `fuzz` runs, which also run every
+Monday and are never required. A red `mutants` run names a surviving mutant in its
+`mutants` artefact; answer it with a test in the core, or exclude a truly equivalent
+mutant in `.cargo/mutants.toml` with a comment. A red `fuzz` run uploads the crashing
+input. A crash in this repository's conversion is fixed here with a regression test; a
+crash inside upstream's parser is reported upstream and waits for an upstream release,
+because upstream decides behaviour ([decision 0016](../decisions/0016-mutation-bench-and-fuzz.md)).
+
 **Monthly.** Move the dependency pins, one kind at a time, as
 [Maintain dependencies](../how-to/maintain-dependencies.md) describes. `just lock-upgrade`
-moves both lockfiles within the manifests' constraints — `Cargo.lock` within the caret
-ranges, `pixi.lock` beneath the exact tool pins; run `just check` and commit both. A tool
+moves the three lockfiles within the manifests' constraints — `Cargo.lock` and
+`fuzz/Cargo.lock` within the caret ranges, `pixi.lock` beneath the exact tool pins; run
+`just check` and commit all three. A tool
 pin itself moves in `pyproject.toml`, then `pixi update <name>`, then `pixi.lock` is
 committed. A line in `tools.txt` or `tools-source.txt` moves by hand and takes effect at
 the next `just install-tools`; a `tools-source.txt` line moves one release at a time,

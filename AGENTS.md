@@ -71,7 +71,8 @@ Once `release-pypi.yml` exists (T14), a tag is a release; once Pages deploys fro
 `just initialize`, `just install-toolchain`, `just install-tools`, `just sync`,
 `just lock`, `just lock-upgrade`, `just install-hooks`, `just audit`,
 `just check-links-online` and `just install-parity-reference` (from T13);
-each runs only when the task authorises it. Never read, print or commit a credential.
+each runs only when the task authorises it. `just fuzz` and `just fuzz-build` are not
+among them: their lock guard is `--offline`. Never read, print or commit a credential.
 Scratch notes and intermediate output go in `ai_tmp/`, never in a commit. Work on one
 ticket per worktree. Hooks are never installed from a secondary worktree; the primary
 checkout installs them once. Stop and report, rather than guess, when you lack authority,
@@ -93,8 +94,10 @@ failure. Hand back only when `just check` ends with
 Use the `rust-change` skill, and `review-change` to review the result. Unit tests stay
 in the core module they test (decision 0005); the bindings crate is exercised through
 Python. Run `just fmt-check`, `just clippy`, `just test`, `just coverage` and `just doc`
-as the change needs them. A public type in the core is part of the Python API's shape:
-the stub and a pytest case move with it when exposed by the binding.
+as the change needs them. After a change to the core, read `just mutants`, a report and
+never a gate: a missed mutant is a missing test in the core. A public type in the core
+is part of the Python API's shape: the stub and a pytest case move with it when exposed
+by the binding.
 
 </important>
 

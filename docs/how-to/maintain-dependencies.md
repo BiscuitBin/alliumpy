@@ -26,8 +26,8 @@ dependencies; the upstream parser remains excluded.
 just lock-check
 ```
 
-This runs `cargo update --workspace --locked --offline` and
-`pixi lock --check --offline --dry-run`, neither of which writes. It is gate 2 of
+This runs `cargo update --workspace --locked --offline`, the same line over
+`fuzz/Cargo.toml`, and `pixi lock --check --offline --dry-run`, none of which writes. It is gate 2 of
 `just check`, so a manifest edited without relocking fails the gate rather than
 drifting.
 
@@ -39,10 +39,14 @@ just lock-upgrade    # move every crate to the newest version its range admits
 ```
 
 `just lock` relocks the workspace against what the manifests state, then runs
-`pixi lock`. It is not a no-op: a dependency whose range was edited, or that is new,
+`pixi lock`. It relocks `fuzz/Cargo.lock` too: the fuzz crate sits outside the
+workspace (decision 0016), so its lockfile is a third pin that moves with the others,
+and its path dependency on the core names no version, so a workspace version bump
+leaves it stale until `just lock` runs. It is not a no-op: a dependency whose range was edited, or that is new,
 resolves to the newest version its range admits, not to the version the range names.
 `just lock-upgrade` moves every crate, transitive ones included, to the newest version
-its range admits, which under caret ranges changes plenty, and runs `pixi update`. Every
+its range admits, in both Cargo lockfiles, which under caret ranges changes plenty, and
+runs `pixi update`. Every
 tool pin is exact, so that moves transitive packages and one direct one: Python, pinned
 `3.14.*`, whose patch release can move. Read both lockfile diffs before accepting them.
 
@@ -76,7 +80,7 @@ pixi update <name>
 Two lists hold what conda-forge lacks, one `name@version` per line, and
 `just install-tools` reads both. It skips a version already installed.
 
-- `tools.txt` (cargo-hack today) is binary-only: its pass never compiles
+- `tools.txt` (cargo-hack and cargo-fuzz today) is binary-only: its pass never compiles
   (`--disable-strategies compile`), so a tool with no prebuilt binary fails loudly
   rather than building at bootstrap.
 - `tools-source.txt` (rustqual today) is for a tool with no prebuilt binary at all. Its
@@ -86,7 +90,10 @@ Two lists hold what conda-forge lacks, one `name@version` per line, and
   decision record that accepts the source build, as
   [decision 0007](../decisions/0007-metrics-gate.md) does for rustqual.
 
-Bump either by editing the line and running `just install-tools`. Move a
+Bump either by editing the line and running `just install-tools`. cargo-fuzz's line moves
+with `libfuzzer-sys` in `fuzz/Cargo.toml`; after either, run `just fuzz-build`, and on a
+macOS bump check whether the release now ships an arm64 binary, which would retire the
+Rosetta prerequisite. Move a
 `tools-source.txt` pin one release at a time and run `just check` on each, because the
 tool is a gate: record any bump that needs a suppression or threshold change, as
 decision 0007 requires.
@@ -156,7 +163,7 @@ and release through T14's process. A bare pin bump fails `version-check` by desi
 
 ## Actions in the workflows
 
-`ci.yml`, `audit.yml`, `pages.yml` and the composite `setup` action pin every remote action in a
+`ci.yml`, `audit.yml`, `pages.yml`, `mutants.yml`, `fuzz.yml` and the composite `setup` action pin every remote action in a
 `uses:` line to a full commit SHA with its version comment, never to a tag. The one
 exception is the local `uses: ./.github/actions/setup`, a path in this repository that
 moves with the commit that calls it. The same `gh api` line resolves a tag to

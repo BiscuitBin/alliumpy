@@ -52,6 +52,14 @@ untested conversion branch can breach the floor on its own. Doctests are not cou
 so an example is documentation and a test of its contract, but not evidence for the
 floor.
 
+Coverage says a line ran; a mutant says whether any test would notice the line changing.
+A mutant that survives on a covered line is exactly what the floor cannot see, so
+`just mutants` reports it weekly beside the floor rather than replacing it. The floor
+stays at 90. A survivor is either a missing assertion, which gets added, or an equivalent
+mutant, which makes no observable difference and is excluded in `.cargo/mutants.toml` with
+a comment. A mutation score is not a gate: the run grows towards hours and each survivor
+asks for a judgement ([decision 0016](../decisions/0016-mutation-bench-and-fuzz.md)).
+
 ## Evidence must be able to fail
 
 Tests assert observable results rather than that an internal function was called.

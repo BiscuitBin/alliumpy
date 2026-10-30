@@ -15,7 +15,10 @@ rather than in a shell history.
 `initialize`, `install-toolchain`, `install-tools`, `install-hooks`, `sync`, `lock`,
 `lock-upgrade`, `audit` and `check-links-online` reach the network. Initialization
 prepares the caches; later `check` runs need no network. A cold cache fails instead of
-fetching. Setup recipes and mutating recipes sit outside `check`.
+fetching. Setup recipes and mutating recipes sit outside `check`. `fuzz` and `fuzz-build`
+are not network recipes: their lock guard is offline and cargo-fuzz runs with
+`CARGO_NET_OFFLINE`, so after `just sync` they need no network. `mutants`, `bench`, `fuzz`
+and `fuzz-build` are reports or proofs a person runs, never part of `check`.
 
 ## Setup
 
@@ -26,16 +29,19 @@ fetching. Setup recipes and mutating recipes sit outside `check`.
 | `check-toolchain` | Refuse a cargo other than rustup's proxy, then print the active toolchain. |
 | `install-toolchain` | Install the toolchain and components the toolchain file names. |
 | `install-tools` | Install `tools.txt` binary-only; for `tools-source.txt`, accept a signed quickinstall build or compile crates.io source locked. Never take unsigned release assets in the source pass; unset tokens and disable discovery there. |
-| `sync` | Fetch Cargo dependencies and install pixi's committed resolution without rewriting locks. |
-| `lock` | Relock Cargo after a manifest edit and run pixi lock. Read both diffs. |
-| `lock-upgrade` | Move Cargo and pixi resolutions within manifest constraints. |
-| `lock-check` | Compare both manifests to locks offline without writing. |
+| `sync` | Fetch the workspace's and the fuzz crate's Cargo dependencies and install pixi's committed resolution without rewriting any of the three locks. |
+| `lock` | Relock `Cargo.lock` and `fuzz/Cargo.lock` after a manifest edit and run pixi lock. Read every diff. |
+| `lock-upgrade` | Move both Cargo resolutions and pixi's within manifest constraints. |
+| `lock-check` | Compare `Cargo.lock`, `fuzz/Cargo.lock` and `pixi.lock` with their manifests offline without writing. |
 | `install-hooks` | Install the shared hook shim and prepare environments; primary checkout only. |
 
 ## Develop
 
 | Recipe | Purpose |
 | --- | --- |
+| `bench` | Run the core's divan benchmarks by hand; never in CI or the gate. |
+| `fuzz` | Refuse a stale `fuzz/Cargo.lock` offline, then fuzz one target on the pinned stable with `--sanitizer none` for a bounded time (300 seconds by default). Outside check. |
+| `fuzz-build` | The same lock guard, then compile the fuzz targets without running them; the `rust` CI job runs it. Outside check. |
 | `build` | Build the workspace with every feature and the lockfile. |
 | `test` | Run core unit and integration tests through nextest, then doctests. Exclude the cdylib, whose tests are Python's. |
 | `test-doc` | Run core doctests alone. |
@@ -47,12 +53,12 @@ fetching. Setup recipes and mutating recipes sit outside `check`.
 
 | Recipe | Purpose |
 | --- | --- |
-| `format` | Write rustfmt and taplo formatting. |
-| `fix` | Run the mutating hook configuration twice, then clippy's repairs, then lint. |
+| `format` | Write rustfmt formatting over the workspace and the fuzz crate, and taplo's. |
+| `fix` | Run the mutating hook configuration twice, then clippy's repairs over the workspace and the fuzz crate, then lint. |
 | `lint` | Run the complete read-only hook gate over all files. |
-| `fmt-check` | Check Rust formatting. |
+| `fmt-check` | Check Rust formatting in the workspace and the fuzz crate. |
 | `toml-check` | Check TOML formatting and lint. |
-| `clippy` | Lint all targets and features with warnings as errors. |
+| `clippy` | Lint all targets and features, and the fuzz crate's targets, with warnings as errors. |
 | `metrics` | Check rustqual's version, then complexity, cohesion and coupling once per crate. Module rules wait for modules. |
 | `features` | Check every feature combination using cargo-hack. |
 | `coverage` | Run core nextest tests instrumented, enforce the line floor, and write ignored lcov output. |
@@ -60,6 +66,7 @@ fetching. Setup recipes and mutating recipes sit outside `check`.
 | `site` | Empty `target/doc`, run doc, then write a root index linking both crates. Outside check. |
 | `deny` | Offline licence, ban and source checks. |
 | `audit` | Advisory check requiring the RustSec database; outside check. |
+| `mutants` | Require a non-empty mutant list, then run cargo-mutants over the core on a copy of the tree; a report outside check. |
 | `deps-unused` | Report declared dependencies no crate uses. |
 
 ## Documents

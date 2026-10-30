@@ -1,0 +1,66 @@
+# The fuzz crate (decision 0016): outside the workspace, never published, and
+# locked by its own fuzz/Cargo.lock. It depends on the core and nothing depends
+# on it; the pyo3 crate is not fuzzed, because a target linking it would need
+# libpython at load time.
+[package]
+name = "alliumpy-core-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+rust-version = "1.99"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+# Caret range; fuzz/Cargo.lock is the pin (decision 0004). libFuzzer drives
+# arbitrary bytes into the targets. Its build script compiles libFuzzer's C++,
+# so a C++ compiler is a prerequisite of `just clippy`.
+libfuzzer-sys = "0.4.13"
+# No version: the core is never published, so a version bump refreshes
+# fuzz/Cargo.lock through `just lock`.
+alliumpy-core = { path = "../crates/alliumpy-core" }
+
+# Invariant 4 in a crate outside the workspace, which cannot inherit
+# [workspace.lints]: the root table's forbid levels, repeated.
+[lints.rust]
+unsafe_code = "forbid"
+non_ascii_idents = "forbid"
+
+# Invariant 5 also holds outside the workspace. Keep these levels aligned with
+# [workspace.lints.clippy] in Cargo.toml; an excluded package cannot inherit them.
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+cargo = { level = "warn", priority = -1 }
+missing_const_for_fn = "warn"
+use_self = "warn"
+unwrap_used = "warn"
+expect_used = "warn"
+panic = "warn"
+unreachable = "warn"
+todo = "warn"
+unimplemented = "warn"
+dbg_macro = "warn"
+print_stdout = "warn"
+print_stderr = "warn"
+exhaustive_enums = "warn"
+exhaustive_structs = "warn"
+allow_attributes = "warn"
+allow_attributes_without_reason = "warn"
+tests_outside_test_module = "warn"
+mod_module_files = "warn"
+iter_over_hash_type = "warn"
+str_to_string = "warn"
+lossy_float_literal = "warn"
+float_cmp_const = "warn"
+same_name_method = "warn"
+cognitive_complexity = "warn"
+module_name_repetitions = "allow"
+multiple_crate_versions = "allow"
+
+[[bin]]
+name = "parse"
+path = "fuzz_targets/parse.rs"
+test = false
+doc = false
+bench = false

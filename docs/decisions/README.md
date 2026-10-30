@@ -35,9 +35,10 @@ until evidence supports a decision.
 | [0012](0012-abi3-wheels-and-platforms.md) | `abi3-py311` wheels and the five platforms |
 | [0013](0013-no-spec-gate-no-allium-skills.md) | No specification gate and no Allium skills in this repository |
 | [0014](0014-cli-strategy.md) | How the `allium` command gets into the wheel |
+| [0016](0016-mutation-bench-and-fuzz.md) | Mutation testing, benchmarks and fuzzing |
 
-Records 0015, 0016 and 0017 are written by T14, T15 and T17 respectively, which register
-their new pages and add rows when those decisions are taken. S01 drafted record 0014,
+Records 0015 and 0017 are written by T14 and T17 respectively, which register their
+new pages and add rows when those decisions are taken; T15 wrote 0016. S01 drafted record 0014,
 and T13 lands it in place of the stub.
 
 ## The numbering
