@@ -54,7 +54,7 @@ and `fuzz-build` are reports or proofs a person runs, never part of `check`.
 | Recipe | Purpose |
 | --- | --- |
 | `format` | Write rustfmt formatting over the workspace and the fuzz crate, and taplo's. |
-| `fix` | Run the mutating hook configuration twice, then clippy's repairs over the workspace and the fuzz crate, then lint. |
+| `fix` | Run the mutating hook configuration twice, format the fuzz crate, then clippy's repairs over the workspace and the fuzz crate, then lint. |
 | `lint` | Run the complete read-only hook gate over all files. |
 | `fmt-check` | Check Rust formatting in the workspace and the fuzz crate. |
 | `toml-check` | Check TOML formatting and lint. |

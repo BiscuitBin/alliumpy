@@ -174,6 +174,7 @@ format:
 fix:
     -prek run --all-files --config .pre-commit-fix.yaml
     prek run --all-files --config .pre-commit-fix.yaml
+    cargo fmt --manifest-path fuzz/Cargo.toml
     cargo clippy --workspace --all-targets --all-features --locked --fix --allow-dirty --allow-staged
     cargo clippy --manifest-path fuzz/Cargo.toml --all-targets --locked --fix --allow-dirty --allow-staged
     just lint
@@ -265,11 +266,12 @@ audit:
 # `cargo test`, not nextest, because nextest skips doctests and a mutant only a
 # doc example catches would be reported missed. The core alone: the pyo3 crate's
 # tests are Python's, so every mutant there would be missed, and its test binary
-# needs libpython. The first line is the positive control: a --package filter that
-# matched nothing would otherwise print a green summary over zero mutants. Exit 2
+# needs libpython. The first line is the positive control over the same selection
+# the run uses, the caller's filters included: a filter that matched nothing would
+# otherwise print a green summary over zero mutants. Exit 2
 # means a mutant survived, 3 a timeout, 4 a failing baseline.
 mutants *args:
-    [ "$(cargo mutants --list --package alliumpy-core --all-features | grep -c .)" -gt 0 ] || { printf '%s\n' 'mutants: no mutants found; the --package filter is wrong' >&2; exit 1; }
+    [ "$(cargo mutants --list --package alliumpy-core --all-features "$@" | grep -c .)" -gt 0 ] || { printf '%s\n' 'mutants: no mutants found; the filters select nothing' >&2; exit 1; }
     cargo mutants --package alliumpy-core --all-features --gitignore=true --cargo-arg=--locked "$@"
 
 deps-unused:
