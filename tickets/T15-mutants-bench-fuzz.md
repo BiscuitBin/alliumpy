@@ -573,6 +573,16 @@ Not applied, and handed back for the maintainer:
   - AGENTS.md's "not network" wording assumes `just install-tools` has installed
     cargo-fuzz, as every `tools.txt` tool assumes.
 
+### Final gate
+
+At `ebaa0f7`, `just check` exited 0 and ended:
+
+```text
+All checks passed and the worktree is unchanged.
+```
+
+`git status --short` printed nothing.
+
 ### Stops awaiting separate authorisation
 
 - the push
