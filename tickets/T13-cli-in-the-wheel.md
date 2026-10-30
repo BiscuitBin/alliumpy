@@ -1414,6 +1414,31 @@ Stale future tense after this lane, owned elsewhere: `docs/project/purpose-and-s
 `docs/how-to/maintain-dependencies.md:154` (T17's runbook); `docs/decisions/0011:26`,
 `0012:28, 37`; `docs/explanation/packaging.md:72`.
 
+### Rebase onto T15 (`eb141cb`)
+
+Before the pull request the lane was rebased onto `main` at `eb141cb` (T15 merged).
+Conflicts, each resolved by keeping both lanes' lines: `AGENTS.md` (T15's fuzz sentence,
+T13's dropped qualifier), `Cargo.toml` and `crates/alliumpy-core/Cargo.toml` (`divan`
+beside `serde` and `serde_json`), `CHANGELOG.md` (both lines), `docs/decisions/README.md`
+line 41, and `docs/reference/testing.md` (T15's sections kept under T13's Command
+parity, its "T13 adds POSIX parity" paragraph and the emptied Future evidence heading
+dropped). `Cargo.lock` was taken from `main` and `cargo update -p serde -p serde_json
+--offline` re-added only `"serde",` and `"serde_json",` under `alliumpy-core`; T15's
+separate `fuzz/Cargo.lock` path-depends on the core, so `cargo update -p alliumpy-core
+--offline` in `fuzz/` added the same two lines (`Locking 0 packages`), a regenerated
+lockfile outside Files touched. Then `just initialize` exit 0 (T15 changed `pixi.lock`
+and `tools.txt`), and at `d9fa570` `just check` exit 0 (`All checks passed and the
+worktree is unchanged.`), coverage `TOTAL ... 92.27%` lines, and `just parity` exit 0:
+
+```text
+positive control: check <corpus>/alliumpy/xmod/app/orders.allium exits 1 under the reference
+202 compared, 0 differ
+negative control: candidate plus one byte, check <corpus>/alliumpy/xmod/app/orders.allium: fired (stdout differs)
+negative control: candidate forced to exit 0, check <corpus>/alliumpy/xmod/app/orders.allium: fired (exit status: reference 1, candidate 0)
+parse diagnostics over 30 files: 1
+======================== 48 passed, 2 skipped in 6.51s =========================
+```
+
 ### Not done here
 
 Step 11: push and pull request, with the `parity` job's first run, summary line and URL,
@@ -1439,3 +1464,8 @@ wait for the maintainer's authorisation.
   S01's drafted text or this ticket's files.
 - The Python-API case compares one diagnostic (`broken.allium`'s): every upstream file at
   `v3.6.1` parses with none. A corpus file with parser errors would widen it.
+- T15's `just mutants` (weekly `mutants.yml`) runs over all of `alliumpy-core`, which
+  now holds the three vendored CLI files: the run grows by their mutants, many of them
+  missed by upstream's own tests. Excluding `src/cli/{main,test_plan,domain_model}.rs`
+  (for example in `.cargo/mutants.toml`) is T15's or the maintainer's call; it is
+  outside the gate and outside this ticket's files.
