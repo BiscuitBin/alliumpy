@@ -1,5 +1,7 @@
 //! Interpreter-independent conversion of upstream Allium parser diagnostics.
 
+pub mod cli;
+
 /// Parse an Allium source, returning diagnostics in source order.
 ///
 /// ```

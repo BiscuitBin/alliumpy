@@ -1,6 +1,9 @@
 Upstream allium-tools v3.6.1 is licensed under MIT.
 Source: https://github.com/juxt/allium-tools/tree/v3.6.1
-The code under this licence arrives with T13 (decision 0014).
+The wheel carries upstream's `allium` command logic from allium-tools v3.6.1, vendored
+into the `alliumpy-core` crate (`crates/alliumpy-core/src/cli/`), and the source
+distribution carries the same files; the parity fixtures under `tests/fixtures/parity/`
+are upstream's files at the same tag.
 
 MIT License
 

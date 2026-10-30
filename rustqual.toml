@@ -10,6 +10,11 @@
 # passes as a flag; `allow_expect`, inert while `detect_error_handling` is off; and
 # `[weights]`, which only shapes a score no recipe sets a floor for.
 
+# Upstream's CLI, vendored unchanged under the core's src/cli/ (decision 0014), is
+# upstream's code, not this repository's: its shape is upstream's to change, and
+# parity, not these metrics, is its gate. cli.rs, this repository's own glue, stays
+# measured. Globs resolve against the target directory, as noted above.
+exclude_files = ["src/cli/main.rs", "src/cli/test_plan.rs", "src/cli/domain_model.rs"]
 # Recursion stays an IOSP finding: a search keeps an explicit stack (decision 0007).
 allow_recursion = false
 # Closures, iterator chains and `?` are idiomatic Rust, not logic for IOSP to count.

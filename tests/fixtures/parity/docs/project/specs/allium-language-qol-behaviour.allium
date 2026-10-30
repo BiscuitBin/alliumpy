@@ -1,0 +1,191 @@
+-- allium: 3
+-- module allium_language_qol_behaviour
+
+entity HoverResponse {
+    includes_keyword_reference: Boolean
+    includes_declaration_comment: Boolean
+}
+
+entity Finding {
+    code: String
+    severity: error | warning | info
+}
+
+rule HoverIncludesLeadingDeclarationComments {
+    when: HoverRequested(symbol)
+    requires: symbol.has_preceding_comment_lines
+
+    ensures: HoverResponse.created(
+    includes_declaration_comment: true
+    )
+}
+
+rule RenameRequiresUnambiguousSymbol {
+    when: RenameRequested(symbol, new_name)
+    requires: symbol.resolves_to_multiple_definitions
+
+    ensures: RenameRejected(reason: ambiguous_symbol)
+}
+
+rule RenameRejectsConflictingName {
+    when: RenameRequested(symbol, new_name)
+    requires: new_name.already_declared_in_document
+
+    ensures: RenameRejected(reason: colliding_name)
+}
+
+rule RenameAppliesAcrossResolvedReferences {
+    when: RenameRequested(symbol, new_name)
+    requires: symbol.resolves_to_single_definition
+    requires: new_name.valid_identifier
+
+    ensures: RenameAppliedToAllReferences()
+}
+
+rule RenameAlsoUpdatesImportedUsagesAcrossWorkspace {
+    when: RenameRequested(symbol, new_name)
+    requires: symbol.is_declared_in_file_a
+    requires: FileImportsAs(file_b, file_a, alias)
+
+    ensures: RenameApplied(path: "file_a")
+    ensures: RenameApplied(path: "file_b")
+}
+
+rule ImportedSymbolMustResolveAcrossFiles {
+    when: ImportedSymbolReferenceParsed(reference)
+    requires: reference.alias.is_declared
+    requires: reference.symbol.not_declared_in_target_spec
+
+    ensures: Finding.created(
+    code: "allium.import.undefinedSymbol",
+    severity: error
+    )
+}
+
+rule TopLevelDeclarationsExposeFindReferencesCodeLens {
+    when: CodeLensRequestedForDeclaration(symbol)
+    requires: symbol.declared_at_top_level
+
+    ensures: CodeLensRendered(label: "Find references")
+}
+
+rule TopLevelDeclarationsExposeTestReferenceCountCodeLens {
+    when: CodeLensRequestedForDeclaration(symbol)
+    requires: symbol.declared_at_top_level
+
+    ensures: CodeLensRendered(label: "Referenced in <n> tests")
+    ensures: TestReferenceSearchUsesConfiguredTestDiscoveryInputs()
+    ensures: TestReferenceSearchSupportsConfiguredExtensionsAndNamePatterns()
+}
+
+rule ProblemsSummaryGroupsWorkspaceFindingsByCode {
+    when: CommandInvoked("allium.showProblemsSummary")
+
+    ensures: FindingsGroupedByCode()
+    ensures: MostFrequentCodesShownFirst()
+}
+
+rule RenamePreviewShowsPlannedWorkspaceChanges {
+    when: CommandInvoked("allium.previewRename")
+    requires: SingleRenameTargetResolved()
+    requires: ProposedNameIsValidIdentifier()
+
+    ensures: PlannedRenameLocationsListed()
+    ensures: DocumentNotMutated()
+}
+
+rule ApplyQuickFixesInFileAppliesAllAvailableAlliumQuickFixActions {
+    when: CommandInvoked("allium.applyQuickFixesInFile")
+    requires: AlliumQuickFixesAvailableInDocument()
+
+    ensures: AllAvailableAlliumQuickFixesApplied()
+}
+
+rule CleanStaleSuppressionsRemovesDeadAlliumIgnoreDirectives {
+    when: CommandInvoked("allium.cleanStaleSuppressions")
+    requires: ActiveDocumentContainsStaleAlliumIgnoreDirectives()
+
+    ensures: StaleSuppressionLinesRemoved()
+    ensures: RemainingSuppressionLinesReferenceActiveFindingsOnly()
+}
+
+rule OpenRelatedSpecOrTestFindsMatchingWorkspaceReferences {
+    when: CommandInvoked("allium.openRelatedSpecOrTest")
+    requires: CursorSymbolReferencedInOtherSpecOrTestFiles()
+
+    ensures: RelatedFilesPresentedForSelection()
+    ensures: SelectedRelatedFileOpened()
+    ensures: RelatedTestFileDiscoveryUsesConfiguredTestInputsAndPatterns()
+}
+
+rule UndefinedImportedSymbolQuickFixCanCreateTargetStub {
+    when: CommandInvoked("allium.createImportedSymbolStub")
+    requires: ImportAliasResolvesToTargetSpec()
+
+    ensures: ImportedSpecUpdatedWithSymbolStub()
+}
+
+rule ExplainFindingCommandShowsRemediationGuidance {
+    when: CommandInvoked("allium.explainFinding")
+    requires: ActiveDiagnosticCodeStartsWith(prefix: "allium.")
+
+    ensures: FindingExplanationDocumentOpened()
+    ensures: RemediationGuidanceRendered()
+}
+
+rule ExplainFindingDiagnosticCommandShowsRemediationGuidance {
+    when: CommandInvoked("allium.explainFindingDiagnostic")
+    requires: cursor_has_allium_diagnostic
+
+    ensures: FindingExplanationDocumentOpened()
+    ensures: RemediationGuidanceRendered()
+}
+
+rule RuleSimulationPreviewEvaluatesRequiresAndEnsuresAgainstBindings {
+    when: CommandInvoked("allium.previewRuleSimulation")
+    requires: CursorInsideRule()
+
+    ensures: RequiresEvaluationRendered()
+    ensures: EnsuresEvaluationRendered()
+}
+
+rule SpecDriftCheckReportsCodeAndCommandCoverageDiffs {
+    when: CommandInvoked("allium.checkSpecDrift")
+
+    ensures: DriftReportRendered()
+    ensures: MissingSpecCoverageListed()
+    ensures: StaleSpecCoverageListed()
+}
+
+rule RuleTestScaffoldCommandGeneratesTestTemplateFromRuleDeclarations {
+    when: CommandInvoked("allium.generateRuleTestScaffold")
+    requires: ActiveSpecContainsRuleDeclarations()
+    requires: ScaffoldFrameworkConfigured()
+
+    ensures: TestTemplateDocumentOpened()
+    ensures: RuleNamesAndClauseHintsIncluded()
+    ensures: FrameworkSpecificSyntaxUsed()
+}
+
+rule BaselineManagementCommandCanPreviewOrWriteFingerprintSet {
+    when: CommandInvoked("allium.manageBaseline")
+
+    ensures: BaselinePreviewOrWriteChoiceShown()
+    ensures: BaselineFingerprintsComputed()
+}
+
+rule ApplyQuickFixesCommandShowsSafetyPreviewBeforeMutation {
+    when: CommandInvoked("allium.applyQuickFixesInFile")
+    requires: AlliumQuickFixesAvailableInDocument()
+
+    ensures: QuickFixPreviewShown()
+    ensures: ChangesAppliedOnlyAfterExplicitConfirmation()
+}
+
+rule TypedDeclarationAstProvidesStructuredRuleAndDeclarationMetadata {
+    when: SpecParsedForTooling(spec)
+    requires: spec.contains_entities_or_rules_or_enums
+
+    ensures: TypedDeclarationAstProduced()
+    ensures: RuleClausesExposedAsStructuredFields()
+}

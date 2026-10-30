@@ -1,0 +1,54 @@
+-- allium: 3
+-- module allium_semantic_strengthening_behaviour
+
+entity Finding {
+    code: String
+    severity: error | warning | info
+}
+
+rule UnusedNamedDefinitionsEmitWarnings {
+    when: ValueOrEnumOrNamedDefaultParsed(definition)
+    requires: definition.has_no_references = true
+
+    ensures: Finding.created(
+    code: "allium.definition.unused",
+    severity: warning
+    )
+}
+
+rule ExternalTriggerWithoutProviderIsUnreachable {
+    when: RuleBlockParsed(rule)
+    requires: rule.when_is_external_trigger_call = true
+    requires: rule.trigger_name_is_qualified = false
+    requires: TriggerProvidedBySurface(rule.trigger_name) = false
+    requires: TriggerEmittedByRule(rule.trigger_name) = false
+    requires: TriggerEmittedByImportedModule(rule.trigger_name) = false
+
+    ensures: Finding.created(
+    code: "allium.rule.unreachableTrigger",
+    severity: info
+    )
+}
+
+rule QualifiedTriggerResolvedAgainstAliasedModule {
+    when: RuleBlockParsed(rule)
+    requires: rule.when_is_external_trigger_call = true
+    requires: rule.trigger_name_is_qualified = true
+    requires: AliasTargetResolvesToModuleInCheckSet(rule)
+    requires: TargetModuleNeitherProvidesNorEmits(rule)
+
+    ensures: Finding.created(
+    code: "allium.rule.unreachableTrigger",
+    severity: info
+    )
+}
+
+rule EqualityAcrossLiteralTypesIsMismatch {
+    when: RuleClauseParsed(clause)
+    requires: clause.compares_string_literal_with_numeric_literal_using_equality
+
+    ensures: Finding.created(
+    code: "allium.expression.typeMismatch",
+    severity: error
+    )
+}

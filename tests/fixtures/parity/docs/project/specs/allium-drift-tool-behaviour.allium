@@ -1,0 +1,101 @@
+-- allium: 3
+-- allium-drift-tool-behaviour.allium
+-- Scope: Standalone CLI behavior for implementation/spec drift detection.
+-- Includes:
+--   - Diagnostic code drift checks between source and specs
+--   - Command coverage drift checks between command manifest and specs
+--   - Output and exit semantics
+-- Excludes:
+--   - Runtime validation of analyzer correctness
+--   - Per-finding remediation guidance
+
+rule DriftCommandDefaultsToCurrentWorkspaceScan {
+    when: DriftCommandInvokedWithoutPaths()
+
+    ensures: SourceFilesResolved(path: ".")
+    ensures: SpecFilesResolved(path: ".")
+}
+
+rule DriftCommandReportsNoDifferencesAsSuccess {
+    when: DriftComparisonCompleted(result)
+    requires: result.has_drift = false
+
+    ensures: LinePrinted(message: "Spec drift check passed.")
+    ensures: ProcessExit(code: 0)
+}
+
+rule DriftCommandFailsWhenCoverageDiffExists {
+    when: DriftComparisonCompleted(result)
+    requires: result.has_drift = true
+
+    ensures: LinePrinted(message: "Spec drift detected.")
+    ensures: DriftReportPrinted()
+    ensures: ProcessExit(code: 1)
+}
+
+rule DriftJsonOutputIsMachineReadable {
+    when: DriftCommandInvokedWithOptions(option)
+    requires: option = "--format json"
+
+    ensures: MachineReadableCoveragePayloadPrinted()
+}
+
+rule DriftCanSkipCommandCoverageChecks {
+    when: DriftCommandInvokedWithOptions(option)
+    requires: option = "--skip-commands"
+
+    ensures: CommandCoverageComparisonSkipped()
+}
+
+rule DriftCanLoadDiagnosticsFromManifest {
+    when: DriftCommandInvokedWithOptions(option)
+    requires: option = "--diagnostics-from"
+
+    ensures: DiagnosticsLoadedFromManifest()
+    ensures: SourceScanOptional()
+}
+
+rule DriftSourceExtensionsCanBeConfigured {
+    when: DriftCommandInvokedWithOptions(option)
+    requires: option = "--source-ext"
+
+    ensures: SourceFilesFilteredByConfiguredExtensions()
+}
+
+rule DriftCanExcludeConfiguredDirectoriesFromSourceAndSpecScans {
+    when: DriftCommandInvokedWithOptions(option)
+    requires: option = "--exclude-dir"
+
+    ensures: RecursiveScanSkipsDirectoriesByName()
+}
+
+rule DriftSupportsGenericCommandManifestShapes {
+    when: DriftCommandInvokedWithOptions(option)
+    requires: option = "--commands-from"
+
+    ensures: CommandsLoadedFromManifestShape(shape: "package_contributes")
+    ensures: CommandsLoadedFromManifestShape(shape: "flat_commands_array")
+}
+
+rule DriftConfigDefaultsCanBeLoadedFromWorkspaceFile {
+    when: DriftCommandInvokedWithoutPaths()
+    requires: FileExists(path: "allium-config-file")
+    requires: not command_args.contains("--no-config")
+
+    ensures: ConfigDefaultsLoaded(section: drift)
+}
+
+rule DriftRejectsMissingResolvedInputs {
+    when: DriftCommandInvokedWithPaths(source_paths, spec_paths)
+    requires: ResolveSourceFiles(source_paths).is_empty = true
+    or ResolveAlliumFiles(spec_paths).is_empty = true
+
+    ensures: UsagePrinted()
+    ensures: ProcessExit(code: 2)
+}
+
+rule ReleasedCliPackageExposesDriftCommand {
+    when: CliPackageInstalledFromReleaseNpmArtifact()
+
+    ensures: CommandAvailable(name: "allium-drift")
+}

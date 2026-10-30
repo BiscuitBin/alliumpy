@@ -1,0 +1,18 @@
+-- allium: 3
+-- Written for alliumpy (T13) as a cross-module parity pair, after S01's; no upstream text.
+
+enum Tier { free | paid }
+
+entity Account {
+    tier: Tier
+    status: active | closed
+
+    transitions status {
+        active -> closed
+        terminal: closed
+    }
+}
+
+entity Unused {
+    note: String
+}

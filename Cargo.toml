@@ -96,6 +96,12 @@ pyo3 = { version = "0.30.1", features = ["abi3-py311"] }
 # pin (decision 0004). Its MSRV, 1.80.0, is below the toolchain pin. It adds 16
 # packages to Cargo.lock, among them clap and a second syn major (2.x).
 divan = "0.1.21"
+# Caret range; Cargo.lock is the pin (decision 0004). The vendored CLI's
+# test_plan and domain_model derive Serialize (decision 0014).
+serde = { version = "1.0.229", features = ["derive"] }
+# Caret range; Cargo.lock is the pin (decision 0004). The vendored CLI writes
+# its JSON output with it (decision 0014).
+serde_json = "1.0.154"
 
 [profile.release]
 # Optimize the shipped wheel across crate boundaries, using one codegen unit

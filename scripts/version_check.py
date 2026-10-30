@@ -8,10 +8,53 @@ import tomllib
 from pathlib import Path
 
 
-def main() -> int:
+def version_string(root: Path, pin: str, source: str, console: str) -> int:
+    """Compare the whole console output with the literal and, at the pin, the reference."""
+    literal = re.search(r'pub const ALLIUM_VERSION_STRING: &str = "([^"]+)";', source)
+    if literal is None:
+        print("version-check: ALLIUM_VERSION_STRING literal is missing", file=sys.stderr)
+        return 1
+    if console != f"{literal[1]}\n":
+        print(
+            f"version-check: console output {console!r} differs from"
+            f" ALLIUM_VERSION_STRING={literal[1]!r}",
+            file=sys.stderr,
+        )
+        return 1
+    # The reference is built by a network recipe outside check: a missing or stale
+    # one is a note, not drift (T13).
+    reference = root / ".tools/parity/bin/allium"
+    output = ""
+    if reference.is_file():
+        output = subprocess.run(
+            [str(reference), "--version"], capture_output=True, text=True, check=False
+        ).stdout
+    if output.split()[1:2] != [pin]:
+        print(
+            f"version-check: note: no reference allium {pin} to compare;"
+            " run just install-parity-reference"
+        )
+        return 0
+    if output != console:
+        print(
+            f"version-check: console output {console!r} differs from the reference's {output!r}",
+            file=sys.stderr,
+        )
+        return 1
+    print(f"version-check: the reference prints the same: {output.strip()}")
+    return 0
+
+
+def main(argv: list[str]) -> int:
     """Fail with both names and values when release metadata drifts."""
     root = Path(__file__).resolve().parents[1]
     cargo = tomllib.loads((root / "Cargo.toml").read_text())
+    pin = cargo["workspace"]["dependencies"]["allium-parser"].removeprefix("=")
+    # install-parity-reference reads the pin before any wheel exists (T13), so this
+    # path reads Cargo.toml alone.
+    if argv == ["--print-pin"]:
+        print(pin)
+        return 0
     wheel = tomllib.loads((root / "crates/alliumpy/pyproject.toml").read_text())
     source = (root / "crates/alliumpy-core/src/lib.rs").read_text()
     match = re.search(r'pub const ALLIUM_VERSION: &str = "([^"]+)";', source)
@@ -36,7 +79,7 @@ def main() -> int:
         "wheel version (without post release)": re.sub(
             r"\.post[0-9]+$", "", wheel["project"]["version"]
         ),
-        "allium-parser pin": cargo["workspace"]["dependencies"]["allium-parser"].removeprefix("="),
+        "allium-parser pin": pin,
         "ALLIUM_VERSION": match[1],
         "console version": words[1],
     }
@@ -49,8 +92,8 @@ def main() -> int:
             )
             return 1
     print(f"version-check: all five versions agree: {expected}")
-    return 0
+    return version_string(root, pin, source, result.stdout)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(sys.argv[1:]))

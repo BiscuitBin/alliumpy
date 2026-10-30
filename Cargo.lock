@@ -27,6 +27,8 @@ version = "3.6.1"
 dependencies = [
  "allium-parser",
  "divan",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

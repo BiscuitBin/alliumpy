@@ -346,7 +346,8 @@ wheel:
 # Exactly one wheel, which must exist (an unmatched glob is one literal argument);
 # a venv on the pixi interpreter with no download; install
 # from dist/ alone; then import, parse the smoke fixtures, and run the console
-# script. Python runs with -I so nothing in the worktree shadows the package.
+# script's --version and its check on the clean fixture, which must exit 0.
+# Python runs with -I so nothing in the worktree shadows the package.
 wheel-smoke: wheel
     #!/bin/sh
     set -eu
@@ -357,12 +358,38 @@ wheel-smoke: wheel
     uv pip install --python target/wheel-smoke/venv --offline --no-index --no-deps "$1"
     target/wheel-smoke/venv/bin/python -I tests/fixtures/smoke/smoke.py
     target/wheel-smoke/venv/bin/allium --version
+    target/wheel-smoke/venv/bin/allium check tests/fixtures/smoke/ok.allium
 
 # Gate: one version, in every place it is written (CONVENTIONS.md §9). Reads
 # the Cargo manifests, the wheel manifest and the console script's own output
 # from the venv wheel-smoke left; fails if that venv is missing.
 version-check:
     python -I scripts/version_check.py
+
+# ------------------------------------------------------------------ parity ---
+
+# The reference allium: upstream's own CLI, built from crates.io at the version
+# the core wraps, into a root that is never on PATH, so that nothing can shadow
+# the wheel's allium or be shadowed by it (CONVENTIONS.md §9). Network; outside
+# `check`. The version is read from Cargo.toml so the pin cannot drift from it.
+install-parity-reference:
+    #!/bin/sh
+    set -eu
+    pin=$(python -I scripts/version_check.py --print-pin)
+    cargo install "allium-cli@${pin}" --locked --root .tools/parity
+    .tools/parity/bin/allium --version
+
+# Byte-for-byte stdout and exit-code parity between the wheel's allium (the venv
+# wheel-smoke, which this recipe depends on, has just rebuilt from this worktree,
+# so the candidate is never stale) and the reference, over tests/fixtures/parity/
+# and the argument matrix tests/parity/README.md lists. POSIX-only; outside
+# `check` because the reference needs the network to build. Fails closed on an
+# empty corpus and runs its own positive and negative controls first, then the
+# behaviours beyond the corpus (`test_cli.py`) against the same candidate.
+parity: wheel-smoke
+    test -x .tools/parity/bin/allium || { printf '%s\n' 'parity: no reference; run just install-parity-reference' >&2; exit 2; }
+    python -I tests/parity/run.py --reference "$PWD/.tools/parity/bin/allium" --candidate "$PWD/target/wheel-smoke/venv/bin/allium" --corpus tests/fixtures/parity
+    ALLIUMPY_SMOKE_BIN="$PWD/target/wheel-smoke/venv/bin/allium" python -m pytest crates/alliumpy/tests/test_cli.py -rs
 
 # --------------------------------------------------------------- aggregate ---
 

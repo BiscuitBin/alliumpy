@@ -12,7 +12,7 @@ description: Implement or review a change to the Python package, its stub, its t
    (`rust-change`); a class, function or exception exposed to Python belongs in
    `crates/alliumpy/src/lib.rs`; a re-export belongs in `__init__.py`; the console
    script is `_cli.py`. Its behaviour is upstream's (invariant 1), so a change there is
-   a parity change and goes through `just parity` (from T13).
+   a parity change and goes through `just parity`.
 3. For an exposed API change, change the three artefacts together: the stub, the Rust
    binding and the pytest case under `crates/alliumpy/tests/`. Write the pytest case
    first and watch it fail against a rebuilt extension. The bindings crate has no
