@@ -30,11 +30,13 @@ initialize:
 # cargo from pixi, Homebrew or a distribution ignores the file and builds with
 # whatever it is, so the gate refuses it before anything else runs. The proxy
 # still obeys RUSTUP_TOOLCHAIN or a `rustup override`, so the gate then requires
-# the active toolchain to be exactly the channel the file pins, for this host.
+# the active toolchain to be exactly the channel the file pins, for rustup's
+# default host. rustup reports both, so no rustc runs, and RUSTUP_AUTO_INSTALL=0
+# makes an uninstalled toolchain a refusal instead of a download.
 check-toolchain:
     command -v rustup >/dev/null || { printf '%s\n' 'rustup is not installed; see docs/how-to/develop-locally.md' >&2; exit 2; }
     case "$(command -v cargo)" in "${CARGO_HOME:-$HOME/.cargo}"/bin/cargo) ;; *) printf '%s\n' "cargo resolves to $(command -v cargo), not rustup's proxy" >&2; exit 2;; esac
-    pin=$(sed -n 's/^channel = "\(.*\)"$/\1/p' rust-toolchain.toml); [ -n "$pin" ] || { printf '%s\n' 'rust-toolchain.toml names no channel' >&2; exit 2; }; rustc_info=$(rustc -vV); host=$(printf '%s\n' "$rustc_info" | sed -n 's/^host: //p'); [ -n "$host" ] || { printf '%s\n' 'rustc -vV names no host' >&2; exit 2; }; active=$(rustup show active-toolchain); case "${active%% *}" in "$pin" | "$pin-$host") ;; *) printf '%s\n' "the active toolchain is ${active%% *}, not the pinned $pin" >&2; exit 2;; esac; printf '%s\n' "$active"
+    pin=$(sed -n 's/^channel = "\(.*\)"$/\1/p' rust-toolchain.toml); [ -n "$pin" ] || { printf '%s\n' 'rust-toolchain.toml names no channel' >&2; exit 2; }; rustup_info=$(RUSTUP_AUTO_INSTALL=0 rustup show); host=$(printf '%s\n' "$rustup_info" | sed -n 's/^Default host: //p'); [ -n "$host" ] || { printf '%s\n' 'rustup show names no default host' >&2; exit 2; }; active=$(RUSTUP_AUTO_INSTALL=0 rustup show active-toolchain); case "${active%% *}" in "$pin" | "$pin-$host") ;; *) printf '%s\n' "the active toolchain is ${active%% *}, not the pinned $pin" >&2; exit 2;; esac; printf '%s\n' "$active"
 
 # Installs the toolchain, components and targets rust-toolchain.toml names.
 install-toolchain:

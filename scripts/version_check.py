@@ -99,7 +99,7 @@ def member_versions(root: Path) -> dict[str, str] | None:
     if not packages:
         print("version-check: no workspace member crate was found", file=sys.stderr)
         return None
-    return {f"{package['name']} version": package["version"] for package in packages}
+    return {f"crate {package['name']} version": package["version"] for package in packages}
 
 
 def main(argv: list[str]) -> int:
