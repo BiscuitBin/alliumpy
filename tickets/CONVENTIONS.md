@@ -1309,7 +1309,10 @@ repository ships to its own contributors.
     print a pass when it failed: a pipeline whose first command errored, so the filters
     print nothing; `|| true` on a line a claim rests on; a wait that succeeds on timeout;
     a 401, 403 or network error read as "absent"; a network denial with no negative
-    control (§11).
+    control (§11). A verification command separates the producer from any filter that
+    reads its output, checks each one's exit status, and keeps a positive control that
+    must produce nonempty output, so a filter cannot return its expected exit after the
+    producer failed.
 
   The brief gives the ticket's path, this document's path, `git diff main...HEAD` plus
   the uncommitted changes (or the artefact under review, such as a dry run or a list),

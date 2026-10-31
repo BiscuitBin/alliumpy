@@ -37,6 +37,9 @@ python-source = "python"
 module-name = "alliumpy._alliumpy"
 # Every maturin build honours the workspace Cargo.lock, as every gate does.
 locked = true
+# The Python gates leave bytecode beside the source, and maturin would ship it:
+# a .pyc tied to whichever interpreter last imported the package (T18 item 11).
+exclude = ["**/__pycache__/**", "**/*.pyc"]
 
 [tool.maturin.generate-ci.github]
 trusted-publishing = true

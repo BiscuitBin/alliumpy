@@ -26,7 +26,7 @@ and `fuzz-build` are reports or proofs a person runs, never part of `check`.
 | --- | --- |
 | `default` | Print the recipe list when just has no arguments. |
 | `initialize` | Install pixi's pinned environment, Rust toolchain, both extra tool lists and dependencies; prepare hooks only in the primary checkout. Never formats, stages, commits, tags or pushes. |
-| `check-toolchain` | Refuse a cargo other than rustup's proxy, then print the active toolchain. |
+| `check-toolchain` | Refuse a cargo other than rustup's proxy or an active toolchain other than the pinned channel, then print it. |
 | `install-toolchain` | Install the toolchain and components the toolchain file names. |
 | `install-tools` | Install `tools.txt` binary-only; for `tools-source.txt`, accept a signed quickinstall build or compile crates.io source locked. Never take unsigned release assets in the source pass; unset tokens and disable discovery there. |
 | `sync` | Fetch the workspace's and the fuzz crate's Cargo dependencies and install pixi's committed resolution without rewriting any of the three locks. |
@@ -88,7 +88,7 @@ and `fuzz-build` are reports or proofs a person runs, never part of `check`.
 | `py-stubtest` | Rebuild, then compare the imported native module with its canonical stub and reviewed allowlist. |
 | `wheel` | Empty dist and build a locked release wheel for this platform. |
 | `wheel-smoke` | Build the wheel, require exactly one, install offline into a fresh venv, run isolated Python smoke, the console version and `allium check` on the clean fixture. |
-| `version-check` | Compare version copies with the installed wheel-smoke command, and its whole `--version` output with `ALLIUM_VERSION_STRING` and, when built at the pin, the parity reference's; a missing smoke venv fails. |
+| `version-check` | Compare version copies, each member crate's version included, with the installed wheel-smoke command, and its whole `--version` output with `ALLIUM_VERSION_STRING` and, when built at the pin, the parity reference's; a missing smoke venv fails. |
 
 ## Parity
 

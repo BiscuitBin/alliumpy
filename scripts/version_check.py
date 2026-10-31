@@ -1,6 +1,8 @@
 # Copyright 2026 Steven Cutting
 """Compare independently written release versions with the installed console script."""
 
+import json
+import os
 import re
 import subprocess
 import sys
@@ -68,6 +70,58 @@ def version_string(root: Path, pin: str, source: str, console: str) -> int:
     return 0
 
 
+def member_versions(root: Path) -> dict[str, str] | None:
+    """Each workspace member's version as cargo resolves it, or None after an error.
+
+    A member manifest either inherits the workspace version or writes its own; an
+    explicit one would drift silently past the workspace table. Cargo, not a glob over
+    members, decides membership: a path dependency joins the workspace and an excluded
+    directory does not.
+
+    The recipe runs without check-toolchain, so an override that names an uninstalled
+    toolchain must fail here: RUSTUP_AUTO_INSTALL=0 makes rustup's proxy refuse it
+    rather than download it.
+    """
+    metadata = subprocess.run(
+        [  # noqa: S607 - just check's check-toolchain proves PATH's cargo is rustup's proxy.
+            "cargo",
+            "metadata",
+            "--no-deps",
+            "--format-version=1",
+            "--locked",
+            "--offline",
+            "--manifest-path",
+            str(root / "Cargo.toml"),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+        env={**os.environ, "RUSTUP_AUTO_INSTALL": "0"},
+    )
+    if metadata.returncode != 0:
+        print(f"version-check: cargo metadata failed: {metadata.stderr}", file=sys.stderr)
+        return None
+    packages = json.loads(metadata.stdout)["packages"]
+    if not packages:
+        print("version-check: no workspace member crate was found", file=sys.stderr)
+        return None
+    return {f"crate {package['name']} version": package["version"] for package in packages}
+
+
+def versions_agree(versions: dict[str, str]) -> bool:
+    """Whether every version equals the workspace version, naming both values when not."""
+    expected = versions["workspace version"]
+    for name, value in versions.items():
+        if value != expected:
+            print(
+                f"version-check: workspace version={expected!r} differs from {name}={value!r}",
+                file=sys.stderr,
+            )
+            return False
+    print(f"version-check: all {len(versions)} versions agree: {expected}")
+    return True
+
+
 def main(argv: list[str]) -> int:
     """Fail with both names and values when release metadata drifts."""
     root = Path(__file__).resolve().parents[1]
@@ -106,15 +160,9 @@ def main(argv: list[str]) -> int:
         "ALLIUM_VERSION": match[1],
         "console version": words[1],
     }
-    expected = versions["workspace version"]
-    for name, value in versions.items():
-        if value != expected:
-            print(
-                f"version-check: workspace version={expected!r} differs from {name}={value!r}",
-                file=sys.stderr,
-            )
-            return 1
-    print(f"version-check: all five versions agree: {expected}")
+    members = member_versions(root)
+    if members is None or not versions_agree(versions | members):
+        return 1
     return version_string(root, pin, source, result.stdout)
 
 
