@@ -424,12 +424,64 @@ check exit 0
 `check-toolchain` printed `1.99.1-aarch64-apple-darwin`. The clone's hook names the
 clone's `prek`; the primary checkout's still names its own. The clone was deleted.
 
-### Item 8: claim 10, the full run (open)
+### Item 8: claim 10, the full run (closed after the merge, ruling)
 
-Left open (2026-10-29). The pixi cache key has been unchanged since 2026-10-24, so every
-`ci.yml` run on `main` hits it. Closing it needs a separately authorised post-merge
+Left open (2026-10-29). The pixi cache key had been unchanged since 2026-10-24, so every
+`ci.yml` run on `main` hit it. Closing it needed a separately authorised post-merge
 action (deleting the pixi cache, or a `pixi.lock` change), then a `ci.yml` run on `main`
 quoting the setup-pixi cache miss and B's fetch with no credential.
+
+Closed without that action (2026-10-30). The maintainer authorised the empty-cache run
+after pull request #28 merged, but the premise no longer held: T15's merge (#25,
+`eb141cb`) changed `pixi.lock` and `pyproject.toml`, and its `ci.yml` push run on `main`,
+run 41008482809, had already missed the cache. `gh cache list` at 2026-10-31T02:00Z
+listed two pixi caches on `refs/heads/main`: the old `pixi-linux-64-62307468…`
+(2026-10-24) and `pixi-linux-64-a5083730…` (ID 9740492226), which that run wrote. No
+cache was deleted and no run was dispatched. Run 41008482809 is a full run, attempt 1:
+all seven jobs (`deny`, `python`, `documents`, `coverage`, `rust`,
+`wheel-smoke-py311`, `check`) ended `success`, and all five jobs that run the setup action
+logged `Cache miss`. From its `python` job (`gh run view 41008482809 --log`, saved as
+`ai_tmp/run-41008482809.log`):
+
+- `Removing credentials config
+  '/home/runner/work/_temp/git-credentials-8f4ef088-5f30-4dec-8e68-66df5df07af6.config'`
+  (05:26:57.77Z), the checkout's last line before the setup action.
+- setup-pixi: `Restoring project cache` / `Cache miss` (05:26:59.94Z), then `pixi
+  install --locked ...` and `✔ The default environment has been installed.`
+  (05:27:01.90Z). `pixi list --locked` lists `biscuit_games_tooling 0.3.0 pypi`
+  (05:27:03.05Z).
+- At `eb141cb` the setup action passes setup-pixi no token (`GITHUB_TOKEN` is set only
+  on the `just install-tools` step), and `pixi.lock` pins
+  `git+https://github.com/steven-cutting/biscuit_games_tooling?tag=v0.3.0#6c5c07f6bec86e86b3930dfa41392e4b440e8c85`,
+  with no credential in the URL.
+
+The project cache is the only pixi cache setup-pixi restores, so a miss installs B from
+that git URL; pixi prints no separate fetch line, and this is the evidence T01 quoted for
+claim 10. `rust` saved the cache (`Saved cache with ID "9740492226"`, 05:27:00.20Z);
+the other four jobs' saves failed with `Unable to reserve cache with key
+pixi-linux-64-a5083730…, another job may be creating this`.
+
+Maintainer ruling (2026-10-30): setup-pixi prints no fetch line, so step 8's "the
+fetch" is shown, as T01 showed it for claim 10, by the cache miss, the checkout's
+credential removal, no token reaching setup-pixi, the credential-free git pin in
+`pixi.lock` and the install's success. A fresh empty-cache run would log the same
+lines, so none was run. Item 8 closes on run 41008482809.
+
+Adversarial review (`CONVENTIONS.md` §14, step 13): two read-only Codex reviewers
+(`gpt-6-astra`, `codex exec -s read-only`), one per lens, read the ticket,
+`CONVENTIONS.md`, the uncommitted diff against `b9031ac` and the run's saved log
+(`ai_tmp/review/T18-2/`). Deviation from §14 Phase 2, as for the earlier reviews: the
+executing agent triaged and applied the fix, not separate triage subagents.
+
+- C1 (medium, conformance): the closure quotes the install, not the fetch step 8 names,
+  with no ruling accepting the substitution. Valid; the maintainer's ruling above
+  settles it.
+- C2 (low, conformance): the cache inventory was asserted from the run's save log,
+  which cannot show it. Valid; fixed by citing `gh cache list` at 2026-10-31T02:00Z and
+  the run's attempt number.
+- Breakage: no findings. The quoted lines are `python`'s, no credential path reaches
+  `pixi install`, and all seven jobs are in the log. The fetch is inferred, which C1's
+  ruling covers.
 
 ### Item 9: claim 11, both halves (ruling)
 
@@ -545,6 +597,9 @@ The notes commit that follows is re-checked the same way, and `git status --shor
 empty after it. Not pushed; no pull request opened. Item 8's evidence, after a
 separately authorised post-merge action and `ci.yml` run, follows in its own evidence
 commit (step 13).
+
+Item 8's evidence follows under item 8, from a `ci.yml` run on `main` that already
+missed the cache, so no post-merge action was needed.
 
 ### Rebase onto `origin/main` (2026-10-30)
 
