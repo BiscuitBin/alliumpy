@@ -1,7 +1,7 @@
 ---
 id: T12
 title: "Maintainer docs: README, CHANGELOG, SECURITY, the crate READMEs"
-status: open
+status: done
 depends_on: [T11, T13]
 parallel_with: [T15]
 branch: ticket/t12-maintainer-docs
@@ -258,10 +258,139 @@ install line. The render line must print `exit 0` and `stderr empty`;
 
 ## Hand-back notes
 
-To be written by the executing agent: the link check output and the command it ran under
-(with or without `GITHUB_TOKEN`), the render check's full output and exit code, the
-contact or reporting path `SECURITY.md` names and who gave it, the review record for each
-checkpoint (`CONVENTIONS.md` §14), and anything handed back.
+### Baseline — `3f6e101`
+
+The clean Supacode worktree already contained merged T11, T13 and T15. Its supplied
+branch is `T12-maintainer-docs`; the invoked implement skill explicitly requests a
+commit on the current branch, so it was retained instead of the ticket's branch name.
+No push, pull request, release, tag or repository setting change was made.
+
+`just initialize` initially failed because the sandbox denied pixi's shared cache.
+The approved retry reached `check-toolchain`, which correctly rejected pixi's cargo.
+With rustup's proxy first on `PATH`, `just initialize` exited 0 and skipped hook
+installation in this secondary worktree. All checks below use that same PATH and
+approved shared-cache access. No policy or gate was weakened.
+
+```text
+$ PATH="$HOME/.cargo/bin:$PATH" just check
+All checks passed and the worktree is unchanged.
+exit 0
+```
+
+### Entry points and verification — `3f6e101` plus the T12 changes
+
+The five stubs now describe the existing package, public API and vendored CLI route.
+The root README and security policy mark T14's release work as future; the PyPI long
+description is self-contained and written for publication. Both pre-existing T15 and
+T13 changelog entries remain verbatim, below the foundation entries.
+
+Reporting authority is T01's recorded `true` result (its step-7 state after), confirmed
+by the read-only API below. `SECURITY.md` names
+`https://github.com/BiscuitBin/alliumpy/security/advisories/new`; no new contact decision
+was needed. T01 records a public repository and deployed Pages, confirmed by the live
+visibility API (`{"default_branch":"main","visibility":"public"}`, exit 0). Therefore
+links were checked without `GITHUB_TOKEN`; the private-repository 404 positive control
+and authenticated fallback do not apply.
+
+```text
+$ PATH="$HOME/.cargo/bin:$PATH" just check-docs
+prek run --all-files markdownlint-cli2 typos lychee
+markdownlint.............................................................Passed
+typos....................................................................Passed
+lychee...................................................................Passed
+bg-validate-docs
+Validated 40 pages and 41 canonical topics.
+exit 0
+
+$ rm -f .lycheecache
+$ PATH="$HOME/.cargo/bin:$PATH" just check-links-online
+prek run --all-files --hook-stage manual lychee-online
+Lychee online (manual)...................................................Passed
+exit 0
+
+$ gh api 'repos/BiscuitBin/alliumpy/commits?sha=main' --jq '.[0].sha'
+3f6e1010bc2dce283b4294f8cf16137f1ac2c6d5
+exit 0
+$ gh api repos/BiscuitBin/alliumpy/private-vulnerability-reporting --jq .enabled
+true
+exit 0
+```
+
+The renderer command was run again after the final example formatting change. Its
+complete stdout and stderr are empty; no render proof is deferred to T14.
+
+```text
+$ .pixi/envs/default/bin/uv -q run --no-project --python .pixi/envs/default/bin/python --with 'readme-renderer[md]' python -m readme_renderer crates/alliumpy/README.md -o ai_tmp/readme.html
+(stdout empty; stderr empty)
+exit 0
+$ rg -c '<h[1-6]' ai_tmp/readme.html
+5
+exit 0
+$ rg -c '<code' ai_tmp/readme.html
+13
+exit 0
+$ test ! -e .venv
+exit 0
+```
+
+Neither `uv.lock` nor `.venv/` was created. Both install-line searches printed nothing
+(exit 1, the expected no-missing-file result).
+
+The first full gate found Ruff's required import spacing in the Markdown examples.
+Reproduced with `just lint` and `just py-lint`; `just fix` did not format the fenced
+examples because its hook file filter excludes Markdown. Added the required blank line
+and kept five lines per example; `just py-lint` then exited 0 (`96 files already
+formatted`). No code or formatter configuration changed.
+
+```text
+$ PATH="$HOME/.cargo/bin:$PATH" just check
+157 tests run: 157 passed, 0 skipped
+19 passed, 51 skipped
+All checks passed and the worktree is unchanged.
+exit 0
+```
+
+This gate includes typing, stubtest and the installed wheel smoke; core line coverage
+is 92.14%. No behaviour changed, and no new code tests were needed. The invoked
+implement skill's optional TDD seam does not apply to prose. Its requested code-review
+skill is not installed; the repository's `review-change` skill and the ticket's
+adversarial review supply the review instead.
+
+### Adversarial review — `3f6e101` plus the T12 changes
+
+The other harness, Claude Code, is on PATH and its flags were checked with `--help`.
+Automatic approval review rejected both proposed read-only Claude review calls because
+of transmission of repository content to Anthropic; neither review ran. Used the
+procedure's fresh-context Codex subagent alternative within this session instead.
+Two independent `gpt-6-astra` reviewers received the ticket, conventions, whole diff
+and checkpoint questions with conformance and breakage lenses; raw findings and triage
+are under `ai_tmp/review/T12-1/` and are not committed.
+
+Conformance: no findings. Breakage B1 (low): the long description promised one JSON
+object per file, although unreadable files emit only a stderr error. A third independent
+Codex triage subagent confirmed the vendored source's read-failure branch and output
+loop, marked B1 valid and applied the smallest fix: one object per successfully read
+file, with read failures reported to stderr. Only the PyPI README changed. No high
+finding required a second round. Nothing remains handed back.
+
+The executing agent also reviewed the whole diff with `review-change`: all nine
+invariants remain intact, only the six listed files changed, the stub and public exports
+match the examples, the commands match the console-script metadata, and the sdist and
+licences match decisions 0014 and 0003. No further findings.
+
+After B1, the renderer (empty stdout/stderr; 5 headings, 13 code elements), fresh-cache
+online links, documentation check and full gate were rerun successfully. Final gate:
+
+```text
+$ PATH="$HOME/.cargo/bin:$PATH" just check
+All checks passed and the worktree is unchanged.
+exit 0
+```
+
+The ticket's original CI-badge question is resolved by the public repository recorded
+in T01: the existing CI badge and Pages URL are included. T14 still owns publication,
+release-matrix proof and the supported-versions update; T17 owns the future pin-bump
+runbook. No T14/T17 work was claimed complete.
 
 ## Open points
 
