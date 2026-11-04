@@ -32,6 +32,7 @@ which also provides the `allium` console script.
 - [Test and debug](how-to/test-and-debug.md)
 - [Maintain dependencies](how-to/maintain-dependencies.md)
 - [Deploy to GitHub Pages](how-to/deploy-to-github-pages.md)
+- [Cut a release](how-to/release.md)
 
 ## Understand
 

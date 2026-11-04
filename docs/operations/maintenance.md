@@ -47,12 +47,18 @@ the network, so external links rot silently until someone looks.
 moves with the release, and a lint that is new under `-D warnings` fails the gate with no
 change to the code. `just check` follows.
 
+## Cut a release
+
+A release is a version tag on a `main` commit, a rehearsed workflow run and a deployment
+approval that publishes to PyPI; [Cut a release](../how-to/release.md) is the procedure,
+with every step that leaves the worktree marked as separately authorised.
+
 ## When upstream releases
 
 An upstream bump is a release, not an ordinary dependency update. T17 will add the
 upstream-bump runbook. Until then follow `tickets/CONVENTIONS.md` section 13's first
 bullet: bump the exact parser pin, re-vendor if S01 selects that route, rerun T13's
-parity when available, align the wheel version, then use T14's release process.
+parity when available, align the wheel version, then [cut a release](../how-to/release.md).
 Signatures have grown between upstream releases; a bare pin bump fails version-check.
 
 Nothing here moves on its own. T17 adds Renovate for other dependencies and tooling,
@@ -61,11 +67,13 @@ excluding the upstream pin. Keep this manual routine until then.
 ## Secrets
 
 None are stored, and there is nothing to rotate. Continuous integration uses the token
-GitHub mints for each run and discards with it. Publishing to PyPI in T14
-will use trusted publishing rather than a stored token.
+GitHub mints for each run and discards with it. Publishing to PyPI uses trusted
+publishing from `release-pypi.yml` and the `release` environment, never a stored token
+([decision 0015](../decisions/0015-release-process.md)).
 
 ## Related pages
 
 - [Maintain dependencies](../how-to/maintain-dependencies.md)
+- [Cut a release](../how-to/release.md)
 - [Troubleshooting](troubleshooting.md)
 - [Security model](../explanation/security-model.md)

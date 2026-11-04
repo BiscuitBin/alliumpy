@@ -146,6 +146,19 @@
       "requires": []
     },
     {
+      "path": "how-to/release.md",
+      "title": "Cut a release",
+      "kind": "how-to",
+      "audience": [
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "release_procedure"
+      ],
+      "requires": []
+    },
+    {
       "path": "explanation/packaging.md",
       "title": "Python packaging",
       "kind": "explanation",
@@ -556,6 +569,20 @@
       ],
       "canonical_for": [
         "decision_cli_strategy"
+      ],
+      "requires": []
+    },
+    {
+      "path": "decisions/0015-release-process.md",
+      "title": "Decision 0015: The release process",
+      "kind": "decision",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_release_process"
       ],
       "requires": []
     },
