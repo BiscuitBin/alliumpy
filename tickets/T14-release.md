@@ -730,6 +730,16 @@ just check
 All checks passed and the worktree is unchanged.
 ```
 
+Claim 18 is expected to hold: the console script's output goes through Rust's
+`std::io::stdout` (`crates/alliumpy/src/lib.rs:93`), which writes bytes without CRLF
+translation, and `_cli.py` only flushes Python's streams afterwards; the rehearsal's
+Windows smoke is the proof.
+
+Review coverage, stated plainly: checkpoint 1's second round was one Codex pass over the
+fix diff with a single combined brief, not one per lens; and the `/code-review` fixes
+(`--check-url`, the concurrency and release-notes comments, and the how-to and decision
+wording) landed after that round, so no adversarial reviewer has read them.
+
 Not run here: the matrix itself (no Windows, musllinux, aarch64 or `cp314t` build has
 run; the Windows CRLF fix is reasoned from CPython's text-mode stdout), the remote
 Verification lines, and `just parity` (outside `check`; the parity reference is not
