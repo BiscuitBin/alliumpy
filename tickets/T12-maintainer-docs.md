@@ -371,7 +371,7 @@ object per file, although unreadable files emit only a stderr error. A third ind
 Codex triage subagent confirmed the vendored source's read-failure branch and output
 loop, marked B1 valid and applied the smallest fix: one object per successfully read
 file, with read failures reported to stderr. Only the PyPI README changed. No high
-finding required a second round. Nothing remains handed back.
+finding required a second round. Nothing remained handed back from this round.
 
 The executing agent also reviewed the whole diff with `review-change`: all nine
 invariants remain intact, only the six listed files changed, the stub and public exports
@@ -391,6 +391,41 @@ The ticket's original CI-badge question is resolved by the public repository rec
 in T01: the existing CI badge and Pages URL are included. T14 still owns publication,
 release-matrix proof and the supported-versions update; T17 owns the future pin-bump
 runbook. No T14/T17 work was claimed complete.
+
+### Claude follow-up review — `c44410c` plus the review fixes
+
+After the initial hand-back, the maintainer explicitly authorized requesting the
+Claude reviews. Both calls were approved and completed with exit 0 through Claude Code,
+model `claude-opus-5-5`, `--permission-mode plan`, with read-only tool instructions.
+They reviewed `c44410c` against `3f6e101`, with no uncommitted changes and without the
+hand-back conclusions. The conformance lens returned C1–C3; the breakage lens returned
+B1–B6. A separate fresh-context Codex triage subagent checked every finding against
+source and metadata. The full reports and verdicts remain in
+`ai_tmp/review/T12-1/`, outside the commit.
+
+| Finding | Verdict and evidence | Action |
+| --- | --- | --- |
+| C1, low | Valid: decision 0014 names vendoring but does not label it route (a). | Removed the lettered route reference from the foundation changelog entry. |
+| C2, low | Valid: `just audit` checks RustSec advisories against locked dependencies, not every upstream GitHub advisory or the vendored CLI. | Named RustSec advisories for locked dependencies in the security policy. |
+| C3, low | Not a required change: the invoked implement skill explicitly requests committing on the current branch. | Retained `T12-maintainer-docs`; no branch rename. |
+| B1, low–medium | No current defect: T12 explicitly permits release-platform claims, and decision 0012 specifies `cp314t`. Generator and release-matrix proof belong to T14. | Kept the ticket-required future-release wording. |
+| B2, low | No current defect: both licence files are configured and present in the built wheel. A hypothetical later packaging regression is not this documentation change. | Kept the licence statement; T14 still owns release-artifact assertions. |
+| B3, low | Invalid: the pinned vendored source explicitly treats error or warning diagnostics as issues and returns 1. | Kept the upstream exit-code policy. |
+| B4, low | Valid: working-tree hooks and checks do not prove a scan of every commit in history. | Described the pre-commit hook, gate and CI rather than promising every-commit coverage. |
+| B5, low | No current defect: the snippets and prose match the stub and public exports. Possible future drift is hypothetical. | No new test or gate added. |
+| B6, low | Valid but out of scope: `docs/how-to/install-and-run.md:44` still says the source distribution ruling is pending, although decision 0014 keeps it. | Handed back for a handbook follow-up; no file outside T12's list changed. |
+
+No valid high-severity finding required another review round. Both pre-existing T13
+and T15 changelog entries remain unchanged. The renderer, documentation and live-link
+checks and full gate were rerun after the fixes, using the same commands recorded
+above. The renderer again exited 0 with empty stdout/stderr, 5 headings and 13 code
+elements. The fresh-cache online check and documentation check exited 0.
+
+```text
+$ PATH="$HOME/.cargo/bin:$PATH" just check
+All checks passed and the worktree is unchanged.
+exit 0
+```
 
 ## Open points
 

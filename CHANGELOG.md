@@ -14,8 +14,8 @@ are listed here; upstream's own changes belong to upstream's release notes.
 - The two-crate foundation: interpreter-independent `alliumpy-core` over an exact
   `allium-parser` pin, and thin pyo3 bindings packaged as one `alliumpy` wheel.
 - The Python API: `parse`, immutable `Diagnostic`, `AlliumError` and `ALLIUM_VERSION`.
-- The `allium` command through vendored upstream CLI modules in the core, route (a)
-  of decision 0014.
+- The `allium` command through vendored upstream CLI modules in the core
+  (decision 0014).
 - The read-only `just check` gate, pinned tools and hooks, the handbook and decision
   records, and the agent contract with its skills and bridges.
 

@@ -32,12 +32,13 @@ owned by T17, which is not available yet.
   `--locked`, and wheel builds use maturin's `locked = true`. `cargo shear` accepts no
   lock flag; snapshot checks validate locks first and run offline.
 - `cargo deny` checks licences, bans and sources in the gate; the separate audit
-  workflow checks upstream advisories.
+  workflow checks locked Rust dependencies against RustSec advisories.
 - Tools and the compiler are pinned, and remote hooks and GitHub Actions use commit
   SHAs. The supply-chain limits are described in `docs/explanation/security-model.md`.
 - The parity gate compares the wheel command's stdout and exit codes with upstream
   over the corpus.
-- Secret scanning runs on every commit, with matched values suppressed from logs.
+- Secret scanning runs through the pre-commit hook where installed and on the checked
+  files in `just check` and CI, with matched values suppressed from logs.
 - No PyPI token is stored anywhere.
 
 When T14 adds the release workflow, publishing will use trusted publishing only.
