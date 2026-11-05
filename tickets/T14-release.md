@@ -536,15 +536,233 @@ just check
 
 ## Hand-back notes
 
-To be written by the executing agent: the pre-flight readings (plan, visibility,
-minutes, the PyPI 404) and the gate they settled; the generator's output against the
-edited workflow, as a summarised diff; every runner label and action SHA used, with the
-day; the rehearsal's
-run URL, artefact table and per-platform smoke quotes; the outcome of `CONVENTIONS.md`
-§12 claims 1, 2, 4, 5, 7, 18 and 19, one row each; each authorisation with its timestamp
-and what ran; the tag and publish run URLs; the proof block's output; the review record
-for each of the four checkpoints (`CONVENTIONS.md` §14); where this ticket departed from
-L's drafts; what T17 inherits (the pins the workflow adds, the runbook's release steps).
+Executed by Claude Code (Claude Opus 5.5) in this worktree on 2026-11-04 (UTC), steps 1
+to 4 and checkpoint 1 only. Step 5 onward each needs its own authorisation and has not
+run: nothing has been pushed, no environment, publisher, tag or release exists. `status:`
+stays `open`. Raw logs are in `ai_tmp/release/` and `ai_tmp/review/`, never committed.
+
+### Baseline (step 1)
+
+At `95c11fe`, untouched: `just initialize` exit 0 (secondary worktree: hooks skipped),
+then `just check` exit 0:
+
+```text
+All checks passed and the worktree is unchanged.
+```
+
+S01's ruling (route (a), vendoring; sdist kept with the seven paths) and T13's outcome
+(`ALLIUM_VERSION_STRING` a literal in `crates/alliumpy-core/src/lib.rs:33`, exposed by
+`_alliumpy`) shaped step 3; no bundled-binary step exists under route (a).
+
+### Pre-flight (step 2), 2026-11-04T06:33Z, read-only
+
+| Reading | Result |
+| --- | --- |
+| `gh api orgs/BiscuitBin --jq .plan.name` | `enterprise` |
+| `gh api repos/BiscuitBin/alliumpy --jq '{visibility, permissions}'` | `public`, `admin: true` |
+| `.../environments --jq '{total_count, names}'` | 200, `total_count` 2: `copilot`, `github-pages`; no `release` |
+| `https://pypi.org/pypi/alliumpy/json` | `404` (fail-closed form, `bash`) |
+| `https://pypi.org/pypi/alliumpy/3.6.1/json` | `404` |
+| `gh api orgs/BiscuitBin/settings/billing/actions` | HTTP 410, "This endpoint has been moved" |
+| `gh api /organizations/BiscuitBin/settings/billing/usage` | readable; October 2026: `alliumpy` 374 Linux minutes, net `0.0` (fully discounted) |
+
+The gate: GitHub's deployment-environments reference, read on the day: "If you are on a
+GitHub Free, GitHub Pro, or GitHub Team plan, required reviewers are only available for
+public repositories." The repository is public, so the `release` environment can carry
+a required reviewer; no fallback is needed. Attestations, from the "Using artifact
+attestations" page's availability note: "If you are on a GitHub Free, GitHub Pro, or
+GitHub Team plan, artifact attestations are only available for public repositories. To
+use artifact attestations in private or internal repositories, you must be on a GitHub
+Enterprise Cloud plan." Public, so claim 5 is not settled as failing; `actions/attest`
+stays and the rehearsal settles it. The minutes left for macOS and Windows are not
+shown by the usage endpoint; the maintainer confirms before step 7 (public-repository
+standard runners are normally free).
+
+### The workflow (step 3)
+
+`maturin 1.15.0` from `.pixi/envs/default/bin`: `generated.yml` (unedited) and
+`generated-token.yml` (with the `[tool.maturin.generate-ci.github]` table removed),
+then `git checkout -- crates/alliumpy/pyproject.toml`; `git status --short` printed
+nothing. The two outputs differ only in `environment: release` and `uv publish
+--trusted-publishing always` against `UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}`.
+Red first: the token grep exit 1 on `generated.yml` and 0 on `generated-token.yml`
+(line 219); the SHA-pin grep printed the generator's `@v6`/`@v1` lines.
+
+Generator against workflow, summarised: triggers from `push` to `main`/`master`, every
+tag and `pull_request` to the two version tag patterns and `workflow_dispatch` with
+`publish`; concurrency `release-${{ github.ref }}`, never cancelled; every action
+SHA-pinned; `linux` drops `x86`, `armv7`, `s390x`, `ppc64le`; `musllinux` drops `x86`,
+`armv7`; `windows` drops `x86` and `windows-11-arm`; `sccache` dropped (maturin-action's
+default is off) so a published wheel never uses a cache; `--locked` appended to every
+build (the generator emitted none; `locked = true` already passes it, the explicit flag
+puts it in the log); `maturin-version: v1.15.0` on every maturin-action step; Windows
+builds with Python 3.11, not the generator's 3.13; the `cp314t` steps kept; per-job
+smoke and `twine check`; sdist assertion; the `release` job rewritten as step 3 says.
+
+Runner labels as emitted: `ubuntu-22.04` (linux, musllinux), `windows-latest`,
+`macos-15-intel`, `macos-latest`, plus `ubuntu-latest` (sdist, release). Claim 4 is
+settled by the rehearsal.
+
+Pins, read 2026-11-04 with `gh api repos/<r>/git/ref/tags/<tag>`:
+
+| Action | Tag | Commit |
+| --- | --- | --- |
+| `actions/checkout` | v7.0.1 | `3d3c42e5aac5ba805825da76410c181273ba90b1` |
+| `actions/setup-python` | v7.1.0 | `6d4fd22b20465ccc0f7354476588e8df7c9ca0e0` |
+| `PyO3/maturin-action` | v1.51.0 (annotated tag `3e2bdf6…`, dereferenced) | `e83996d129638aa358a18fbd1dfb82f0b0fb5d3b` |
+| `actions/upload-artifact` | v7.0.2 | `cf430e030ddbb5b0abf93d22962f4752f3646cd9` |
+| `actions/download-artifact` | v8.0.2 | `9000827ccba6bdab643e8b6fd33ac0654aef8333` |
+| `actions/attest` | v4.2.2 | `1e69f48acb82d1966a394da916b4c1698aa569d6` |
+| `astral-sh/setup-uv` | v10.3.3 (`version: 0.13.5`, cache off) | `68559e99cc807c1eb7e9238fd43a15bba460eec2` |
+| `docker/setup-qemu-action` | v4.4.0 | `99012661954931238ded8c8b007157a8430204e1` |
+
+Images by index digest from Docker Hub: `python:3.11-alpine@sha256:09d17d5e…0ed2`,
+`python:3.11-slim@sha256:db20d850…2893`, `tonistiigi/binfmt@sha256:400a4873…66f0`
+(full digests in the workflow). `twine==7.0.0` (uploaded 2026-07-27).
+
+The smoke is one POSIX `sh` script in the workflow's `env.SMOKE`, run on the host or
+inside the container. Coverage: abi3 smoked on linux x86_64 (host), linux aarch64
+(`python:3.11-slim`, QEMU), musllinux x86_64 and aarch64 (`python:3.11-alpine`, aarch64
+under QEMU), both macOS and Windows (host); `cp314t` smoked under `3.14t` on linux
+x86_64, both macOS and Windows; the linux aarch64 and both musllinux `cp314t` wheels are
+built and never imported (no pinned image ships a free-threaded interpreter), as the
+workflow says. The licence listing uses `zipfile.ZipFile(...).namelist()` instead of
+`python -m zipfile -l`, whose table columns defeat a whole-entry match. The `release`
+job's file count is 15 (7 abi3, 7 `cp314t`, 1 sdist), each class counted.
+
+Local evidence: the extracted smoke ran against this machine's
+`alliumpy-3.6.1-cp311-abi3-macosx_11_0_arm64.whl`, exit 0, `allium 3.6.1 (language
+versions: 1, 2, 3)`, `ok.allium exit 0`, `broken.allium exit 1`, both licence entries;
+a glob matching nothing exits 1. The file guard was run over synthetic `dist/` trees:
+the right set passes; a leftover `wheels-x/` directory, a wrong-version sdist, an empty
+`dist/` and a missing `dist/` each print `::error::`. The CHANGELOG extraction prints
+exactly the section on a synthetic `## [3.6.1] -` file and nothing for an absent
+version. actionlint lints the file (positive control: an added `inputs.nope` failed
+`just lint` with `property "nope" is not defined`).
+
+### Documents (step 4)
+
+`docs/how-to/release.md` (`release_procedure`) and decision 0015
+(`decision_release_process`), registered in `docs/manifest.yml`, `docs/README.md` and
+`docs/decisions/README.md`; "Cut a release" in `docs/operations/maintenance.md`; the
+matrix as built, the sdist as ruled and attestation in `docs/explanation/packaging.md`;
+`SECURITY.md` "Supported versions" and the publishing line. The present-tense edits to
+`docs/how-to/install-and-run.md`, `README.md` and `docs/explanation/architecture.md`
+wait for step 11.
+
+### Verification (local lines)
+
+```text
+just lint                                  exit 0 (actionlint, shellcheck Passed)
+rg -n -i '<token pattern>' release-pypi.yml       exit 1
+rg -n -i '<token pattern>' generated-token.yml    exit 0 (219: UV_PUBLISH_TOKEN)
+rg -c 'uses: ' release-pypi.yml                   33, exit 0
+rg -v 'uses: \./' … | rg 'uses: ' | rg -v '@<40hex> # vX.Y.Z$'   exit 1
+just check-docs                            Validated 42 pages and 43 canonical topics.
+```
+
+`just version-check` and `just check` are quoted under the closing check below. The
+remote lines (environment, runs, tag, PyPI, release) wait for steps 5 to 11.
+
+### Review record (§14), checkpoint 1 (end of step 4)
+
+Reviewers: Codex `gpt-6-astra`, read-only, one per lens (`ai_tmp/review/T14-1/`);
+triage and fixes: one fresh-context Claude Opus 5.5 subagent. Both lenses found no
+finding on Q1 (only `release` has write or OIDC permissions), Q3, Q5, Q6 and Q7, and
+no publish-condition bypass on Q2; Q2's other outbound steps are the artefact uploads
+and the attestation (Sigstore and GitHub), which the ticket requires.
+
+| Finding | Severity | Verdict | Applied |
+| --- | --- | --- | --- |
+| B1: Windows text-mode stdout turns the namelist's `\n` into CRLF, so the licence grep fails | high | valid | namelist written through `sys.stdout.buffer` |
+| B2: `git tag -a` marked local | medium | valid | the tag is its own **authorised** step |
+| C2: `git pull`, pre-flight and proof marked worktree-only | medium | valid | a **read-only network** mark, defined and applied |
+| C1: "approving publishes nothing" omits attestation | medium | valid | wording names Sigstore and GitHub |
+| C3: the proof's `curl \| jq` masks a failed producer | medium | valid | download to a file, `&&`, `test -s` |
+| B3: "no token exists anywhere" | low | valid | "no PyPI token is stored" (how-to, decision 0015) |
+| C4: T17's runbook presented as available | low | valid | says it is not written yet |
+
+B1 was high, so a second round (Codex, `ai_tmp/review/T14-1-2/`) read the fix diff: every
+fix resolves its finding, no new defect. Then `/code-review` over the whole change:
+medium effort, ten findings, verdicts by the executing agent against the code:
+
+| Finding | Verdict | Applied |
+| --- | --- | --- |
+| `uv publish` cannot be re-run after a partial upload | valid | `--check-url https://pypi.org/simple/` |
+| a `publish=true` dispatch skips the CHANGELOG and tag checks | valid as a comment fix: the ticket makes the dispatch read the version only | the comment says the notes check is the tag push's |
+| sdist built without `--locked` | invalid: `maturin sdist --help` (1.15.0) has no `--locked`; the archive's `Cargo.lock` is asserted | none |
+| the concurrency comment misstates GitHub's pending-run rule | valid | comment corrected |
+| decision 0015 says one wheel, one 3.11 venv per job | valid | both wheels and interpreters named |
+| dates of 2026-11-04 are "tomorrow" | invalid: the readings were taken at 2026-11-04T06:33Z, and the record is in UTC | none |
+| the pre-flight does not stop on a `null` plan | valid | the how-to says stop and ask an owner |
+| `gh run list --limit 1` may return the previous run | valid | filter by event, check `createdAt` and `headSha` |
+| the version one-liner repeated four times | declined: each job reads the manifest independently; no new script in Files touched | none |
+| `twine check` in every job instead of once | declined: the ticket puts it in each build job | none |
+
+After the fixes: `just lint` exit 0, `just check-docs` `Validated 42 pages and 43
+canonical topics.`
+
+Pull request #31, Copilot review (one finding), verdict by the executing agent:
+
+| Finding | Severity | Verdict | Applied |
+| --- | --- | --- | --- |
+| the pre-flight snippet hard-codes 200 for the project endpoint, so a first publication's correct 404 fails and a taken name's 200 passes | low | valid | `project_code` (404 first, 200 later) is required by `${project_code:?}`; run in `sh`, `bash` and `zsh`: unset exits non-zero, `404` prints `pre-flight passed`, `200` stops at the project line |
+
+### Deviations
+
+- The smoke is defined once as `env.SMOKE` and run with `sh -euc`, rather than inlined
+  in each job, so the host and container smokes run the same text.
+- `python -m zipfile -l` is replaced by `namelist()` for an exact entry match.
+- `maturin-version: v1.15.0`, `sccache` off and setup-uv's cache off are additions the
+  ticket did not name.
+
+### What T17 inherits
+
+The pins in the table above, the three image digests, `twine==7.0.0`, `uv 0.13.5` in
+the `release` job (which must move with the root `pyproject.toml` pin), the literal
+`15` in the `release` job's file guard, and the release steps of
+`docs/how-to/release.md`, which its runbook ends with.
+
+### Closing check (local half)
+
+On the tree of this commit, after every fix above:
+
+```text
+just version-check
+version-check: all 7 versions agree: 3.6.1
+version-check: note: no reference allium 3.6.1 to compare; run just install-parity-reference
+
+just check
+All checks passed and the worktree is unchanged.
+```
+
+Claim 18 is expected to hold: the console script's output goes through Rust's
+`std::io::stdout` (`crates/alliumpy/src/lib.rs:93`), which writes bytes without CRLF
+translation, and `_cli.py` only flushes Python's streams afterwards; the rehearsal's
+Windows smoke is the proof.
+
+Review coverage, stated plainly: checkpoint 1's second round was one Codex pass over the
+fix diff with a single combined brief, not one per lens; and the `/code-review` fixes
+(`--check-url`, the concurrency and release-notes comments, and the how-to and decision
+wording) landed after that round, so no adversarial reviewer has read them.
+
+Not run here: the matrix itself (no Windows, musllinux, aarch64 or `cp314t` build has
+run; the Windows CRLF fix is reasoned from CPython's text-mode stdout), the remote
+Verification lines, and `just parity` (outside `check`; the parity reference is not
+installed in this worktree).
+
+### Pending authorisations (steps 5 to 11)
+
+- Step 5: Push `ticket/t14-release` and open the pull request; the maintainer confirms the
+  open point "publish 3.6.1 or wait for upstream" here.
+- Step 6: Create the `release` environment with the required reviewer and the `main` and `v*`
+  deployment policies; register the PyPI pending publisher (maintainer, browser).
+- Step 7: The rehearsal dispatch (8 build jobs: 2 linux and 2 musllinux on `ubuntu-22.04`, 2
+  macOS, 1 Windows and the sdist, then `release`) and the deployment approval.
+- Step 8: The `release/v3.6.1` branch, its push and pull request.
+- Step 9: The tag `v3.6.1` and its push.
+- Step 10: The publish (the deployment approval).
+- Step 11: The proof, then the present-tense documents through a last pull request.
 
 ## Open points
 

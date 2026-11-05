@@ -1,0 +1,603 @@
+# Generated on 2026-11-04 by maturin 1.15.0 (the pin, CONVENTIONS.md §2) with
+#
+#    maturin generate-ci github -m crates/alliumpy/Cargo.toml -o ai_tmp/release/generated.yml
+#
+# under the [tool.maturin.generate-ci.github] table of crates/alliumpy/pyproject.toml
+# (trusted publishing, environment `release`), then edited by hand as T14 step 3
+# records: tag and dispatch triggers only, every action pinned to a SHA, the matrix
+# narrowed to decision 0012's targets, sccache dropped, `--locked` made explicit, a
+# smoke and `twine check` in every build job, an sdist assertion, and a guarded
+# `release` job. Regenerate into ai_tmp/ and diff against this file; never overwrite
+# it. How a release is cut: docs/how-to/release.md and decision 0015.
+name: Release to PyPI
+
+on:
+  push:
+    # A final release and a packaging fix (decision 0010); nothing else, and no
+    # branch push, so nothing but a version tag starts a publishing run.
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+.post[0-9]+'
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: publish to PyPI (a tag push always publishes; a dispatch publishes only when true)
+        type: boolean
+        default: false
+
+# Every job but `release` builds and smokes with a read-only token and no OIDC
+# token; `release` widens its own permissions and nothing else does.
+permissions:
+  contents: read
+
+# Never cancel a run that may be mid-publish. GitHub keeps one pending run per
+# group: a second run for the same ref waits, and a third replaces the second.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  # The wheel smoke, defined once and run by every build job, on the host with
+  # `sh -euc "$SMOKE" smoke <dist glob> <python> <scratch dir>` or the same line
+  # inside a container. POSIX sh, because python:3.11-alpine has no bash, and
+  # relative paths only, because Git Bash would otherwise rewrite them for the
+  # Windows interpreter. It installs the one wheel the glob names (two or none
+  # fail) with --no-index --no-deps into a fresh venv, runs smoke.py isolated,
+  # compares `allium --version` byte for byte with ALLIUM_VERSION_STRING and its
+  # second word with [project] version less .postN, asserts the exit codes of
+  # `allium check` on ok.allium (0) and broken.allium (1) explicitly, checks the
+  # redirected stdout for a CR byte (claim 18 on Windows), and asserts both
+  # licence files as whole wheel entries (claim 19).
+  SMOKE: |
+    pattern=$1
+    python=$2
+    work=$3
+    # Unquoted on purpose: the glob must expand, and the count below is the check.
+    set -- dist/$pattern
+    if [ "$#" -ne 1 ] || [ ! -f "$1" ]; then
+      echo "::error::expected exactly one wheel matching dist/$pattern, found: $*"
+      exit 1
+    fi
+    wheel=$1
+    echo "wheel $wheel"
+    rm -rf "$work"
+    mkdir "$work"
+    "$python" -m venv "$work/venv"
+    if [ -d "$work/venv/Scripts" ]; then bin=$work/venv/Scripts; else bin=$work/venv/bin; fi
+    "$bin/python" --version
+    "$bin/python" -m pip install --no-index --no-deps "$wheel"
+    "$bin/python" -I tests/fixtures/smoke/smoke.py
+    "$bin/allium" --version > "$work/version.out"
+    cat "$work/version.out"
+    "$bin/python" -I -c 'import sys; from alliumpy._alliumpy import ALLIUM_VERSION_STRING as s; sys.stdout.buffer.write(s.encode() + b"\n")' > "$work/version.want"
+    if ! cmp "$work/version.out" "$work/version.want"; then
+      echo "::error::allium --version differs from ALLIUM_VERSION_STRING"
+      exit 1
+    fi
+    project=$("$bin/python" -I -c 'import re, sys, tomllib; v = tomllib.load(open("crates/alliumpy/pyproject.toml", "rb"))["project"]["version"]; sys.stdout.write(re.sub(r"\.post[0-9]+$", "", v))')
+    read -r _ named _ < "$work/version.out"
+    if [ "$named" != "$project" ]; then
+      echo "::error::allium --version names $named, [project] version less .postN is $project"
+      exit 1
+    fi
+    status=0
+    "$bin/allium" check tests/fixtures/smoke/ok.allium > "$work/ok.out" || status=$?
+    echo "ok.allium exit $status"
+    test "$status" -eq 0
+    "$bin/python" -I -c 'import sys; sys.exit(1 if b"\r" in open(sys.argv[1], "rb").read() else 0)' "$work/ok.out"
+    echo "ok.allium stdout carries no CR byte"
+    status=0
+    "$bin/allium" check tests/fixtures/smoke/broken.allium || status=$?
+    echo "broken.allium exit $status"
+    test "$status" -eq 1
+    full=$("$bin/python" -I -c 'import sys, tomllib; sys.stdout.write(tomllib.load(open("crates/alliumpy/pyproject.toml", "rb"))["project"]["version"])')
+    "$bin/python" -I -c 'import sys, zipfile; sys.stdout.buffer.write("".join(n + "\n" for n in zipfile.ZipFile(sys.argv[1]).namelist()).encode())' "$wheel" > "$work/entries"
+    for entry in LICENSE LICENSE-allium-tools; do
+      if ! grep -x -F "alliumpy-$full.dist-info/licenses/$entry" "$work/entries"; then
+        echo "::error::$wheel lacks alliumpy-$full.dist-info/licenses/$entry"
+        exit 1
+      fi
+    done
+  # `twine check` of the job's dist/, so the long description from
+  # crates/alliumpy/README.md is proved to render; run as
+  # `sh -euc "$TWINE_CHECK" twine <python>`.
+  TWINE_CHECK: |
+    rm -rf twine-venv
+    "$1" -m venv twine-venv
+    if [ -d twine-venv/Scripts ]; then bin=twine-venv/Scripts; else bin=twine-venv/bin; fi
+    "$bin/python" -m pip install twine==7.0.0
+    "$bin/twine" check --strict dist/*
+
+# Decision 0012's targets: manylinux and musllinux on x86_64 and aarch64, macOS
+# on x86_64 and arm64, Windows on x64. Each job builds the cp311-abi3 wheel and
+# the generator's free-threaded cp314t wheel (abi3 does not cover free-threaded
+# builds). Runner labels as the generator emitted them: ubuntu-22.04,
+# windows-latest, macos-15-intel and macos-latest (CONVENTIONS.md §12 claim 4,
+# settled by the rehearsal). `--locked` is appended to every build although
+# `locked = true` already makes maturin pass it, so the build log shows it.
+# Builds never use sccache: a published wheel is built from the checkout alone.
+jobs:
+  linux:
+    name: linux (${{ matrix.platform.target }})
+    runs-on: ${{ matrix.platform.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          # x86_64 is smoked on the host, outside the manylinux container.
+          - runner: ubuntu-22.04
+            target: x86_64
+            smoke-image: ''
+            smoke-platform: ''
+          # aarch64 cannot install on the x86_64 host: smoked in a glibc
+          # python:3.11-slim (index digest, read 2026-11-04) under QEMU.
+          - runner: ubuntu-22.04
+            target: aarch64
+            smoke-image: python:3.11-slim@sha256:db20d8506e2f15b6db39b40b6015ca46bae855dec6dd326d462cfe79ae972893
+            smoke-platform: linux/arm64
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: py311
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.11'
+      - name: Build wheels
+        uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
+        with:
+          maturin-version: v1.15.0
+          target: ${{ matrix.platform.target }}
+          args: --release --out dist --manifest-path crates/alliumpy/Cargo.toml --locked
+          manylinux: auto
+      - name: Build free-threaded wheels
+        uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
+        with:
+          maturin-version: v1.15.0
+          target: ${{ matrix.platform.target }}
+          args: --release --out dist --manifest-path crates/alliumpy/Cargo.toml --locked -i python3.14t
+          manylinux: auto
+      - name: Smoke the abi3 wheel
+        if: matrix.platform.smoke-image == ''
+        shell: bash
+        env:
+          PYTHON: ${{ steps.py311.outputs.python-path }}
+        run: sh -euc "$SMOKE" smoke '*-cp311-abi3-*.whl' "$PYTHON" smoke-abi3
+      - id: py314t
+        if: matrix.platform.smoke-image == ''
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.14t'
+      - name: Smoke the free-threaded wheel
+        if: matrix.platform.smoke-image == ''
+        shell: bash
+        env:
+          PYTHON: ${{ steps.py314t.outputs.python-path }}
+        run: sh -euc "$SMOKE" smoke '*-cp314-cp314t-*.whl' "$PYTHON" smoke-cp314t
+      - name: Set up QEMU
+        if: matrix.platform.smoke-platform == 'linux/arm64'
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+        with:
+          # The binfmt image by its index digest (latest, read 2026-11-04).
+          image: docker.io/tonistiigi/binfmt@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0
+          platforms: arm64
+      # The container smoke covers the abi3 wheel only: no pinned image ships
+      # a free-threaded interpreter, so the aarch64 cp314t wheel is built and
+      # never imported.
+      - name: Smoke the abi3 wheel in a container
+        if: matrix.platform.smoke-image != ''
+        shell: bash
+        env:
+          IMAGE: ${{ matrix.platform.smoke-image }}
+          PLATFORM: ${{ matrix.platform.smoke-platform }}
+        run: docker run --rm --platform "$PLATFORM" -v "$PWD:/w" -w /w "$IMAGE" sh -euc "$SMOKE" smoke '*-cp311-abi3-*.whl' python3 smoke-abi3
+      - name: Twine check
+        shell: bash
+        env:
+          PYTHON: ${{ steps.py311.outputs.python-path }}
+        run: sh -euc "$TWINE_CHECK" twine "$PYTHON"
+      - name: Upload wheels
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: wheels-linux-${{ matrix.platform.target }}
+          path: dist
+          if-no-files-found: error
+
+  musllinux:
+    name: musllinux (${{ matrix.platform.target }})
+    runs-on: ${{ matrix.platform.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          # Neither musllinux wheel installs on the glibc host: both are smoked
+          # in python:3.11-alpine (index digest, read 2026-11-04), aarch64 under
+          # QEMU. No pinned image ships a free-threaded interpreter, so both
+          # musllinux cp314t wheels are built and never imported.
+          - runner: ubuntu-22.04
+            target: x86_64
+            smoke-image: python:3.11-alpine@sha256:09d17d5e4c16d0a7a1eea690bcb7c6ab8616b211f8421e429e97c1bef5bd0ed2
+            smoke-platform: linux/amd64
+          - runner: ubuntu-22.04
+            target: aarch64
+            smoke-image: python:3.11-alpine@sha256:09d17d5e4c16d0a7a1eea690bcb7c6ab8616b211f8421e429e97c1bef5bd0ed2
+            smoke-platform: linux/arm64
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: py311
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.11'
+      - name: Build wheels
+        uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
+        with:
+          maturin-version: v1.15.0
+          target: ${{ matrix.platform.target }}
+          args: --release --out dist --manifest-path crates/alliumpy/Cargo.toml --locked
+          manylinux: musllinux_1_2
+      - name: Build free-threaded wheels
+        uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
+        with:
+          maturin-version: v1.15.0
+          target: ${{ matrix.platform.target }}
+          args: --release --out dist --manifest-path crates/alliumpy/Cargo.toml --locked -i python3.14t
+          manylinux: musllinux_1_2
+      - name: Set up QEMU
+        if: matrix.platform.smoke-platform == 'linux/arm64'
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+        with:
+          image: docker.io/tonistiigi/binfmt@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0
+          platforms: arm64
+      - name: Smoke the abi3 wheel in a container
+        shell: bash
+        env:
+          IMAGE: ${{ matrix.platform.smoke-image }}
+          PLATFORM: ${{ matrix.platform.smoke-platform }}
+        run: docker run --rm --platform "$PLATFORM" -v "$PWD:/w" -w /w "$IMAGE" sh -euc "$SMOKE" smoke '*-cp311-abi3-*.whl' python3 smoke-abi3
+      - name: Twine check
+        shell: bash
+        env:
+          PYTHON: ${{ steps.py311.outputs.python-path }}
+        run: sh -euc "$TWINE_CHECK" twine "$PYTHON"
+      - name: Upload wheels
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: wheels-musllinux-${{ matrix.platform.target }}
+          path: dist
+          if-no-files-found: error
+
+  windows:
+    name: windows (${{ matrix.platform.target }})
+    runs-on: ${{ matrix.platform.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - runner: windows-latest
+            target: x64
+            python_arch: x64
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # 3.11, not the generator's 3.13: the abi3 wheel is the same either way,
+      # and the smoke below needs the floor interpreter.
+      - id: py311
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.11'
+          architecture: ${{ matrix.platform.python_arch }}
+      - name: Build wheels
+        uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
+        with:
+          maturin-version: v1.15.0
+          target: ${{ matrix.platform.target }}
+          args: --release --out dist --manifest-path crates/alliumpy/Cargo.toml --locked
+      - id: py314t
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.14t'
+          architecture: ${{ matrix.platform.python_arch }}
+      - name: Build free-threaded wheels
+        uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
+        with:
+          maturin-version: v1.15.0
+          target: ${{ matrix.platform.target }}
+          args: --release --out dist --manifest-path crates/alliumpy/Cargo.toml --locked -i python3.14t
+      # Git Bash, not pwsh: bash redirects the command's bytes unchanged, so the
+      # smoke's CR check reads what allium wrote (claim 18).
+      - name: Smoke the abi3 wheel
+        shell: bash
+        env:
+          PYTHON: ${{ steps.py311.outputs.python-path }}
+        run: sh -euc "$SMOKE" smoke '*-cp311-abi3-*.whl' "$PYTHON" smoke-abi3
+      - name: Smoke the free-threaded wheel
+        shell: bash
+        env:
+          PYTHON: ${{ steps.py314t.outputs.python-path }}
+        run: sh -euc "$SMOKE" smoke '*-cp314-cp314t-*.whl' "$PYTHON" smoke-cp314t
+      - name: Twine check
+        shell: bash
+        env:
+          PYTHON: ${{ steps.py311.outputs.python-path }}
+        run: sh -euc "$TWINE_CHECK" twine "$PYTHON"
+      - name: Upload wheels
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: wheels-windows-${{ matrix.platform.target }}
+          path: dist
+          if-no-files-found: error
+
+  macos:
+    name: macos (${{ matrix.platform.target }})
+    runs-on: ${{ matrix.platform.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - runner: macos-15-intel
+            target: x86_64
+          - runner: macos-latest
+            target: aarch64
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: py311
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.11'
+      - name: Build wheels
+        uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
+        with:
+          maturin-version: v1.15.0
+          target: ${{ matrix.platform.target }}
+          args: --release --out dist --manifest-path crates/alliumpy/Cargo.toml --locked
+      - id: py314t
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.14t'
+      - name: Build free-threaded wheels
+        uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
+        with:
+          maturin-version: v1.15.0
+          target: ${{ matrix.platform.target }}
+          args: --release --out dist --manifest-path crates/alliumpy/Cargo.toml --locked -i python3.14t
+      - name: Smoke the abi3 wheel
+        shell: bash
+        env:
+          PYTHON: ${{ steps.py311.outputs.python-path }}
+        run: sh -euc "$SMOKE" smoke '*-cp311-abi3-*.whl' "$PYTHON" smoke-abi3
+      - name: Smoke the free-threaded wheel
+        shell: bash
+        env:
+          PYTHON: ${{ steps.py314t.outputs.python-path }}
+        run: sh -euc "$SMOKE" smoke '*-cp314-cp314t-*.whl' "$PYTHON" smoke-cp314t
+      - name: Twine check
+        shell: bash
+        env:
+          PYTHON: ${{ steps.py311.outputs.python-path }}
+        run: sh -euc "$TWINE_CHECK" twine "$PYTHON"
+      - name: Upload wheels
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: wheels-macos-${{ matrix.platform.target }}
+          path: dist
+          if-no-files-found: error
+
+  # Kept, as S01 ruled under the vendoring route (CONVENTIONS.md §9, "The
+  # sdist"). It builds no wheel, so it runs the archive assertion and `twine
+  # check` and nothing else. tests/fixtures/parity/ is absent by design, so
+  # `cargo test` from the sdist is not expected to pass.
+  sdist:
+    name: sdist
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: py311
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.11'
+      - name: Build sdist
+        uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
+        with:
+          maturin-version: v1.15.0
+          command: sdist
+          args: --out dist --manifest-path crates/alliumpy/Cargo.toml
+      # Each of S01's seven paths as a whole archive entry under the sdist's
+      # root directory, so LICENSE-allium-tools cannot stand in for LICENSE;
+      # `tar tzf` writes the listing to a file first, so a missing or corrupt
+      # archive fails the step instead of feeding grep nothing.
+      - name: Assert the sdist's contents
+        shell: bash
+        env:
+          PYTHON: ${{ steps.py311.outputs.python-path }}
+        run: |
+          version=$("$PYTHON" -I -c 'import sys, tomllib; sys.stdout.write(tomllib.load(open("crates/alliumpy/pyproject.toml", "rb"))["project"]["version"])')
+          shopt -s nullglob
+          archives=(dist/*.tar.gz)
+          if [ "${#archives[@]}" -ne 1 ]; then
+            echo "::error::expected exactly one sdist in dist/, found ${#archives[@]}"
+            exit 1
+          fi
+          tar tzf "${archives[0]}" > sdist.list
+          for entry in Cargo.lock LICENSE LICENSE-allium-tools \
+              crates/alliumpy-core/src/cli.rs \
+              crates/alliumpy-core/src/cli/main.rs \
+              crates/alliumpy-core/src/cli/test_plan.rs \
+              crates/alliumpy-core/src/cli/domain_model.rs; do
+            if ! grep -x -F "alliumpy-$version/$entry" sdist.list; then
+              echo "::error::the sdist lacks alliumpy-$version/$entry"
+              exit 1
+            fi
+          done
+          if grep -E '(^|/)_bin/' sdist.list; then
+            echo "::error::the sdist carries a _bin/ entry"
+            exit 1
+          fi
+      - name: Twine check
+        shell: bash
+        env:
+          PYTHON: ${{ steps.py311.outputs.python-path }}
+        run: sh -euc "$TWINE_CHECK" twine "$PYTHON"
+      - name: Upload sdist
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: wheels-sdist
+          path: dist
+          if-no-files-found: error
+
+  # The one job with a write token or an OIDC token. No job-level `if`: on every
+  # event it waits at the `release` environment, downloads, runs the three
+  # guards and attests, so the rehearsal dispatch executes all of it before a
+  # tag exists. Only `uv publish` and `gh release create` are conditional.
+  release:
+    name: release
+    needs: [linux, musllinux, windows, macos, sdist]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: release
+    permissions:
+      # Trusted publishing to PyPI and the attestation's signature.
+      id-token: write
+      # The GitHub Release on a tag push.
+      contents: write
+      # actions/attest; GitHub's documentation (read 2026-11-04) offers
+      # attestations on public repositories on every current plan.
+      attestations: write
+    steps:
+      # The full history, so origin/main is present for the first guard; no
+      # credential is kept, and none is needed, since nothing is fetched later.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: wheels-*
+          path: dist
+          merge-multiple: true
+      - name: Guard the commit
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::$GITHUB_SHA is not on main"
+            exit 1
+          fi
+          if [ "$EVENT" = push ]; then
+            tagged=$(git rev-parse "refs/tags/$GITHUB_REF_NAME^{commit}")
+            if [ "$(git rev-parse HEAD)" != "$tagged" ]; then
+              echo "::error::HEAD is not the commit tag $GITHUB_REF_NAME names"
+              exit 1
+            fi
+          fi
+      - id: version
+        name: Guard the version
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          version=$(python3 -I -c 'import sys, tomllib; sys.stdout.write(tomllib.load(open("crates/alliumpy/pyproject.toml", "rb"))["project"]["version"])')
+          echo "[project] version $version"
+          if [ "$EVENT" = push ] && [ "$version" != "${GITHUB_REF_NAME#v}" ]; then
+            echo "::error::tag $GITHUB_REF_NAME disagrees with [project] version $version"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      # Decision 0012's seven wheel targets, each with an abi3 and a cp314t
+      # wheel, and the sdist: 15 files. A target or a cp314t build added or
+      # dropped moves this number with it.
+      - name: Guard the files
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          expected=15
+          ls -l dist/
+          if [ -n "$(find dist -mindepth 1 ! -type f)" ]; then
+            echo "::error::dist/ holds something other than files"
+            exit 1
+          fi
+          count=$(find dist -mindepth 1 -type f | wc -l)
+          if [ "$count" -ne "$expected" ]; then
+            echo "::error::dist/ holds $count files, expected $expected"
+            exit 1
+          fi
+          abi3=0 cp314t=0 sdist=0
+          for path in dist/*; do
+            name=${path#dist/}
+            case "$name" in
+              "alliumpy-$VERSION-cp311-abi3-"*.whl) abi3=$((abi3 + 1)) ;;
+              "alliumpy-$VERSION-cp314-cp314t-"*.whl) cp314t=$((cp314t + 1)) ;;
+              "alliumpy-$VERSION.tar.gz") sdist=$((sdist + 1)) ;;
+              *)
+                echo "::error::$name is not an alliumpy $VERSION distribution"
+                exit 1
+                ;;
+            esac
+          done
+          echo "abi3 $abi3, cp314t $cp314t, sdist $sdist"
+          if [ "$abi3" -ne 7 ] || [ "$cp314t" -ne 7 ] || [ "$sdist" -ne 1 ]; then
+            echo "::error::expected 7 abi3 wheels, 7 cp314t wheels and 1 sdist"
+            exit 1
+          fi
+      - name: Generate artifact attestation
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: 'dist/*'
+      # The release notes are the CHANGELOG section under `## [<version>] -`, up
+      # to the next heading or the link lines at the foot; extracted before the
+      # publish, so on a tag push a missing section stops the run before PyPI is
+      # touched. A dispatch with `publish` true, the fallback only, has no tag and
+      # so no notes; its commit is still held to main by the first guard.
+      - name: Extract the release notes
+        if: github.event_name == 'push'
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          awk -v heading="## [$VERSION] - " '
+            index($0, heading) == 1 { found = 1; next }
+            found && (index($0, "## [") == 1 || (index($0, "[") == 1 && index($0, "]: ") > 0)) { exit }
+            found { print }
+          ' CHANGELOG.md > release-notes.md
+          if ! grep -q '[^[:space:]]' release-notes.md; then
+            echo "::error::CHANGELOG.md has no section headed ## [$VERSION] -"
+            exit 1
+          fi
+          cat release-notes.md
+      - name: Install uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          # The pin in the root pyproject.toml's pixi dependencies.
+          version: '0.13.5'
+          # Nothing is cached into or restored from the Actions cache here.
+          enable-cache: false
+      # The publish: a tag push, or a dispatch asked to publish (whose commit the
+      # first guard has already held to main). No token: PyPI's trusted
+      # publisher for this workflow and the `release` environment is the only
+      # credential.
+      # `--check-url` skips files PyPI already holds, so a re-run of a job that
+      # failed part-way through the upload, or after it, can finish the release.
+      - name: Publish to PyPI
+        if: github.event_name == 'push' || inputs.publish == true
+        run: uv publish --trusted-publishing always --check-url https://pypi.org/simple/ dist/*
+      - name: Create the GitHub Release
+        if: github.event_name == 'push'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: gh release create "$GITHUB_REF_NAME" --verify-tag --title "alliumpy $VERSION" --notes-file release-notes.md

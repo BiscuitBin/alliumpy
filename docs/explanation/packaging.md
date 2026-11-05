@@ -16,22 +16,33 @@ package. [Architecture](architecture.md) owns the two-crate implementation;
 ## ABI and platforms
 
 pyo3 uses `abi3-py311`: a platform's stable-ABI wheel serves CPython 3.11 and newer.
-Free-threaded Python 3.14 additionally needs the separate `cp314t` wheel. T14 verifies
-the maturin generator's output and rehearses that matrix before publishing.
+Free-threaded Python 3.14 additionally needs the separate `cp314t` wheel.
+`release-pypi.yml` builds both for each of seven build targets, from maturin 1.15.0's
+`generate-ci` output narrowed to decision 0012's platforms: 15 files with the sdist.
 
-| Platform target | Wheel coverage planned for T14 |
-| --- | --- |
-| Linux x86_64 | manylinux and musllinux |
-| Linux aarch64 | manylinux and musllinux |
-| macOS arm64 | Native wheel |
-| macOS x86_64 | Native wheel |
-| Windows x86_64 | Native wheel and console launcher |
+| Platform target | Runner | Wheels | Smoke of the abi3 wheel | Smoke of the `cp314t` wheel |
+| --- | --- | --- | --- | --- |
+| Linux x86_64, manylinux | `ubuntu-22.04` | abi3, `cp314t` | Host, Python 3.11 | Host, Python 3.14t |
+| Linux aarch64, manylinux | `ubuntu-22.04` | abi3, `cp314t` | `python:3.11-slim` under QEMU | Built, never imported |
+| Linux x86_64, musllinux | `ubuntu-22.04` | abi3, `cp314t` | `python:3.11-alpine` | Built, never imported |
+| Linux aarch64, musllinux | `ubuntu-22.04` | abi3, `cp314t` | `python:3.11-alpine` under QEMU | Built, never imported |
+| macOS x86_64 | `macos-15-intel` | abi3, `cp314t` | Host, Python 3.11 | Host, Python 3.14t |
+| macOS arm64 | `macos-latest` | abi3, `cp314t` | Host, Python 3.11 | Host, Python 3.14t |
+| Windows x64 | `windows-latest` | abi3, `cp314t` | Host, Python 3.11 | Host, Python 3.14t |
+
+The containers are pinned by digest, and no pinned image ships a free-threaded
+interpreter. Each smoke installs the one wheel its job built, offline, and checks the
+version line, the exit codes of `allium check` on both fixtures, that stdout carries no
+CR byte (the Windows launcher's evidence) and both licence entries. The manylinux floor
+is whatever maturin-action's `manylinux: auto` image produces, and whether each runner
+label exists is settled by the first rehearsal run, not by this page.
+[Cut a release](../how-to/release.md) runs the matrix.
 
 `just check` builds and smokes only the developer's platform, using pixi Python 3.14.
 The POSIX Justfile and pixi platforms cover Linux x86_64 and macOS arm64. T01's CI adds
 a Python 3.11 smoke of the Linux wheel to prove the abi3 floor. Other targets,
 musllinux and `cp314t` are release-matrix evidence, not a claim made by a local gate.
-T14's rehearsal supplies the Windows launcher and exit-code proof.
+The release workflow's rehearsal supplies the Windows launcher and exit-code proof.
 
 ## Versions
 
@@ -63,19 +74,32 @@ The repository is Apache-2.0, and upstream is MIT. Both texts ship under the whe
 `.dist-info/licenses/`. The copies are `crates/alliumpy/LICENSE` and
 `crates/alliumpy/LICENSE-allium-tools`, with upstream version and copyright attribution.
 PEP 639 licence globs cannot leave maturin's project root, so a root-only licence
-would omit a required text. T14 asserts the released wheel's contents.
+would omit a required text. Every release build job asserts both entries in its wheel.
 [Decision 0003](../decisions/0003-apache-2-0-with-upstream-mit.md) owns the rationale.
 
 ## Source distribution
 
-S01 recommends keeping the sdist, under its recommended route of vendoring upstream's
-CLI; T13 records the route in decision 0014. Under that route the sdist is complete,
-but installers on platforms the release matrix misses fall back to a source build
-requiring Rust and network access. Python 3.10 is refused by metadata, rather than
-supported by a source build. T14 checks `Cargo.lock`, both licence texts and the
-vendored sources inside the sdist.
+The sdist is kept, as S01 ruled under the vendoring route that
+[decision 0014](../decisions/0014-cli-strategy.md) records. Under that route the sdist is
+complete, but installers on platforms the release matrix misses fall back to a source
+build requiring Rust and network access. Python 3.10 is refused by metadata, rather than
+supported by a source build. The release workflow's `sdist` job fails unless the archive
+lists `Cargo.lock`, `LICENSE`, `LICENSE-allium-tools`, `crates/alliumpy-core/src/cli.rs`
+and the three modules under `crates/alliumpy-core/src/cli/` as whole entries, and fails
+on any `_bin/` entry. `tests/fixtures/parity/` is absent by design, so `cargo test` from
+the sdist is not expected to pass.
+
+## Attestation
+
+The `release` job attests every file in `dist/` with `actions/attest` before anything is
+published. GitHub's documentation, read on 2026-11-04, offers artifact attestations on
+public repositories on every current plan and on private ones only under Enterprise
+Cloud; this repository is public.
+[Decision 0015](../decisions/0015-release-process.md) records what changes if that stops
+holding.
 
 ## Related pages
 
 - [Install and run](../how-to/install-and-run.md)
 - [Decision 0012](../decisions/0012-abi3-wheels-and-platforms.md)
+- [Cut a release](../how-to/release.md)

@@ -10,8 +10,10 @@ reproduces the problem.
 
 ## Supported versions
 
-Only `main` is supported. No version has been released, so fixes land on `main` and
-there are no backports.
+The newest `alliumpy` release on PyPI is supported, and `main` until the first release
+exists. Releases track upstream's (decision 0010): a fix ships as a new release, a
+`.postN` for a packaging fix or the next upstream version, and there are no backports
+to older releases.
 
 ## What is in scope
 
@@ -41,5 +43,7 @@ owned by T17, which is not available yet.
   files in `just check` and CI, with matched values suppressed from logs.
 - No PyPI token is stored anywhere.
 
-When T14 adds the release workflow, publishing will use trusted publishing only.
+Publishing uses trusted publishing only, from `.github/workflows/release-pypi.yml`
+behind the `release` environment's required reviewer, and every published file is
+attested (decision 0015).
 See `docs/explanation/security-model.md` for the security boundaries and rationale.
