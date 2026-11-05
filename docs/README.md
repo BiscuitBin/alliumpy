@@ -33,6 +33,7 @@ which also provides the `allium` console script.
 - [Maintain dependencies](how-to/maintain-dependencies.md)
 - [Deploy to GitHub Pages](how-to/deploy-to-github-pages.md)
 - [Cut a release](how-to/release.md)
+- [Bump upstream](how-to/bump-upstream.md)
 
 ## Understand
 
@@ -62,3 +63,4 @@ which also provides the `allium` console script.
 
 - [Architecture decisions](decisions/README.md) — the record of what was chosen and why.
 - [Decision 0016: Mutation testing, benchmarks and fuzzing](decisions/0016-mutation-bench-and-fuzz.md)
+- [Decision 0017: Dependency updates through Renovate, except the upstream pin](decisions/0017-renovate.md)

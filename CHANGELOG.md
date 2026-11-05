@@ -9,6 +9,13 @@ are listed here; upstream's own changes belong to upstream's release notes.
 
 ## [Unreleased]
 
+### Added
+
+- Renovate over every pin except `allium-parser`, held for dashboard approval
+  (`renovate.json`, decision 0017), and the upstream-bump runbook,
+  `docs/how-to/bump-upstream.md`, with `scripts/vendor_cli.py`, which generates the
+  vendored command.
+
 ## [3.6.1] - 2026-11-05
 
 ### Added

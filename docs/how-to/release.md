@@ -28,9 +28,8 @@ is not approval for the next).
 A packaging-only fix of a release `X.Y.Z` is `X.Y.Z.postN`: only `[project] version` in
 `crates/alliumpy/pyproject.toml` moves. A new upstream release moves `[project]
 version`, both crates' `version` and the exact `allium-parser` pin together; that bump
-belongs to T17's upstream-bump runbook, `docs/how-to/bump-upstream.md`, with this page
-as its last part. T17 has not written that runbook yet, so an upstream bump is not
-available until it exists. `just version-check` fails a bare pin bump by design.
+belongs to [Bump upstream](bump-upstream.md), with this page as its last part.
+`just version-check` fails a bare pin bump by design.
 
 ## Pre-flight
 
@@ -79,7 +78,7 @@ any other status stops the step.
 1. **read-only network** `git switch main && git pull --ff-only`, then **local**
    `git switch -c release/v<version>`.
 2. **local** Edit `[project] version`, and for an upstream bump the crates and the pin
-   as T17's runbook will say once it exists.
+   as [Bump upstream](bump-upstream.md) says.
 3. **local** In `CHANGELOG.md`, rename `## [Unreleased]` to
    `## [<version>] - <UTC date>` and add a new empty `## [Unreleased]` above it. At the
    foot, the links become

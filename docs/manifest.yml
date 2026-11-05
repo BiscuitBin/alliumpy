@@ -159,6 +159,19 @@
       "requires": []
     },
     {
+      "path": "how-to/bump-upstream.md",
+      "title": "Bump upstream",
+      "kind": "how-to",
+      "audience": [
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "upstream_bump"
+      ],
+      "requires": []
+    },
+    {
       "path": "explanation/packaging.md",
       "title": "Python packaging",
       "kind": "explanation",
@@ -597,6 +610,20 @@
       ],
       "canonical_for": [
         "decision_mutation_bench_fuzz"
+      ],
+      "requires": []
+    },
+    {
+      "path": "decisions/0017-renovate.md",
+      "title": "Decision 0017: Dependency updates through Renovate, except the upstream pin",
+      "kind": "decision",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_dependency_updates"
       ],
       "requires": []
     }

@@ -22,10 +22,10 @@ Use `allium-parser = "=3.6.1"` in the workspace dependency table. This is the on
 exception to [decision 0004](0004-dependency-policy.md)'s caret-range policy.
 `Cargo.lock` still pins the whole resolution and every resolving Cargo gate uses it.
 
-An upstream bump is a release: update the pin, re-vendor if S01 selects that route, run
-T13's parity when available, align the wheel version, then follow T14's release process.
-T17 adds the runbook and configures Renovate to leave this pin alone. No updater exists
-on this main yet.
+An upstream bump is a release: update the pin, re-vendor, run `just parity`, align the
+wheel version, then follow the release process; [Bump upstream](../how-to/bump-upstream.md)
+is the runbook. [Decision 0017](0017-renovate.md) configures Renovate to leave this pin
+alone.
 
 ## Consequences
 

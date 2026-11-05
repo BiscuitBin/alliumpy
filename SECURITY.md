@@ -23,8 +23,8 @@ next upstream version, and there are no backports to older releases.
 
 The parser and checker belong to upstream, <https://github.com/juxt/allium-tools>.
 Report defects in their diagnostics upstream; upstream's advisories apply to the
-wrapped code. This repository responds through a pin bump using the upstream-bump runbook
-owned by T17, which is not available yet.
+wrapped code. This repository responds through a pin bump using the upstream-bump
+runbook, `docs/how-to/bump-upstream.md`.
 
 ## What this project already does
 

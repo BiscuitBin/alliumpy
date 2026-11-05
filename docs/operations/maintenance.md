@@ -28,24 +28,23 @@ input. A crash in this repository's conversion is fixed here with a regression t
 crash inside upstream's parser is reported upstream and waits for an upstream release,
 because upstream decides behaviour ([decision 0016](../decisions/0016-mutation-bench-and-fuzz.md)).
 
-**Monthly.** Move the dependency pins, one kind at a time, as
-[Maintain dependencies](../how-to/maintain-dependencies.md) describes. `just lock-upgrade`
-moves the three lockfiles within the manifests' constraints — `Cargo.lock` and
-`fuzz/Cargo.lock` within the caret ranges, `pixi.lock` beneath the exact tool pins; run
-`just check` and commit all three. A tool
-pin itself moves in `pyproject.toml`, then `pixi update <name>`, then `pixi.lock` is
-committed. A line in `tools.txt` or `tools-source.txt` moves by hand and takes effect at
-the next `just install-tools`; a `tools-source.txt` line moves one release at a time,
-with `just check` run on each, because rustqual is a gate. A hook `rev` or a GitHub
-Action SHA moves by hand, with its version comment moved beside it.
+**Monthly.** Read Renovate's dependency dashboard and approve what is due, one kind at a
+time, then read each pull request it opens and merge it yourself;
+[Maintain dependencies](../how-to/maintain-dependencies.md) lists what it proposes and what
+each kind needs. Nothing opens without that click except a vulnerability-fix pull request,
+which can open unasked. Approve a `tools-source.txt` line one release at a time, because
+rustqual is a gate. What Renovate does not read moves by hand, as that page lists; to move
+a lockfile without waiting for it, `just lock-upgrade` moves all three within the
+manifests' constraints, and `just check` and a commit follow.
 
 **Monthly.** Run `just check-links-online`. It is not part of the gate because it needs
 the network, so external links rot silently until someone looks.
 
-**Per toolchain release.** Bump `rust-toolchain.toml` and `rust-version` in the root
-`Cargo.toml` together, then run `just clippy` before anything else: clippy's lint set
-moves with the release, and a lint that is new under `-D warnings` fails the gate with no
-change to the code. `just check` follows.
+**Per toolchain release.** Approve Renovate's `rust toolchain` update, which moves
+`rust-toolchain.toml` and `rust-version` in both manifests together, then run `just clippy`
+on its branch before anything else: clippy's lint set moves with the release, and a lint
+that is new under `-D warnings` fails the gate with no change to the code. `just check`
+follows.
 
 ## Cut a release
 
@@ -55,14 +54,15 @@ with every step that leaves the worktree marked as separately authorised.
 
 ## When upstream releases
 
-An upstream bump is a release, not an ordinary dependency update. T17 will add the
-upstream-bump runbook. Until then follow `tickets/CONVENTIONS.md` section 13's first
-bullet: bump the exact parser pin, re-vendor if S01 selects that route, rerun T13's
-parity when available, align the wheel version, then [cut a release](../how-to/release.md).
-Signatures have grown between upstream releases; a bare pin bump fails version-check.
+An upstream bump is a release, not an ordinary dependency update, so Renovate leaves it
+alone and the dashboard never lists it as an update. Check for a new upstream release
+yourself, then follow [Bump upstream](../how-to/bump-upstream.md), which ends in
+[Cut a release](../how-to/release.md). Signatures have grown between upstream releases; a
+bare pin bump fails version-check.
 
-Nothing here moves on its own. T17 adds Renovate for other dependencies and tooling,
-excluding the upstream pin. Keep this manual routine until then.
+Nothing here merges on its own. Renovate proposes moves to the other pins, every one held
+for a dashboard click except a vulnerability-fix pull request, which can open unasked and
+still waits for a person to merge it.
 
 ## Secrets
 
@@ -74,6 +74,7 @@ publishing from `release-pypi.yml` and the `release` environment, never a stored
 ## Related pages
 
 - [Maintain dependencies](../how-to/maintain-dependencies.md)
+- [Bump upstream](../how-to/bump-upstream.md)
 - [Cut a release](../how-to/release.md)
 - [Troubleshooting](troubleshooting.md)
 - [Security model](../explanation/security-model.md)

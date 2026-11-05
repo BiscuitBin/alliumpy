@@ -17,8 +17,76 @@ deviation from the games' exact-pin rule, because a library that writes `=1.2.3`
 every downstream resolution: two crates pinning different patch releases of one
 dependency cannot be built together. The tools are the other way round: `pyproject.toml`
 pins each one exactly, and `pixi.lock`, committed beside it, records the resolution.
-Nothing updates either lockfile for you. T17 adds Renovate for tool pins and ordinary
-dependencies; the upstream parser remains excluded.
+Renovate proposes moves to most of these pins, and the upstream parser is excluded;
+nothing merges itself.
+
+## What the updater proposes
+
+`renovate.json` at the repository root names every pin Renovate reads
+([decision 0017](../decisions/0017-renovate.md)). Each update waits for a click on the
+dependency dashboard while `:dependencyDashboardApproval` is in `extends`, with one
+exception: a vulnerability-fix pull request skips that approval and can open unasked,
+because vulnerability alerts are enabled on this repository. It still never merges itself.
+An approved pull request runs the same jobs as any branch; read its diff as you would
+anyone's. There is no local validator: after editing `renovate.json`, the check is that no
+`Action Required: Fix Renovate Configuration` issue appears and the dashboard shows no
+configuration error.
+
+| Group | What moves |
+| --- | --- |
+| `crates` | `Cargo.lock` and `fuzz/Cargo.lock` within the caret ranges, or a range itself when a release falls outside it, which is the diff to read |
+| `github actions` | each remote action's SHA with its version comment, in the workflows and the `setup` action |
+| `rust toolchain` | `channel` in `rust-toolchain.toml` and `rust-version` in the root and fuzz manifests |
+| `pixi bootstrap` | `requires-pixi` in `pyproject.toml` and `pixi-version` in the `setup` action |
+| `uv` | the pin in `pyproject.toml` and the release job's `setup-uv` `version` |
+| `maturin` | the pin in `pyproject.toml` and every `maturin-version` in `release-pypi.yml` |
+| `cargo-nextest` | the pin in `pyproject.toml` and `nextest-version` in `.config/nextest.toml` |
+| `python build backend` | the `maturin` range in `crates/alliumpy/pyproject.toml` |
+| `hook revs` | every hook SHA and comment in both prek configurations, except lychee's |
+| one per pin | the other tool pins in `pyproject.toml`, each line of `tools.txt` and `tools-source.txt`, `twine` in `release-pypi.yml`, and the `biscuit-games-tooling` tag |
+| lock-file maintenance | the transitive closure of the three lockfiles |
+
+Major updates open in a pull request of their own beside their group's, because
+Renovate's `separateMajorMinor` takes precedence over a group.
+
+Some of these need more than the branch shows:
+
+- **`pixi.lock`.** Renovate's `pixi` manager relocks only where the app allows `pixi` in
+  `allowedUnsafeExecutions`, which the hosted app does not document. Pachinko's branches
+  on the same app carried their relock; this repository's first approved branch is what
+  proves it here. If a branch arrives without one, `just lock-check` fails on it; check the
+  branch out and run `pixi update <name>`.
+- **The `maturin` range.** `requires = ["maturin>=1.15,<2.0"]` is kept rather than pinned.
+  The pixi pin is what builds locally and in `just check`, and the release workflow sets
+  `maturin-version`, so neither reads the range. It is what a user's installer honours when
+  it builds the sdist; PyPI itself builds nothing. `just wheel-smoke` never reads it, so its
+  colour proves nothing about a range update; try `uv build --sdist` from the branch.
+- **`serde` and `serde_json`.** The vendored command depends on both, so an update can
+  change the `allium` command's output while upstream's reference keeps its own. Read the
+  `parity` job on that branch; CI runs it on every pull request.
+- **`release-pypi.yml`.** It does not run on pull requests, so an update to its actions,
+  inputs or `twine` passes CI without running. The
+  [release rehearsal](release.md#the-rehearsal) is what first exercises it.
+- **A toolchain update.** clippy's lint set moves with the release, so a red `rust` job is
+  often new lints; check the branch out, run `just clippy` and fix what it finds.
+  `rust-version` moves only on a minor release. Prose naming the toolchain moves by hand.
+- **`tools.txt`.** Its versions are read from crates.io, but its pass installs only a
+  release binary. Before approving, check that the release has an archive for each
+  platform.
+
+These stay with you:
+
+| Pin | Why it is manual |
+| --- | --- |
+| `allium-parser` | Excluded. A bump is a release: [Bump upstream](bump-upstream.md) |
+| the parity reference | It has no pin of its own; it moves with `allium-parser`, by the runbook |
+| `python = "3.14.*"` | The tooling interpreter, not a pin to bump; the rule disables it |
+| `requires-python`, both; `python_version` in `mypy.ini`; `target-version` in `ruff.toml` | `>=3.14` follows the tooling interpreter; `>=3.11` is the abi3 floor of [decision 0012](../decisions/0012-abi3-wheels-and-platforms.md), and the other two move with that floor |
+| `python-version` inputs | `3.11` is that same floor; `3.14t` is the free-threaded build the release matrix smokes |
+| the three image digests in `release-pypi.yml` | Smoke-only, never in the wheel. Bare digests suit a regex poorly, and the `python` images' tags would need a digest-only rule |
+| runner labels in the release matrix | `ubuntu-22.04` and `macos-15-intel` sit under `matrix.platform.runner`, which the manager does not reach; they decide which wheels build (decision 0012) |
+| lychee | `LYCHEE_VERSION` in both argument lists must match its rev comment, and its tags are prefixed `lychee-v` |
+| the literal `15` in the `release` job | The expected file count; it moves with the matrix, not with any release |
 
 ## Check that the lockfiles still match
 
@@ -90,7 +158,8 @@ Two lists hold what conda-forge lacks, one `name@version` per line, and
   decision record that accepts the source build, as
   [decision 0007](../decisions/0007-metrics-gate.md) does for rustqual.
 
-Bump either by editing the line and running `just install-tools`. cargo-fuzz's line moves
+Renovate proposes a bump to either, held for approval. By hand, edit the line and run
+`just install-tools`. cargo-fuzz's line moves
 with `libfuzzer-sys` in `fuzz/Cargo.toml`; after either, run `just fuzz-build`, and on a
 macOS bump check whether the release now ships an arm64 binary, which would retire the
 Rosetta prerequisite. Move a
@@ -100,12 +169,13 @@ decision 0007 requires.
 
 Outside both files sit the bootstrap pins: pixi's own version, a floor in `requires-pixi`
 in `pyproject.toml` and an exact `pixi-version` on the `setup-pixi` step in
-`.github/actions/setup/action.yml`. They move together.
+`.github/actions/setup/action.yml`. They move together, in Renovate's `pixi bootstrap`
+group.
 
 ## The toolchain
 
-`channel` in `rust-toolchain.toml` and `rust-version` in the root `Cargo.toml` move
-together. After a bump run `just install-toolchain`, then `just clippy`, because the lint
+`channel` in `rust-toolchain.toml` and `rust-version` in the root and fuzz manifests move
+together, in Renovate's `rust toolchain` group. After a bump run `just install-toolchain`, then `just clippy`, because the lint
 set moves with the release and `-D warnings` turns every new lint into a failure.
 
 ## Hook pins
@@ -156,14 +226,13 @@ changes nothing.
 
 `allium-parser = "=3.6.1"` is the one exception to caret ranges
 ([decision 0011](../decisions/0011-exact-pin-on-allium-parser.md)). An upstream bump
-is a release, not an ordinary dependency update. T17 writes the runbook; until then,
-follow the design in `tickets/CONVENTIONS.md` section 13: bump the exact pin, re-vendor
-if S01 chooses vendoring, rerun parity once T13 supplies it, align the wheel version,
-and release through T14's process. A bare pin bump fails `version-check` by design.
+is a release, not an ordinary dependency update, so Renovate leaves it alone:
+[Bump upstream](bump-upstream.md) is the procedure. A bare pin bump fails `version-check`
+by design.
 
 ## Actions in the workflows
 
-`ci.yml`, `audit.yml`, `pages.yml`, `mutants.yml`, `fuzz.yml` and the composite `setup` action pin every remote action in a
+`ci.yml`, `audit.yml`, `pages.yml`, `mutants.yml`, `fuzz.yml`, `release-pypi.yml` and the composite `setup` action pin every remote action in a
 `uses:` line to a full commit SHA with its version comment, never to a tag. The one
 exception is the local `uses: ./.github/actions/setup`, a path in this repository that
 moves with the commit that calls it. The same `gh api` line resolves a tag to
@@ -178,3 +247,5 @@ action runs `just install-toolchain`, so CI reads `rust-toolchain.toml` like eve
 - [Quality gates](../reference/quality-gates.md)
 - [Maintenance](../operations/maintenance.md)
 - [Decision 0004: dependency policy](../decisions/0004-dependency-policy.md)
+- [Decision 0017: Renovate](../decisions/0017-renovate.md)
+- [Bump upstream](bump-upstream.md)

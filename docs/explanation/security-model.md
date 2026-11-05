@@ -45,6 +45,16 @@ writes JSON to stdout.
   `attestations` write, behind the `release` environment's required reviewer, rather
   than widening CI.
 - **Credential leakage.** ripsecrets scans with matched values suppressed from logs.
+- **Dependency updates.** Renovate proposes pin moves through the Mend-hosted app, which
+  no file here configures with a credential. Its installation is organisation-wide: it
+  reaches every repository in `BiscuitBin`, by the maintainer's choice, and holds read
+  access to administration, members, metadata, packages and vulnerability alerts, and write
+  access to checks, contents, issues, pull requests, statuses and workflows. That is the
+  one trust it is given that a contributor's branch is not. An update waits for approval on
+  the dashboard, with one exception: vulnerability alerts are enabled on this repository,
+  so a vulnerability-fix pull request can open unasked. Nothing merges itself, because
+  `automerge` is off. `allium-parser` is excluded, so no bot branch moves the upstream pin
+  ([decision 0017](../decisions/0017-renovate.md)).
 
 ## The parity reference
 
@@ -67,3 +77,4 @@ upstream behaviour secure. Report a defect through the root `SECURITY.md` policy
 - [Architecture](architecture.md)
 - [Maintain dependencies](../how-to/maintain-dependencies.md)
 - [Decision 0004](../decisions/0004-dependency-policy.md)
+- [Decision 0017](../decisions/0017-renovate.md)

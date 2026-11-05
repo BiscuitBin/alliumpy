@@ -70,17 +70,10 @@ stay on the recipe.
 | `.github/actions/setup/action.yml` | T01's shared pinned setup and cache preparation. |
 | `.github/workflows/ci.yml` | CI gate layout: six gate jobs and the required `check` aggregate. |
 | `.github/workflows/audit.yml`, `.github/workflows/pages.yml` | T01's scheduled advisory checks and conditional API deployment. |
+| `.github/workflows/release-pypi.yml` | Release builds and publication ([decision 0015](../decisions/0015-release-process.md)). |
+| `renovate.json` | Dependency-update automation over every pin except `allium-parser` ([decision 0017](../decisions/0017-renovate.md)). |
 | `.github/workflows/mutants.yml`, `.github/workflows/fuzz.yml` | Weekly and manual mutation and fuzzing reports outside the aggregate gate; never in `check`'s `needs`. |
 | `.cargo/mutants.toml` | cargo-mutants' exclusion file, as `exclude_re` with a comment for an equivalent mutant. Absent until one needs it. |
-
-### Planned configuration
-
-These files are assigned by the repository plan and do not exist yet:
-
-| File | Future owner and purpose |
-| --- | --- |
-| `.github/workflows/release-pypi.yml` | T14: release builds and publication. |
-| `renovate.json` | T17: dependency-update automation. |
 
 ### The lint tables
 
