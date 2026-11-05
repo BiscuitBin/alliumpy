@@ -16,7 +16,8 @@ authorization to an agent.
 ## What there is to protect
 
 No file carries a token. CI uses the run's own GitHub token; Pages uses a job identity
-token. T14 will publish to PyPI using trusted publishing, with no stored PyPI token.
+token. Releases publish to PyPI by trusted publishing, with no stored PyPI token
+([decision 0015](../decisions/0015-release-process.md)).
 The parser API converts input into diagnostics and stores no state between calls.
 The console script runs upstream's CLI, vendored into the core
 ([decision 0014](../decisions/0014-cli-strategy.md)); it reads the files it is given and
@@ -40,7 +41,9 @@ writes JSON to stdout.
   transitive native code.
 - **Workflow permissions.** CI and audit use read access. Pages deploy alone needs
   `pages: write` and `id-token: write`, checks nothing out and runs no repository code.
-  T14's publishing workflow will hold its own permissions, rather than widening CI.
+  The release workflow's `release` job alone holds `id-token`, `contents` and
+  `attestations` write, behind the `release` environment's required reviewer, rather
+  than widening CI.
 - **Credential leakage.** ripsecrets scans with matched values suppressed from logs.
 
 ## The parity reference

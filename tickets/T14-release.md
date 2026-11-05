@@ -1,7 +1,7 @@
 ---
 id: T14
 title: "Release: the rehearsed matrix, `release-pypi.yml` by trusted publishing, `alliumpy 3.6.1` on PyPI"
-status: open
+status: done
 depends_on: [T12]
 parallel_with: [T15]
 branch: ticket/t14-release
@@ -536,10 +536,11 @@ just check
 
 ## Hand-back notes
 
-Executed by Claude Code (Claude Opus 5.5) in this worktree on 2026-11-04 (UTC), steps 1
-to 4 and checkpoint 1 only. Step 5 onward each needs its own authorisation and has not
-run: nothing has been pushed, no environment, publisher, tag or release exists. `status:`
-stays `open`. Raw logs are in `ai_tmp/release/` and `ai_tmp/review/`, never committed.
+Executed by Claude Code (Claude Opus 5.5) in this worktree. Steps 1 to 4 and checkpoint 1
+ran on 2026-11-04 (UTC) and are recorded first; steps 5 to 11, each under its own
+authorisation from the maintainer, ran on 2026-11-04 and 2026-11-05 and are recorded
+under "Steps 5 to 11". Raw logs are in `ai_tmp/release/` and `ai_tmp/review/`, never
+committed.
 
 ### Baseline (step 1)
 
@@ -751,29 +752,227 @@ run; the Windows CRLF fix is reasoned from CPython's text-mode stdout), the remo
 Verification lines, and `just parity` (outside `check`; the parity reference is not
 installed in this worktree).
 
-### Pending authorisations (steps 5 to 11)
+### Steps 5 to 11
 
-- Step 5: Push `ticket/t14-release` and open the pull request; the maintainer confirms the
-  open point "publish 3.6.1 or wait for upstream" here.
-- Step 6: Create the `release` environment with the required reviewer and the `main` and `v*`
-  deployment policies; register the PyPI pending publisher (maintainer, browser).
-- Step 7: The rehearsal dispatch (8 build jobs: 2 linux and 2 musllinux on `ubuntu-22.04`, 2
-  macOS, 1 Windows and the sdist, then `release`) and the deployment approval.
-- Step 8: The `release/v3.6.1` branch, its push and pull request.
-- Step 9: The tag `v3.6.1` and its push.
-- Step 10: The publish (the deployment approval).
-- Step 11: The proof, then the present-tense documents through a last pull request.
+Each step below ran only after the maintainer authorised it in the session, and approval
+for one was not taken as approval for the next. Times are UTC, read back from GitHub and
+PyPI.
+
+| Step | Authorised action | Record |
+| --- | --- | --- |
+| 5 | push `ticket/t14-release`, open the pull request | #31 opened 2026-11-04T23:37:45Z, merged by the maintainer 2026-11-05T05:11:12Z as `32b7c8f`; CI on `32b7c8f` green |
+| 6 | create the `release` environment | created 2026-11-05T05:17:49Z through `gh api`: required reviewer `steven-cutting` (sole approver, by the maintainer's choice), `prevent_self_review: false` so the sole approver can approve their own runs, no wait timer, deployment policies branch `main` and tag `v*` |
+| 6 | the PyPI pending publisher | registered by the maintainer in the browser (project `alliumpy`, owner `BiscuitBin`, repository `alliumpy`, workflow `release-pypi.yml`, environment `release`), confirmed before step 7; PyPI's API does not expose it, so the publish is its proof |
+| 7 | the rehearsal dispatch | run 41973788137, created 2026-11-05T05:24:10Z, two seconds after the dispatch, `headSha` `32b7c8f` = `main`; deployment approved by `steven-cutting` |
+| 8 | the release branch, its push and pull request, the merge once green | `release/v3.6.1` from `32b7c8f`, one commit `4981cbf` (the CHANGELOG heading `## [3.6.1] - 2026-11-05` and its links); `just check` green on it; #32 opened 06:30:30Z, every check green including `parity`, merged 06:33:21Z as `e7b9918`, the same UTC day as the heading |
+| 9 | the tag and its push | `v3.6.1` annotated (`53515df`), tagger date 06:33:29Z, on `e7b9918`; pushed, starting run 41981233299 at 06:33:43Z |
+| 10 | the publish | deployment approved by `steven-cutting`; first file on PyPI at 06:43:32Z; GitHub Release published 06:43:51Z |
+| 11 | push this branch, open the last pull request | this pull request |
+
+Billing before step 7: the organisation's usage report for October 2026 shows 374 Linux
+and 48 macOS 3-core minutes and for November to date 172 and 42, every line fully
+discounted to a net of $0, all from public repositories. The remaining included minutes
+and the spending limit need `admin:org`, which was not requested; standard hosted
+runners are free for public repositories, so the rehearsal and the release cost nothing.
+
+#### The rehearsal (step 7)
+
+Run 41973788137 is green on all nine jobs. The steps that were skipped are the ones each
+job's design skips: `linux (x86_64)` skips QEMU and the container smoke, `linux
+(aarch64)` skips the host smoke steps, and `musllinux (x86_64)` skips QEMU. Each of the
+11 smoked wheels printed `ok.allium exit 0`, `ok.allium stdout carries no CR byte` and
+`broken.allium exit 1` (each line counted 11 times in the run log). The `release` job:
+
+```text
+Run actions/download-artifact@9000827… | success
+Guard the commit | success
+Guard the version | success
+Guard the files | success
+Generate artifact attestation | success
+Extract the release notes | skipped
+Install uv | success
+Publish to PyPI | skipped
+Create the GitHub Release | skipped
+```
+
+`gh run download 41973788137 -D ai_tmp/release/rehearsal` holds 15 files: 7
+`cp311-abi3`, 7 `cp314-cp314t` and `alliumpy-3.6.1.tar.gz`, one per decision 0012
+target (macOS `10_12_x86_64` and `11_0_arm64`, `manylinux_2_17` and `musllinux_1_2` on
+x86_64 and aarch64, `win_amd64`). The rehearsal sdist's SHA-256 has an attestation on
+GitHub.
+
+#### The publish (steps 9 and 10)
+
+Run 41981233299, on `v3.6.1` at `e7b9918`, is green on all nine jobs with the same
+skipped steps as the rehearsal. Every step of the `release` job succeeded, the guards
+printing `[project] version 3.6.1` and `abi3 7, cp314t 7, sdist 1`, the attestation
+`Attestation created for 15 subjects` (`https://github.com/BiscuitBin/alliumpy/attestations/63921625`),
+and `Publish to PyPI` uploading the 15 files by name.
+
+```text
+gh run view 41981233299 --log > ai_tmp/release/publish.log; echo "exit $?"
+exit 0
+grep -c 'uv publish' ai_tmp/release/publish.log
+2
+grep -i -E 'UV_PUBLISH_TOKEN|PYPI_API|password' ai_tmp/release/publish.log; echo "exit $?"
+exit 1
+grep -c -i -E 'UV_PUBLISH_TOKEN|PYPI_API|password' ai_tmp/release/generated-token.yml
+1
+```
+
+#### The proof (step 11)
+
+On the maintainer's macOS arm64 machine, from `ai_tmp/release/proof/` holding a copy of
+`tests/fixtures/smoke/` and nothing built, with `UV_CACHE_DIR` set once to a fresh, empty
+`mktemp -d` that the whole block then shares, as the ticket's block does. After review
+finding C3 the block ran a second time under `bash -x` with the same results; that full
+transcript is `ai_tmp/release/proof/transcript.log`, and the quotes below are from it:
+
+```text
+uvx -v --from "alliumpy==3.6.1" allium --version 2> uvx.log; echo "exit $?"
+allium 3.6.1 (language versions: 1, 2, 3)
+exit 0
+grep -n pypi.org uvx.log
+14:DEBUG No cache entry for: https://pypi.org/simple/alliumpy/
+15:DEBUG Sending fresh GET request for: https://pypi.org/simple/alliumpy/
+uvx --from "alliumpy==3.6.1" allium check tests/fixtures/smoke/ok.allium; echo "exit $?"
+… "diagnostics": [] …
+exit 0
+uvx --from "alliumpy==3.6.1" allium check tests/fixtures/smoke/broken.allium; echo "exit $?"
+… "line": 5, "col": 9, "severity": "error" …
+exit 1
+uv tool install alliumpy==3.6.1 && "$(uv tool dir --bin)/allium" --version; echo "exit $?"
+allium 3.6.1 (language versions: 1, 2, 3)
+exit 0
+command -v allium   (with the tool bin directory first on PATH)
+/var/folders/x3/…/T/tmp.3bGJmk0c7r/allium
+uv tool uninstall alliumpy
+Uninstalled 1 executable: allium
+uvx --python 3.11 pip download alliumpy==3.6.1 --no-deps -d "$(mktemp -d)"
+Saved …/alliumpy-3.6.1-cp311-abi3-macosx_11_0_arm64.whl
+```
+
+The `uv tool` lines ran with `UV_TOOL_DIR` and `UV_TOOL_BIN_DIR` on fresh temporary
+directories, so the proof neither used nor changed the maintainer's own tool
+installation; `command -v` therefore names that temporary bin directory.
+
+PyPI's JSON for 3.6.1 lists the rehearsal's 15 filenames exactly (`diff` against the
+rehearsal listing is empty). Its metadata: `description_content_type` `text/markdown;
+charset=UTF-8; variant=GFM` with a 2192-character description, `requires_python`
+`>=3.11`, `license_expression` `Apache-2.0`, `license_files` `["LICENSE",
+"LICENSE-allium-tools"]`; `https://pypi.org/project/alliumpy/3.6.1/` answers 200. The
+published sdist's SHA-256 has two attestations on GitHub, the rehearsal's and the
+release's: the two runs built a byte-identical sdist.
+
+#### §12 claim outcomes
+
+| Claim | Outcome | Evidence |
+| --- | --- | --- |
+| 1 | holds (T14's half) | every published filename carries `3.6.1` from the static `[project] version`, both crates at `3.6.1` (`just version-check`); the `.post1` half is T00's |
+| 2 | holds | the proof's first line, `UV_CACHE_DIR` fresh, resolved from `pypi.org` |
+| 4 | holds | the `cp314t` step and every runner label ran green in both runs, macOS x86_64 on `macos-15-intel` included |
+| 5 | holds on this repository | `actions/attest` succeeded in both runs; the repository is public on the `enterprise` plan, so the claim's private non-Enterprise case was not exercised |
+| 7 | holds | `pypi.org/pypi/alliumpy/json` answered 404 at step 2 and 200 after the publish; the pending publisher created the project |
+| 18 | holds | the Windows smoke of both wheels, in both runs: `ok.allium exit 0`, `ok.allium stdout carries no CR byte`, `broken.allium exit 1`, through the console-script `.exe` |
+| 19 | holds | both `licenses/` entries printed by every smoked wheel in both runs, and PyPI's `license_files` |
+
+#### The documents (step 11)
+
+`README.md`, `docs/how-to/install-and-run.md`, `SECURITY.md` and the release sentence in
+`docs/explanation/architecture.md` now speak of the release in the present tense, the
+last citing decision 0015. Review finding C4 found more pages outside Files touched that
+still spoke of T14 in the future; their release sentences are made present too, as a
+declared deviation: `docs/explanation/security-model.md` (the trusted publishing line
+and the workflow-permissions bullet), `docs/project/purpose-and-scope.md` and
+`docs/how-to/develop-locally.md`. The architecture paragraph's closing sentence now covers only
+T17; its T15 sentence ("will carry their evidence") is stale since T15 landed and is
+left for its owner, because it is not this ticket's line.
+
+#### Verification (remote lines)
+
+Run on the tree of this commit; the full output is `ai_tmp/release/verification.log`.
+
+```text
+rg -n -i '…credential pattern…' .github/workflows/release-pypi.yml; echo "exit $?"
+exit 1
+rg -c -i '…credential pattern…' ai_tmp/release/generated-token.yml
+1
+rg -c 'uses: ' .github/workflows/release-pypi.yml
+33
+… | rg -v '@[0-9a-f]{40} # v[0-9]+\.[0-9]+\.[0-9]+$'; echo "exit $?"
+exit 1
+gh api …/environments/release
+{"deployment_branch_policy":{"custom_branch_policies":true,"protected_branches":false},"prevent_self_review":[false],"reviewers":["steven-cutting"]}
+gh api …/environments/release/deployment-branch-policies
+{"name":"main","type":"branch"}
+{"name":"v*","type":"tag"}
+gh run list --workflow release-pypi.yml --limit 3
+completed  success  Merge pull request #32 …  v3.6.1  push               41981233299  10m11s
+completed  success  Release to PyPI           main    workflow_dispatch  41973788137  36m10s
+git cat-file -t v3.6.1; git rev-parse v3.6.1^{commit}
+tag
+e7b9918b42aaf11930ca349ed84d7e005513639c
+git merge-base --is-ancestor v3.6.1^{commit} origin/main; echo "exit $?"
+exit 0
+curl -sS -o /dev/null -w '%{http_code}\n' https://pypi.org/pypi/alliumpy/json
+200
+gh release view v3.6.1
+{"isDraft":false,"isPrerelease":false,"name":"alliumpy 3.6.1","publishedAt":"2026-11-05T06:43:51Z","tagName":"v3.6.1"}
+just version-check
+version-check: all 7 versions agree: 3.6.1
+```
+
+#### Deviations (steps 5 to 11)
+
+- The `release` environment was created at 05:17:49Z, six minutes after #31 merged,
+  not before as the acceptance criterion reads. The reviewer gate was not enforced in
+  that window: a run naming a missing environment makes GitHub create it without
+  protection (step 6). No run happened in it (`gh run list --workflow release-pypi.yml`
+  shows only the two runs above, both later), no tag existed, and the PyPI pending
+  publisher was registered only after the environment, so a publish could not have
+  authenticated either.
+- The step 7 adversarial review (due before step 8) and the step 8 one (due before the
+  release branch's push) did not run at their checkpoints: the release branch and the
+  tag went ahead on the executing agent's own checks and the maintainer's reading of the
+  rehearsal. Passing afterwards does not make them pre-push reviews. Their questions
+  were put to checkpoint 3 below, over the same artefacts and logs and the published
+  state.
+- Three handbook pages outside Files touched were edited (above).
+- The proof's `uv tool` lines ran against temporary tool directories (above).
+
+### Review record (§14), checkpoint 3 (steps 7, 8 and 11, before the final commit)
+
+Codex `gpt-6-astra`, read-only, over the rehearsal and publish logs, the rehearsal
+artefacts, the PyPI JSON, the proof and the uncommitted diff. Two lenses in parallel
+(conformance with the step 11 questions and the acceptance criteria; breakage with the
+step 7 and step 11 questions), then one pass over step 8's questions and the fix diff.
+Findings in `ai_tmp/review/T14-3/`. Triage by the executing agent; no finding was high,
+so no second round of both lenses ran.
+
+| Finding | Severity | Verdict | Applied |
+| --- | --- | --- | --- |
+| C1, B1: the deviation said a missing environment stops the `release` job; GitHub creates it unprotected | medium | valid | the deviation now says the gate was not enforced in the window and why nothing ran or could authenticate |
+| C2: step 8's review is unaccounted for | medium | valid | declared as a deviation; its questions put to the third pass: no findings (version `3.6.1`; the `[3.6.1]` entries byte-identical to the former `[Unreleased]`; both links name `v3.6.1`; the date is the merge's UTC day; the workflow's awk gives the published Release body, which differs only by a trailing newline) |
+| C3: the notes quote proof lines the retained `uvx.log` does not hold | medium | valid | the whole proof block re-ran under `bash -x` into `ai_tmp/release/proof/transcript.log`; the quoted path is now the transcript's, and the notes say one fresh cache served the whole block, as the ticket's block does |
+| C4: `security-model.md`, `purpose-and-scope.md` (and `develop-locally.md`) still speak of T14 in the future | low | valid | made present tense, declared as a deviation |
+
+The breakage lens found nothing else among the step 7 and step 11 questions: no missing
+or mistagged wheel, every smoke step on a real exit code, every build with `--locked`,
+`twine check` on every artefact, no secret in either log, the published set equal to the
+rehearsal's.
 
 ## Open points
 
 - Whether the macOS x86_64 runner the generator names is still offered to a private
   repository on the free plan on the day; if not, the target is dropped from decision 6
   through a `main` edit of `CONVENTIONS.md`, stated here, rather than built on a paid
-  runner without asking.
+  runner without asking. Resolved: the repository is public, and `macos-15-intel` ran
+  green in both runs at no cost.
 - Whether to publish `3.6.1` or wait for upstream's next release: this ticket publishes
   `3.6.1` (Goal, `CONVENTIONS.md` §1 decision 4). An upstream bump is T17's runbook,
   which depends on this ticket, so waiting means pausing T14 before step 8, not bumping
-  here; the procedure is not the same. The maintainer confirms at step 5.
+  here; the procedure is not the same. The maintainer confirms at step 5. Resolved
+  2026-11-05: the maintainer chose to publish `3.6.1`.
 - Whether a tag ruleset restricting `v*` tag creation to the maintainer is wanted as L's
   draft had it. Rulesets on a private repository may be a paid-plan feature
   (`CONVENTIONS.md` §1 fact 6); the environment's required reviewer holds only where the

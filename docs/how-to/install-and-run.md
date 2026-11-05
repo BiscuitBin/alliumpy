@@ -8,13 +8,14 @@ requires: []
 
 # Install and run
 
-Nothing is on PyPI yet. T14 publishes the first wheel; the installation commands below
-describe that future release. For a checkout today, follow
-[Develop locally](develop-locally.md) and run `just py-develop`.
+`alliumpy` is published on PyPI as <https://pypi.org/project/alliumpy/>, with a wheel for
+each platform the [packaging explanation](../explanation/packaging.md) lists. To work
+from a checkout instead, follow [Develop locally](develop-locally.md) and run
+`just py-develop`.
 
 ## Run once with uv
 
-Once T14 has published, this installs the package temporarily and invokes its command:
+This installs the package temporarily and invokes its command:
 
 ```console
 uvx --from alliumpy allium --version
@@ -25,7 +26,7 @@ Use `--from alliumpy` because the distribution name differs from the command nam
 
 ## Install the command
 
-Once T14 has published, this creates a persistent tool installation:
+This creates a persistent tool installation:
 
 ```console
 uv tool install alliumpy
@@ -34,14 +35,14 @@ allium --version
 
 ## Install for Python
 
-Once T14 has published, this installs into your selected Python environment:
+This installs into your selected Python environment:
 
 ```console
 pip install alliumpy
 ```
 
 Python 3.11 or newer is required. The [packaging explanation](../explanation/packaging.md)
-records platform coverage and the pending source distribution ruling.
+records platform coverage and the source distribution.
 
 ## Use the API
 
