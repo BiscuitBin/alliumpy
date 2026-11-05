@@ -50,7 +50,8 @@ and ask an organisation owner rather than infer it. The environment must show a 
 Free, Pro or Team, required reviewers exist for public repositories only.
 
 Then read PyPI with a status check that fails closed. Do not use `curl -f`, because a
-404 is an expected answer here:
+404 is an expected answer here. Set `project_code` to `404` for the first publication
+and to `200` for every later release; the snippet refuses to run without it:
 
 ```sh
 check() {
@@ -59,8 +60,8 @@ check() {
   echo "$url $code"
   test "$code" = "$expected"
 }
-check https://pypi.org/pypi/alliumpy/json 200 &&       # 404 for the first publication only
-  check "https://pypi.org/pypi/alliumpy/$version/json" 404 &&
+check https://pypi.org/pypi/alliumpy/json "${project_code:?404 or 200}" &&
+  check "https://pypi.org/pypi/alliumpy/${version:?}/json" 404 &&
   echo "pre-flight passed"
 ```
 

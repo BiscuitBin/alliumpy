@@ -702,6 +702,12 @@ medium effort, ten findings, verdicts by the executing agent against the code:
 After the fixes: `just lint` exit 0, `just check-docs` `Validated 42 pages and 43
 canonical topics.`
 
+Pull request #31, Copilot review (one finding), verdict by the executing agent:
+
+| Finding | Severity | Verdict | Applied |
+| --- | --- | --- | --- |
+| the pre-flight snippet hard-codes 200 for the project endpoint, so a first publication's correct 404 fails and a taken name's 200 passes | low | valid | `project_code` (404 first, 200 later) is required by `${project_code:?}`; run in `sh`, `bash` and `zsh`: unset exits non-zero, `404` prints `pre-flight passed`, `200` stops at the project line |
+
 ### Deviations
 
 - The smoke is defined once as `env.SMOKE` and run with `sh -euc`, rather than inlined
