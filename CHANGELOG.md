@@ -9,6 +9,8 @@ are listed here; upstream's own changes belong to upstream's release notes.
 
 ## [Unreleased]
 
+## [3.6.1] - 2026-11-05
+
 ### Added
 
 - The two-crate foundation: interpreter-independent `alliumpy-core` over an exact
@@ -24,4 +26,5 @@ are listed here; upstream's own changes belong to upstream's release notes.
   all reports outside the gate (decision 0016).
 - The `allium` command is upstream's `allium-cli` 3.6.1, vendored, with stdout and exit-code parity proved by `just parity` (decision 0014).
 
-[Unreleased]: https://github.com/BiscuitBin/alliumpy/commits/main/
+[Unreleased]: https://github.com/BiscuitBin/alliumpy/compare/v3.6.1...HEAD
+[3.6.1]: https://github.com/BiscuitBin/alliumpy/releases/tag/v3.6.1
