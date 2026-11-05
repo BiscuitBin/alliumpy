@@ -37,10 +37,10 @@ until evidence supports a decision.
 | [0014](0014-cli-strategy.md) | How the `allium` command gets into the wheel |
 | [0015](0015-release-process.md) | The release process |
 | [0016](0016-mutation-bench-and-fuzz.md) | Mutation testing, benchmarks and fuzzing |
+| [0017](0017-renovate.md) | Dependency updates through Renovate, except the upstream pin |
 
-Record 0017 is written by T17, which registers its page and adds its row when that
-decision is taken; T14 wrote 0015 and T15 wrote 0016. Record 0014 is
-S01's draft, landed by T13.
+T14 wrote 0015, T15 wrote 0016 and T17 wrote 0017. Record 0014 is S01's draft, landed by
+T13.
 
 ## The numbering
 

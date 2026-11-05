@@ -62,8 +62,10 @@ PyPI's trusted publishing, behind the `release` environment's required reviewer;
 `alliumpy` 3.6.1 was the first ([decision 0015](../decisions/0015-release-process.md)).
 T15 adds mutation testing, benchmarks and fuzzing; [Testing](../reference/testing.md)
 will carry their evidence.
-T17 adds Renovate and the upstream-bump runbook; [Maintenance](../operations/maintenance.md)
-will carry that routine; it is not present here yet.
+Renovate proposes moves to every pin except the upstream parser
+([decision 0017](../decisions/0017-renovate.md)), and an upstream bump is a release through
+[Bump upstream](../how-to/bump-upstream.md); [Maintenance](../operations/maintenance.md)
+carries both routines.
 
 ## Related pages
 

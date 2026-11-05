@@ -113,9 +113,8 @@ Run `just py-lint`, `just py-typecheck`, `just py-test`, `just py-stubtest` and
 <important if="you are bumping the upstream pin or the version">
 
 This is a release, not a dependency update (decisions 0010 and 0011).
-`just version-check` fails a bare pin bump by design. T17 owns the upstream-bump runbook
-at `docs/how-to/bump-upstream.md`; until T17 writes it, that runbook is not
-available. Keep the parser pin, crate versions, wheel version and command version
+`just version-check` fails a bare pin bump by design. Follow the upstream-bump runbook,
+`docs/how-to/bump-upstream.md`. Keep the parser pin, crate versions, wheel version and command version
 consistent under invariant 9.
 
 </important>
