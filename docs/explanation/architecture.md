@@ -57,11 +57,13 @@ with that status. [Record 0014](../decisions/0014-cli-strategy.md) gives the rou
 why S01 chose it over bundling a binary or waiting for upstream. `just parity` proves
 stdout and exit-code parity with upstream's `allium-cli` at the pin.
 
-T14 adds the release process and first PyPI publication.
+Releases reach PyPI from an annotated tag on `main` through `release-pypi.yml` and
+PyPI's trusted publishing, behind the `release` environment's required reviewer;
+`alliumpy` 3.6.1 was the first ([decision 0015](../decisions/0015-release-process.md)).
 T15 adds mutation testing, benchmarks and fuzzing; [Testing](../reference/testing.md)
 will carry their evidence.
 T17 adds Renovate and the upstream-bump runbook; [Maintenance](../operations/maintenance.md)
-will carry that routine. None of these future deliverables is present here yet.
+will carry that routine; it is not present here yet.
 
 ## Related pages
 

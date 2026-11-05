@@ -26,7 +26,8 @@ pins it, with `tools.txt` and `tools-source.txt`, one line each, the exceptions 
 conda-forge lacks.
 [Configuration](../reference/configuration.md) has each figure; this page states none.
 The Justfile supports POSIX development on Linux x86_64 and macOS arm64.
-The release matrix adds other wheel platforms in T14.
+The release workflow builds the other wheel platforms
+([decision 0015](../decisions/0015-release-process.md)).
 
 ## First run
 

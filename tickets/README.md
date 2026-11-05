@@ -35,7 +35,7 @@ snapshot.
 | T11 | Integration: the first green `just check` from a fresh clone and in CI, protection read back | `T11-integration.md` | T01, T02, T03, T05, T07, S01 | none | open |
 | T13 | The `allium` command in the wheel: S01's decision built, with parity proved | `T13-cli-in-the-wheel.md` | S01, T11 | T15 | open |
 | T12 | Maintainer docs: README, CHANGELOG, SECURITY, the crate READMEs | `T12-maintainer-docs.md` | T11, T13 | T15 | open |
-| T14 | Release: the rehearsed matrix, `release-pypi.yml` by trusted publishing, `alliumpy 3.6.1` on PyPI | `T14-release.md` | T12 | T15 | open |
+| T14 | Release: the rehearsed matrix, `release-pypi.yml` by trusted publishing, `alliumpy 3.6.1` on PyPI | `T14-release.md` | T12 | T15 | done |
 | T15 | Mutation testing, benchmarks and fuzzing over `alliumpy-core` | `T15-mutants-bench-fuzz.md` | T11 | T12, T13, T14 | open |
 | T17 | Renovate over every pin except the upstream crate; the upstream-bump runbook | `T17-renovate.md` | T14, T15 | none | open |
 | T18 | Verification gaps: the checks the wave-0 and wave-1 hand-backs did not run | `T18-verification-gaps.md` | T11 | T12, T13, T14, T15, T17 | done |

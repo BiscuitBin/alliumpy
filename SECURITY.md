@@ -10,10 +10,9 @@ reproduces the problem.
 
 ## Supported versions
 
-The newest `alliumpy` release on PyPI is supported, and `main` until the first release
-exists. Releases track upstream's (decision 0010): a fix ships as a new release, a
-`.postN` for a packaging fix or the next upstream version, and there are no backports
-to older releases.
+The newest `alliumpy` release on PyPI is supported. Releases track upstream's
+(decision 0010): a fix ships as a new release, a `.postN` for a packaging fix or the
+next upstream version, and there are no backports to older releases.
 
 ## What is in scope
 

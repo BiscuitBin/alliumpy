@@ -8,8 +8,7 @@ upstream's `allium-parser`: <https://github.com/juxt/allium-tools>.
 
 ## Install and run
 
-Nothing is on PyPI yet; these installation commands and supported platforms describe
-the release T14 will publish.
+`alliumpy` is on PyPI: <https://pypi.org/project/alliumpy/>.
 
 Run once with uv:
 
@@ -30,7 +29,7 @@ Install into a Python environment:
 pip install alliumpy
 ```
 
-Python 3.11 or newer is required. The release targets Linux x86_64 and aarch64
+Python 3.11 or newer is required. Each release ships wheels for Linux x86_64 and aarch64
 (manylinux and musllinux), macOS arm64 and x86_64, and Windows x86_64, with
 `abi3-py311` wheels and a separate `cp314t` wheel for free-threaded Python 3.14.
 See `docs/how-to/install-and-run.md` and `docs/explanation/packaging.md` for details.

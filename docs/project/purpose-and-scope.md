@@ -18,7 +18,7 @@ beside it. The [architecture](../explanation/architecture.md) describes the two 
 Python callers can parse source into immutable diagnostics. The conversion preserves
 upstream messages, severities and order, translating byte spans into one-based source
 locations. The console script currently answers `-V` and `--version` only; T13 adds the
-upstream command behaviour. T14 publishes the first wheel to PyPI.
+upstream command behaviour. Releases are published to PyPI as `alliumpy`.
 
 ## What it deliberately does not do
 
