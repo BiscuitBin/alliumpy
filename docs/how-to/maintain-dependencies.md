@@ -24,15 +24,18 @@ nothing merges itself.
 
 `renovate.json` at the repository root names every pin Renovate reads
 ([decision 0017](../decisions/0017-renovate.md)). The `crates` and `github actions` groups
-open a pull request weekly on their own. Every other update waits for a click on the
-dependency dashboard, with one exception: a vulnerability-fix pull request skips that
-approval and can open unasked, because vulnerability alerts are enabled on this repository.
-Nothing merges itself. A Renovate pull request runs the same jobs as any branch; read its
-diff as you would anyone's. There is no local validator: after editing `renovate.json`, the
-check is that no `Action Required: Fix Renovate Configuration` issue appears and the
-dashboard shows no configuration error. The dashboard's detected-dependencies list leaves
-out anything a rule disables, so `allium-parser` and the pixi `python` line never appear
-there.
+open a pull request weekly on their own, once a release is seven days old. Every other
+update waits for a click on the dependency dashboard, including anything a future file or
+manager brings in, because held is the default. There is one exception: a vulnerability-fix
+pull request skips that approval and the seven days, and can open unasked, because
+vulnerability alerts are enabled on this repository. Nothing merges itself. A Renovate pull
+request runs the same jobs as any branch; read its diff as you would anyone's. There is no
+local validator: after editing `renovate.json`, the check is that no `Action Required: Fix
+Renovate Configuration` issue appears and the dashboard shows no configuration error. The
+dashboard's detected-dependencies list leaves out anything a rule disables, so
+`allium-parser`, the pixi `python` line, the `python-version`, setup-uv and `maturin-version`
+inputs under `github-actions`, and lychee never appear there. That absence is the rule
+working, not a failed read.
 
 | Group | What moves |
 | --- | --- |
@@ -46,10 +49,13 @@ there.
 | `python build backend` | the `maturin` range in `crates/alliumpy/pyproject.toml` |
 | `hook revs` | every hook SHA and comment in both prek configurations, except lychee's |
 | one per pin | the other tool pins in `pyproject.toml`, each line of `tools.txt` and `tools-source.txt`, `twine` in `release-pypi.yml`, and the `biscuit-games-tooling` tag |
-| lock-file maintenance | the transitive closure of the lockfiles, in two pull requests: `Cargo.lock` and `fuzz/Cargo.lock` together, and `pixi.lock` |
+| lock-file maintenance | the transitive closure of the lockfiles, in two pull requests: `Cargo.lock` and `fuzz/Cargo.lock` together, and `pixi.lock`. Both wait for a click, the first despite its branch's `crates` name |
 
 Major updates open in a pull request of their own beside their group's, because
-Renovate's `separateMajorMinor` takes precedence over a group.
+Renovate's `separateMajorMinor` takes precedence over a group. That is the major number
+alone: a breaking 0.x release, such as `pyo3` 0.31, counts as minor and lands in the
+`crates` group, moving the range in `Cargo.toml`. If it turns the group red, it holds up the
+other crates until it is fixed, so read which crate failed.
 
 Some of these need more than the branch shows:
 
@@ -66,10 +72,12 @@ Some of these need more than the branch shows:
   The pixi pin is what builds locally and in `just check`, and the release workflow sets
   `maturin-version`, so neither reads the range. It is what a user's installer honours when
   it builds the sdist; PyPI itself builds nothing. `just wheel-smoke` never reads it, so its
-  colour proves nothing about a range update. From the branch (network), name the wheel's
-  project, because the root `pyproject.toml` is `alliumpy-tooling`:
-  `.pixi/envs/default/bin/uv build --sdist crates/alliumpy -o ai_tmp/sdist`. It must exit
-  0, ending `Successfully built ai_tmp/sdist/alliumpy-<version>.tar.gz`.
+  colour proves nothing about a range update. Build as an installer would, from the branch
+  (network). Name the wheel's project, because the root `pyproject.toml` is
+  `alliumpy-tooling`, and the toolchain, because the unpacked sdist has no
+  `rust-toolchain.toml`:
+  `RUSTUP_TOOLCHAIN=<channel> .pixi/envs/default/bin/uv build crates/alliumpy -o ai_tmp/sdist`.
+  It must exit 0, ending with `Successfully built` lines for the `.tar.gz` and the `.whl`.
 - **`serde` and `serde_json`.** The vendored command depends on both, so an update can
   change the `allium` command's output while upstream's reference keeps its own. Read the
   `parity` job on that branch; CI runs it on every pull request.

@@ -523,11 +523,11 @@ per-fixture attribution, as `tests/fixtures/parity/README.md` records.
 `TERMINAL_*` are re-measured by running their test against the reference; the command's
 shape was checked against the candidate (`1 passed`), because no reference was built here.
 
-### Installation and scope (step 4)
+### Installation and scope (step 4): `main` at `0dd7c07`
 
 The maintainer installed the app for the whole organisation on 2026-10-24, for pachinko,
 and chose to keep it so; this is a declared departure from "this repository only", and the
-pages say so. The maintainer's read-back from the settings view, 2026-11-06, at
+pages say so. The maintainer's read-back from the settings view, 2026-11-06 UTC, at
 `https://github.com/organizations/BiscuitBin/settings/installations/174933380`, agrees with
 the API reading of 2026-11-05 below: organisation `BiscuitBin`, app `renovate`, the same id,
 "All repositories", and the same permissions. The ticket's Verification treats "All
@@ -577,9 +577,10 @@ ticked.
   `allium-parser` listed under `cargo` at `3.6.1`. Renovate's `package-files.ts` drops any
   dependency with a skip reason from that section, and a disabled rule sets one, so the
   absence is what a working rule produces. `python` under pixi is absent the same way, while
-  the manifest's other four are listed. crates.io's newest is `3.6.1`, equal to the pin, and
-  upstream's newest tag is `v3.6.1`, so **the exclusion is read but unexercised**. The check
-  that closes it is the first dashboard reading after upstream's next release, which
+  the manifest's other four are listed. `cargo info allium-parser`, 2026-11-06T02:46:48Z,
+  at `7e99b08`, prints `version: 3.6.1`, equal to the pin, and upstream's newest tag is
+  `v3.6.1`, so **the exclusion is read but unexercised**. The check that closes it is the
+  first dashboard reading after upstream's next release, which
   `docs/operations/maintenance.md` names.
 - **Lock maintenance: holds.** See #39 below.
 
@@ -648,9 +649,14 @@ Recorded per dependency, not as done, because nothing was pending on the day:
   pattern P proved for `nextest-version`.
 - **Disabled.** The pixi `python` line, and `python-version` inputs.
 - **Manual lists.** Runner labels and the Python-floor settings join them.
-- **Activation.** The ticket says it removes one line and nothing else. It also rewrites
-  three `description` strings that the removal or the proofs made false. Configuration
-  behaviour differs by the one line alone.
+- **Activation, by the maintainer's choice after `/code-review`.** The ticket removes
+  `:dependencyDashboardApproval`, which makes flowing the default for anything without a
+  rule. Instead the preset stays and the `crates` and `github actions` rules set
+  `dependencyDashboardApproval: false`: the same two groups flow, and the default stays held.
+  Those rules also gain `minimumReleaseAge: "7 days"`, which neither the ticket nor pachinko
+  has. Three `description` strings change with them. None of this was proved at hand-back:
+  the first Monday run after it merges is the proof, the two groups opening and nothing else
+  opening.
 - **Outside Files touched,** each a sentence T17 made false: `docs/how-to/release.md`,
   `docs/how-to/develop-locally.md` (the pixi floor, now named by reference),
   `docs/explanation/architecture.md`, `docs/reference/configuration.md`, decisions 0004 and
@@ -688,6 +694,21 @@ against T13 and T14, and none in the per-manager evidence against the saved dash
 | C4, BR-04: `uv build --sdist` from the root targets the tooling project | medium | valid | names `crates/alliumpy` and what its output must show; not run, because it needs the network |
 | C5, BR-06: `tools-source.txt` omitted the vulnerability exception | low | valid | named |
 | C6: the settings read-back was only promised for the pull request | medium | valid | recorded under Installation and scope |
+
+### `/code-review` (medium): `7e99b08`
+
+| Finding | Verdict | Applied |
+| --- | --- | --- |
+| Removing the preset flips the default to flow, against the docs | valid | fail-closed activation, by the maintainer's choice |
+| Flowing groups run new release code in CI before anyone reads it | valid | seven-day wait, by the maintainer's choice; the security model records the exposure |
+| A breaking 0.x release lands in the `crates` group | valid, not read from a run | the how-to says so and what to do; no separate `pyo3` rule |
+| The relock break is a manual recovery, and `constraints` is unverified | valid | no change: decision 0017 records it as what would reopen the decision |
+| The sdist check was unrun, and built no wheel | valid | run for real at `7e99b08`: `uv build crates/alliumpy` failed with `rustup could not choose a version of cargo`, because the unpacked sdist has no `rust-toolchain.toml`; with `RUSTUP_TOOLCHAIN=1.99.1` it exits 0 and prints `Successfully built` for the `.tar.gz` and the `.whl`. The how-to gives that form |
+| The pre-flight hand-off omitted `project_code` | valid | step 8 says `200` |
+| The dashboard-omissions list was partial | valid | extended |
+| Weekly pull requests filed under a Monthly routine; lock maintenance's `crates` branch name | valid | moved to the weekly pass; the table says it waits |
+| No final `just check` in the notes | partly valid | a commit cannot quote its own run; the pull request quotes it |
+| Read-back date, `cargo info` quote, unheaded output | valid | dated UTC, quoted, headed |
 
 ## Open points
 

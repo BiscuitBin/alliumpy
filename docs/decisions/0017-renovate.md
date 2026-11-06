@@ -44,14 +44,16 @@ pin of its own, so nothing else can carry a different upstream version. No rule 
 `allium-cli`, because [decision 0014](0014-cli-strategy.md) chose route (a); route (c)
 would have to add it.
 
-**What flows and what is held.** The configuration landed with
-`:dependencyDashboardApproval` in `extends`, so that nothing opened before the proofs were
-read, and that line was then removed. The `crates` and `github actions` groups now open
-weekly; every other rule carries its own approval and waits for a click on the dependency
-dashboard. There is one exception: Renovate's `vulnerabilityAlerts` settings skip dashboard
-approval by default, and vulnerability alerts are enabled here, so a vulnerability-fix pull
-request can open unasked. It still never merges itself, and the exclusion holds against it:
-a dependency a package rule disabled stays disabled under an alert. `automerge` is `false`.
+**What flows and what is held.** Held is the default: `:dependencyDashboardApproval` stays
+in `extends`, so an update waits for a click on the dependency dashboard, and so does
+anything a future file or manager brings in. Two rules opt out, `crates` and
+`github actions`, which open weekly once a release is seven days old. Removing the
+`extends` line, as the ticket first planned, would have flowed the same two groups but made
+every unruled dependency open unasked. There is one exception to held: Renovate's
+`vulnerabilityAlerts` settings skip dashboard approval and the seven days by default, and
+vulnerability alerts are enabled here, so a vulnerability-fix pull request can open unasked.
+It still never merges itself, and the exclusion holds against it: a dependency a package
+rule disabled stays disabled under an alert. `automerge` is `false`.
 
 **Pairs read from one source.** `uv`, `maturin` and `cargo-nextest` each have a pin in the
 pixi manifest and a copy elsewhere that must equal it. The copies are read from conda-forge
@@ -72,6 +74,10 @@ vulnerability alerts, and write access to checks, contents, issues, pull request
 statuses and workflows, which the [security model](../explanation/security-model.md)
 records. It reaches every repository in the organisation. No review is required on
 `main`, so "a person merges" rests on `automerge` staying off.
+
+CI runs a flowing group's new code before anyone reads it, with a read-only token. The
+seven-day `minimumReleaseAge` narrows that exposure and delays those pins by a week. Pachinko
+carries no such wait.
 
 Some pins stay manual, and [Maintain dependencies](../how-to/maintain-dependencies.md) says
 why for each: the three image digests in `release-pypi.yml`, the two `requires-python`

@@ -28,12 +28,14 @@ input. A crash in this repository's conversion is fixed here with a regression t
 crash inside upstream's parser is reported upstream and waits for an upstream release,
 because upstream decides behaviour ([decision 0016](../decisions/0016-mutation-bench-and-fuzz.md)).
 
+Renovate's `crates` and `github actions` groups also open pull requests on Monday, without
+a click, and a vulnerability-fix pull request can open on any day. Read those in the weekly
+pass and merge what is green; they rebase and rerun while they wait.
+
 **Monthly.** Read Renovate's dependency dashboard and approve what is due, one kind at a
 time, then read each pull request it opens and merge it yourself;
 [Maintain dependencies](../how-to/maintain-dependencies.md) lists what it proposes and what
-each kind needs. The `crates` and `github actions` groups open weekly without that click,
-and a vulnerability-fix pull request can open unasked; read and merge those too. Approve a
-`tools-source.txt` line one release at a time, because
+each kind needs. Approve a `tools-source.txt` line one release at a time, because
 rustqual is a gate. What Renovate does not read moves by hand, as that page lists; to move
 a lockfile without waiting for it, `just lock-upgrade` moves all three within the
 manifests' constraints, and `just check` and a commit follow.
@@ -66,8 +68,9 @@ The first dashboard after upstream's next release is also a check on the exclusi
 no update and no branch.
 
 Nothing here merges on its own. Renovate proposes moves to the other pins: the `crates` and
-`github actions` groups open weekly, the rest wait for a dashboard click, and a
-vulnerability-fix pull request can open unasked. Each waits for a person to merge it.
+`github actions` groups open weekly once a release is seven days old, the rest wait for a
+dashboard click, and a vulnerability-fix pull request can open unasked. Each waits for a
+person to merge it.
 
 ## Secrets
 

@@ -309,10 +309,11 @@ below the floor is a test in the core, never a lower floor. CI's `parity` job re
 reference because its cache key hashes `Cargo.toml`.
 
 Before the release branch's pull request, run [Pre-flight](release.md#pre-flight)
-(**read-only network**) for `<new>`; a stop there stops the release. Then continue
-[Cut a release](release.md) from "The release branch", step 3, the `[Unreleased]` split: the pull request, the merge, the rehearsal if the workflow changed,
-the tag, the `release-pypi.yml` run and the `uvx` proof. Each push and tag is its own
-authorised action.
+(**read-only network**), with `version` set to `<new>` and `project_code` set to `200`,
+since the project already exists; a stop there stops the release. Then continue
+[Cut a release](release.md) from "The release branch", step 3, the `[Unreleased]` split:
+the pull request, the merge, the rehearsal if the workflow changed, the tag, the
+`release-pypi.yml` run and the `uvx` proof. Each push and tag is its own authorised action.
 
 ### 9. A `.postN` release is not this
 
