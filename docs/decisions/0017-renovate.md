@@ -44,14 +44,16 @@ pin of its own, so nothing else can carry a different upstream version. No rule 
 `allium-cli`, because [decision 0014](0014-cli-strategy.md) chose route (a); route (c)
 would have to add it.
 
-**The configuration lands held.** `:dependencyDashboardApproval` in `extends` makes every
-update wait for a click on the dependency dashboard, with one exception: Renovate's
-`vulnerabilityAlerts` settings skip dashboard approval by default, and vulnerability alerts
-are enabled here, so a vulnerability-fix pull request can open unasked. It still never
-merges itself, and the exclusion holds against it, because those settings do not set
-`enabled`. `automerge` is `false`. A later pull request may remove the `extends` line so
-that the `crates` and `github actions` groups flow weekly; every other rule carries its
-own approval and stays held.
+**What flows and what is held.** Held is the default: `:dependencyDashboardApproval` stays
+in `extends`, so an update waits for a click on the dependency dashboard, and so does
+anything a future file or manager brings in. Two rules opt out, `crates` and
+`github actions`, which open weekly once a release is seven days old. Removing the
+`extends` line, as the ticket first planned, would have flowed the same two groups but made
+every unruled dependency open unasked. There is one exception to held: Renovate's
+`vulnerabilityAlerts` settings skip dashboard approval and the seven days by default, and
+vulnerability alerts are enabled here, so a vulnerability-fix pull request can open unasked.
+It still never merges itself, and the exclusion holds against it: a dependency a package
+rule disabled stays disabled under an alert. `automerge` is `false`.
 
 **Pairs read from one source.** `uv`, `maturin` and `cargo-nextest` each have a pin in the
 pixi manifest and a copy elsewhere that must equal it. The copies are read from conda-forge
@@ -73,6 +75,10 @@ statuses and workflows, which the [security model](../explanation/security-model
 records. It reaches every repository in the organisation. No review is required on
 `main`, so "a person merges" rests on `automerge` staying off.
 
+CI runs a flowing group's new code before anyone reads it, with a read-only token. The
+seven-day `minimumReleaseAge` narrows that exposure and delays those pins by a week. Pachinko
+carries no such wait.
+
 Some pins stay manual, and [Maintain dependencies](../how-to/maintain-dependencies.md) says
 why for each: the three image digests in `release-pypi.yml`, the two `requires-python`
 floors, the `python-version` inputs, the tooling interpreter, the release matrix's runner
@@ -82,13 +88,20 @@ labels, lychee and its `LYCHEE_VERSION`, and the literal `15` in the release job
 first exercised by the release rehearsal, not by the branch that moved it.
 
 Each regex manager is proved only by Renovate itself, from its dashboard or a real pull
-request. There is no local validator: `tickets/CONVENTIONS.md` section 4 gives this
-decision no recipe, and a pinned one would need node through a pixi pin.
+request; the first dashboard, on 2026-11-05, listed every one (ticket T17's hand-back
+notes). There is no local validator: `tickets/CONVENTIONS.md` section 4 gives this decision
+no recipe, and a pinned one would need node through a pixi pin.
+
+The hosted app relocks `pixi.lock`, but `requires-pixi` is only a floor, so it can relock
+with a newer pixi than CI pins. On 2026-11-05 that turned every relocking branch red until
+the `pixi bootstrap` group moved CI to 0.84.1. It can recur;
+[Maintain dependencies](../how-to/maintain-dependencies.md) says what to do.
 
 ## What would reopen this
 
-The app's permissions changing, or Mend's hosted service ending. The hosted app not
-relocking `pixi.lock`, which would put that relock on the manual list. A Renovate manager
+The app's permissions changing, or Mend's hosted service ending. The hosted app ceasing to
+relock `pixi.lock`, which would put that relock on the manual list. The relock breaking CI
+repeatedly, which would argue for pinning the pixi it uses with `constraints`. A Renovate manager
 for crates.io binaries, which would replace the regex over `tools.txt`. Dependabot gaining
 the one-line pins above, or a way to read a pixi manifest. Decision 0014 moving to route
 (c), which would extend the exclusion to `allium-cli`.

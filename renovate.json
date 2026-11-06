@@ -12,9 +12,11 @@
   "pre-commit": { "enabled": false },
   "packageRules": [
     {
-      "description": "Crates: Cargo.lock within the caret ranges, or a range in Cargo.toml when a release falls outside it, both cargo roots, one pull request, with major updates in a pull request of their own beside it (separateMajorMinor). Held for dashboard approval while :dependencyDashboardApproval is in extends; a vulnerability-fix pull request skips that approval.",
+      "description": "Crates: Cargo.lock within the caret ranges, or a range in Cargo.toml when a release falls outside it, both cargo roots, one pull request, with major updates in a pull request of their own beside it (separateMajorMinor). One of the two groups that skip the held default: it opens without a dashboard click, once a release is seven days old, and a person merges it. Lock-file maintenance stays held by its own rule below, and a vulnerability fix does not wait for the seven days.",
       "matchManagers": ["cargo"],
-      "groupName": "crates"
+      "groupName": "crates",
+      "dependencyDashboardApproval": false,
+      "minimumReleaseAge": "7 days"
     },
     {
       "description": "The upstream parser is never updated here. An upstream bump is a release of this repository (decisions 0010 and 0011), done through docs/how-to/bump-upstream.md, and just version-check fails a bare bump by design. The rule matches the manager rather than a file, so it covers both cargo roots; an exact requirement holds lock-file maintenance at the pin. This rule stays off for a vulnerability-fix pull request too: those rules never set enabled.",
@@ -23,9 +25,11 @@
       "enabled": false
     },
     {
-      "description": "Remote actions, SHA and version comment together, one pull request, with major updates in a pull request of their own beside it (separateMajorMinor). Held for dashboard approval while :dependencyDashboardApproval is in extends; a vulnerability-fix pull request skips that approval.",
+      "description": "Remote actions, SHA and version comment together, one pull request, with major updates in a pull request of their own beside it (separateMajorMinor). The other group that skips the held default: it opens without a dashboard click, once a release is seven days old, and a person merges it. A vulnerability fix does not wait for the seven days.",
       "matchManagers": ["github-actions"],
-      "groupName": "github actions"
+      "groupName": "github actions",
+      "dependencyDashboardApproval": false,
+      "minimumReleaseAge": "7 days"
     },
     {
       "description": "The toolchain: channel in rust-toolchain.toml and rust-version in both manifests, one pull request. rust-release-channel versioning keeps the precision of the value it replaces, so rust-version stays major.minor. Held for dashboard approval, because a toolchain moves the clippy lint set; a vulnerability-fix pull request skips that approval.",
@@ -34,7 +38,7 @@
       "dependencyDashboardApproval": true
     },
     {
-      "description": "Tool pins in pyproject.toml. Whether the hosted app relocks pixi.lock on this repository is read from the first approved branch; a stale pixi.lock fails lock-check. Held for dashboard approval; a vulnerability-fix pull request skips that approval.",
+      "description": "Tool pins in pyproject.toml. The hosted app relocks pixi.lock on the same branch, with a pixi that can be newer than the pin (docs/how-to/maintain-dependencies.md); a stale pixi.lock fails lock-check. Held for dashboard approval; a vulnerability-fix pull request skips that approval.",
       "matchManagers": ["pixi"],
       "dependencyDashboardApproval": true
     },

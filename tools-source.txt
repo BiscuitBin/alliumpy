@@ -5,5 +5,6 @@
 # never takes an unsigned upstream release asset. tools.txt is binary-only and stays
 # so; a pin here can cost a source build at bootstrap, which decision 0007 accepts
 # for the one tool below and no other by default. Renovate proposes each bump and holds
-# it for approval; approve one release at a time, with `just check` run on it.
+# it for approval, except a vulnerability fix, which skips that approval and can open
+# unasked; approve one release at a time, with `just check` run on it.
 rustqual@1.8.3

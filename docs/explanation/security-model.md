@@ -50,10 +50,14 @@ writes JSON to stdout.
   reaches every repository in `BiscuitBin`, by the maintainer's choice, and holds read
   access to administration, members, metadata, packages and vulnerability alerts, and write
   access to checks, contents, issues, pull requests, statuses and workflows. That is the
-  one trust it is given that a contributor's branch is not. An update waits for approval on
-  the dashboard, with one exception: vulnerability alerts are enabled on this repository,
-  so a vulnerability-fix pull request can open unasked. Nothing merges itself, because
-  `automerge` is off. `allium-parser` is excluded, so no bot branch moves the upstream pin
+  one trust it is given that a contributor's branch is not. The `crates` and
+  `github actions` groups open weekly, so CI runs a new release's code, its build scripts,
+  macros or actions, with a read-only token before anyone has read it. A seven-day
+  `minimumReleaseAge` on those two groups is the mitigation: time for a bad release to be
+  found and pulled. Any other update waits for approval on the dashboard, with one
+  exception: vulnerability alerts are enabled on this repository, so a vulnerability-fix
+  pull request can open unasked, with no wait. Nothing merges itself, because `automerge` is
+  off. `allium-parser` is excluded, so no bot branch moves the upstream pin
   ([decision 0017](../decisions/0017-renovate.md)).
 
 ## The parity reference
