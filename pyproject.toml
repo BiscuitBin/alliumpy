@@ -37,7 +37,7 @@ cargo-mutants = "==27.1.0"
 # Wheel builder; the nested manifest belongs to maturin alone.
 maturin = "==1.15.0"
 # Installer for maturin develop and offline wheel smoke environments.
-uv = "==0.13.5"
+uv = "==0.13.7"
 # Binding behaviour tests.
 pytest = "==9.1.1"
 # Python lint and formatting gate.
