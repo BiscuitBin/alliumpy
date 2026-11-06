@@ -35,7 +35,7 @@ taplo = "==0.10.0"
 cargo-mutants = "==27.1.0"
 
 # Wheel builder; the nested manifest belongs to maturin alone.
-maturin = "==1.15.0"
+maturin = "==1.16.0"
 # Installer for maturin develop and offline wheel smoke environments.
 uv = "==0.13.7"
 # Binding behaviour tests.

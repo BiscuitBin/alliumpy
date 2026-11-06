@@ -147,14 +147,14 @@ jobs:
       - name: Build wheels
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
         with:
-          maturin-version: v1.15.0
+          maturin-version: v1.16.0
           target: ${{ matrix.platform.target }}
           args: --release --out dist --manifest-path crates/alliumpy/Cargo.toml --locked
           manylinux: auto
       - name: Build free-threaded wheels
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
         with:
-          maturin-version: v1.15.0
+          maturin-version: v1.16.0
           target: ${{ matrix.platform.target }}
           args: --release --out dist --manifest-path crates/alliumpy/Cargo.toml --locked -i python3.14t
           manylinux: auto
@@ -235,14 +235,14 @@ jobs:
       - name: Build wheels
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
         with:
-          maturin-version: v1.15.0
+          maturin-version: v1.16.0
           target: ${{ matrix.platform.target }}
           args: --release --out dist --manifest-path crates/alliumpy/Cargo.toml --locked
           manylinux: musllinux_1_2
       - name: Build free-threaded wheels
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
         with:
-          maturin-version: v1.15.0
+          maturin-version: v1.16.0
           target: ${{ matrix.platform.target }}
           args: --release --out dist --manifest-path crates/alliumpy/Cargo.toml --locked -i python3.14t
           manylinux: musllinux_1_2
@@ -295,7 +295,7 @@ jobs:
       - name: Build wheels
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
         with:
-          maturin-version: v1.15.0
+          maturin-version: v1.16.0
           target: ${{ matrix.platform.target }}
           args: --release --out dist --manifest-path crates/alliumpy/Cargo.toml --locked
       - id: py314t
@@ -306,7 +306,7 @@ jobs:
       - name: Build free-threaded wheels
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
         with:
-          maturin-version: v1.15.0
+          maturin-version: v1.16.0
           target: ${{ matrix.platform.target }}
           args: --release --out dist --manifest-path crates/alliumpy/Cargo.toml --locked -i python3.14t
       # Git Bash, not pwsh: bash redirects the command's bytes unchanged, so the
@@ -356,7 +356,7 @@ jobs:
       - name: Build wheels
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
         with:
-          maturin-version: v1.15.0
+          maturin-version: v1.16.0
           target: ${{ matrix.platform.target }}
           args: --release --out dist --manifest-path crates/alliumpy/Cargo.toml --locked
       - id: py314t
@@ -366,7 +366,7 @@ jobs:
       - name: Build free-threaded wheels
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
         with:
-          maturin-version: v1.15.0
+          maturin-version: v1.16.0
           target: ${{ matrix.platform.target }}
           args: --release --out dist --manifest-path crates/alliumpy/Cargo.toml --locked -i python3.14t
       - name: Smoke the abi3 wheel
@@ -410,7 +410,7 @@ jobs:
       - name: Build sdist
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
         with:
-          maturin-version: v1.15.0
+          maturin-version: v1.16.0
           command: sdist
           args: --out dist --manifest-path crates/alliumpy/Cargo.toml
       # Each of S01's seven paths as a whole archive entry under the sdist's
