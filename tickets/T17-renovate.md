@@ -527,8 +527,11 @@ shape was checked against the candidate (`1 passed`), because no reference was b
 
 The maintainer installed the app for the whole organisation on 2026-10-24, for pachinko,
 and chose to keep it so; this is a declared departure from "this repository only", and the
-pages say so. The maintainer's read-back from the settings view is quoted in the activation
-pull request, because a commit cannot quote what follows it. The API reading, 2026-11-05:
+pages say so. The maintainer's read-back from the settings view, 2026-11-06, at
+`https://github.com/organizations/BiscuitBin/settings/installations/174933380`, agrees with
+the API reading of 2026-11-05 below: organisation `BiscuitBin`, app `renovate`, the same id,
+"All repositories", and the same permissions. The ticket's Verification treats "All
+repositories" as a failure and a stop; the maintainer's decision replaces that.
 
 ```text
 gh api orgs/BiscuitBin/installations
@@ -669,6 +672,22 @@ fresh-context subagent. No high finding.
 `twine` and the maturin range can be bumped wrongly without `just version-check` or `just
 parity` noticing. Both reviewers reported this as no finding: both are held, and the how-to
 names what first exercises them.
+
+### Review 2 (`CONVENTIONS.md` §14): `7678af9`
+
+Codex `gpt-6-astra`, read-only, one per lens (`ai_tmp/review/T17-2/`); triage and fixes: a
+fresh-context subagent. No high finding. Both lenses found no mismatch in the §12 outcomes
+against T13 and T14, and none in the per-manager evidence against the saved dashboard.
+
+| Finding | Severity | Verdict | Applied |
+| --- | --- | --- | --- |
+| C1, BR-01: an empty corpus listing would read as every upstream fixture deleted | medium | valid | one checked tree read, non-empty and untruncated, before any comparison or deletion |
+| BR-02: `path=` in the vendoring block clobbers `PATH` under zsh | medium | valid | renamed; both blocks run under zsh and bash with a stand-in `gh` |
+| C2, BR-03: the hand-off to the release page skipped its pre-flight | medium | valid | step 8 requires it first |
+| C3, BR-05: the route (b) note implied shipping the host binary | medium | valid | built per target by the release matrix; the local reference never ships |
+| C4, BR-04: `uv build --sdist` from the root targets the tooling project | medium | valid | names `crates/alliumpy` and what its output must show; not run, because it needs the network |
+| C5, BR-06: `tools-source.txt` omitted the vulnerability exception | low | valid | named |
+| C6: the settings read-back was only promised for the pull request | medium | valid | recorded under Installation and scope |
 
 ## Open points
 

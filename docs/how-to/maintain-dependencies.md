@@ -66,7 +66,10 @@ Some of these need more than the branch shows:
   The pixi pin is what builds locally and in `just check`, and the release workflow sets
   `maturin-version`, so neither reads the range. It is what a user's installer honours when
   it builds the sdist; PyPI itself builds nothing. `just wheel-smoke` never reads it, so its
-  colour proves nothing about a range update; try `uv build --sdist` from the branch.
+  colour proves nothing about a range update. From the branch (network), name the wheel's
+  project, because the root `pyproject.toml` is `alliumpy-tooling`:
+  `.pixi/envs/default/bin/uv build --sdist crates/alliumpy -o ai_tmp/sdist`. It must exit
+  0, ending `Successfully built ai_tmp/sdist/alliumpy-<version>.tar.gz`.
 - **`serde` and `serde_json`.** The vendored command depends on both, so an update can
   change the `allium` command's output while upstream's reference keeps its own. Read the
   `parity` job on that branch; CI runs it on every pull request.

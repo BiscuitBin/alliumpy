@@ -26,9 +26,10 @@ push, pull request and tag is separately authorised.
 upstream's CLI modules, vendored into `crates/alliumpy-core/src/cli/`. The steps below
 are written for that route. Only step 3 differs under the other two:
 
-- **Route (b), a bundled binary.** Instead of re-vendoring, copy
-  `.tools/parity/bin/allium` over the bundled binary, and move the `allium-cli` version
-  wherever the release matrix carries it.
+- **Route (b), a bundled binary.** Instead of re-vendoring, have the release matrix build
+  the bundled binary per target, and move the `allium-cli` version wherever the matrix
+  carries it. `.tools/parity/bin/allium` is a host-only local reference and is never what
+  ships.
 - **Route (c), upstream's `run(args)`.** Instead of re-vendoring, bump `allium-cli` to
   `=<new>` in the same `Cargo.toml` edit as the parser, and repeat step 2's `cargo update`
   for it. `renovate.json` must then exclude `allium-cli` too.
@@ -117,23 +118,26 @@ worktree root and into empty directories. Under `pipefail` a failed read cannot 
 behind `base64`, and the hash check catches an empty or altered file:
 
 ```sh
-set -o pipefail
-for tag in v<old> v<new>; do
-  dir="ai_tmp/upstream/$tag"; rm -rf "$dir"; mkdir -p "$dir"
-  for name in main.rs test_plan.rs domain_model.rs; do
-    path="crates/allium/src/$name"
-    sha=$(gh api "repos/juxt/allium-tools/git/trees/$tag?recursive=1" \
-      --jq ".tree[] | select(.path == \"$path\") | .sha") || exit 1
-    gh api "repos/juxt/allium-tools/contents/$path?ref=$tag" --jq .content \
-      | base64 -d > "$dir/$name" || exit 1
-    [ "$(git hash-object "$dir/$name")" = "$sha" ] && echo "ok $tag $name" \
-      || { echo "MISMATCH $tag $name"; exit 1; }
+(
+  set -o pipefail
+  for tag in v<old> v<new>; do
+    dir="ai_tmp/upstream/$tag"; rm -rf "$dir"; mkdir -p "$dir"
+    for name in main.rs test_plan.rs domain_model.rs; do
+      src="crates/allium/src/$name"
+      sha=$(gh api "repos/juxt/allium-tools/git/trees/$tag?recursive=1" \
+        --jq ".tree[] | select(.path == \"$src\") | .sha") || exit 1
+      gh api "repos/juxt/allium-tools/contents/$src?ref=$tag" --jq .content \
+        | base64 -d > "$dir/$name" || exit 1
+      [ "$(git hash-object "$dir/$name")" = "$sha" ] && echo "ok $tag $name" \
+        || { echo "MISMATCH $tag $name"; exit 1; }
+    done
   done
-done
+)
 ```
 
-Every line must read `ok`. Run it with `bash` or in a subshell, since `exit` ends the
-shell it runs in. Read upstream's own change, then regenerate:
+Every line must read `ok`, six in all. The block runs in bash or zsh, and its parentheses
+keep `exit` and `pipefail` from the shell that runs it; the variable is `src` rather than
+`path`, which zsh ties to `PATH`. Read upstream's own change, then regenerate:
 
 ```sh
 diff -u ai_tmp/upstream/v<old>/main.rs ai_tmp/upstream/v<new>/main.rs
@@ -205,28 +209,37 @@ exit 0 before step 5 builds with the locked manifests.
 directory first, from the worktree root:
 
 ```sh
-set -o pipefail
-rm -rf ai_tmp/parity-fetch; mkdir -p ai_tmp/parity-fetch
-gh api 'repos/juxt/allium-tools/git/trees/v<new>?recursive=1' --jq .truncated
-gh api 'repos/juxt/allium-tools/git/trees/v<new>?recursive=1' \
-  --jq '.tree[] | select(.path | endswith(".allium")) | "\(.sha) \(.path)"' > ai_tmp/parity-shas.txt
-while read -r sha p; do
-  mkdir -p "ai_tmp/parity-fetch/$(dirname "$p")" &&
-    gh api "repos/juxt/allium-tools/contents/$p?ref=v<new>" --jq .content \
-      | base64 -d > "ai_tmp/parity-fetch/$p" &&
-    [ "$(git hash-object "ai_tmp/parity-fetch/$p")" = "$sha" ] ||
-    { printf 'fetch failed: %s\n' "$p"; break; }
-done < ai_tmp/parity-shas.txt
-find ai_tmp/parity-fetch -name '*.allium' | wc -l
-wc -l < ai_tmp/parity-shas.txt
-diff -r ai_tmp/parity-fetch tests/fixtures/parity
+(
+  set -o pipefail
+  rm -rf ai_tmp/parity-fetch ai_tmp/parity-tree.txt ai_tmp/parity-shas.txt
+  mkdir -p ai_tmp/parity-fetch
+  gh api 'repos/juxt/allium-tools/git/trees/v<new>?recursive=1' \
+    --jq '.truncated, (.tree[] | select(.path | endswith(".allium")) | "\(.sha) \(.path)")' \
+    > ai_tmp/parity-tree.txt || { echo 'fetch failed: tree request'; exit 1; }
+  [ "$(head -n 1 ai_tmp/parity-tree.txt)" = false ] ||
+    { echo 'fetch failed: tree truncated'; exit 1; }
+  tail -n +2 ai_tmp/parity-tree.txt > ai_tmp/parity-shas.txt
+  [ -s ai_tmp/parity-shas.txt ] || { echo 'fetch failed: empty listing'; exit 1; }
+  while read -r sha p; do
+    mkdir -p "ai_tmp/parity-fetch/$(dirname "$p")" &&
+      gh api "repos/juxt/allium-tools/contents/$p?ref=v<new>" --jq .content \
+        | base64 -d > "ai_tmp/parity-fetch/$p" &&
+      [ "$(git hash-object "ai_tmp/parity-fetch/$p")" = "$sha" ] ||
+      { printf 'fetch failed: %s\n' "$p"; exit 1; }
+  done < ai_tmp/parity-shas.txt
+  fetched=$(find ai_tmp/parity-fetch -name '*.allium' | wc -l)
+  listed=$(wc -l < ai_tmp/parity-shas.txt)
+  echo "fetched $fetched, listed $listed"
+  [ "$fetched" -eq "$listed" ] || { echo 'fetch failed: counts differ'; exit 1; }
+) && diff -r ai_tmp/parity-fetch tests/fixtures/parity
 ```
 
-The `.truncated` line must print `false`, no line may read `fetch failed`, and the two
-counts must be equal. Read the `diff`. `Only in tests/fixtures/parity` naming `alliumpy`
-or `README.md` is expected: those are this repository's. Any other file only there was
-removed upstream, so delete it. Copy the fetched tree in, without editing any file, and
-update the tag and the file count in `tests/fixtures/parity/README.md`:
+A `fetch failed` line means stop: the `diff` has not run, so compare, delete and copy
+nothing. Otherwise the `fetched` and `listed` counts are equal and above zero. Read the
+`diff`, which exits 1 when the trees differ. `Only in tests/fixtures/parity` naming
+`alliumpy` or `README.md` is expected: those are this repository's. Any other file only
+there was removed upstream, so delete it. Copy the fetched tree in, without editing any
+file, and update the tag and the file count in `tests/fixtures/parity/README.md`:
 
 ```sh
 cp -R ai_tmp/parity-fetch/. tests/fixtures/parity/
@@ -295,8 +308,9 @@ a floor of 90%, and new upstream lines in `main.rs` count against it. The answer
 below the floor is a test in the core, never a lower floor. CI's `parity` job rebuilds its
 reference because its cache key hashes `Cargo.toml`.
 
-Then continue [Cut a release](release.md) from "The release branch", step 3, the
-`[Unreleased]` split: the pull request, the merge, the rehearsal if the workflow changed,
+Before the release branch's pull request, run [Pre-flight](release.md#pre-flight)
+(**read-only network**) for `<new>`; a stop there stops the release. Then continue
+[Cut a release](release.md) from "The release branch", step 3, the `[Unreleased]` split: the pull request, the merge, the rehearsal if the workflow changed,
 the tag, the `release-pypi.yml` run and the `uvx` proof. Each push and tag is its own
 authorised action.
 
