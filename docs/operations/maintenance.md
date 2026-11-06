@@ -31,8 +31,9 @@ because upstream decides behaviour ([decision 0016](../decisions/0016-mutation-b
 **Monthly.** Read Renovate's dependency dashboard and approve what is due, one kind at a
 time, then read each pull request it opens and merge it yourself;
 [Maintain dependencies](../how-to/maintain-dependencies.md) lists what it proposes and what
-each kind needs. Nothing opens without that click except a vulnerability-fix pull request,
-which can open unasked. Approve a `tools-source.txt` line one release at a time, because
+each kind needs. The `crates` and `github actions` groups open weekly without that click,
+and a vulnerability-fix pull request can open unasked; read and merge those too. Approve a
+`tools-source.txt` line one release at a time, because
 rustqual is a gate. What Renovate does not read moves by hand, as that page lists; to move
 a lockfile without waiting for it, `just lock-upgrade` moves all three within the
 manifests' constraints, and `just check` and a commit follow.
@@ -60,9 +61,13 @@ yourself, then follow [Bump upstream](../how-to/bump-upstream.md), which ends in
 [Cut a release](../how-to/release.md). Signatures have grown between upstream releases; a
 bare pin bump fails version-check.
 
-Nothing here merges on its own. Renovate proposes moves to the other pins, every one held
-for a dashboard click except a vulnerability-fix pull request, which can open unasked and
-still waits for a person to merge it.
+The first dashboard after upstream's next release is also a check on the exclusion:
+`allium-parser` has had no newer version to refuse since it landed, so read that it opens
+no update and no branch.
+
+Nothing here merges on its own. Renovate proposes moves to the other pins: the `crates` and
+`github actions` groups open weekly, the rest wait for a dashboard click, and a
+vulnerability-fix pull request can open unasked. Each waits for a person to merge it.
 
 ## Secrets
 

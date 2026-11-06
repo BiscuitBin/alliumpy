@@ -23,14 +23,16 @@ nothing merges itself.
 ## What the updater proposes
 
 `renovate.json` at the repository root names every pin Renovate reads
-([decision 0017](../decisions/0017-renovate.md)). Each update waits for a click on the
-dependency dashboard while `:dependencyDashboardApproval` is in `extends`, with one
-exception: a vulnerability-fix pull request skips that approval and can open unasked,
-because vulnerability alerts are enabled on this repository. It still never merges itself.
-An approved pull request runs the same jobs as any branch; read its diff as you would
-anyone's. There is no local validator: after editing `renovate.json`, the check is that no
-`Action Required: Fix Renovate Configuration` issue appears and the dashboard shows no
-configuration error.
+([decision 0017](../decisions/0017-renovate.md)). The `crates` and `github actions` groups
+open a pull request weekly on their own. Every other update waits for a click on the
+dependency dashboard, with one exception: a vulnerability-fix pull request skips that
+approval and can open unasked, because vulnerability alerts are enabled on this repository.
+Nothing merges itself. A Renovate pull request runs the same jobs as any branch; read its
+diff as you would anyone's. There is no local validator: after editing `renovate.json`, the
+check is that no `Action Required: Fix Renovate Configuration` issue appears and the
+dashboard shows no configuration error. The dashboard's detected-dependencies list leaves
+out anything a rule disables, so `allium-parser` and the pixi `python` line never appear
+there.
 
 | Group | What moves |
 | --- | --- |
@@ -44,18 +46,22 @@ configuration error.
 | `python build backend` | the `maturin` range in `crates/alliumpy/pyproject.toml` |
 | `hook revs` | every hook SHA and comment in both prek configurations, except lychee's |
 | one per pin | the other tool pins in `pyproject.toml`, each line of `tools.txt` and `tools-source.txt`, `twine` in `release-pypi.yml`, and the `biscuit-games-tooling` tag |
-| lock-file maintenance | the transitive closure of the three lockfiles |
+| lock-file maintenance | the transitive closure of the lockfiles, in two pull requests: `Cargo.lock` and `fuzz/Cargo.lock` together, and `pixi.lock` |
 
 Major updates open in a pull request of their own beside their group's, because
 Renovate's `separateMajorMinor` takes precedence over a group.
 
 Some of these need more than the branch shows:
 
-- **`pixi.lock`.** Renovate's `pixi` manager relocks only where the app allows `pixi` in
-  `allowedUnsafeExecutions`, which the hosted app does not document. Pachinko's branches
-  on the same app carried their relock; this repository's first approved branch is what
-  proves it here. If a branch arrives without one, `just lock-check` fails on it; check the
-  branch out and run `pixi update <name>`.
+- **`pixi.lock`.** The hosted app relocks it on the branch. It can do so with a newer pixi
+  than `pixi-version`, because `requires-pixi` is only a floor. When a newer pixi changes
+  what it writes, every CI job on that branch stops in the setup action with
+  `lock file not up-to-date with the workspace`. On 2026-11-05 CI's pixi 0.81.0 rejected
+  such a relock and 0.84.1 accepted it. Approve and merge the `pixi bootstrap` group first,
+  then rebase the red branches from the dashboard. Everyone's own pixi must meet the new
+  floor too; `pixi self-update` moves it.
+- **Several relocks at once.** After merging one, rebase the next from its dashboard box
+  and read its checks before merging it, so CI reads the combined `pixi.lock`.
 - **The `maturin` range.** `requires = ["maturin>=1.15,<2.0"]` is kept rather than pinned.
   The pixi pin is what builds locally and in `just check`, and the release workflow sets
   `maturin-version`, so neither reads the range. It is what a user's installer honours when
@@ -69,7 +75,8 @@ Some of these need more than the branch shows:
   [release rehearsal](release.md#the-rehearsal) is what first exercises it.
 - **A toolchain update.** clippy's lint set moves with the release, so a red `rust` job is
   often new lints; check the branch out, run `just clippy` and fix what it finds.
-  `rust-version` moves only on a minor release. Prose naming the toolchain moves by hand.
+  `rust-version` moves only on a minor release, because its versioning keeps the
+  precision of the value it replaces. Prose naming the toolchain moves by hand.
 - **`tools.txt`.** Its versions are read from crates.io, but its pass installs only a
   release binary. Before approving, check that the release has an archive for each
   platform.

@@ -3,8 +3,7 @@
   "extends": [
     "config:recommended",
     "helpers:pinGitHubActionDigests",
-    "schedule:earlyMondays",
-    ":dependencyDashboardApproval"
+    "schedule:earlyMondays"
   ],
   "rangeStrategy": "update-lockfile",
   "automerge": false,
@@ -12,7 +11,7 @@
   "pre-commit": { "enabled": false },
   "packageRules": [
     {
-      "description": "Crates: Cargo.lock within the caret ranges, or a range in Cargo.toml when a release falls outside it, both cargo roots, one pull request, with major updates in a pull request of their own beside it (separateMajorMinor). Held for dashboard approval while :dependencyDashboardApproval is in extends; a vulnerability-fix pull request skips that approval.",
+      "description": "Crates: Cargo.lock within the caret ranges, or a range in Cargo.toml when a release falls outside it, both cargo roots, one pull request, with major updates in a pull request of their own beside it (separateMajorMinor). Opens weekly without a dashboard click; a person merges it.",
       "matchManagers": ["cargo"],
       "groupName": "crates"
     },
@@ -23,7 +22,7 @@
       "enabled": false
     },
     {
-      "description": "Remote actions, SHA and version comment together, one pull request, with major updates in a pull request of their own beside it (separateMajorMinor). Held for dashboard approval while :dependencyDashboardApproval is in extends; a vulnerability-fix pull request skips that approval.",
+      "description": "Remote actions, SHA and version comment together, one pull request, with major updates in a pull request of their own beside it (separateMajorMinor). Opens weekly without a dashboard click; a person merges it.",
       "matchManagers": ["github-actions"],
       "groupName": "github actions"
     },
@@ -34,7 +33,7 @@
       "dependencyDashboardApproval": true
     },
     {
-      "description": "Tool pins in pyproject.toml. Whether the hosted app relocks pixi.lock on this repository is read from the first approved branch; a stale pixi.lock fails lock-check. Held for dashboard approval; a vulnerability-fix pull request skips that approval.",
+      "description": "Tool pins in pyproject.toml. The hosted app relocks pixi.lock on the same branch, with a pixi that can be newer than the pin (docs/how-to/maintain-dependencies.md); a stale pixi.lock fails lock-check. Held for dashboard approval; a vulnerability-fix pull request skips that approval.",
       "matchManagers": ["pixi"],
       "dependencyDashboardApproval": true
     },

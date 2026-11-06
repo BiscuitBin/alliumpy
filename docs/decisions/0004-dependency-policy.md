@@ -59,7 +59,7 @@ The consequences that hurt. Tests and shipped wheels use the locked Rust resolut
 wheel installers do not resolve the Rust caret ranges. That tests only one resolution,
 not every version those ranges permit. If the core is later consumed as a Cargo library
 outside this workspace, a consumer may resolve a dependency version never tested here.
-Renovate proposes lockfile moves, held until a person approves them
+Renovate proposes lockfile moves, and a person reads and merges each
 ([decision 0017](0017-renovate.md)), so the lockfile ages
 deliberately rather than by neglect. Every addition needs a reviewed rationale recorded
 beside its manifest range and under this policy. And caret ranges make `cargo update` a

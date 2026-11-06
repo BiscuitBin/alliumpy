@@ -1,7 +1,7 @@
 ---
 id: T17
 title: "Renovate over every pin except the upstream crate; the upstream-bump runbook"
-status: open
+status: done
 depends_on: [T14, T15]
 parallel_with: []
 branch: ticket/t17-renovate
@@ -429,17 +429,248 @@ by a `version` line equal to the pin, before and after Renovate's first runs.
 
 ## Hand-back notes
 
-To be written by the executing agent: the inventory, the dashboard's config-validation
-state, the private repository check and the authorisation with who performed the
-installation, the dated installation-settings read-back with its repository list and
-permissions, the per-manager evidence with the two exclusion proofs, the maturin-range
-decision and its outcome, the review record for each checkpoint (`CONVENTIONS.md` §14),
-and where this ticket departed from P `tickets/T17-renovate.md` and L's draft.
+Branch `tickets/T17-renovate`, not the frontmatter's `ticket/t17-renovate` (Supacode's
+naming), as pachinko's was.
+
+### Baseline: `92b2a77`, untouched
+
+`just initialize`, then `just check`, exit 0:
+
+```text
+All checks passed and the worktree is unchanged.
+```
+
+### Claims (step 8): PR #34, commit `7799b6a`, merged
+
+Claims 1, 2, 4, 7, 12, 18 and 19 hold. Claim 5 is `partial`, because §12's vocabulary has
+no qualified `holds`: it held on this public `enterprise` repository, and the private
+non-Enterprise case was never exercised.
+
+### The inventory (step 2): `92b2a77`
+
+Read from every tracked file: `git ls-files`, then a search for versions, SHAs and digests
+outside `docs/`, `tickets/` and the vendored code. Beyond the ticket's list it found
+`nextest-version`, `fuzz/Cargo.toml` `rust-version`, `twine==7.0.0`, the three image
+digests, `LYCHEE_VERSION`, the release matrix's runner labels, and the `python_version` and
+`target-version` settings. Versions are as read on that day.
+
+| Pin | File | Coverage |
+| --- | --- | --- |
+| `allium-parser = "=3.6.1"` | `Cargo.toml`; `Cargo.lock`, `fuzz/Cargo.lock` | **excluded**: `matchManagers: cargo`, `matchDepNames`, `enabled: false` |
+| parity reference | none: `install-parity-reference` reads `--print-pin` | **follows the exclusion**; no literal |
+| `pyo3`, `serde`, `serde_json`, `divan` and their closure | `Cargo.toml`, `Cargo.lock` | native `cargo`, group `crates` |
+| `libfuzzer-sys = "0.4.13"` and its closure | `fuzz/Cargo.toml`, `fuzz/Cargo.lock` | native `cargo`, second root, group `crates` |
+| `alliumpy-core = { path, version = "3.6.1" }` | `crates/alliumpy/Cargo.toml`, `fuzz/Cargo.toml` | not a pin: a path dependency, which the manager skips; moved by the runbook under invariant 9 |
+| crate and wheel versions | `Cargo.toml`, `crates/alliumpy/pyproject.toml` | not pins: this repository's own, moved by the runbook |
+| `channel = "1.99.1"` | `rust-toolchain.toml` | native `rust-toolchain`, group `rust toolchain`, held |
+| `rust-version = "1.99"` | `Cargo.toml`, `fuzz/Cargo.toml` | regex, `rust-version` datasource, `rust-release-channel`; group `rust toolchain`, held |
+| 15 exact conda pins (`just`, `prek`, `cargo-binstall`, `cargo-nextest`, `cargo-llvm-cov`, `cargo-deny`, `cargo-insta`, `cargo-shear`, `taplo`, `cargo-mutants`, `maturin`, `uv`, `pytest`, `ruff`, `mypy`) | `pyproject.toml` | native `pixi`, held |
+| `python = "3.14.*"` | `pyproject.toml` | manual: disabled by rule, §2's tooling interpreter |
+| `requires-python = ">=3.14"`, `">=3.11"` | both `pyproject.toml` | manual; no rule yet (ticket: add one if the dashboard lists an update) |
+| `python_version = 3.11`, `target-version = "py311"` | `mypy.ini`, `ruff.toml` | manual: no manager reads them; they follow the wheel's `>=3.11` floor, decision 0012 |
+| `pixi.lock` | `pixi.lock` | `lockFileMaintenance`, held |
+| `nextest-version = "0.9.146"` | `.config/nextest.toml` | regex, conda `conda-forge/cargo-nextest`; group `cargo-nextest`, held |
+| `biscuit-games-tooling` tag `v0.3.0` | `pyproject.toml` | regex, `github-tags`, held |
+| `requires-pixi = ">=0.81.0"` | `pyproject.toml` | regex, `github-releases`; group `pixi bootstrap`, held |
+| `pixi-version: v0.81.0` | `.github/actions/setup/action.yml` | regex, same; native reading disabled |
+| `maturin>=1.15,<2.0` | `crates/alliumpy/pyproject.toml` | native `pep621`, group `python build backend`, held; range kept |
+| `maturin-version: v1.15.0`, 9 times | `release-pypi.yml` | regex, conda `conda-forge/maturin`; group `maturin` with the pixi pin, held; native reading disabled |
+| `version: '0.13.5'` (setup-uv) | `release-pypi.yml` | regex, conda `conda-forge/uv`; group `uv` with the pixi pin, held; native reading disabled |
+| `twine==7.0.0` | `release-pypi.yml` | regex, `pypi`, held |
+| `python-version: '3.11'`, `'3.14t'` | `ci.yml`, `release-pypi.yml` | manual: disabled by rule, decision 0012's floor and the free-threaded build |
+| `cargo-hack@0.6.45`, `cargo-fuzz@0.13.2` | `tools.txt` | regex, `crate`, held |
+| `rustqual@1.8.3` | `tools-source.txt` | regex, `crate`, held |
+| 6 hook revs (editorconfig-checker, markdownlint-cli2, typos, shellcheck-py, actionlint, ripsecrets) | `.pre-commit-config.yaml` | regex; native off; group `hook revs`, held |
+| markdownlint-cli2 rev, repeated | `.pre-commit-fix.yaml` | same regex and group |
+| lychee rev and `LYCHEE_VERSION=0.24.2`, twice | `.pre-commit-config.yaml` | manual: disabled; argument must match the rev; prefix `lychee-v` |
+| Remote actions (`actions/*`, `Swatinem/rust-cache`, `prefix-dev/setup-pixi`, `PyO3/maturin-action`, `astral-sh/setup-uv`, `docker/setup-qemu-action`) | `.github/workflows/*.yml`, `.github/actions/setup/action.yml` | native `github-actions`, group `github actions` |
+| `uses: ./.github/actions/setup` | workflows | not a pin: a local path |
+| `python:3.11-slim@sha256:…`, `python:3.11-alpine@sha256:…`, `tonistiigi/binfmt@sha256:…` | `release-pypi.yml` | manual: smoke-only, never in the wheel; bare digests suit a regex poorly |
+| `ubuntu-22.04`, `macos-15-intel` | `release-pypi.yml`, under `matrix.platform.runner` | manual: the manager reads `runs-on` but cannot resolve the matrix expression; decides which wheels build |
+| `runs-on: ubuntu-latest`, `windows-latest`, `macos-latest` | workflows | not pins |
+| literal `15` | `release-pypi.yml` `release` job's guard | manual: moves with the matrix |
+| Toolchain text in prose | `docs/reference/configuration.md:90`, `crates/alliumpy/Cargo.toml:19`, decision 0016 | not pins: dated measurements |
+
+The `github-actions` correction: the ticket says that manager reads none of the inputs.
+Renovate's `known-actions` lists `python-version`, setup-uv's `version`, `maturin-version`
+and `pixi-version`, so each has a rule, and the dashboard below lists none of them.
+
+### The vendoring script: `92b2a77` with the script uncommitted
+
+T13 step 2's text, with one long string split and one call rewritten for `just py-lint` and
+`just py-typecheck`, as `scripts/vendor_cli.py`. The three files fetched at `v3.6.1`, each
+`git hash-object` equal to the tag's tree, into an empty directory; the script exits 0, and
+`cmp` finds each output byte-identical to `crates/alliumpy-core/src/cli/`.
+
+### The runbook's read-through: `92b2a77`
+
+Not a bump: a temporary pin edit to `=3.6.0`, a real version, restored afterwards with
+`git status --short` clean apart from the new script. Both texts differ from the ticket's
+expectation, and the runbook quotes these:
+
+```text
+cargo update -p allium-parser --locked                      (exit 101)
+error: cannot update the lock file <worktree>/Cargo.lock because --locked was passed to prevent this
+just version-check                                          (exit 1)
+version-check: workspace version='3.6.1' differs from allium-parser pin='3.6.0'
+```
+
+The other steps were read, not run; a real upstream release is what exercises them. Step 5
+departs from the ticket by replacing the corpus before `just parity`, not after, so parity
+runs on the new files. The harness compares live against the reference, so a difference is
+a defect here and not a stored output to update, and upstream's fixtures take no edit or
+per-fixture attribution, as `tests/fixtures/parity/README.md` records.
+`TERMINAL_*` are re-measured by running their test against the reference; the command's
+shape was checked against the candidate (`1 passed`), because no reference was built here.
+
+### Installation and scope (step 4)
+
+The maintainer installed the app for the whole organisation on 2026-10-24, for pachinko,
+and chose to keep it so; this is a declared departure from "this repository only", and the
+pages say so. The maintainer's read-back from the settings view is quoted in the activation
+pull request, because a commit cannot quote what follows it. The API reading, 2026-11-05:
+
+```text
+gh api orgs/BiscuitBin/installations
+renovate, id 174933380, repository_selection all, created 2026-10-24T13:48:08.000-07:00
+read: administration, members, metadata, packages, vulnerability_alerts
+write: checks, contents, issues, pull_requests, statuses, workflows
+```
+
+The private-plan open point is moot: the repository is public on `enterprise`, and
+`repos/BiscuitBin/alliumpy/vulnerability-alerts` answers HTTP 204, so the vulnerability-fix
+exception applies from the first run.
+
+### The dashboard (step 5): issue #36, 2026-11-05T22:10:06Z, `main` at `99f2861`
+
+PR #35 merged at 21:54:54Z. Renovate opened the dashboard at 21:55:25Z and closed its
+onboarding pull request, which now reads `Configure Renovate - autoclosed`, at 21:55:26Z.
+No `Action Required` issue exists (`gh issue list --search`, 0), and the body has no
+repository-problems section.
+
+| Manager | Detected | Grouping or update |
+| --- | --- | --- |
+| cargo | `Cargo.toml`: `pyo3`, `divan`, `serde`, `serde_json`; `fuzz/Cargo.toml`: `libfuzzer-sys` | lock maintenance on `renovate/lock-file-maintenance-crates` |
+| github-actions | every remote `uses:`; no `python`, `astral-sh/uv`, `maturin` or `prefix-dev/pixi` | `renovate/github-actions` |
+| pep621 | `crates/alliumpy/pyproject.toml`: `python >=3.11`, `maturin >=1.15,<2.0`; `pyproject.toml`: `python >=3.14` | no update for any of them, so no `requires-python` rule was added |
+| pixi | 15 exact pins; no `python` | one branch per pin; `renovate/lock-file-maintenance` |
+| rust-toolchain | `rust 1.99.1` | no update |
+| regex: `rust-version` | `Cargo.toml` and `fuzz/Cargo.toml`: `rust 1.99` | no update |
+| regex: tools | `tools.txt`: `cargo-hack 0.6.45`, `cargo-fuzz 0.13.2`; `tools-source.txt`: `rustqual 1.8.3` | no update |
+| regex: `nextest-version` | `cargo-nextest 0.9.146` → `0.9.151` | `renovate/cargo-nextest`, one branch with the pixi pin |
+| regex: setup-uv | `uv 0.13.5` → `0.13.7` | `renovate/uv`, with the pixi pin |
+| regex: `maturin-version` | nine readings, `maturin 1.15.0` → `1.16.0` | `renovate/maturin`, with the pixi pin |
+| regex: twine | `twine 7.0.0` | no update |
+| regex: tooling tag | `biscuit-games-tooling v0.3.0` | no update |
+| regex: pixi pair | `.github/actions/setup/action.yml` and `pyproject.toml`: `prefix-dev/pixi 0.81.0` → `0.84.1` | `renovate/pixi-bootstrap`, one branch |
+| regex: hook revs | six in `.pre-commit-config.yaml` (no lychee), markdownlint in `.pre-commit-fix.yaml` | `renovate/hook-revs`; `renovate/major-hook-revs` for editorconfig-checker v4 |
+
+Every entry sat under Pending Approval, and no update pull request opened until a box was
+ticked.
+
+**The exclusion, two proofs.**
+
+- **Listing: this proof cannot be met as the ticket writes it.** The ticket requires
+  `allium-parser` listed under `cargo` at `3.6.1`. Renovate's `package-files.ts` drops any
+  dependency with a skip reason from that section, and a disabled rule sets one, so the
+  absence is what a working rule produces. `python` under pixi is absent the same way, while
+  the manifest's other four are listed. crates.io's newest is `3.6.1`, equal to the pin, and
+  upstream's newest tag is `v3.6.1`, so **the exclusion is read but unexercised**. The check
+  that closes it is the first dashboard reading after upstream's next release, which
+  `docs/operations/maintenance.md` names.
+- **Lock maintenance: holds.** See #39 below.
+
+From Renovate's source, as data: `fetch.ts`'s comment says a vulnerability fix goes through
+for a manager-disabled dependency "unless a package rule disabled it as well", so the
+exclusion also holds against an alert.
+
+### Approved pull requests
+
+Boxes ticked by the executing agent on the maintainer's separate authorisation for each.
+
+| PR | Moved | Outcome |
+| --- | --- | --- |
+| #39 crates lock maintenance | `cc` 1.10.0 → 1.11.0 in `fuzz/Cargo.lock`; `Cargo.lock` untouched | green; merged `34be00c` |
+| #41 `pixi bootstrap` | `pixi-version` v0.84.1, `requires-pixi` >=0.84.1; no `pixi.lock` change | green; merged by the maintainer, `30a99d0` |
+| #40 pixi lock maintenance | `pixi.lock` +84 −83 | red, then green on `d6a5165`; merged by the maintainer, `9e47bb5` |
+| #37 uv | the pin, the setup-uv copy, `pixi.lock` | red, then green on `c6fc825`; merged `9cfae15` |
+| #38 maturin | the pin, nine `maturin-version` copies, `pixi.lock` | red, then green on `dac8ae2`; merged `0dd7c07` |
+
+On the #39 branch, at `5e9c45e`, `allium-parser` is `3.6.1` in `Cargo.lock` and in
+`fuzz/Cargo.lock`, and `=3.6.1` in `Cargo.toml`. None of the other diffs mentions it.
+
+**The relock proof.** The hosted app relocks `pixi.lock` on this repository, but the first
+relocks failed every job in setup with `lock file not up-to-date with the workspace`.
+Reproduced with the exact binaries, `pixi list --locked --no-install`:
+
+| Lock | pixi 0.81.0 | pixi 0.84.1 |
+| --- | --- | --- |
+| the bot's | exit 1, same error | exit 0 |
+| `main`'s | exit 0 | exit 0 |
+
+Inference, not read from a log: `requires-pixi` is a floor, so the app relocked with a pixi
+of 0.84 or later. A local 0.84.1 relock writes the same `__unix=0` line as the bot's, where
+`main`'s read `__unix=0=0`, and pixi 0.84.0's notes change lock hashes and recommend that
+everyone move. Pachinko's proof predates 0.84. The how-to says to approve `pixi bootstrap`
+first; its residual risk is that this recurs.
+
+**Merge order.** #40 merged before #37 and #38 rebased over it. `main` at `0dd7c07` has
+`uv` 0.13.7 and `maturin` 1.16.0 in the manifest and the lock, and pixi 0.84.1's
+`lock --check --dry-run` exits 0 on it.
+
+**Not exercised by any of these.** `release-pypi.yml` does not run on pull requests, so
+`uv` 0.13.7 and `maturin` 1.16.0 in that workflow are first exercised by the next rehearsal.
+`docs/how-to/release.md` calls for one, since the workflow has changed.
+
+### Extraction proved, update half pending
+
+Recorded per dependency, not as done, because nothing was pending on the day:
+
+- **`allium-parser`:** as above.
+- **The toolchain group:** `rust 1.99.1` and `rust 1.99` extracted; the newest Rust manifest
+  is `1.99.1`. `rust-release-channel`'s `getNewValue` returns `major.minor` when the current
+  value has no patch, which is read from source. The first minor release proves it.
+- **The maturin range:** `maturin >=1.15,<2.0` extracted, with no update under
+  `update-lockfile`. The range was kept, with its reason in the rule, the how-to and
+  decision 0017; `release-pypi.yml` sets `maturin-version`, so the ticket's "unset" wording
+  does not apply. The first maturin 2.0 proves the edit.
+- **`twine`, the tools and the tooling tag:** extracted, with no update pending.
+
+### Departures from P's ticket, L's draft and this ticket
+
+- **Scope.** The app stays org-wide, as above.
+- **Toolchain.** The native `rust-toolchain` manager and the `rust-version` datasource, as
+  L drafted, rather than P's Docker tags: there is no `Dockerfile` here.
+- **Input pairs.** `uv` and `maturin` copies are read through conda regex managers, the
+  pattern P proved for `nextest-version`.
+- **Disabled.** The pixi `python` line, and `python-version` inputs.
+- **Manual lists.** Runner labels and the Python-floor settings join them.
+- **Activation.** The ticket says it removes one line and nothing else. It also rewrites
+  three `description` strings that the removal or the proofs made false. Configuration
+  behaviour differs by the one line alone.
+- **Outside Files touched,** each a sentence T17 made false: `docs/how-to/release.md`,
+  `docs/how-to/develop-locally.md` (the pixi floor, now named by reference),
+  `docs/explanation/architecture.md`, `docs/reference/configuration.md`, decisions 0004 and
+  0011, `tools-source.txt`, `tickets/README.md`, and the new `scripts/vendor_cli.py`, by the
+  maintainer's choice.
+- **§12.** Through its own `main` pull request, as the ticket says, unlike pachinko.
+
+### Review 1 (`CONVENTIONS.md` §14): `92b2a77` with the lane uncommitted
+
+Codex `gpt-6-astra`, read-only, one per lens (`ai_tmp/review/T17-1/`); triage and fixes: a
+fresh-context subagent. No high finding.
+
+| Finding | Severity | Verdict | Applied |
+| --- | --- | --- | --- |
+| C2, BR-02: the setup-uv regex read any quoted `version:` | medium | valid | bound to the `astral-sh/setup-uv` step; `version` must stay its first input, and moving it stops the reading rather than misreading |
+| C1, BR-01: `mypy.ini` `python_version` and `ruff.toml` `target-version` missing | low | valid | listed as manual, tied to decision 0012 |
+| BR-03: the scratch check could pass with a manager deleted | low | valid | every expected manager must be visited once |
+
+`twine` and the maturin range can be bumped wrongly without `just version-check` or `just
+parity` noticing. Both reviewers reported this as no finding: both are held, and the how-to
+names what first exercises them.
 
 ## Open points
 
-- Whether the hosted Mend app serves a private repository on the free organisation plan
-  without a paid Mend tier. Checked before step 4; if not, the fallback is Dependabot as
-  L drafted it, which has no pixi or `tools.txt` support (L
-  `tickets/S01-dependency-updates.md` line 72; whether it reads `[build-system] requires`
-  is unverified, checked on the day), and the maintainer decides.
+- Closed: the repository is public on `enterprise`, so the private-plan question does not
+  arise. The fallback was not needed.
