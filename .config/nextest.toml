@@ -1,4 +1,5 @@
-# Keep profile semantics tied to the runner pinned by pixi.
+# A floor, not a pin: the oldest nextest whose profile semantics this file
+# relies on. The dev shell's nextest comes from flake.lock (decision 0018).
 nextest-version = "0.9.146"
 
 [profile.default]

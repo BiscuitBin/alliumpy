@@ -68,11 +68,9 @@ for one action is not approval for the next. Destructive operations need the sam
 authorization inside the worktree, such as discarding changes or deleting a branch.
 Once `release-pypi.yml` exists (T14), a tag is a release; once Pages deploys from `main`
 (decision 0008), a push there is a deployment. The recipes that reach the network are
-`just initialize`, `just install-toolchain`, `just install-tools`, `just sync`,
-`just lock`, `just lock-upgrade`, `just install-hooks`, `just audit`,
-`just check-links-online`, `just install-parity-reference`, `just nix-wheel` and
-`just nix-flake-check`, and entering the Nix dev shell reaches it whenever `flake.lock`
-names something the local store lacks;
+`just initialize`, `just sync`, `just lock`, `just lock-upgrade`, `just audit`,
+`just check-links-online`, `just nix-wheel` and `just nix-flake-check`, and entering the
+Nix dev shell reaches it whenever `flake.lock` names something the local store lacks;
 each runs only when the task authorises it. `just fuzz` and `just fuzz-build` are not
 among them: their lock guard is `--offline`. Never read, print or commit a credential.
 Scratch notes and intermediate output go in `ai_tmp/`, never in a commit. Work on one

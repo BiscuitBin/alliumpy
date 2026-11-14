@@ -30,6 +30,11 @@ libpython at load time.
 
 cargo-mutants 27.1.0 is pinned in `pyproject.toml`; on 2026-10-30 conda-forge's linux-64
 and osx-arm64 builds depended on no rust, so rustup's cargo stays first on `PATH`.
+
+Note, 2026-11-14: pixi, rustup's place on `PATH` and `tools.txt` are gone. cargo-mutants
+and cargo-fuzz come from the flake's dev shell of [decision
+0018](0018-nix-owns-the-tools.md), at the versions `flake.lock` decides, and the shell
+builds cargo-fuzz for the host, so the Rosetta 2 prerequisite below no longer applies.
 `just mutants` mutates a copy of the tree, `--package alliumpy-core` alone, with every
 feature, under `cargo test` so a doctest can catch a mutant. Its first line fails when
 the mutant list is empty, so a wrong filter cannot pass over zero mutants. It watches
@@ -79,9 +84,7 @@ libFuzzer's C++ through libfuzzer-sys's build script, so a C++ compiler is a
 prerequisite of the gate; the fuzz crate's clippy line took 4.5 seconds cold and 0.08
 warm, and `just fuzz-build` 21.4 seconds cold and 0.3 warm, on an Apple-silicon
 workstation. The cargo-fuzz release has no arm64 macOS binary, so Apple silicon needs
-Rosetta 2 for `just fuzz` and `just fuzz-build`. (Note, November 2026: the Nix dev shell
-of [decision 0018](0018-nix-owns-the-tools.md) builds cargo-fuzz for the host, so
-under it this prerequisite does not apply; it remains for the pixi path.) A third lockfile moves with the other
+Rosetta 2 for `just fuzz` and `just fuzz-build`. A third lockfile moves with the other
 two, and because the fuzz crate's path dependency names no version, a version bump leaves
 `fuzz/Cargo.lock` stale until `just lock`; `lock-check` refuses it meanwhile. divan adds
 16 packages to `Cargo.lock`, a second `syn` major among them, outside the shipped graph

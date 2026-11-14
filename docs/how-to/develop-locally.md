@@ -25,11 +25,6 @@ Justfile supports POSIX development on Linux x86_64 and macOS arm64, and the dev
 also builds on Linux arm64, for a container on an Apple silicon Mac. The release workflow
 builds the other wheel platforms ([decision 0015](../decisions/0015-release-process.md)).
 
-Until it is removed, the older path still works outside the dev shell: rustup for the
-compiler, pixi at or above `requires-pixi` in `pyproject.toml` for the tools, and a global
-`just`, with `just initialize` installing the rest. It is no longer the supported path,
-and gate 23, `nix-check`, fails on it because pixi has no Nix formatter.
-
 ## First run
 
 Nix is installed once per machine. Everything after it comes from this repository's
@@ -53,18 +48,21 @@ just check
 `fuzz/Cargo.lock` name, and installs the pre-commit hook; it needs the network for the
 crates. It never formats, stages, commits, tags or pushes. The hook is installed from the
 primary checkout only, because every worktree shares one `.git/hooks`; in a secondary
-worktree `just initialize` says so and skips it. In the dev shell every hook is a tool the
-shell holds, so nothing is prepared or fetched for them, and once the crates are fetched
+worktree `just initialize` says so and skips it. Every hook is a tool the shell holds,
+so nothing is prepared or fetched for them, and once the crates are fetched
 the whole of `just check` is offline.
 
 `just check-toolchain` refuses a compiler that is not the pinned one before anything else
-runs. It does not ask where cargo came from, only whether cargo and the compiler it runs
-are the pinned release with the pinned components, and in the dev shell that they come
-from the Nix store, so the refusal names both versions:
+runs. It asks whether cargo and the compiler it runs are the pinned release with the
+pinned components, and that they come from the Nix store, so a cargo ahead of the shell's
+on `PATH` is refused with both versions named:
 
 ```text
-check-toolchain: cargo is 1.96.0, not the pinned 1.99.1 (/home/you/.pixi/bin/cargo)
+check-toolchain: cargo is 1.96.0, not the pinned 1.99.1 (/opt/homebrew/bin/cargo)
 ```
+
+Outside the shell `just` itself refuses to load, because only the shell sets
+`ALLIUMPY_PYTHON`, and `just initialize` refuses with the command that enters it.
 
 Inside the dev shell every tool is on your shell's `PATH` too, so `cargo nextest` and the
 others run directly. Commit from inside the shell as well: the installed hook calls the
@@ -81,14 +79,12 @@ just doc
 `just build` compiles the workspace with every feature. The workspace consists of
 `alliumpy-core` and the thin `alliumpy` bindings. Run `just py-develop` to build the
 extension and install it editable, then `just py-test` for its Python tests. The
-install goes into a virtual environment under `target/py-develop/`, built on the tool
-provider's interpreter and seeing its pytest and mypy, because the provider's own
-environment is not always writable: the Nix dev shell's is in the read-only store. The
-recipes put that environment first on `PATH`, so `python` in a recipe is the interpreter
-that can import the extension.
-The Justfile sets `PYO3_PYTHON` to the provider's own interpreter for every Cargo
-invocation: pixi's, or the dev shell's inside `nix develop`. Set it to that same
-absolute path, which `just --evaluate PYO3_PYTHON` prints, when invoking Cargo directly.
+install goes into a virtual environment under `target/py-develop/`, built on the dev
+shell's interpreter and seeing its pytest and mypy, because the shell's own environment
+is in the read-only store. The recipes put that environment first on `PATH`, so `python`
+in a recipe is the interpreter that can import the extension.
+The Justfile sets `PYO3_PYTHON` to the dev shell's own interpreter, `ALLIUMPY_PYTHON`,
+for every Cargo invocation. Set it to that same path when invoking Cargo directly.
 
 `just build` compiles the workspace with every feature. `just test` runs the unit and
 integration tests through nextest, then the doctests. `just doc` builds the API

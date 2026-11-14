@@ -2,4 +2,3 @@
 
 Cargo.lock linguist-generated=true
 flake.lock linguist-generated=true
-pixi.lock merge=binary linguist-language=YAML linguist-generated=true -diff

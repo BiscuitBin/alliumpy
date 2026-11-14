@@ -18,11 +18,8 @@ follow [Architecture](../explanation/architecture.md); the dependency direction 
 ├── Cargo.toml                 Workspace members, dependencies, lints and profiles
 ├── Cargo.lock                 Locked Cargo resolution
 ├── rust-toolchain.toml        Rust compiler and components
-├── pyproject.toml             pixi tooling manifest
-├── pixi.lock                  Tool environment resolution
-├── tools.txt                  Binary-only extra tools
-├── tools-source.txt           Extra tools with source builds accepted
-├── flake.nix                  The Nix dev shell: the tool owner being introduced
+├── pyproject.toml             Tooling metadata and the gate's recipe list
+├── flake.nix                  The Nix dev shell: every tool, compiler and Python
 ├── flake.lock                 Pinned sources for the dev shell
 ├── .envrc                     direnv entry to the dev shell
 ├── Justfile                   Supported recipes
@@ -49,7 +46,7 @@ follow [Architecture](../explanation/architecture.md); the dependency direction 
 ├── .claude/skills/            Discovery bridges
 ├── .codex/skills/             Discovery bridges
 ├── .github/                   Adapters, workflows and setup action
-└── target/ dist/ .pixi/ .tools/ ai_tmp/  Ignored output and scratch
+└── target/ dist/ ai_tmp/      Ignored output and scratch
 ```
 
 ## What each part is responsible for
@@ -63,8 +60,10 @@ because all worktrees share their hook directory.
 The configuration files at the root include `rustfmt.toml`, `clippy.toml`,
 `rustqual.toml`, `taplo.toml`, `deny.toml`, `ruff.toml`, `mypy.ini` and
 `.config/nextest.toml`; [Configuration](../reference/configuration.md) owns their meanings.
-`.pixi/envs/default/bin` holds the tooling environment; `.tools/bin` holds tools
-conda-forge lacks. Neither holds the repository's compiler.
+The dev shell `flake.nix` defines holds every tool and the compiler, in the Nix store;
+nothing in the worktree does. `.pixi/` and `.tools/`, where a checkout made before
+[decision 0018](../decisions/0018-nix-owns-the-tools.md) kept its tools, are ignored
+leftovers, safe to delete.
 
 ## Related pages
 

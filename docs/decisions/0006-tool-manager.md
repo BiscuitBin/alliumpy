@@ -8,6 +8,10 @@ requires: []
 
 # Decision 0006: Tool manager
 
+> **Superseded** on 2026-11-14 by [decision 0018](0018-nix-owns-the-tools.md). The record
+> below is unchanged; pixi, the two tool lists and the rustup recipes it describes no
+> longer exist in this repository.
+
 Carried from pachinko's decision 0011 at `bf51e0d`, which carried libpawdoku's decision 0011 at `ccdd001`.
 
 ## Context

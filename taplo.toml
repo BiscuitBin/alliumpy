@@ -1,6 +1,7 @@
 # Cover both the tooling pyproject.toml and maturin's nested manifest.
 include = ["**/*.toml"]
-# Generated environments, build output and scratch files have other owners;
+# Generated environments (.pixi and .tools only as leftovers from before
+# decision 0018), build output and scratch files have other owners;
 # fixtures are input data, including deliberately invalid TOML in later lanes.
 exclude = ["target/**", ".tools/**", ".pixi/**", ".direnv/**", "ai_tmp/**", "tests/fixtures/**"]
 

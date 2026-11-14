@@ -37,8 +37,9 @@ and has allowed this directory; it does nothing until then.
 version of every tool at once. Two things stay exact. The Rust version, with its
 components, is read from `rust-toolchain.toml`, which remains its single owner. The
 `allium-parser` pin stays exact under [decision 0011](0011-exact-pin-on-allium-parser.md).
-`nextest-version` in the nextest configuration is a floor, not a pin, so it holds
-under either provider.
+`nextest-version` in the nextest configuration is a floor, not a pin: the oldest
+nextest whose profile semantics the file relies on, moved by hand and never above what
+`flake.lock` provides.
 
 **`just check` in the shell stays the gate.** The `Justfile` remains the only
 interface to the checks. `nix build` and `nix flake check` are recipes beside the gate,
@@ -59,22 +60,19 @@ configuration.
 work, as before. arm64 Linux is added so the same shell runs natively in a Linux
 container on an Apple silicon Mac.
 
-**One seam says who provides the tools.** The dev shell sets `ALLIUMPY_TOOLS=nix`. The
-`Justfile` reads it in one place: inside the shell it leaves `PATH` as the shell made
-it and adds nothing from `.pixi` or `.tools`, even when both exist. A tool the shell does
-not hold still falls through to the `PATH` the shell inherited, so the shell's contents
-decide what is complete; the toolchain check requires cargo and rustc to come from the
-Nix store there. Any other value is refused. Every recipe finds Python and each tool by
-name either way. The proof that nothing outside the shell is needed is a run with
-nothing else on `PATH`, which belongs to the cutover.
+**The `Justfile` runs only in the shell.** The dev shell names its interpreter in
+`ALLIUMPY_PYTHON`, and the `Justfile` refuses to load without it, naming the way in; the
+first hook refuses a commit for the same reason. The `Justfile` leaves `PATH` as the
+shell made it, with only the editable-install environment in front. A tool the shell
+does not hold still falls through to the `PATH` the shell inherited, so the shell's
+contents decide what is complete; the toolchain check requires cargo and rustc to come
+from the Nix store. Every recipe finds each tool by name.
 
 **The Nix files are code.** nixfmt formats them, statix lints them and deadnix finds
 unused bindings, all three from the dev shell. `just nix-check` runs the three and
 fails when Git lists no Nix file; `just format` and `just fix` format them first in the
-shell, before any tool the shell may not yet hold; `nix fmt` works through the flake's `formatter` output. The recipe joins
-`just check`'s list when the shell becomes the only provider, because pixi has no Nix
-formatter. The hook gate, the flake checks and CI each gain it as they move to the
-shell.
+shell; `nix fmt` works through the flake's `formatter` output. The recipe is gate 23
+of `just check`, a hook in the hook gate, a flake check and a step of CI's Rust job.
 
 **A flake sees only what Git tracks.** In a Git repository Nix reads the tracked files
 and nothing else. A new file that a build or the shell needs must be added to the index
@@ -87,12 +85,12 @@ Each input is a dependency under [decision 0004](0004-dependency-policy.md), and
 
 | Input | Why it is here | Alternatives considered | Gate impact | Licence |
 | --- | --- | --- | --- | --- |
-| `nixpkgs`, the `nixpkgs-unstable` branch | Every tool except the compiler. | A release branch, such as `nixos-26.05`, moves less but lags the cargo tools by months; unstable carried every tool the gates need, and is built for all three systems. | Every gate run in the shell. `flake.lock` is outside the lock check until the cutover. | MIT |
+| `nixpkgs`, the `nixpkgs-unstable` branch | Every tool except the compiler. | A release branch, such as `nixos-26.05`, moves less but lags the cargo tools by months; unstable carried every tool the gates need, and is built for all three systems. | Every gate run in the shell. The lock check verifies `flake.lock` offline. | MIT |
 | `rust-overlay` (oxalica) | Builds the toolchain `rust-toolchain.toml` names, exact channel and components, from the official release binaries, each pinned by hash in the overlay's own manifests. It follows this flake's `nixpkgs`, so no second nixpkgs is fetched. | fenix also reads the toolchain file but tracks its own manifest snapshots; nixpkgs' own `rustc` is one version, not the pinned one, and has no `llvm-tools` component. | The toolchain check and every Rust gate in the shell. | MIT |
 | `crane` (ipetkov) | Builds the crates and the wheel in the sandbox from `Cargo.lock`, with the dependencies as a derivation of their own that the wheel and the flake checks reuse. It takes this flake's toolchain and has no `nixpkgs` input of its own. | nixpkgs' `buildRustPackage` with `importCargoLock` needs no new input but rebuilds every dependency for each derivation; `naersk` is less maintained. | `just nix-wheel` and `nix flake check`; not `just check`. | MIT |
-| `biscuit-games-tooling`, built in the flake from GitHub | The `bg-*` commands, `just check`'s runner among them ([decision 0002](0002-hook-runner-and-checkers.md)). Pinned to the commit the pixi manifest's `v0.3.0` tag resolves to, by content hash. Its build backend's upper bound is relaxed to nixpkgs' `uv_build`. | None: nixpkgs does not carry it, and it is this organisation's own. | `just check`, the docs and agents checks, the secret scan. | None declared at this revision: no licence file or field. It is the maintainer's own package and never ships. |
-| `allium-cli` 3.6.1, built in the flake from crates.io | The parity reference (invariant 1). The crate and version the `allium-parser` pin names, with the crate's own lockfile, pinned by source and vendor hashes. | `cargo install` into the worktree, as under pixi: not pinned by hash and not reproducible offline. | `parity` and `version-check` in the shell. | MIT |
-| rustqual 1.8.3, built in the flake from crates.io | The metrics gate ([decision 0007](0007-metrics-gate.md)); nixpkgs does not carry it. The same crate and version `tools-source.txt` pins, pinned here by source and vendor hashes. | A prebuilt binary does not exist for any version. | The metrics gate in the shell. | MIT |
+| `biscuit-games-tooling`, built in the flake from GitHub | The `bg-*` commands, `just check`'s runner among them ([decision 0002](0002-hook-runner-and-checkers.md)). Pinned to the commit its `v0.3.0` tag resolves to, by content hash. Its build backend's upper bound is relaxed to nixpkgs' `uv_build`. | None: nixpkgs does not carry it, and it is this organisation's own. | `just check`, the docs and agents checks, the secret scan. | None declared at this revision: no licence file or field. It is the maintainer's own package and never ships. |
+| `allium-cli` 3.6.1, built in the flake from crates.io | The parity reference (invariant 1). The crate and version the `allium-parser` pin names, with the crate's own lockfile, pinned by source and vendor hashes. | `cargo install` into the worktree, as before this decision: not pinned by hash and not reproducible offline. | `parity` and `version-check` in the shell. | MIT |
+| rustqual 1.8.3, built in the flake from crates.io | The metrics gate ([decision 0007](0007-metrics-gate.md)); nixpkgs does not carry it. The crate and version `rustqualVersion` states, pinned by source and vendor hashes. | A prebuilt binary does not exist for any version. | The metrics gate in the shell. | MIT |
 
 ## Consequences
 
@@ -107,9 +105,9 @@ a manifest line.
 
 A file Git does not track is invisible to the flake, which surprises everyone once.
 
-Until the cutover there are two providers, and every recipe has to work under both.
-pixi stays the supported path and [decision 0006](0006-tool-manager.md) stands until
-then.
+There is no second path. Without Nix nothing in the `Justfile` runs, so a contributor
+on a platform Nix does not support cannot run the gate at all. This decision supersedes
+[decision 0006](0006-tool-manager.md).
 
 When this was decided Nix was not installed on the maintainer's Mac. Linux evidence
 comes from a Nix container and from CI, and macOS evidence from a CI job on an Apple
@@ -219,7 +217,9 @@ are made.
   still works outside the shell until it is removed, and fails gate 23 there.
 - **CI in the dev shell.** The setup action installs Nix through
   `cachix/install-nix-action` with the sandbox on, restores the store through
-  `nix-community/cache-nix-action` keyed on `flake.nix` and `flake.lock`, and runs
+  `nix-community/cache-nix-action` keyed on `flake.nix`, `flake.lock` and
+  `rust-toolchain.toml`, the dev shell's inputs (the crate sources stay out of the key,
+  or nearly every commit would save a new store), and runs
   `just sync` in the shell; every job that uses it sets
   `nix develop --command bash -e {0}` as its default shell, so its `run: just ...` steps
   are unchanged. Both actions are pinned by digest and neither is given a credential.
@@ -229,6 +229,17 @@ are made.
   runner's own Python 3.11 and installs the wheel the dev shell built, which is the
   evidence that such a wheel loads on a Python Nix did not provide.
   `release-pypi.yml` is untouched.
+- **The old path removed.** pixi's manifest tables and lock, both tool lists, the
+  rustup, tool-list and parity-reference install recipes, the provider seam
+  (`ALLIUMPY_TOOLS`) and the pixi form of the hook configuration are gone. The dev
+  shell's hook configuration took the default name, `.pre-commit-config.yaml`, and
+  `install-hooks` no longer names one, so a shim from an earlier install, which names a
+  pixi environment's prek or the old file, is replaced by running `just install-hooks`
+  once more from the primary checkout, inside the shell. The version check always
+  requires the shell's reference. `.pixi/` and `.tools/` stay ignored, and excluded from
+  the tools that walk the filesystem, as leftovers an older checkout may still hold;
+  nothing creates them and they are safe to delete. The root `pyproject.toml` keeps only
+  the tooling project and the gate's recipe list.
 
 ## Related pages
 

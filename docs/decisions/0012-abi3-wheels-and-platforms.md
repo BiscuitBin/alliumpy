@@ -28,6 +28,10 @@ check` builds one developer wheel; T01 adds the CI Python 3.11 floor smoke. Othe
 targets are release-matrix builds, and T14's rehearsal is the Windows proof. T13 proves
 parity on POSIX only.
 
+Note, 2026-11-14: pixi is gone. The local platforms are the systems the flake of
+[decision 0018](0018-nix-owns-the-tools.md) supports: macOS arm64, Linux x86_64 and Linux
+arm64. The release matrix is unchanged.
+
 ## Consequences
 
 The stable ABI reduces per-Python builds without lowering the floor below 3.11. A green

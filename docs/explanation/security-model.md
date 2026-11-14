@@ -30,11 +30,11 @@ writes JSON to stdout.
   The snapshot recipes first validate locks and run offline because cargo-insta cannot
   forward `--locked`. `just deny` checks licences, bans and sources offline;
   `just audit` checks advisories separately because it needs the network.
-- **Tools.** Remote hooks and actions use full commit SHAs. cargo-hack arrives over TLS
-  as a release binary without an independently published checksum or signature.
-  rustqual is built from crates.io with `--locked`, or uses a signed quickinstall build;
-  unsigned crate release assets are refused for that pass. The source-build pass unsets
-  `GITHUB_TOKEN` and `GH_TOKEN` and disables token discovery.
+- **Tools.** Actions use full commit SHAs. Every tool, the compiler included, comes
+  from the flake's dev shell, whose sources `flake.lock` pins by hash; no hook fetches
+  anything. rustqual and the parity reference, which nixpkgs lacks, are built from
+  crates.io source pinned by a source hash and a vendor hash
+  ([decision 0018](../decisions/0018-nix-owns-the-tools.md)).
 - **Memory safety.** Both crates forbid unsafe code through their lint tables: the core
   inherits the workspace table, and the binding carries its own. pyo3 macro output
   compiles under that policy. This protects repository code; it is not an audit of all
@@ -62,12 +62,11 @@ writes JSON to stdout.
 
 ## The parity reference
 
-`just install-parity-reference` builds `allium-cli` from crates.io with
-`cargo install ... --locked` into `.tools/parity/`, off `PATH`; no downloaded binary is
-used as the behavioural reference. In the Nix dev shell the flake builds the same crate at
-the same version from crates.io instead, with the crate's own lockfile, pinned by a
-source hash and a vendor hash, and names it in `ALLIUMPY_PARITY_REFERENCE`, again off
-`PATH` ([decision 0018](../decisions/0018-nix-owns-the-tools.md)).
+The flake builds `allium-cli` at the pin from crates.io, with the crate's own lockfile,
+pinned by a source hash and a vendor hash, and the dev shell names it in
+`ALLIUMPY_PARITY_REFERENCE`, off `PATH`
+([decision 0018](../decisions/0018-nix-owns-the-tools.md)); no downloaded release binary
+is used as the behavioural reference.
 The harness invokes it by absolute path. This avoids shadowing the wheel's `allium`.
 Fetched source and fixtures are untrusted evidence. Read them from outside their
 directory, preserve attribution, and run harness Python with `-I`.

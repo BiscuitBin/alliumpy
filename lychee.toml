@@ -3,4 +3,5 @@ max_retries = 2
 max_concurrency = 8
 timeout = 20
 accept = [200, 204, 206, 429]
+# .pixi and .tools exist only as leftovers in a checkout made before decision 0018.
 exclude_path = [".git", ".pixi", ".direnv", "ai_tmp", "target", ".tools"]

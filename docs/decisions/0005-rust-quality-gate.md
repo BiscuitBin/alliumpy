@@ -44,6 +44,10 @@ rustqual through `tools-source.txt`, one owner per pin (decision 0006). Clippy r
 gate 6 and in CI but never as a commit hook, because a cold run blocks every commit for
 tens of seconds to minutes.
 
+Note, 2026-11-14: pixi, `tools.txt` and `tools-source.txt` are gone. Every tool binary
+above, cargo-hack and rustqual included, now comes from the flake's dev shell, which
+[decision 0018](0018-nix-owns-the-tools.md) makes the one owner of every pin.
+
 The binding has its own `[lints]` table. Cargo does not let a member inherit the
 workspace table and lower an inherited `forbid`; a local table lets the thin boundary
 state its own lint choices while still forbidding unsafe code. Both tables retain that

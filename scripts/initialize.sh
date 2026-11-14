@@ -6,62 +6,31 @@ cd "$project_root"
 
 git rev-parse --is-inside-work-tree >/dev/null
 
-# Inside the flake's dev shell (decision 0018) the shell already holds the
-# compiler and every tool, so the first run checks the compiler, fetches the
-# crates the gates build offline later, and installs the hooks. Entering the
-# shell was the step that downloaded the tools; nothing here installs a
-# toolchain, a tool list or a pixi environment.
-if [ "${ALLIUMPY_TOOLS:-}" = nix ]; then
-    just check-toolchain
-    test -f Cargo.lock || cargo generate-lockfile
-    just sync
-    if [ "$(git rev-parse --git-common-dir)" = "$(git rev-parse --git-dir)" ]; then
-        just install-hooks
-    else
-        printf '%s\n' 'Secondary worktree: skipping install-hooks.' >&2
-        printf '%s\n' 'Run just install-hooks once from the primary checkout.' >&2
-    fi
-    printf '\n%s\n' 'Ready. Next: just check.'
-    printf '%s\n' 'Nothing has been formatted, staged, committed, tagged, or pushed.'
-    exit 0
+# The flake's dev shell holds the compiler and every tool (decision 0018), and
+# entering it was the step that downloaded them. Outside it there is nothing to
+# initialize with, so this refuses and names the way in.
+if [ -z "${ALLIUMPY_PYTHON:-}" ]; then
+    printf '%s\n' 'initialize: run this inside the dev shell: nix develop --command just initialize' >&2
+    printf '%s\n' '(or run direnv allow once, and direnv enters the shell for you)' >&2
+    exit 2
 fi
 
-# Outside the dev shell, pixi's path. The environment first: install-tools and install-hooks need
-# its cargo-binstall, `bg-*` scripts and prek; the toolchain lines need only
-# rustup. `--locked` refuses a lockfile that disagrees with `pyproject.toml`, so
-# a stale lock is fixed by `just lock` and committed, never rewritten silently by
-# a first run.
-pixi install --locked
-
-# The toolchain rust-toolchain.toml pins, with the components and targets the
-# file names.
-just install-toolchain
-
-# Whoever provides cargo, this refuses a compiler other than the one
-# `rust-toolchain.toml` pins, or one without its components, before anything is
-# built with it.
+# This refuses a compiler other than the one `rust-toolchain.toml` pins, or one
+# without its components, before anything is built with it.
 just check-toolchain
 
-# What conda-forge lacks, from `tools.txt` and `tools-source.txt` into
-# `.tools/bin` through the environment's cargo-binstall, the second list built
-# from source: the one network download in the first-run path that no
-# lockfile accounts for.
-just install-tools
-
 # `Cargo.lock` is committed and every gate passes `--locked`; this line exists
-# for a clone whose lockfile was deleted by hand.
+# for a clone whose lockfile was deleted by hand. `just sync` fetches the crates
+# the gates later build offline.
 test -f Cargo.lock || cargo generate-lockfile
 just sync
 
 # Hooks are installed only from the primary checkout. Every worktree of this
 # repository shares one .git/hooks directory, and `prek install` writes a shim
-# naming an absolute path into whichever worktree ran it — so a hook installed
-# from a secondary worktree runs that worktree's .pixi/envs/default/bin/prek for
-# commits made anywhere, and keeps doing so after the worktree is deleted, at
-# which point every commit fails on a `prek` that is not on PATH. The comparison
-# is the test git itself uses: in a secondary worktree the common directory and
-# the git directory differ. The recipe also provisions every hook environment,
-# so this is the last line of the first-run path that reaches the network.
+# naming an absolute path to the prek that ran it, so a hook installed from a
+# secondary worktree is that worktree's for commits made anywhere. The
+# comparison is the test git itself uses: in a secondary worktree the common
+# directory and the git directory differ.
 if [ "$(git rev-parse --git-common-dir)" = "$(git rev-parse --git-dir)" ]; then
     just install-hooks
 else

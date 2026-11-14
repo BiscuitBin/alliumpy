@@ -14,13 +14,13 @@ read-only; an ignored path is outside the snapshot.
 
 | Order | Gate | Proves |
 | --- | --- | --- |
-| 1 | `check-toolchain` | The cargo on `PATH` and the rustc it runs are the release `rust-toolchain.toml` pins, with each component the file names present and built from that compiler; the accepted toolchain is printed. |
-| 2 | `lock-check` | `Cargo.lock` and `fuzz/Cargo.lock` match their manifests offline, and so does `flake.lock` in the dev shell (`pixi.lock` outside it). |
+| 1 | `check-toolchain` | The cargo on `PATH` and the rustc it runs are the release `rust-toolchain.toml` pins, from the Nix store, with each component the file names present and built from that compiler; the accepted toolchain is printed. |
+| 2 | `lock-check` | `Cargo.lock` and `fuzz/Cargo.lock` match their manifests offline, and so does `flake.lock` with `flake.nix`. |
 | 3 | `lint` | The complete read-only hook gate passes. |
 | 4 | `fmt-check` | Rust formatting matches rustfmt, in the workspace and the fuzz crate. |
 | 5 | `toml-check` | TOML formatting and lint pass. |
 | 6 | `clippy` | Both lint tables pass over every target and feature, and the fuzz crate's repeated tables over its targets, with warnings as errors. |
-| 7 | `metrics` | The pinned rustqual passes once per crate against the configured thresholds. The pin is `tools-source.txt`'s under pixi and the flake's in the Nix dev shell. |
+| 7 | `metrics` | The pinned rustqual passes once per crate against the configured thresholds. The pin is `rustqualVersion` in `flake.nix`, which the dev shell's rustqual must match. |
 | 8 | `features` | Every feature combination compiles. |
 | 9 | `test-doc` | Core doc examples compile and pass. |
 | 10 | `coverage` | Core nextest tests pass and line coverage is at least 90 percent. |
@@ -32,13 +32,13 @@ read-only; an ignored path is outside the snapshot.
 | 16 | `py-test` | The rebuilt extension passes pytest. |
 | 17 | `py-stubtest` | The built native API agrees with the stub and reviewed allowlist. |
 | 18 | `wheel-smoke` | One freshly built release wheel installs and works offline in an isolated venv. |
-| 19 | `version-check` | The suffix-stripped wheel version, root workspace version, each workspace member crate's version as cargo resolves it, upstream pin, core constant and installed version output agree, and the whole output equals `ALLIUM_VERSION_STRING`. |
+| 19 | `version-check` | The suffix-stripped wheel version, root workspace version, each workspace member crate's version as cargo resolves it, upstream pin, core constant and installed version output agree, and the whole output equals `ALLIUM_VERSION_STRING` and the dev shell's parity reference's, which must exist and print the pin. |
 | 20 | `check-docs` | The documentation contract, spelling, Markdown and local links pass. |
 | 21 | `check-agents` | The canonical instructions, adapters, skills and bridges satisfy their contract. |
 | 22 | `snapshots-check` | All core snapshots match and no committed snapshot is unreferenced; locks are checked first and tests run offline. |
 | 23 | `nix-check` | The tracked Nix files are formatted as nixfmt writes them, with nothing statix warns about and no binding deadnix finds unused. Its tools come from the dev shell only. |
 
-`parity` sits outside this list because its reference needs the network to build; the
+`parity` sits outside this list as a second, POSIX-only gate on behaviour; the
 `parity` CI job runs it, and [Testing](testing.md#command-parity) says what it proves.
 
 After these twenty-three gates, `check-clean` compares the worktree with the starting
@@ -46,17 +46,17 @@ snapshot. A green dirty baseline means the checks changed nothing; hand-back add
 requires a committed clean worktree. Gates 4 and 5 also run inside lint deliberately,
 so a failure has a named place in the aggregate list.
 
-The toolchain gate does not ask who provides cargo. It asks cargo and rustc for their
-release, refuses any other than the pinned channel, and names both versions on stderr.
+The toolchain gate asks cargo and rustc for their release, refuses any other than the
+pinned channel, and names both versions on stderr.
 rustfmt, cargo-clippy and clippy-driver must report the pinned compiler's commit, and
 llvm-cov and llvm-profdata must sit in its sysroot and report its release, so a component
 reached through `PATH` from another toolchain is refused too. Stable cargo cannot say
 which compiler it will run, so `CARGO_BUILD_RUSTC`, `RUSTC_WRAPPER`,
 `CARGO_BUILD_RUSTC_WRAPPER` and `RUSTC_WORKSPACE_WRAPPER` are refused when set; `RUSTC` is
 honoured and checked. Cargo configuration files are not read; this repository has none.
-`channel` and `components` must each stay on one line in `rust-toolchain.toml`. When `RUSTUP_TOOLCHAIN` or a `rustup override` supersedes the repository pin, the
-release differs and the gate says so: remove the override and rerun. An uninstalled
-override is refused, never downloaded.
+`channel` and `components` must each stay on one line in `rust-toolchain.toml`. Last,
+cargo and rustc must both resolve under `/nix/store`: a compiler ahead of the dev shell's
+on `PATH`, or a run outside the shell, is refused with the remedy, enter the dev shell.
 
 ## Flake checks
 
@@ -90,14 +90,15 @@ will arrive with modules, rather than claiming an empty rule set enforces a grap
 Read-only hooks include Rust and TOML formatting, unused dependencies, Python lint and
 types, documentation and agent contracts, EditorConfig, markdownlint, typos, offline
 links, shellcheck, actionlint, secret scanning and builtin file hygiene.
-The Python recipes run through just to inherit the pinned tool PATH. The contract
-hooks and the secret scan reach their `bg-*` commands through recipes too, so they run
-whatever the tool provider has installed; `just sync` brings pixi's environment up to
-`pixi.lock`. Clippy, pytest, stubtest and wheel builds are deliberately
-outside commit hooks because they build; the full gate and CI run them.
+The first hook refuses a commit made outside the dev shell. The Python recipes run
+through just to inherit its PATH. The contract hooks and the secret scan reach their
+`bg-*` commands through recipes too, so they run the dev shell's. Clippy, pytest,
+stubtest and wheel builds are deliberately outside commit hooks because they build; the
+full gate and CI run them.
 
-Remote hooks use full commit SHAs. `.pre-commit-fix.yaml` is the mutating counterpart,
-never installed, run by `just fix`; its positive-control fixtures are excluded from repair.
+No hook is fetched: each third-party checker is the dev shell's own tool, called by
+name. `.pre-commit-fix.yaml` is the mutating counterpart, never installed, run by
+`just fix`; its positive-control fixtures are excluded from repair.
 Actionlint validates workflow structure but can skip embedded shell analysis when its
 own environment cannot find shellcheck. Review multi-line workflow shell explicitly.
 

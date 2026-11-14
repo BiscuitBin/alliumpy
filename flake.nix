@@ -63,9 +63,8 @@
             rustc = rustToolchain;
           };
 
-          # The `bg-*` commands, `just check`'s runner among them, from the same
-          # revision the pixi manifest names (tag v0.3.0); a bump moves both in one
-          # change until pixi is removed. The package has no dependencies. Its
+          # The `bg-*` commands, `just check`'s runner among them, at the
+          # revision tag v0.3.0 names. The package has no dependencies. Its
           # build backend asks for uv_build below 0.12, which nixpkgs has moved
           # past; the backend's output for this layout does not depend on that
           # bound, so the bound is relaxed here and nowhere else.
@@ -319,10 +318,10 @@
             ]
             ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [ pkgs.libiconv ];
 
-            # The Justfile reads this to know the shell, not pixi, provides the tools.
-            ALLIUMPY_TOOLS = "nix";
             # The interpreter pyo3 builds against and the virtual environments
-            # are made on; the Justfile reads it rather than search PATH.
+            # are made on; the Justfile reads it rather than search PATH, and
+            # refuses to load without it, as the first hook refuses a commit, so
+            # it also marks being inside this shell.
             ALLIUMPY_PYTHON = "${python}/bin/python";
             # The metrics gate refuses a rustqual of any other version.
             ALLIUMPY_RUSTQUAL_VERSION = rustqual.version;
