@@ -24,6 +24,11 @@ set shell := ["sh", "-eu", "-c"]
 tools := env("ALLIUMPY_TOOLS", "pixi")
 provider_path := if tools == "nix" { "" } else if tools == "pixi" { justfile_directory() / ".pixi" / "envs" / "default" / "bin" + ":" + justfile_directory() / ".tools" / "bin" } else { error("ALLIUMPY_TOOLS is '" + tools + "'; the flake's dev shell sets it to nix, and nothing else should set it") }
 
+# The hook gate and its mutating counterpart. The dev shell's form calls the
+# shell's own checkers by name; pixi's form lets prek fetch and build them.
+hook_config := if tools == "nix" { ".pre-commit-nix.yaml" } else { ".pre-commit-config.yaml" }
+fix_config := if tools == "nix" { ".pre-commit-nix-fix.yaml" } else { ".pre-commit-fix.yaml" }
+
 # Where py-develop installs the extension. Neither provider's own Python
 # environment can take it: the dev shell's is read-only, in the Nix store. So
 # the editable install goes into a virtual environment under target/, built on
@@ -194,12 +199,17 @@ lock-check:
 # Markdown file; its exit status is lint's business, not this recipe's. Its
 # checkout pins `stable`, and its script's cargo-binstall calls rustc, so
 # without RUSTUP_AUTO_INSTALL=0 rustup would install that toolchain.
+#
+# In the dev shell every hook is a tool the shell holds, so there is nothing to
+# prepare and nothing is fetched; the shim names the dev shell's form, and a
+# commit made from outside the shell fails on a `just` or a checker it cannot
+# find rather than passing.
 install-hooks:
     git rev-parse --is-inside-work-tree >/dev/null
-    command -v prek >/dev/null || { printf '%s\n' 'prek is not on PATH; run just initialize first' >&2; exit 2; }
-    prek install --overwrite --hook-type=pre-commit --prepare-hooks
-    prek prepare-hooks --config .pre-commit-fix.yaml
-    -RUSTUP_AUTO_INSTALL=0 prek run lychee --files README.md
+    command -v prek >/dev/null || { printf '%s\n' {{ if tools == "nix" { "'prek is not on PATH; enter the dev shell'" } else { "'prek is not on PATH; run just initialize first'" } }} >&2; exit 2; }
+    prek install --overwrite --hook-type=pre-commit --config {{ hook_config }} {{ if tools == "nix" { "" } else { "--prepare-hooks" } }}
+    {{ if tools == "nix" { "true" } else { "prek prepare-hooks --config .pre-commit-fix.yaml" } }}
+    -{{ if tools == "nix" { "true" } else { "RUSTUP_AUTO_INSTALL=0 prek run lychee --files README.md" } }}
 
 # ---------------------------------------------------------------- develop ---
 
@@ -279,8 +289,8 @@ format:
 # fixer's first pass may itself fail on what another fixer then repairs.
 fix:
     {{ if tools == "nix" { "just nix-format" } else { "true" } }}
-    -prek run --all-files --config .pre-commit-fix.yaml
-    prek run --all-files --config .pre-commit-fix.yaml
+    -prek run --all-files --config {{ fix_config }}
+    prek run --all-files --config {{ fix_config }}
     cargo fmt --manifest-path fuzz/Cargo.toml
     cargo clippy --workspace --all-targets --all-features --locked --fix --allow-dirty --allow-staged
     cargo clippy --manifest-path fuzz/Cargo.toml --all-targets --locked --fix --allow-dirty --allow-staged
@@ -289,7 +299,7 @@ fix:
 # ------------------------------------------------------------------ check ---
 
 lint:
-    prek run --all-files
+    prek run --all-files --config {{ hook_config }}
 
 # cargo fmt --all skips the fuzz crate, which is outside the workspace.
 fmt-check:
@@ -396,7 +406,7 @@ deps-unused:
 # --------------------------------------------------------------- documents ---
 
 check-docs:
-    prek run --all-files markdownlint-cli2 typos lychee
+    prek run --all-files --config {{ hook_config }} markdownlint-cli2 typos lychee
     bg-validate-docs
 
 check-agents:
@@ -417,7 +427,7 @@ hook-ripsecrets *files:
     bg-ripsecrets "$@"
 
 check-links-online:
-    prek run --all-files --hook-stage manual lychee-online
+    prek run --all-files --config {{ hook_config }} --hook-stage manual lychee-online
 
 # --------------------------------------------------------------------- nix ---
 

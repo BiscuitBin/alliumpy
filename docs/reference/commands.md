@@ -33,7 +33,7 @@ and `fuzz-build` are reports or proofs a person runs, never part of `check`.
 | `lock` | Relock `Cargo.lock` and `fuzz/Cargo.lock` after a manifest edit and run pixi lock. Read every diff. |
 | `lock-upgrade` | Move both Cargo resolutions and pixi's within manifest constraints. |
 | `lock-check` | Compare `Cargo.lock`, `fuzz/Cargo.lock` and `pixi.lock` with their manifests offline without writing. |
-| `install-hooks` | Install the shared hook shim and prepare environments; primary checkout only. |
+| `install-hooks` | Install the shared hook shim and prepare environments; primary checkout only. In the dev shell the shim names `.pre-commit-nix.yaml` and nothing needs preparing. |
 
 ## Develop
 
@@ -55,7 +55,7 @@ and `fuzz-build` are reports or proofs a person runs, never part of `check`.
 | --- | --- |
 | `format` | Write rustfmt formatting over the workspace and the fuzz crate, and taplo's. |
 | `fix` | Run the mutating hook configuration twice, format the fuzz crate, then clippy's repairs over the workspace and the fuzz crate, then lint. |
-| `lint` | Run the complete read-only hook gate over all files. |
+| `lint` | Run the complete read-only hook gate over all files: `.pre-commit-config.yaml` under pixi, `.pre-commit-nix.yaml` in the dev shell. |
 | `fmt-check` | Check Rust formatting in the workspace and the fuzz crate. |
 | `toml-check` | Check TOML formatting and lint. |
 | `clippy` | Lint all targets and features, and the fuzz crate's targets, with warnings as errors. |

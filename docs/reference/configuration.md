@@ -63,6 +63,7 @@ stay on the recipe.
 | `.envrc` | `use flake`, for direnv; inert until the directory is allowed. |
 | `.pre-commit-config.yaml` | Installed read-only hooks. |
 | `.pre-commit-fix.yaml` | Mutating hooks invoked by fix; excludes deliberately invalid Python controls. |
+| `.pre-commit-nix.yaml`, `.pre-commit-nix-fix.yaml` | The same two configurations in the dev shell's form: identical local and builtin hooks, and the third-party checkers as the shell's own tools by name, so nothing is fetched. Selected by the Justfile when the shell is the provider. |
 | `.editorconfig` | Whitespace, newlines and indentation, including four-space Python. |
 | `.gitattributes` | Text normalization and generated file classification. |
 | `.gitignore` | Build products, environments, local state, snapshots' pending files and scratch exclusions. |

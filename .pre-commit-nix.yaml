@@ -1,0 +1,161 @@
+# The hook gate in the Nix dev shell's form (decision 0018). It checks what
+# .pre-commit-config.yaml checks, with the same hook ids, but every third-party
+# tool is the one the dev shell holds, called by name, so preparing it fetches
+# and builds nothing. The local and builtin hooks are the same as there.
+# .pre-commit-config.yaml stays the pixi form until the old path is removed.
+# pixi.lock is YAML, so without this line the builtin check-yaml would parse
+# the whole lockfile on every commit.
+exclude: >-
+  (?x)^(
+    \.git/|
+    \.pixi/|
+    \.direnv/|
+    ai_tmp/|
+    target/|
+    \.tools/|
+    dist/|
+    target/wheel-smoke/|
+    tests/fixtures/parity/.*\.allium$|
+    Cargo\.lock$|
+    pixi\.lock$
+  )
+repos:
+  - repo: local
+    hooks:
+      # Local hooks run through `just`: a git hook does not inherit the Justfile's
+      # PATH, so routing through the recipe is what lets a hook find the tool
+      # provider's taplo or `bg-*` command by name, and it keeps each tool's
+      # arguments in exactly one place. Clippy is deliberately
+      # not a hook: a cold build blocks every commit for minutes, so it is a gate
+      # in `just check` and a CI step instead.
+      - id: fmt-check
+        name: rustfmt check
+        entry: just fmt-check
+        language: system
+        pass_filenames: false
+        files: ^((crates|fuzz)/.*\.rs|rustfmt\.toml)$
+
+      - id: toml-check
+        name: taplo format and lint
+        entry: just toml-check
+        language: system
+        pass_filenames: false
+        types: [toml]
+
+      - id: deps-unused
+        name: Unused dependencies
+        entry: just deps-unused
+        language: system
+        pass_filenames: false
+        files: ^(Cargo\.toml|crates/.*/Cargo\.toml|crates/.*\.rs)$
+
+      - id: py-lint
+        name: py-lint
+        entry: just py-lint
+        language: system
+        pass_filenames: false
+        files: ^(.*\.pyi?|ruff\.toml)$
+
+      - id: py-typecheck
+        name: py-typecheck
+        entry: just py-typecheck
+        language: system
+        pass_filenames: false
+        files: ^(.*\.pyi?|mypy\.ini)$
+
+      - id: validate-docs
+        name: Documentation contract
+        entry: just hook-validate-docs
+        language: system
+        pass_filenames: false
+        files: ^(README\.md|SECURITY\.md|docs/|pyproject\.toml$)
+
+      - id: validate-agents
+        name: Agent instruction contract
+        entry: just check-agents
+        language: system
+        pass_filenames: false
+        files: ^(AGENTS\.md|CLAUDE\.md|\.agents/|\.claude/|\.codex/|\.github/copilot-instructions\.md|pyproject\.toml$)
+
+  - repo: builtin
+    hooks:
+      - id: check-added-large-files
+        args: [--maxkb=768]
+      - id: check-case-conflict
+      - id: check-executables-have-shebangs
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: check-toml
+      - id: check-yaml
+      - id: detect-private-key
+      # end-of-file-fixer and trailing-whitespace live in .pre-commit-fix.yaml.
+      # This config is the read-only gate, so it may report but never repair;
+      # editorconfig-checker and markdownlint report the same defects here.
+
+  # Third-party checkers, each the dev shell's own build, at the version
+  # flake.lock's nixpkgs carries. Each mirrors the remote hook it replaces in
+  # .pre-commit-config.yaml: its id, its files and its read-only arguments.
+  - repo: local
+    hooks:
+      - id: editorconfig-checker
+        name: EditorConfig
+        entry: editorconfig-checker
+        language: system
+        types: [text]
+
+      - id: markdownlint-cli2
+        name: markdownlint
+        entry: markdownlint-cli2
+        language: system
+        types: [markdown]
+
+      # Report only: the upstream hook's --write-changes is not passed.
+      - id: typos
+        name: typos
+        entry: typos --force-exclude
+        language: system
+        types: [text]
+
+      # lychee is a binary here, so no version argument is needed: it never
+      # runs `git describe` inside a hook checkout.
+      - id: lychee
+        name: lychee
+        entry: lychee --offline --cache --config lychee.toml --no-progress --root-dir .
+        language: system
+        types: [markdown]
+
+      - id: lychee-online
+        name: Lychee online (manual)
+        entry: lychee --cache --config lychee.toml --no-progress --root-dir .
+        language: system
+        types: [markdown]
+        stages: [manual]
+
+      - id: shellcheck
+        name: shellcheck
+        entry: shellcheck
+        language: system
+        types: [shell]
+
+      - id: actionlint
+        name: Lint GitHub Actions workflow files
+        entry: actionlint
+        language: system
+        files: ^\.github/workflows/.*\.ya?ml$
+
+      # Through the recipe, which runs the redacting wrapper; the dev shell
+      # supplies ripsecrets itself.
+      - id: ripsecrets
+        name: ripsecrets
+        entry: just hook-ripsecrets
+        language: system
+        types: [text]
+
+      # The flake's own files: formatted, linted and free of unused bindings.
+      - id: nix-check
+        name: Nix format and lint
+        entry: just nix-check
+        language: system
+        pass_filenames: false
+        files: \.nix$

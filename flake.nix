@@ -52,7 +52,33 @@
           python = pkgs.python314.withPackages (ps: [
             ps.pytest
             ps.mypy
+            (biscuitGamesTooling ps)
           ]);
+          # The `bg-*` commands, `just check`'s runner among them, from the same
+          # revision the pixi manifest names (tag v0.3.0); a bump moves both in one
+          # change until pixi is removed. The package has no
+          # dependencies. Its build backend asks for uv_build below 0.12, which
+          # nixpkgs has moved past; the backend's output for this layout does not
+          # depend on that bound, so the bound is relaxed here and nowhere else.
+          biscuitGamesTooling =
+            ps:
+            ps.buildPythonPackage {
+              pname = "biscuit-games-tooling";
+              version = "0.3.0";
+              pyproject = true;
+              src = pkgs.fetchFromGitHub {
+                owner = "steven-cutting";
+                repo = "biscuit_games_tooling";
+                rev = "6c5c07f6bec86e86b3930dfa41392e4b440e8c85";
+                hash = "sha256-iHgEOv3KnCpSNO4/jLyc9jJqcl1pP+zoVsqyMlxuMvk=";
+              };
+              postPatch = ''
+                substituteInPlace pyproject.toml \
+                  --replace-fail 'requires = ["uv_build>=0.11,<0.12"]' 'requires = ["uv_build"]'
+              '';
+              build-system = [ ps.uv-build ];
+              pythonImportsCheck = [ "biscuit_games_tooling" ];
+            };
           # nixpkgs does not carry rustqual, so it is built here from the crate
           # crates.io publishes, with the crate's own lockfile and the pinned
           # toolchain. This version is the one the metrics gate requires.
@@ -92,6 +118,16 @@
               pkgs.cargo-mutants
               pkgs.taplo
               rustqual
+              # The hook runner and every tool its Nix-form configuration calls
+              # by name, so installing the hooks fetches nothing.
+              pkgs.prek
+              pkgs.editorconfig-checker
+              pkgs.markdownlint-cli2
+              pkgs.typos
+              pkgs.lychee
+              pkgs.shellcheck
+              pkgs.actionlint
+              pkgs.ripsecrets
               pkgs.nixfmt
               pkgs.statix
               pkgs.deadnix

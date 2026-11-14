@@ -89,6 +89,7 @@ Each input is a dependency under [decision 0004](0004-dependency-policy.md), and
 | --- | --- | --- | --- | --- |
 | `nixpkgs`, the `nixpkgs-unstable` branch | Every tool except the compiler. | A release branch, such as `nixos-26.05`, moves less but lags the cargo tools by months; unstable carried every tool the gates need, and is built for all three systems. | Every gate run in the shell. `flake.lock` is outside the lock check until the cutover. | MIT |
 | `rust-overlay` (oxalica) | Builds the toolchain `rust-toolchain.toml` names, exact channel and components, from the official release binaries, each pinned by hash in the overlay's own manifests. It follows this flake's `nixpkgs`, so no second nixpkgs is fetched. | fenix also reads the toolchain file but tracks its own manifest snapshots; nixpkgs' own `rustc` is one version, not the pinned one, and has no `llvm-tools` component. | The toolchain check and every Rust gate in the shell. | MIT |
+| `biscuit-games-tooling`, built in the flake from GitHub | The `bg-*` commands, `just check`'s runner among them ([decision 0002](0002-hook-runner-and-checkers.md)). Pinned to the commit the pixi manifest's `v0.3.0` tag resolves to, by content hash. Its build backend's upper bound is relaxed to nixpkgs' `uv_build`. | None: nixpkgs does not carry it, and it is this organisation's own. | `just check`, the docs and agents checks, the secret scan. | None declared at this revision: no licence file or field. It is the maintainer's own package and never ships. |
 | rustqual 1.8.3, built in the flake from crates.io | The metrics gate ([decision 0007](0007-metrics-gate.md)); nixpkgs does not carry it. The same crate and version `tools-source.txt` pins, pinned here by source and vendor hashes. | A prebuilt binary does not exist for any version. | The metrics gate in the shell. | MIT |
 
 ## Consequences
@@ -153,6 +154,19 @@ are made.
   sysroot. cargo-fuzz is built for the host, so the Rosetta prerequisite does not apply
   in the shell. The lock check skips pixi's lock in the shell; covering `flake.lock`
   arrives with the cutover.
+- **The hooks.** prek and the seven third-party checkers come from nixpkgs, and the
+  `bg-*` commands from the tooling package the flake builds. While pixi remains, the
+  two forms coexist as two configurations: `.pre-commit-config.yaml` and its fix
+  counterpart stay the pixi form, in which prek fetches and builds each checker, and
+  `.pre-commit-nix.yaml` and `.pre-commit-nix-fix.yaml` are the dev shell's form, with
+  the same ids, the same local and builtin hooks and the checkers called by name, plus
+  a hook for the Nix files. The Justfile picks one by provider. The cutover makes the
+  dev shell's form the only one. Two places name the tooling's revision until then:
+  the pixi manifest's tag, locked in `pixi.lock`, and the commit in `flake.nix`. Nothing
+  checks that they agree; a bump moves both in one change, and the flake's comment says
+  so. In the dev shell's form the checkers are newer than the pixi form's pins
+  (editorconfig-checker 4.0.2, markdownlint-cli2 0.24.0, typos 1.52.0) and found
+  nothing new.
 
 ## Related pages
 

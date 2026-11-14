@@ -155,7 +155,16 @@ the gate reports.
 
 A hook whose `rev` changed still runs its old environment. Clear prek's cache with
 `pixi run --frozen prek cache clean`, then run `just install-hooks` again to prepare
-every environment from the current configuration.
+every environment from the current configuration. In the dev shell no hook has a `rev`:
+each checker is the shell's own, so a moved `flake.lock` takes effect on the next shell
+entry.
+
+## A commit fails with `just` or a checker not found
+
+The installed hook runs prek with the configuration it was installed with. In the dev
+shell's form every hook calls a tool by name, so a commit made from a terminal, editor
+or tool that never entered the shell cannot find them and fails rather than passing.
+Commit from inside the dev shell, or let direnv enter it for this directory.
 
 ## pyo3 finds the wrong Python
 
