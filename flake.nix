@@ -16,6 +16,13 @@
       ...
     }:
     let
+      # The parity reference: upstream's allium-cli at the version the
+      # allium-parser pin names. `just version-check` reads this line and fails
+      # when it differs from the pin, so an upstream bump moves it, and the
+      # source and vendor hashes below, in the same change
+      # (docs/how-to/bump-upstream.md).
+      alliumCliVersion = "3.6.1";
+
       # Apple silicon macOS and x86-64 Linux are where contributors and CI work.
       # arm64 Linux lets the same shell run natively in a Linux container on an
       # Apple silicon Mac.
@@ -86,6 +93,20 @@
             cargo = rustToolchain;
             rustc = rustToolchain;
           };
+          # Upstream's own command, built from the crate crates.io publishes with
+          # the crate's own Cargo.lock, so the comparison is with exactly what
+          # upstream ships. It never goes on PATH: the wheel's console script has
+          # the same name. The shell exports where it is instead.
+          parityReference = rustPlatform.buildRustPackage (finalAttrs: {
+            pname = "allium-cli";
+            version = alliumCliVersion;
+            src = pkgs.fetchCrate {
+              inherit (finalAttrs) pname version;
+              hash = "sha256-jKrGgHowbTmZBrTKxWMpVT23GiZzz9xMk2f18FLvBHg=";
+            };
+            cargoHash = "sha256-KEOJXDhEdlLoGLQ710H8rFf8NxQ1AvS7vgIJRDMWHR0=";
+            doCheck = false;
+          });
           rustqual = rustPlatform.buildRustPackage (finalAttrs: {
             pname = "rustqual";
             version = "1.8.3";
@@ -138,6 +159,7 @@
             ALLIUMPY_TOOLS = "nix";
             # The metrics gate refuses a rustqual of any other version.
             ALLIUMPY_RUSTQUAL_VERSION = rustqual.version;
+            ALLIUMPY_PARITY_REFERENCE = "${parityReference}/bin/allium";
           };
         }
       );

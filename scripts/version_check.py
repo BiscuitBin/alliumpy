@@ -12,10 +12,45 @@ from pathlib import Path
 # A reference that hangs is a failed read, not a gate that never returns.
 REFERENCE_TIMEOUT_SECONDS = 60
 
+# The Nix dev shell names where the flake built the reference; pixi's path is a
+# `cargo install` into the worktree (decision 0018).
+REFERENCE_VARIABLE = "ALLIUMPY_PARITY_REFERENCE"
 
-def reference_output(reference: Path) -> str | None:
-    """The reference's `--version` output, empty when it is missing, None when it fails."""
+
+def reference_path(root: Path) -> Path:
+    """The parity reference this provider uses: the dev shell's, else the installed one."""
+    named = os.environ.get(REFERENCE_VARIABLE)
+    return Path(named) if named else root / ".tools/parity/bin/allium"
+
+
+def flake_reference_version(root: Path) -> str | None:
+    """The allium-cli version flake.nix builds as the reference, or None when unstated."""
+    flake = root / "flake.nix"
+    if not flake.is_file():
+        print("version-check: flake.nix is missing", file=sys.stderr)
+        return None
+    found: list[str] = re.findall(
+        r'^\s*alliumCliVersion = "([^"]+)";$', flake.read_text(), re.MULTILINE
+    )
+    if len(found) != 1:
+        print(
+            'version-check: flake.nix must state alliumCliVersion = "x.y.z"; exactly once',
+            file=sys.stderr,
+        )
+        return None
+    return found[0]
+
+
+def reference_output(reference: Path, *, required: bool) -> str | None:
+    """The reference's `--version` output, empty when it is missing, None when it fails.
+
+    A required reference, one the dev shell names because it built it, that is missing
+    is a failure, not a note.
+    """
     if not reference.is_file():
+        if required:
+            print(f"version-check: the reference {reference} is missing", file=sys.stderr)
+            return None
         return ""
     try:
         result = subprocess.run(
@@ -51,7 +86,9 @@ def version_string(root: Path, pin: str, source: str, console: str) -> int:
     # The reference is built by a network recipe outside check: a missing or stale
     # one is a note, not drift (T13). One that exists but fails to run or prints no
     # version line is a failed read.
-    output = reference_output(root / ".tools/parity/bin/allium")
+    output = reference_output(
+        reference_path(root), required=bool(os.environ.get(REFERENCE_VARIABLE))
+    )
     if output is None:
         return 1
     if output.split()[1:2] != [pin]:
@@ -160,8 +197,13 @@ def main(argv: list[str]) -> int:
         "ALLIUM_VERSION": match[1],
         "console version": words[1],
     }
+    flake_reference = flake_reference_version(root)
     members = member_versions(root)
-    if members is None or not versions_agree(versions | members):
+    if (
+        flake_reference is None
+        or members is None
+        or not versions_agree(versions | {"flake.nix parity reference": flake_reference} | members)
+    ):
         return 1
     return version_string(root, pin, source, result.stdout)
 

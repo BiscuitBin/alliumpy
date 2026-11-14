@@ -113,6 +113,15 @@ just install-parity-reference
 Its last line must be the `--version` line step 1 worked out, `allium <new> (language
 versions: ...)`. That line is the new `ALLIUM_VERSION_STRING`.
 
+The Nix dev shell builds its own reference ([decision
+0018](../decisions/0018-nix-owns-the-tools.md)), at the version `flake.nix` states on its
+`alliumCliVersion` line, with a source hash and a vendor hash beside it. Move that line
+to `<new>`, then set each hash to `pkgs.lib.fakeHash` in turn and enter the shell
+(**network**): each build fails naming the hash it got, which is the value to write.
+`just version-check` reads the `alliumCliVersion` line under either provider and fails
+while it differs from the pin, and in the shell `"$ALLIUMPY_PARITY_REFERENCE" --version`
+must print step 1's line.
+
 Fetch upstream's three files at both tags, each checked against the tag's tree, from the
 worktree root and into empty directories. Under `pipefail` a failed read cannot hide
 behind `base64`, and the hash check catches an empty or altered file:
@@ -158,7 +167,8 @@ Then edit what the script does not reach, in `crates/alliumpy-core/src/cli.rs`: 
 in the first line of its header. And in the `read_to_string` lines of `test_plan.rs`, if
 upstream moved `v3-lifecycle.allium`, the transform's fixture path in `vendor_cli.py`.
 
-The parity reference itself needs no edit under any route.
+The parity reference itself needs no edit under any route beyond the `flake.nix` lines
+above.
 
 ### 4. Move every version copy
 
@@ -173,6 +183,7 @@ read the others. Edit all of them:
 - `version` in `[project]` of `crates/alliumpy/pyproject.toml`.
 - The `ALLIUM_VERSION == "<old>"` literal in `crates/alliumpy/tests/test_parse.py`.
 - The three version mentions at the head of `crates/alliumpy/LICENSE-allium-tools`.
+- `alliumCliVersion` in `flake.nix`, with its two hashes, if step 3 has not moved it.
 
 `release-pypi.yml` holds no version literal today, so there is nothing to edit there.
 Then list what is left:

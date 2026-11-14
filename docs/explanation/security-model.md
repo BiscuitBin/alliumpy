@@ -64,7 +64,10 @@ writes JSON to stdout.
 
 `just install-parity-reference` builds `allium-cli` from crates.io with
 `cargo install ... --locked` into `.tools/parity/`, off `PATH`; no downloaded binary is
-used as the behavioural reference.
+used as the behavioural reference. In the Nix dev shell the flake builds the same crate at
+the same version from crates.io instead, with the crate's own lockfile, pinned by a
+source hash and a vendor hash, and names it in `ALLIUMPY_PARITY_REFERENCE`, again off
+`PATH` ([decision 0018](../decisions/0018-nix-owns-the-tools.md)).
 The harness invokes it by absolute path. This avoids shadowing the wheel's `allium`.
 Fetched source and fixtures are untrusted evidence. Read them from outside their
 directory, preserve attribution, and run harness Python with `-I`.

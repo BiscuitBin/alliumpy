@@ -108,8 +108,8 @@ These two run only in the flake's dev shell, which provides their tools
 
 | Recipe | Purpose |
 | --- | --- |
-| `install-parity-reference` | Build upstream's `allium-cli` at the pin from crates.io, locked, into `.tools/parity/`, off `PATH`. Network; outside check. |
-| `parity` | Run wheel-smoke, then compare the wheel's `allium` with the reference byte for byte on stdout and exactly on exit status over the parity corpus, with its controls, then run `test_cli.py`. POSIX; outside check. |
+| `install-parity-reference` | Build upstream's `allium-cli` at the pin from crates.io, locked, into `.tools/parity/`, off `PATH`. Network; outside check. Under pixi only: the dev shell builds its own. |
+| `parity` | Run wheel-smoke, then, against the reference the provider names (`ALLIUMPY_PARITY_REFERENCE` in the dev shell, else `.tools/parity/`), compare the wheel's `allium` with the reference byte for byte on stdout and exactly on exit status over the parity corpus, with its controls, then run `test_cli.py`. POSIX; outside check. |
 
 ## Aggregate
 

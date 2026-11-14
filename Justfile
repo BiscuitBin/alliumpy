@@ -549,9 +549,16 @@ install-parity-reference:
 # `check` because the reference needs the network to build. Fails closed on an
 # empty corpus and runs its own positive and negative controls first, then the
 # behaviours beyond the corpus (`test_cli.py`) against the same candidate.
+#
+# The reference comes from the provider: the dev shell builds it in the flake and
+# names it in ALLIUMPY_PARITY_REFERENCE; under pixi it is install-parity-reference's.
 parity: wheel-smoke
-    test -x .tools/parity/bin/allium || { printf '%s\n' 'parity: no reference; run just install-parity-reference' >&2; exit 2; }
-    python -I tests/parity/run.py --reference "$PWD/.tools/parity/bin/allium" --candidate "$PWD/target/wheel-smoke/venv/bin/allium" --corpus tests/fixtures/parity
+    #!/bin/sh
+    set -eu
+    reference=${ALLIUMPY_PARITY_REFERENCE:-$PWD/.tools/parity/bin/allium}
+    test -x "$reference" || { printf 'parity: no reference at %s; %s\n' "$reference" {{ if tools == "nix" { "'the dev shell builds it'" } else { "'run just install-parity-reference'" } }} >&2; exit 2; }
+    case "$(command -v allium || true)" in "$reference") printf '%s\n' 'parity: the reference is the allium on PATH' >&2; exit 2;; esac
+    python -I tests/parity/run.py --reference "$reference" --candidate "$PWD/target/wheel-smoke/venv/bin/allium" --corpus tests/fixtures/parity
     ALLIUMPY_SMOKE_BIN="$PWD/target/wheel-smoke/venv/bin/allium" python -m pytest crates/alliumpy/tests/test_cli.py -rs
 
 # --------------------------------------------------------------- aggregate ---
