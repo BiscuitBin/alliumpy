@@ -18,12 +18,12 @@ description: Bring a workspace to a state where the full gate runs, and interpre
    under the same authorization rule. Rustqual is needed for gate 7, cargo-hack for
    gate 8; the Python tools serve gates 14–19. No reference `allium` belongs in
    `.tools/bin`: it would shadow the wheel's command.
-3. Run `just check`. It runs the 22 gates in `tickets/CONVENTIONS.md` §4 order and
+3. Run `just check`. It runs the 23 gates in `tickets/CONVENTIONS.md` §4 order and
    snapshots the worktree between them: 1 toolchain, 2 locks, 3 hooks, 4–5 formatting,
    6 clippy, 7 metrics, 8 features, 9 doctests, 10 core coverage, 11 rustdoc,
    12 dependency policy, 13 unused dependencies, 14 Python lint, 15 Python typing,
    16 pytest, 17 stubtest, 18 installed wheel smoke, 19 versions, 20 documentation,
-   21 agents, 22 snapshots; then `check-clean`.
+   21 agents, 22 snapshots, 23 Nix files; then `check-clean`.
 4. Read only the first failure and rerun the named recipe. Later failures often follow
    from earlier ones. Gates 16–19 build the extension in debug for pytest and stubtest
    and in release for the wheel smoke: both artefacts are intentional evidence.

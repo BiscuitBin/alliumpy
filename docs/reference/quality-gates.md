@@ -15,7 +15,7 @@ read-only; an ignored path is outside the snapshot.
 | Order | Gate | Proves |
 | --- | --- | --- |
 | 1 | `check-toolchain` | The cargo on `PATH` and the rustc it runs are the release `rust-toolchain.toml` pins, with each component the file names present and built from that compiler; the accepted toolchain is printed. |
-| 2 | `lock-check` | `Cargo.lock`, `fuzz/Cargo.lock` and `pixi.lock` match their manifests offline. |
+| 2 | `lock-check` | `Cargo.lock` and `fuzz/Cargo.lock` match their manifests offline, and so does `flake.lock` in the dev shell (`pixi.lock` outside it). |
 | 3 | `lint` | The complete read-only hook gate passes. |
 | 4 | `fmt-check` | Rust formatting matches rustfmt, in the workspace and the fuzz crate. |
 | 5 | `toml-check` | TOML formatting and lint pass. |
@@ -36,11 +36,12 @@ read-only; an ignored path is outside the snapshot.
 | 20 | `check-docs` | The documentation contract, spelling, Markdown and local links pass. |
 | 21 | `check-agents` | The canonical instructions, adapters, skills and bridges satisfy their contract. |
 | 22 | `snapshots-check` | All core snapshots match and no committed snapshot is unreferenced; locks are checked first and tests run offline. |
+| 23 | `nix-check` | The tracked Nix files are formatted as nixfmt writes them, with nothing statix warns about and no binding deadnix finds unused. Its tools come from the dev shell only. |
 
 `parity` sits outside this list because its reference needs the network to build; the
 `parity` CI job runs it, and [Testing](testing.md#command-parity) says what it proves.
 
-After these twenty-two gates, `check-clean` compares the worktree with the starting
+After these twenty-three gates, `check-clean` compares the worktree with the starting
 snapshot. A green dirty baseline means the checks changed nothing; hand-back additionally
 requires a committed clean worktree. Gates 4 and 5 also run inside lint deliberately,
 so a failure has a named place in the aggregate list.

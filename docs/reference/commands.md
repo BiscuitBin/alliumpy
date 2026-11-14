@@ -30,9 +30,9 @@ and `fuzz-build` are reports or proofs a person runs, never part of `check`.
 | `install-toolchain` | Install the toolchain and components the toolchain file names. |
 | `install-tools` | Install `tools.txt` binary-only; for `tools-source.txt`, accept a signed quickinstall build or compile crates.io source locked. Never take unsigned release assets in the source pass; unset tokens and disable discovery there. |
 | `sync` | Fetch the workspace's and the fuzz crate's Cargo dependencies and, where pixi is the provider, install its committed resolution, without rewriting any lock. |
-| `lock` | Relock `Cargo.lock` and `fuzz/Cargo.lock` after a manifest edit and run pixi lock. Read every diff. |
-| `lock-upgrade` | Move both Cargo resolutions and pixi's within manifest constraints. |
-| `lock-check` | Compare `Cargo.lock`, `fuzz/Cargo.lock` and `pixi.lock` with their manifests offline without writing. |
+| `lock` | Relock `Cargo.lock` and `fuzz/Cargo.lock` after a manifest edit, then `flake.lock` for any input `flake.nix` adds (`pixi lock` outside the dev shell). Read every diff. |
+| `lock-upgrade` | Move both Cargo resolutions within manifest constraints, and every flake input (`pixi update` outside the dev shell). |
+| `lock-check` | Compare `Cargo.lock` and `fuzz/Cargo.lock` with their manifests offline without writing, and `flake.lock` with `flake.nix` in the dev shell (`pixi.lock` outside it). |
 | `install-hooks` | Install the shared hook shim and prepare environments; primary checkout only. In the dev shell the shim names `.pre-commit-nix.yaml` and nothing needs preparing. |
 
 ## Develop
@@ -117,7 +117,7 @@ These two run only in the flake's dev shell, which provides their tools
 
 | Recipe | Purpose |
 | --- | --- |
-| `check` | Run the twenty-two configured gates in order with worktree snapshots, then check-clean. |
+| `check` | Run the twenty-three configured gates in order with worktree snapshots, then check-clean. |
 | `check-clean` | Require a clean worktree, or equality with a supplied baseline. |
 
 ## Related pages

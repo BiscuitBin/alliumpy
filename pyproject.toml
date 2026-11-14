@@ -74,5 +74,6 @@ recipes = [
   "check-docs",
   "check-agents",
   "snapshots-check",
+  "nix-check",
 ]
 predicates = {}

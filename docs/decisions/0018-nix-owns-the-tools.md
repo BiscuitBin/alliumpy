@@ -174,8 +174,22 @@ are made.
   `ALLIUMPY_PARITY_REFERENCE`; it is never on `PATH`. `just version-check` reads that
   line under both providers and counts it among the versions that must agree, so a pin
   bump that leaves the flake behind fails by design. In the shell the version check also
-  runs the reference and refuses a named one that is missing; under pixi it reads
-  `.tools/parity/bin/allium` as before.
+  runs the reference and refuses one that is missing or prints another version than the
+  pin, as a shell entered before a bump would; outside the shell it ignores the
+  variable and reads `.tools/parity/bin/allium` as before. The metrics gate likewise
+  compares the shell's rustqual with the `rustqualVersion` line of the checked-out
+  flake.
+- **Hooks refuse outside the shell.** The first hook in `.pre-commit-nix.yaml` fails
+  unless `ALLIUMPY_TOOLS` is `nix`, so a commit from outside the shell is refused with
+  the remedy, rather than run the machine's tools or pixi's.
+- **The sandbox is asserted in CI.** The flake-check jobs set `sandbox = true` and fail
+  unless Nix reports it, accepting `relaxed` on macOS only. Before this, the macOS job
+  reported `false`.
+- **An upstream crash the fuzzer found.** A short fuzz run in the shell found that
+  `allium-parser` 3.6.1 panics slicing a string inside a multibyte character
+  (`parser.rs` line 109; input `"3\0//#z/\u{785}/"`). `alliumpy.parse` raises
+  `PanicException` on it under pixi too. It is upstream's behaviour, recorded here and
+  not changed.
 - **The wheel as a Nix build.** The flake's `wheel` package builds the bindings
   crate's release dependencies once, then runs maturin over them in the sandbox with
   `--locked` from the wheel manifest. The source it sees is the tracked crates, the
@@ -184,12 +198,25 @@ are made.
   alone in `dist/` and gives it `wheel-smoke`'s smoke and `parity`'s comparison, whose
   bodies are shared private recipes. maturin tags this wheel `linux_aarch64` (or the
   host's) rather than manylinux, which is the honest tag for a Nix build.
-- **Flake checks.** Six checks share one dependency build in the dev profile: the
-  crates build, clippy, nextest over the core, its doctests, the Nix-built wheel's
-  smoke and the Nix files' format and lint. The ticket named five; the doctests are a
+- **Flake checks.** Six checks: the crates build, clippy, nextest over the core and its
+  doctests share one dependency build in the dev profile, the profile the recipes use;
+  the Nix-built wheel's smoke uses the wheel, built over its own release-profile
+  dependencies; the Nix files' format and lint builds no crate. The split is
+  deliberate: the wheel must be the release build, and the checks must match the
+  recipes. The ticket named five; the doctests are a
   check of their own because nextest cannot run them, as in `just test`. A deliberate
   clippy violation, a failing core test, a wheel with no console script and a
   misformatted Nix file each fail the matching check.
+- **The cutover.** The dev shell is the supported path. `nix-check` is gate 23 of
+  `just check`. The lock check verifies `flake.lock` against `flake.nix` offline with
+  `nix flake metadata --offline --no-update-lock-file`, which fails rather than rewrite
+  it; `just lock` and `just lock-upgrade` run `nix flake lock` and `nix flake update`.
+  The first-run script, in the shell, checks the compiler, fetches the crates and
+  installs the hooks. The dev shell names its interpreter in `ALLIUMPY_PYTHON`: a lookup
+  by name inside a nested `just` found the editable-install environment first, and
+  `py-develop` rebuilt that environment on itself. `py-develop` now also rebuilds the
+  environment whenever its recorded base interpreter is not the provider's. pixi's path
+  still works outside the shell, for CI, until it is removed, and fails gate 23 there.
 
 ## Related pages
 

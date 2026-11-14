@@ -80,7 +80,11 @@ such toolchain installed and was told not to download one. Install rustup as
 [Develop locally](../how-to/develop-locally.md) describes, then run
 `just install-toolchain`.
 
-## A recipe cannot find `prek` or a `bg-*` script
+## A recipe cannot find a tool, `prek` or a `bg-*` script
+
+In the dev shell every tool comes from the shell, so a missing one means the recipe ran
+outside it: check that `ALLIUMPY_TOOLS` is `nix` and enter the shell again. The rest of
+this section is the pixi path's, outside the shell.
 
 The pixi environment under `.pixi/` and the binaries under `.tools/bin/` are installed
 per worktree, and a fresh worktree has neither. `pixi install --frozen` restores the

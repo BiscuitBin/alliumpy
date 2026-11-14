@@ -17,7 +17,8 @@ reason for two Python manifests and a static wheel version.
 | Variable | Read by and effect |
 | --- | --- |
 | `ALLIUMPY_TOOLS` | Set to `nix` by the flake's dev shell and by nothing else. The Justfile reads it in one place: `nix` leaves `PATH` as the shell made it, unset selects pixi, and any other value is refused. |
-| `ALLIUMPY_PARITY_REFERENCE` | Set by the dev shell to the `allium` the flake builds as the parity reference, which is never on `PATH`. parity and version-check use it in place of `.tools/parity/bin/allium`; a named reference that is missing fails version-check. |
+| `ALLIUMPY_PYTHON` | Set by the dev shell to its own interpreter, which the Justfile uses as `PYO3_PYTHON` there; a lookup by name would find the editable-install environment, first on a recipe's `PATH`. |
+| `ALLIUMPY_PARITY_REFERENCE` | Set by the dev shell to the `allium` the flake builds as the parity reference, which is never on `PATH`. In the shell, parity and version-check use it in place of `.tools/parity/bin/allium`, and version-check fails when it is missing or prints another version than the pin. Outside the shell it is ignored. |
 | `ALLIUMPY_RUSTQUAL_VERSION` | Set by the dev shell to the rustqual version the flake builds; the metrics gate's expectation there. |
 | `PYO3_PYTHON` | Set by the Justfile, for every Cargo invocation, to the absolute path of the tool provider's own `python`: pixi's, or the dev shell's inside `nix develop`. Never the virtual environment's, so the value does not move when py-develop first runs. py-develop and wheel-smoke build their environments on it. |
 | `VIRTUAL_ENV` | Set on py-develop to `target/py-develop/`, where maturin installs the extension editable. |

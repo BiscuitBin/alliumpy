@@ -22,6 +22,16 @@ exclude: >-
 repos:
   - repo: local
     hooks:
+      # First, and on every run: this configuration calls the dev shell's tools
+      # by name, so outside the shell it would run whatever the machine has, or
+      # route through the Justfile to pixi. It refuses instead.
+      - id: in-dev-shell
+        name: In the Nix dev shell
+        entry: sh -c 'test "${ALLIUMPY_TOOLS:-}" = nix || { echo "commit from inside the Nix dev shell (nix develop, or direnv); its tools are what these hooks run" >&2; exit 1; }'
+        language: system
+        pass_filenames: false
+        always_run: true
+
       # Local hooks run through `just`: a git hook does not inherit the Justfile's
       # PATH, so routing through the recipe is what lets a hook find the tool
       # provider's taplo or `bg-*` command by name, and it keeps each tool's

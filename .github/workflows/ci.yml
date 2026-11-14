@@ -305,7 +305,17 @@ jobs:
         with:
           extra_nix_config: |
             experimental-features = nix-command flakes
-      - run: nix config show sandbox
+            sandbox = true
+      # Asserted, not printed: a check that built with network access proves
+      # nothing about the sandbox. macOS's sandbox is weaker than Linux's, and
+      # `relaxed` is accepted there only; nothing here asks to leave it.
+      - run: |
+          sandbox=$(nix config show sandbox)
+          echo "sandbox = $sandbox"
+          case "$RUNNER_OS:$sandbox" in
+            Linux:true | macOS:true | macOS:relaxed) ;;
+            *) exit 1 ;;
+          esac
       - run: nix develop --command just nix-flake-check
       # For the reason rust's last step gives.
       - run: git status --porcelain && test -z "$(git status --porcelain)"

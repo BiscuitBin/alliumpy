@@ -296,7 +296,7 @@ upstream and is never answered by editing the corpus.
 just version-check
 ```
 
-It must exit 0, printing `version-check: all 7 versions agree: <new>` and
+It must exit 0, printing `version-check: all 8 versions agree: <new>` and
 `version-check: the reference prints the same: allium <new> ...`. It never runs before
 step 5, or the stale `allium` in `target/wheel-smoke/venv` fails it for the wrong reason.
 This clears the failure quoted in step 2.

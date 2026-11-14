@@ -26,6 +26,8 @@
       # source and vendor hashes below, in the same change
       # (docs/how-to/bump-upstream.md).
       alliumCliVersion = "3.6.1";
+      # The rustqual the metrics gate requires; `just metrics` reads this line.
+      rustqualVersion = "1.8.3";
 
       # Apple silicon macOS and x86-64 Linux are where contributors and CI work.
       # arm64 Linux lets the same shell run natively in a Linux container on an
@@ -117,7 +119,7 @@
           # toolchain. This version is the one the metrics gate requires.
           rustqual = rustPlatform.buildRustPackage (finalAttrs: {
             pname = "rustqual";
-            version = "1.8.3";
+            version = rustqualVersion;
             src = pkgs.fetchCrate {
               inherit (finalAttrs) pname version;
               hash = "sha256-xplBYaftBxCRwNZwyoHU68vPi1ooQ2krckwi0RoJ0pM=";
@@ -194,8 +196,10 @@
 
           # The build-shaped gates as sandboxed checks, beside `just check` and
           # never instead of it. They use the recipes' lint tables, features and
-          # lockfile, in the dev profile the recipes use, over dependencies built
-          # once and shared. The fuzz crate is outside the workspace and outside
+          # lockfile. The four cargo checks share one dependency build in the dev
+          # profile the recipes use; the wheel smoke uses the wheel, built over
+          # its own release-profile dependencies; the Nix-files check builds no
+          # crate. The fuzz crate is outside the workspace and outside
           # these checks; `just clippy` and `just fuzz-build` cover it.
           # Every tracked Nix file, as `just nix-check` sees them.
           nixFiles = lib.fileset.toSource {
@@ -317,6 +321,9 @@
 
             # The Justfile reads this to know the shell, not pixi, provides the tools.
             ALLIUMPY_TOOLS = "nix";
+            # The interpreter pyo3 builds against and the virtual environments
+            # are made on; the Justfile reads it rather than search PATH.
+            ALLIUMPY_PYTHON = "${python}/bin/python";
             # The metrics gate refuses a rustqual of any other version.
             ALLIUMPY_RUSTQUAL_VERSION = rustqual.version;
             ALLIUMPY_PARITY_REFERENCE = "${parityReference}/bin/allium";

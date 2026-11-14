@@ -12,7 +12,7 @@ Carried from pachinko's decision 0009 at `bf51e0d`, which carried libpawdoku's d
 
 ## Context
 
-`just check` runs twenty-two recipes in order, then check-clean proves the tree
+`just check` runs twenty-three recipes in order, then check-clean proves the tree
 unchanged. The Rust half covers formatting, TOML, clippy, metrics, feature combinations,
 doctests, core coverage, rustdoc, dependency policy and unused dependencies. [Quality
 gates](../reference/quality-gates.md) owns their complete order; [decision

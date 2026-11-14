@@ -17,9 +17,18 @@ REFERENCE_TIMEOUT_SECONDS = 60
 REFERENCE_VARIABLE = "ALLIUMPY_PARITY_REFERENCE"
 
 
+def in_dev_shell() -> bool:
+    """Whether the Nix dev shell is the tool provider, as the Justfile decides it."""
+    return os.environ.get("ALLIUMPY_TOOLS") == "nix"
+
+
 def reference_path(root: Path) -> Path:
-    """The parity reference this provider uses: the dev shell's, else the installed one."""
-    named = os.environ.get(REFERENCE_VARIABLE)
+    """The parity reference this provider uses: the dev shell's, else the installed one.
+
+    Outside the dev shell the variable is ignored, so a value leaked from a shell cannot
+    stand in for pixi's reference.
+    """
+    named = os.environ.get(REFERENCE_VARIABLE, "") if in_dev_shell() else ""
     return Path(named) if named else root / ".tools/parity/bin/allium"
 
 
@@ -86,17 +95,24 @@ def version_string(root: Path, pin: str, source: str, console: str) -> int:
     # The reference is built by a network recipe outside check: a missing or stale
     # one is a note, not drift (T13). One that exists but fails to run or prints no
     # version line is a failed read.
-    output = reference_output(
-        reference_path(root), required=bool(os.environ.get(REFERENCE_VARIABLE))
-    )
+    # The dev shell builds its reference, so there it must exist and be at the pin.
+    required = in_dev_shell()
+    output = reference_output(reference_path(root), required=required)
     if output is None:
         return 1
     if output.split()[1:2] != [pin]:
-        print(
-            f"version-check: note: no reference allium {pin} to compare;"
-            " run just install-parity-reference"
-        )
-        return 0
+        if required:
+            print(
+                f"version-check: the dev shell's reference prints {output.strip()!r}, not"
+                f" allium {pin}; leave the shell and enter it again",
+                file=sys.stderr,
+            )
+        else:
+            print(
+                f"version-check: note: no reference allium {pin} to compare;"
+                " run just install-parity-reference"
+            )
+        return 1 if required else 0
     if output != console:
         print(
             f"version-check: console output {console!r} differs from the reference's {output!r}",

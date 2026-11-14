@@ -6,7 +6,27 @@ cd "$project_root"
 
 git rev-parse --is-inside-work-tree >/dev/null
 
-# The environment first: install-tools and install-hooks need
+# Inside the flake's dev shell (decision 0018) the shell already holds the
+# compiler and every tool, so the first run checks the compiler, fetches the
+# crates the gates build offline later, and installs the hooks. Entering the
+# shell was the step that downloaded the tools; nothing here installs a
+# toolchain, a tool list or a pixi environment.
+if [ "${ALLIUMPY_TOOLS:-}" = nix ]; then
+    just check-toolchain
+    test -f Cargo.lock || cargo generate-lockfile
+    just sync
+    if [ "$(git rev-parse --git-common-dir)" = "$(git rev-parse --git-dir)" ]; then
+        just install-hooks
+    else
+        printf '%s\n' 'Secondary worktree: skipping install-hooks.' >&2
+        printf '%s\n' 'Run just install-hooks once from the primary checkout.' >&2
+    fi
+    printf '\n%s\n' 'Ready. Next: just check.'
+    printf '%s\n' 'Nothing has been formatted, staged, committed, tagged, or pushed.'
+    exit 0
+fi
+
+# Outside the dev shell, pixi's path. The environment first: install-tools and install-hooks need
 # its cargo-binstall, `bg-*` scripts and prek; the toolchain lines need only
 # rustup. `--locked` refuses a lockfile that disagrees with `pyproject.toml`, so
 # a stale lock is fixed by `just lock` and committed, never rewritten silently by
