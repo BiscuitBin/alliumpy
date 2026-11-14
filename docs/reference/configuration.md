@@ -17,8 +17,9 @@ reason for two Python manifests and a static wheel version.
 | Variable | Read by and effect |
 | --- | --- |
 | `ALLIUMPY_TOOLS` | Set to `nix` by the flake's dev shell and by nothing else. The Justfile reads it in one place: `nix` leaves `PATH` as the shell made it, unset selects pixi, and any other value is refused. |
-| `PYO3_PYTHON` | Set by the Justfile, for every Cargo invocation, to the absolute path of the `python` the tool provider puts on `PATH`: the pixi interpreter. |
-| `CONDA_PREFIX` | Set on py-develop to that interpreter's own prefix, so maturin finds the pixi environment. |
+| `PYO3_PYTHON` | Set by the Justfile, for every Cargo invocation, to the absolute path of the tool provider's own `python`: pixi's, or the dev shell's inside `nix develop`. Never the virtual environment's, so the value does not move when py-develop first runs. py-develop and wheel-smoke build their environments on it. |
+| `VIRTUAL_ENV` | Set on py-develop to `target/py-develop/`, where maturin installs the extension editable. |
+| `CONDA_PREFIX` | Unset on py-develop: maturin refuses to choose between it and `VIRTUAL_ENV`. |
 | `RUSTDOCFLAGS` | Set on doc to `-D warnings --cfg docsrs`. |
 | `RUSTC` | If set, check-toolchain checks this compiler, as cargo would run it, in place of the `rustc` on `PATH`. |
 | `RUSTUP_AUTO_INSTALL` | Set to 0 by check-toolchain, so an uninstalled toolchain is refused where rustup provides cargo. |

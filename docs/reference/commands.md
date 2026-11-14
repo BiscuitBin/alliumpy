@@ -95,13 +95,13 @@ These two run only in the flake's dev shell, which provides their tools
 
 | Recipe | Purpose |
 | --- | --- |
-| `py-develop` | Build and install the extension editable via maturin into the environment of the interpreter on the recipe's `PATH`, using CONDA_PREFIX and pinned uv. |
+| `py-develop` | Create the virtual environment `target/py-develop/` on the provider's interpreter if missing, offline, then build the extension and install it editable there via maturin and the pinned uv. |
 | `py-lint` | Ruff lint and format; require the package in its input and the positive fixture's F401 and E501 failures. |
 | `py-typecheck` | mypy over package, stub, tests and scripts; require the deliberate type-error fixture to fail with status 1. |
 | `py-test` | Rebuild with py-develop, then run pytest on the binding. |
 | `py-stubtest` | Rebuild, then compare the imported native module with its canonical stub and reviewed allowlist. |
 | `wheel` | Empty dist and build a locked release wheel for this platform. |
-| `wheel-smoke` | Build the wheel, require exactly one, install offline into a fresh venv, run isolated Python smoke, the console version and `allium check` on the clean fixture. |
+| `wheel-smoke` | Build the wheel, require exactly one, install offline into a fresh venv on the provider's own interpreter, run isolated Python smoke, the console version and `allium check` on the clean fixture. |
 | `version-check` | Compare version copies, each member crate's version included, with the installed wheel-smoke command, and its whole `--version` output with `ALLIUM_VERSION_STRING` and, when built at the pin, the parity reference's; a missing smoke venv fails. |
 
 ## Parity

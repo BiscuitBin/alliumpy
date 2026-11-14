@@ -124,6 +124,19 @@ are made.
   Python 3.14 for pyo3's build script, a C and C++ compiler from the standard
   environment, and the three Nix tools. The toolchain check, the format check, clippy,
   the tests and the docs build passed in it with nothing from the machine.
+- **The Python gates.** One interpreter, Python 3.14 with pytest and mypy from its own
+  package set, serves pyo3's build script, pytest, mypy and stubtest; maturin, uv and
+  ruff come from nixpkgs beside it. The dev shell's Python environment is read-only, so
+  the editable install goes into a virtual environment under `target/py-develop/`,
+  built offline on the provider's interpreter with its packages visible. Both providers
+  use it, so there is one mechanism. `PYO3_PYTHON` stays the provider's own interpreter,
+  so the first `py-develop` does not move it.
+- **A shell-built wheel on a Python from outside Nix.** On arm64 Linux maturin tagged
+  the wheel `manylinux_2_34`. Its extension needs only libc and libgcc, and its run path
+  names Nix store directories that do not exist elsewhere, so another system's loader
+  falls back to its own libraries. Installed offline into a virtual environment on
+  Debian's Python 3.13 (glibc 2.41), in a container with no `/nix`, it passed the smoke.
+  Python 3.11 from outside Nix is CI's Python 3.11 smoke job to show.
 
 ## Related pages
 

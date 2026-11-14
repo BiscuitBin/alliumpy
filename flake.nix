@@ -45,6 +45,14 @@
           # rust-toolchain.toml stays the single owner of the Rust version and
           # its components; nixpkgs decides every other tool's version.
           rustToolchain = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
+          # One interpreter for pyo3's build script, pytest, mypy and stubtest.
+          # mypy comes from this Python's own package set, not nixpkgs' top-level
+          # application, so that stubtest imports the extension under the
+          # interpreter that built it.
+          python = pkgs.python314.withPackages (ps: [
+            ps.pytest
+            ps.mypy
+          ]);
         in
         {
           # mkShell, not mkShellNoCC: cargo links through the C compiler, and
@@ -54,7 +62,10 @@
               rustToolchain
               pkgs.just
               pkgs.cargo-nextest
-              pkgs.python314
+              python
+              pkgs.maturin
+              pkgs.uv
+              pkgs.ruff
               pkgs.nixfmt
               pkgs.statix
               pkgs.deadnix

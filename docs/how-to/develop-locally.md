@@ -96,10 +96,15 @@ just doc
 
 `just build` compiles the workspace with every feature. The workspace consists of
 `alliumpy-core` and the thin `alliumpy` bindings. Run `just py-develop` to build the
-extension into pixi's environment, then `just py-test` for its Python tests.
-The Justfile sets `PYO3_PYTHON` to the pixi interpreter for every Cargo invocation;
-set it to that same absolute path when invoking Cargo directly. `CONDA_PREFIX` is set
-by `py-develop` so maturin can install into that environment.
+extension and install it editable, then `just py-test` for its Python tests. The
+install goes into a virtual environment under `target/py-develop/`, built on the tool
+provider's interpreter and seeing its pytest and mypy, because the provider's own
+environment is not always writable: the Nix dev shell's is in the read-only store. The
+recipes put that environment first on `PATH`, so `python` in a recipe is the interpreter
+that can import the extension.
+The Justfile sets `PYO3_PYTHON` to the provider's own interpreter for every Cargo
+invocation: pixi's, or the dev shell's inside `nix develop`. Set it to that same
+absolute path, which `just --evaluate PYO3_PYTHON` prints, when invoking Cargo directly.
 
 `just build` compiles the workspace with every feature. `just test` runs the unit and
 integration tests through nextest, then the doctests. `just doc` builds the API

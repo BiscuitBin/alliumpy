@@ -21,11 +21,22 @@ set shell := ["sh", "-eu", "-c"]
 tools := env("ALLIUMPY_TOOLS", "pixi")
 provider_path := if tools == "nix" { "" } else if tools == "pixi" { justfile_directory() / ".pixi" / "envs" / "default" / "bin" + ":" + justfile_directory() / ".tools" / "bin" } else { error("ALLIUMPY_TOOLS is '" + tools + "'; the flake's dev shell sets it to nix, and nothing else should set it") }
 
-export PATH := if provider_path == "" { env("PATH") } else { provider_path + ":" + env("PATH") }
+# Where py-develop installs the extension. Neither provider's own Python
+# environment can take it: the dev shell's is read-only, in the Nix store. So
+# the editable install goes into a virtual environment under target/, built on
+# the provider's interpreter and seeing its packages (pytest, mypy). Its bin
+# comes first, so once py-develop has run, `python` by name is the interpreter
+# that can import the extension; before that the directory does not exist and
+# `python` is the provider's own.
+develop_env := justfile_directory() / "target" / "py-develop"
+
+export PATH := develop_env / "bin" + ":" + if provider_path == "" { env("PATH") } else { provider_path + ":" + env("PATH") }
 
 # Every cargo invocation compiles the bindings against the provider's Python,
-# found by name. A missing interpreter leaves the bare name, so pyo3's build
-# script says what it could not run and no recipe fails before it starts.
+# found by name: the provider's own interpreter, never the virtual environment's,
+# so the value does not change when py-develop first runs and cargo's
+# fingerprints stay put. A missing interpreter leaves the bare name, so pyo3's
+# build script says what it could not run and no recipe fails before it starts.
 export PYO3_PYTHON := shell('PATH="$1${1:+:}$PATH"; command -v python || printf "%s\n" python', provider_path)
 
 # Line-coverage floor over crates/alliumpy-core/src/**. Lower the complexity, not the
@@ -390,14 +401,18 @@ nix-format:
 
 # ------------------------------------------------------------------ python ---
 
-# Builds the extension into the provider's Python environment in place (the .so
-# beside __init__.py, gitignored). maturin needs an environment to install into
-# and is handed the one the interpreter on PATH belongs to, through CONDA_PREFIX,
-# set on this line alone; it installs with the pinned uv on PATH. `locked = true`
-# in crates/alliumpy/pyproject.toml makes it honour Cargo.lock. Not a gate:
-# py-test and py-stubtest depend on it.
+# Builds the extension in place (the .so beside __init__.py, gitignored) and
+# installs it editable into the virtual environment the seam names. uv makes
+# that environment on the provider's interpreter, offline and without
+# downloading one, and keeps an existing one; --system-site-packages is what
+# lets it see the provider's pytest and mypy. maturin is handed it through
+# VIRTUAL_ENV, set on this line alone, with CONDA_PREFIX unset because maturin
+# refuses to choose between the two, and installs with the uv on PATH.
+# `locked = true` in crates/alliumpy/pyproject.toml makes it honour Cargo.lock.
+# Not a gate: py-test and py-stubtest depend on it.
 py-develop:
-    CONDA_PREFIX="$(python -I -c 'import sys; print(sys.prefix)')" maturin develop --manifest-path crates/alliumpy/Cargo.toml
+    uv venv --quiet --python "$PYO3_PYTHON" --system-site-packages --no-python-downloads --offline --allow-existing "{{ develop_env }}"
+    env -u CONDA_PREFIX VIRTUAL_ENV="{{ develop_env }}" maturin develop --manifest-path crates/alliumpy/Cargo.toml
 
 # Gate: ruff over every Python file ruff.toml names; --show-files must list
 # the package, or an exclude has emptied the gate (ruff exits 0 on no files);
@@ -442,7 +457,7 @@ wheel:
 
 # Gate: the wheel installs and works in a fresh virtual environment, offline.
 # Exactly one wheel, which must exist (an unmatched glob is one literal argument);
-# a venv on the provider's interpreter, found by name, with no download; install
+# a venv on the provider's own interpreter with no download; install
 # from dist/ alone; then import, parse the smoke fixtures, and run the console
 # script's --version and its check on the clean fixture, which must exit 0.
 # Python runs with -I so nothing in the worktree shadows the package.
@@ -452,7 +467,7 @@ wheel-smoke: wheel
     set -- dist/*.whl
     [ "$#" -eq 1 ] && [ -f "$1" ] || { printf 'wheel-smoke: expected one wheel in dist/, found: %s\n' "$*" >&2; exit 1; }
     rm -rf target/wheel-smoke
-    uv venv --python "$(command -v python)" --no-python-downloads --offline target/wheel-smoke/venv
+    uv venv --python "$PYO3_PYTHON" --no-python-downloads --offline target/wheel-smoke/venv
     uv pip install --python target/wheel-smoke/venv --offline --no-index --no-deps "$1"
     target/wheel-smoke/venv/bin/python -I tests/fixtures/smoke/smoke.py
     target/wheel-smoke/venv/bin/allium --version

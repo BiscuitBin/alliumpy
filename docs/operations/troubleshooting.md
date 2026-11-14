@@ -157,14 +157,15 @@ every environment from the current configuration.
 ## pyo3 finds the wrong Python
 
 A direct Cargo call without `PYO3_PYTHON` can select a system Python older than the ABI
-floor. Use the Justfile, which sets it to the absolute pixi interpreter, or export that
-same path for direct calls. Rebuild after correcting it.
+floor. Use the Justfile, which sets it to the tool provider's own interpreter, or export
+that same path, which `just --evaluate PYO3_PYTHON` prints, for direct calls. Rebuild after correcting it.
 
 ## maturin develop cannot find an environment
 
-Use `just py-develop`. It sets `CONDA_PREFIX` to the pixi environment for that invocation
-and finds the pinned uv on PATH. Run from the root so pixi uses the tooling manifest,
-rather than the nested maturin-only manifest.
+Use `just py-develop`. It creates the virtual environment `target/py-develop/` on the
+tool provider's interpreter if it is missing, hands it to maturin through `VIRTUAL_ENV`
+for that invocation with `CONDA_PREFIX` unset, and finds the pinned uv on PATH. Run from
+the root so the tooling manifest is used, rather than the nested maturin-only manifest.
 
 ## Python still sees an old attribute set
 

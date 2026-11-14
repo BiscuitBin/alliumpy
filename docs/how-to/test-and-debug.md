@@ -47,8 +47,9 @@ Framework configuration and conventions are described in
    upstream issue with a reproducing input.
 
 For bindings failures, run `just py-test`, then narrow to a file with
-`.pixi/envs/default/bin/python -m pytest crates/alliumpy/tests/test_parse.py` after
-`just py-develop`. Run `just py-stubtest` to compare the built module with its stub.
+`target/py-develop/bin/python -m pytest crates/alliumpy/tests/test_parse.py` after
+`just py-develop`: that interpreter is the one the extension is installed into, under
+either tool provider. Run `just py-stubtest` to compare the built module with its stub.
 Run `just wheel-smoke` to test the release wheel in a fresh isolated environment.
 
 ## Read and accept a changed snapshot
