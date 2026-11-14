@@ -42,8 +42,8 @@ managers instead. That absence is the rule working, not a failed read.
 | --- | --- |
 | `crates` | `Cargo.lock` and `fuzz/Cargo.lock` within the caret ranges, or a range itself when a release falls outside it, which is the diff to read |
 | `github actions` | each remote action's SHA with its version comment, in the workflows and the `setup` action |
-| `rust toolchain` | `channel` in `rust-toolchain.toml` and `rust-version` in the root and fuzz manifests |
-| `nix flake` | the flake's inputs in `flake.lock` (`nixpkgs`, `rust-overlay`, `crane`), and with them every tool the dev shell holds, through the `nix` manager, which Renovate calls beta and which is enabled explicitly |
+| `rust toolchain` | `channel` in `rust-toolchain.toml`, `rust-version` in the root and fuzz manifests, and the `rust-overlay` input in `flake.lock`, which builds that channel, so a new channel never arrives without an overlay that knows it |
+| `nix flake` | the flake's other inputs in `flake.lock` (`nixpkgs`, `crane`), and with them every tool the dev shell holds, through the `nix` manager, which Renovate calls beta and which is enabled explicitly |
 | `release uv` | the release job's `setup-uv` `version`, from uv's GitHub releases |
 | `release maturin` | every `maturin-version` in `release-pypi.yml`, from PyPI |
 | `python build backend` | the `maturin` range in `crates/alliumpy/pyproject.toml` |

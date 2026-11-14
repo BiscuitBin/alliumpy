@@ -24,6 +24,8 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+        # Stops the run here, so no later hook runs a tool from the machine.
+        fail_fast: true
 
       # Local hooks run through `just`: a git hook does not inherit the Justfile's
       # PATH, so routing through the recipe is what lets a hook find the dev

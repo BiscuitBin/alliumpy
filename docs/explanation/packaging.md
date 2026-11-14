@@ -101,8 +101,9 @@ holding.
 
 ## Wheels built by Nix
 
-`just nix-wheel` builds the wheel in the Nix sandbox, from the workspace `Cargo.lock`
-with the pinned toolchain, then smokes it and runs parity against it
+`just nix-wheel` builds the wheel in the Nix sandbox where it is on (the recipe prints
+the setting; CI asserts it), from the workspace `Cargo.lock` with the pinned toolchain,
+then smokes it and runs parity against it
 ([decision 0018](../decisions/0018-nix-owns-the-tools.md)). That wheel is evidence that
 the sources build hermetically, never a release artefact. It links against Nix's own
 libraries and carries a plain `linux_*` or local macOS tag, not a manylinux one, so it is

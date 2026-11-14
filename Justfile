@@ -26,6 +26,11 @@ export PATH := develop_env / "bin" + ":" + env("PATH")
 # environment's, which a recipe's PATH puts first and a nested `just` inherits.
 export PYO3_PYTHON := if env("ALLIUMPY_PYTHON", "") == "" { error("ALLIUMPY_PYTHON is not set: this is not the flake's dev shell. Enter it with `nix develop` (or let direnv do it), then run just again") } else { env("ALLIUMPY_PYTHON") }
 
+# Every Nix command a recipe runs names the two experimental features itself
+# (decision 0018): a shell entered with them on the command line does not pass
+# them on to the Nix processes its recipes start.
+nix := "nix --extra-experimental-features 'nix-command flakes'"
+
 # Line-coverage floor over crates/alliumpy-core/src/**. Lower the complexity, not the
 # number.
 coverage_floor := "90"
@@ -47,7 +52,7 @@ initialize:
 # refuses any other than the channel, which must be an exact release for the
 # comparison to mean anything. Stable cargo cannot say which rustc it will run, so
 # the variables that would make it run another one (CARGO_BUILD_RUSTC and the
-# three wrapper variables) are refused outright; cargo's config files are not
+# four wrapper variables) are refused outright; cargo's config files are not
 # read, and this repository has none (decision 0004). rustfmt, cargo-clippy and
 # clippy-driver must report that rustc's commit, which a component of another
 # toolchain reached through PATH cannot, and llvm-cov and llvm-profdata, which
@@ -70,7 +75,7 @@ check-toolchain:
     cargo_info=$(cargo -vV) || fail "cargo ($(command -v cargo || printf missing)) cannot run the pinned $pin"
     cargo_release=$(printf '%s\n' "$cargo_info" | sed -n 's/^release: //p')
     [ "$cargo_release" = "$pin" ] || fail "cargo is ${cargo_release:-unknown}, not the pinned $pin ($(command -v cargo))"
-    for var in CARGO_BUILD_RUSTC RUSTC_WRAPPER CARGO_BUILD_RUSTC_WRAPPER RUSTC_WORKSPACE_WRAPPER; do
+    for var in CARGO_BUILD_RUSTC RUSTC_WRAPPER CARGO_BUILD_RUSTC_WRAPPER RUSTC_WORKSPACE_WRAPPER CARGO_BUILD_RUSTC_WORKSPACE_WRAPPER; do
         eval "value=\${$var:-}"
         [ -z "$value" ] || fail "$var is set ($value), so cargo may run a compiler this check cannot see; unset it"
     done
@@ -130,7 +135,7 @@ sync:
 lock:
     cargo update --workspace
     cargo update --workspace --manifest-path fuzz/Cargo.toml
-    nix flake lock
+    {{ nix }} flake lock
 
 # Every lock to the newest its constraints allow: the crates' transitives, and
 # each flake input to its branch's head, which moves every tool the dev shell
@@ -138,7 +143,7 @@ lock:
 lock-upgrade:
     cargo update
     cargo update --manifest-path fuzz/Cargo.toml
-    nix flake update
+    {{ nix }} flake update
 
 # Offline, like every gate recipe: a cold Cargo cache fails rather than
 # fetching the registry index (`just sync` fills it), and an offline solve on a
@@ -148,7 +153,7 @@ lock-upgrade:
 lock-check:
     cargo update --workspace --locked --offline
     cargo update --workspace --locked --offline --manifest-path fuzz/Cargo.toml
-    nix flake metadata --offline --no-update-lock-file >/dev/null
+    {{ nix }} flake metadata --offline --no-update-lock-file >/dev/null
 
 # The shared shim, under the default configuration name, so it reads
 # .pre-commit-config.yaml. Every hook is a tool the dev shell holds, so there is
@@ -531,7 +536,8 @@ parity-dist:
 nix-wheel:
     #!/bin/sh
     set -eu
-    out=$(nix build --no-link --print-out-paths .#wheel)
+    printf 'nix-wheel: sandbox = %s\n' "$({{ nix }} config show sandbox)"
+    out=$({{ nix }} build --no-link --print-out-paths .#wheel)
     set -- "$out"/*.whl
     [ "$#" -eq 1 ] && [ -f "$1" ] || { printf 'nix-wheel: expected one wheel in %s, found: %s\n' "$out" "$*" >&2; exit 1; }
     rm -rf dist
@@ -549,7 +555,8 @@ nix-wheel:
 # beside `check`, never part of it: `check` stays the gate. A cold store needs
 # the network.
 nix-flake-check:
-    nix flake check --print-build-logs
+    @printf 'nix-flake-check: sandbox = %s\n' "$({{ nix }} config show sandbox)"
+    {{ nix }} flake check --print-build-logs
 
 # --------------------------------------------------------------- aggregate ---
 

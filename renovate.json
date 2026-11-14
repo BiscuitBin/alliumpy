@@ -39,9 +39,16 @@
       "dependencyDashboardApproval": true
     },
     {
-      "description": "The flake's inputs in flake.lock (nixpkgs, rust-overlay, crane): one pull request, because nixpkgs moves every tool the dev shell holds at once (decision 0018). Held for dashboard approval; a vulnerability-fix pull request skips that approval. The nix manager is beta; if the hosted app cannot relock flake.lock, the pull request fails lock-check and the routine is just lock-upgrade by hand (docs/how-to/maintain-dependencies.md).",
+      "description": "The flake's inputs in flake.lock (nixpkgs and crane; rust-overlay joins the rust toolchain group below): one pull request, because nixpkgs moves every tool the dev shell holds at once (decision 0018). Held for dashboard approval; a vulnerability-fix pull request skips that approval. The nix manager is beta; if the hosted app cannot relock flake.lock, the pull request fails lock-check and the routine is just lock-upgrade by hand (docs/how-to/maintain-dependencies.md).",
       "matchManagers": ["nix"],
       "groupName": "nix flake",
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "rust-overlay is where the dev shell's compiler comes from: a channel newer than the locked overlay knows cannot be built, so the overlay moves in the rust toolchain group's pull request, never behind it. A later rule than the nix flake group, so this group name wins. Held for dashboard approval; a vulnerability-fix pull request skips that approval.",
+      "matchManagers": ["nix"],
+      "matchDepNames": ["rust-overlay"],
+      "groupName": "rust toolchain",
       "dependencyDashboardApproval": true
     },
     {

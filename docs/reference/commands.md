@@ -107,8 +107,8 @@ These run in the flake's dev shell, which provides their tools
 
 | Recipe | Purpose |
 | --- | --- |
-| `nix-flake-check` | Run `nix flake check`: the crates build, clippy over the workspace, the core's nextest tests and doctests, the Nix-built wheel's smoke and the Nix files' format and lint, as sandboxed derivations over one shared dependency build. Outside check; never the gate. |
-| `nix-wheel` | Build the wheel with `nix build` in the sandbox, offline, from `Cargo.lock`, leaving no result link; put it alone in `dist/`, then smoke it and run parity against it as `wheel-smoke` and `parity` do. Evidence, never a release artefact; outside check; a cold Nix store needs the network. |
+| `nix-flake-check` | Run `nix flake check`: the crates build, clippy over the workspace, the core's nextest tests and doctests, the Nix-built wheel's smoke and the Nix files' format and lint, as derivations over one shared dependency build, sandboxed where Nix's sandbox is on, whose setting it prints first. Outside check; never the gate. |
+| `nix-wheel` | Print Nix's sandbox setting, then build the wheel with `nix build`, sandboxed and offline where that setting is on, from `Cargo.lock`, leaving no result link; put it alone in `dist/`, then smoke it and run parity against it as `wheel-smoke` and `parity` do. Evidence, never a release artefact; outside check; a cold Nix store needs the network. |
 | `parity` | Run wheel-smoke, then, against the reference the dev shell names in `ALLIUMPY_PARITY_REFERENCE`, compare the wheel's `allium` with the reference byte for byte on stdout and exactly on exit status over the parity corpus, with its controls, then run `test_cli.py`. POSIX; outside check. |
 
 ## Aggregate

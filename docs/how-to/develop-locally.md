@@ -31,13 +31,16 @@ Nix is installed once per machine. Everything after it comes from this repositor
 pins. In the clone, enter the dev shell:
 
 ```console
-nix --extra-experimental-features 'nix-command flakes' develop
+nix --extra-experimental-features 'nix-command flakes' develop --no-update-lock-file
 ```
 
-(plain `nix develop` where those features are already enabled, or `direnv allow` once and
-then just `cd` into the clone). The first entry downloads and builds the shell, several
-gigabytes, and needs the network; later entries reuse the store and work offline. Entering
-the shell never rewrites `flake.lock`. Then, inside it:
+(plain `nix develop --no-update-lock-file` where those features are already enabled, or
+`direnv allow` once and then just `cd` into the clone; `.envrc` passes the same flag). The
+first entry downloads and builds the shell, several gigabytes, and needs the network; later
+entries reuse the store and work offline. With `--no-update-lock-file`, entering the shell
+never rewrites `flake.lock`: a lock that no longer matches `flake.nix` stops the entry
+instead, and `just lock` is the fix. The recipes name the experimental features on every
+Nix command they run, so they work whether or not your Nix enables them. Then, inside it:
 
 ```console
 just initialize

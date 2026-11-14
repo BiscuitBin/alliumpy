@@ -1,11 +1,11 @@
 name: Set up the alliumpy dev shell
 description: >-
   Nix, the store the flake's dev shell needs, restored from a cache keyed on
-  the flake's inputs, and the crates Cargo.lock names (decision 0018). Every tool,
-  the compiler and Python come from the dev shell; nothing comes from the
+  the flake's inputs, and the crates Cargo.lock names (decision 0018). Every
+  tool, the compiler and Python come from the dev shell; nothing comes from the
   runner image. A job that uses this runs its steps in the shell through
-  `defaults.run.shell: nix develop --command bash -e {0}`. Runs after the
-  checkout.
+  `defaults.run.shell: nix develop --no-update-lock-file --command bash -e {0}`,
+  which never rewrites flake.lock. Runs after the checkout.
 
 runs:
   using: composite
@@ -34,5 +34,5 @@ runs:
     # The dev shell, built or restored, and the one step that fetches crates:
     # exactly what Cargo.lock and fuzz/Cargo.lock say, neither rewritten.
     # Every gate after it runs offline.
-    - run: nix develop --command just sync
+    - run: nix develop --no-update-lock-file --command just sync
       shell: bash

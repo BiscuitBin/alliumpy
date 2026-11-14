@@ -111,7 +111,8 @@ Note, 2026-11-14: decision 0006 is superseded by [decision
 `tools.txt`, `tools-source.txt`, the hook revs and the conda-forge pairs this record names
 are gone, with their rules and managers. Renovate's `nix` manager, which it calls beta
 and which is enabled explicitly, now reads the flake's inputs; their updates and
-`flake.lock`'s lock-file maintenance are held for approval, as one `nix flake` group.
+`flake.lock`'s lock-file maintenance are held for approval, as one `nix flake` group,
+except `rust-overlay`, which builds the compiler and so moves in the `rust toolchain` group.
 Whether the hosted app can relock a flake was not proven when this note was written; if it
 cannot, `just lock-upgrade` by hand is the routine. The release workflow's uv and maturin
 pins read their own sources, uv's GitHub releases and PyPI, and stay held. The tooling

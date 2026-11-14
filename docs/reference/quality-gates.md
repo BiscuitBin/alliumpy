@@ -60,8 +60,11 @@ on `PATH`, or a run outside the shell, is refused with the remedy, enter the dev
 
 ## Flake checks
 
-`just nix-flake-check` runs `nix flake check`, whose checks are sandboxed builds with no
-network ([decision 0018](../decisions/0018-nix-owns-the-tools.md)): the crates build,
+`just nix-flake-check` runs `nix flake check`, whose checks are builds with no network
+when Nix's sandbox is on ([decision 0018](../decisions/0018-nix-owns-the-tools.md)). The
+recipe prints the setting first; CI's flake-check jobs set it and fail unless it is on, and
+a local run is that evidence only where `nix config show sandbox` says `true` (or `relaxed`
+on macOS). The checks: the crates build,
 clippy over the workspace with warnings as errors, the core's nextest tests and its
 doctests, the smoke over the Nix-built wheel, and the Nix files' format and lint. They use
 the same lint tables, features and lockfile as the recipes, over dependencies built once.
