@@ -25,6 +25,12 @@ env:
   CARGO_INCREMENTAL: '0'
   CARGO_NET_RETRY: '10'
 
+# Every `run` step is in the flake's dev shell (decision 0018), which the
+# setup action prepares.
+defaults:
+  run:
+    shell: nix develop --command bash -e {0}
+
 jobs:
   fuzz:
     name: fuzz
@@ -41,8 +47,6 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
-        with:
-          cache-key: fuzz
       # The target through env, so no `${{ }}` sits inside a shell line.
       - run: just fuzz "$TARGET" 300
         env:

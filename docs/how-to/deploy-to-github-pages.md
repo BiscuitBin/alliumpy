@@ -37,8 +37,8 @@ opens from a local directory. The site documents main and can describe unrelease
 
 ## What the workflow does
 
-The `build` job checks out the repository, runs the setup action, `just check-toolchain`
-and `just site`, then uploads `target/doc`. It needs `contents: read`.
+The `build` job checks out the repository, runs the setup action, then, in the flake's
+dev shell, `just check-toolchain` and `just site`, then uploads `target/doc`. It needs `contents: read`.
 The `deploy` job publishes the artefact with `pages: write` and `id-token: write`;
 it checks nothing out and runs no repository code. Identity tokens replace stored secrets.
 The public-visibility condition and the main-ref condition guard that job.

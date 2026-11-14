@@ -103,10 +103,16 @@ own environment cannot find shellcheck. Review multi-line workflow shell explici
 
 ## Continuous integration
 
-CI runs six gate jobs: `rust`, `python`, `wheel-smoke-py311`, `coverage`, `deny` and
-`documents`. The aggregate `check` job fails if any dependency fails, is cancelled or
-skipped. The Python job uploads the Linux wheel and the Python 3.11 job installs that
-same artefact. The Rust job runs test where the local aggregate runs test-doc and
+CI runs nine gate jobs: `rust`, `python`, `wheel-smoke-py311`, `parity`, `coverage`,
+`deny`, `documents`, `macos` and `nix-flake-check` (on Linux and macOS). Every job but
+`wheel-smoke-py311` runs its steps in the flake's dev shell: the setup action installs
+Nix with the sandbox on, restores the shell's store from a cache keyed on `flake.nix` and
+`flake.lock`, and fetches the crates, and the job's default shell enters the dev shell for
+each step ([decision 0018](../decisions/0018-nix-owns-the-tools.md)). Nothing comes from
+the runner image. The `macos` job runs the whole `just check` on Apple silicon, then
+parity. The aggregate `check` job fails if any dependency fails, is cancelled or
+skipped. The Python job uploads the wheel it built in the dev shell, and the Python 3.11
+job installs that same artefact on the runner's own Python 3.11, outside Nix. The Rust job runs test where the local aggregate runs test-doc and
 coverage, and runs `fuzz-build` after `clippy`, so a fuzz target that no longer builds
 names itself in the step list without waiting for the weekly run.
 

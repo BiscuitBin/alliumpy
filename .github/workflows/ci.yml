@@ -25,15 +25,20 @@ env:
   CARGO_NET_RETRY: '10'
   RUST_BACKTRACE: '1'
 
-# Ubuntu only for the pixi jobs: two crates and a wheel, with eol=lf forced by
-# .gitattributes and rustfmt, so a second operating system would prove nothing
-# here the first does not; the other platforms' wheels are the release
-# workflow's. nix-shell is the exception and says why.
-# `check`, last, is the one required check; the gate jobs are its
-# `needs`, so no name carries a slash or a space. wheel-smoke-py311 is the
-# one gate job not on the setup action: it installs the wheel `python`
-# built on Python 3.11, an interpreter pixi does not have, and must not
-# depend on the environment that built it.
+# Every gate job runs its steps in the flake's dev shell (decision 0018): the
+# setup action installs Nix and restores the shell's store, and the default
+# shell below enters it for each `run` step, so every tool is the shell's and
+# nothing comes from the runner image. Ubuntu for the split gate jobs: two
+# crates and a wheel, with eol=lf forced by .gitattributes and rustfmt; macOS
+# on Apple silicon runs the whole gate once, as contributors do. The other
+# platforms' wheels are the release workflow's, which has its own setup.
+# `check`, last, is the one required check; the gate jobs are its `needs`,
+# so no name carries a slash or a space. wheel-smoke-py311 and check are the
+# two jobs outside the shell, and set their own shell.
+defaults:
+  run:
+    shell: nix develop --command bash -e {0}
+
 jobs:
   rust:
     name: rust
@@ -44,16 +49,15 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
-        with:
-          cache-key: rust
       # One recipe per step, in the gate's order, so a failure names itself
-      # in the step list. `check-toolchain` first: it proves the runner's
-      # cargo and rustc are the pinned release, with its components, before
-      # anything builds.
+      # in the step list. `check-toolchain` first: it proves the shell's
+      # cargo and rustc are the pinned release, with its components, from the
+      # Nix store, before anything builds.
       - run: just check-toolchain
       - run: just lock-check
       - run: just fmt-check
       - run: just toml-check
+      - run: just nix-check
       - run: just clippy
       # The fuzz crate still builds under cargo-fuzz; clippy above lints it,
       # and this is the only CI line that compiles it the way fuzz.yml does.
@@ -81,8 +85,6 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
-        with:
-          cache-key: python
       - run: just py-lint
       - run: just py-typecheck
       - run: just py-test
@@ -101,9 +103,12 @@ jobs:
       - run: just check-clean
 
   # The one pre-release proof of the abi3 floor (CONVENTIONS.md §9): every
-  # local run smokes the wheel on pixi's Python 3.14, so only this job shows
-  # that the abi3-py311 wheel installs and runs on 3.11. Plain shell, no
-  # setup action and no `just`, so the proof does not depend on pixi.
+  # local run smokes the wheel on the dev shell's Python 3.14, so only this job
+  # shows that the abi3-py311 wheel installs and runs on 3.11. The wheel is the
+  # one the python job built in the dev shell; the interpreter is the runner's
+  # Python 3.11, from outside Nix on purpose, so the proof also shows that a
+  # wheel the shell builds loads on a Python Nix did not provide. Plain shell,
+  # no setup action and no `just`.
   # Network is allowed here; `--no-index` and `--no-deps` are what keep the
   # install to the one downloaded file, and `-I` keeps the checkout's
   # sources off the import path.
@@ -112,6 +117,9 @@ jobs:
     needs: [python]
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -132,12 +140,10 @@ jobs:
           venv/bin/allium check tests/fixtures/smoke/ok.allium
 
   # Byte-for-byte stdout and exit-code parity with upstream's allium-cli at the
-  # pin, and the behaviours beyond the corpus (decision 0014). After python, so
-  # that python's post-job save of the setup action's .tools cache always
-  # precedes this job and .tools/parity never enters that tools-keyed cache.
-  # The reference has its own cache, keyed on the runner and on Cargo.toml,
-  # which holds the pin; a hit leaves cargo install nothing to build. The one
-  # job where the reference exists, so version-check's reference clause fires.
+  # pin, and the behaviours beyond the corpus (decision 0014). The reference is
+  # the one the dev shell builds and names in ALLIUMPY_PARITY_REFERENCE, so it
+  # arrives with the store; version-check's reference clause fires in every
+  # shell job, here included.
   parity:
     name: parity
     needs: [python]
@@ -148,13 +154,6 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
-        with:
-          cache-key: parity
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .tools/parity
-          key: ${{ runner.os }}-${{ runner.arch }}-parity-${{ hashFiles('Cargo.toml') }}
-      - run: just install-parity-reference
       - run: just parity
       - run: just version-check
       # For the reason rust's last step gives.
@@ -169,8 +168,6 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
-        with:
-          cache-key: coverage
       - run: just coverage
       # Only after the floor passed: the recipe writes lcov.info in its last
       # line, so an upload on failure would fail a second time for the
@@ -195,8 +192,6 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
-        with:
-          cache-key: deny
       # Licences, bans and sources are answerable from the registry index
       # `just sync` fetched. Advisories are audit.yml's, because they need the
       # RustSec database over the network.
@@ -213,74 +208,30 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
-        with:
-          cache-key: documents
       - run: just lint
       - run: just check-docs
       - run: just check-agents
       # For the reason rust's last step gives.
       - run: just check-clean
 
-  # The flake's dev shell (decision 0018), beside the pixi jobs until it
-  # replaces them. Nix comes from the install action and every tool from
-  # flake.lock, so this job uses neither the setup action nor anything the
-  # runner image carries: each step builds or reuses the shell and runs one
-  # recipe inside it, in the gate's order. Linux is the CI platform. macOS on
-  # Apple silicon is where contributors work, and until a contributor has Nix
-  # there this job is the only place the shell is exercised on it. The flags
-  # are written out so that nothing depends on what an installer enables.
-  nix-shell:
-    name: nix-shell-${{ matrix.system }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - system: linux
-            os: ubuntu-latest
-          - system: macos
-            os: macos-latest
-    runs-on: ${{ matrix.os }}
+  # The whole gate, as a contributor on Apple silicon runs it: `just check`
+  # in the dev shell, every recipe in its list with the worktree snapshotted
+  # between them. Until a contributor has Nix on a Mac this job is the only
+  # place the gate runs on macOS. Parity follows, against the shell's
+  # reference and the wheel `check` just smoked.
+  macos:
+    name: macos
+    runs-on: macos-latest
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31.11.3
-        with:
-          extra_nix_config: |
-            experimental-features = nix-command flakes
-      - run: nix develop --command just check-toolchain
-      # The one step here that fetches crates, as the setup action's `just
-      # sync` does for the pixi jobs; every gate after it runs offline.
-      - run: nix develop --command just sync
-      - run: nix develop --command just lock-check
-      - run: nix develop --command just lint
-      - run: nix develop --command just nix-check
-      - run: nix develop --command just fmt-check
-      - run: nix develop --command just toml-check
-      - run: nix develop --command just clippy
-      - run: nix develop --command just metrics
-      - run: nix develop --command just features
-      - run: nix develop --command just test
-      - run: nix develop --command just coverage
-      - run: nix develop --command just doc
-      - run: nix develop --command just deny
-      - run: nix develop --command just deps-unused
-      - run: nix develop --command just fuzz-build
-      - run: nix develop --command just snapshots-check
-      - run: nix develop --command just py-lint
-      - run: nix develop --command just py-typecheck
-      - run: nix develop --command just py-test
-      - run: nix develop --command just py-stubtest
-      - run: nix develop --command just wheel-smoke
-      - run: nix develop --command just version-check
-      - run: nix develop --command just check-docs
-      - run: nix develop --command just check-agents
-      # The flake's parity reference against the wheel-smoke build above.
-      - run: nix develop --command just parity
-      # For the reason rust's last step gives. check-clean's own command
-      # arrives in the shell with the hook tools; until then git answers.
-      - run: git status --porcelain && test -z "$(git status --porcelain)"
+      - uses: ./.github/actions/setup
+      - run: just check
+      - run: just parity
+      # For the reason rust's last step gives.
+      - run: just check-clean
 
   # The build-shaped gates as sandboxed flake checks (decision 0018): a second
   # opinion beside the gate jobs, never instead of them. The sandbox setting is
@@ -301,11 +252,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31.11.3
-        with:
-          extra_nix_config: |
-            experimental-features = nix-command flakes
-            sandbox = true
+      - uses: ./.github/actions/setup
       # Asserted, not printed: a check that built with network access proves
       # nothing about the sandbox. macOS's sandbox is weaker than Linux's, and
       # `relaxed` is accepted there only; nothing here asks to leave it.
@@ -316,9 +263,9 @@ jobs:
             Linux:true | macOS:true | macOS:relaxed) ;;
             *) exit 1 ;;
           esac
-      - run: nix develop --command just nix-flake-check
+      - run: just nix-flake-check
       # For the reason rust's last step gives.
-      - run: git status --porcelain && test -z "$(git status --porcelain)"
+      - run: just check-clean
 
   # The one required check (CONVENTIONS.md §10). It needs every gate job and
   # fails if any of them failed, was cancelled or was skipped, so protection
@@ -329,10 +276,13 @@ jobs:
   # no setup action, and no `${{ }}` inside a shell line.
   check:
     name: check
-    needs: [rust, python, wheel-smoke-py311, parity, coverage, deny, documents, nix-shell, nix-flake-check]
+    needs: [rust, python, wheel-smoke-py311, parity, coverage, deny, documents, macos, nix-flake-check]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    defaults:
+      run:
+        shell: bash
     steps:
       - if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped') }}
         run: exit 1

@@ -216,7 +216,19 @@ are made.
   by name inside a nested `just` found the editable-install environment first, and
   `py-develop` rebuilt that environment on itself. `py-develop` now also rebuilds the
   environment whenever its recorded base interpreter is not the provider's. pixi's path
-  still works outside the shell, for CI, until it is removed, and fails gate 23 there.
+  still works outside the shell until it is removed, and fails gate 23 there.
+- **CI in the dev shell.** The setup action installs Nix through
+  `cachix/install-nix-action` with the sandbox on, restores the store through
+  `nix-community/cache-nix-action` keyed on `flake.nix` and `flake.lock`, and runs
+  `just sync` in the shell; every job that uses it sets
+  `nix develop --command bash -e {0}` as its default shell, so its `run: just ...` steps
+  are unchanged. Both actions are pinned by digest and neither is given a credential.
+  The cargo target cache is gone with rust-cache, which needs a cargo on the runner's
+  own `PATH`. The tracer-bullet job folded into the Rust job, which now runs
+  `nix-check`; a `macos` job runs the whole gate. The Python 3.11 smoke keeps the
+  runner's own Python 3.11 and installs the wheel the dev shell built, which is the
+  evidence that such a wheel loads on a Python Nix did not provide.
+  `release-pypi.yml` is untouched.
 
 ## Related pages
 
