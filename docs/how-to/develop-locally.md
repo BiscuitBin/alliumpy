@@ -12,7 +12,7 @@ requires: []
 
 | Tool | Why |
 | --- | --- |
-| `rustup` | Installs the exact toolchain `rust-toolchain.toml` pins, and provides the only cargo the gate accepts. `~/.cargo/bin` must come ahead of `~/.pixi/bin` on `PATH`, or run `pixi global uninstall rust`. |
+| `rustup` | Installs the exact toolchain `rust-toolchain.toml` pins, and its proxy is the cargo that honours the file. `~/.cargo/bin` must come ahead of `~/.pixi/bin` on `PATH`, or run `pixi global uninstall rust`. |
 | `pixi`, at or above `requires-pixi` in `pyproject.toml` | Installs every other tool, and the Python environment the hook gate runs on, from `pixi.lock` into the gitignored `.pixi/envs/default`. |
 | `just` | The task runner, and the only supported interface to the checks. `pixi global install just` provides one. Any `just` launches the recipes, because the pinned one in the environment runs every nested call and CI; `pixi run --frozen just <recipe>` is the escape hatch when no global `just` is installed. |
 | A C++ compiler | libfuzzer-sys's build script compiles libFuzzer's C++ whenever the fuzz crate builds, so `just check`'s `clippy` line over `fuzz/` needs one: Xcode's command-line tools on macOS, `g++` on Ubuntu, which the runner image carries. That line is plain cargo and needs nothing else. |
@@ -45,11 +45,12 @@ pixi global install just
 One hazard catches almost everyone once. A cargo from `pixi global`, Homebrew's `rust`
 formula or a Linux distribution ignores `rust-toolchain.toml` and builds with whatever
 release it happens to be, so the lint set and the target list silently differ from CI's.
-`just check-toolchain` refuses it before anything else runs, with one of two lines:
+`just check-toolchain` refuses it before anything else runs. It does not ask where cargo
+came from, only whether cargo and the compiler it runs are the pinned release with the
+pinned components, so the refusal names both versions:
 
 ```text
-rustup is not installed; see docs/how-to/develop-locally.md
-cargo resolves to /home/you/.pixi/bin/cargo, not rustup's proxy
+check-toolchain: cargo is 1.96.0, not the pinned 1.99.1 (/home/you/.pixi/bin/cargo)
 ```
 
 The remedy is `~/.cargo/bin` ahead of `~/.pixi/bin` on `PATH`, or
@@ -61,7 +62,7 @@ just initialize
 ```
 
 This installs the pixi environment from `pixi.lock`, installs the pinned toolchain,
-refuses a cargo that is not rustup's, installs cargo-hack and cargo-fuzz from `tools.txt` and builds
+refuses a compiler that is not the pinned one, installs cargo-hack and cargo-fuzz from `tools.txt` and builds
 rustqual from `tools-source.txt` into `.tools/bin`, syncs the three
 lockfiles, and installs the pre-commit hook with every hook
 environment. Run it once per clone. It needs the network for the pixi environment, the

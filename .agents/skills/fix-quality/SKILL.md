@@ -8,8 +8,9 @@ description: Diagnose and repair a failing quality gate at its root instead of s
 1. Read `AGENTS.md`, then reproduce with the narrowest recipe: `just check` names
    the failed recipe; run that one alone and read its first failure.
 2. Dispatch on which gate failed:
-   - `check-toolchain` — cargo is not rustup's proxy, or rustup is missing. Put
-     `~/.cargo/bin` first on `PATH`; only that proxy honours `rust-toolchain.toml`.
+   - `check-toolchain` — cargo, rustc or a component is not the pinned release, or
+     is missing. Put `~/.cargo/bin` first on `PATH`: rustup's proxy honours
+     `rust-toolchain.toml`.
    - `lock-check` — run `just lock`, a network recipe needing explicit authorization,
      and read the lockfile diff before accepting it.
    - `lint` — a pre-commit hook failed. Hooks named `fmt-check`, `toml-check`,

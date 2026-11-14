@@ -14,7 +14,7 @@ read-only; an ignored path is outside the snapshot.
 
 | Order | Gate | Proves |
 | --- | --- | --- |
-| 1 | `check-toolchain` | Cargo resolves to the expected rustup proxy path, and the active toolchain is the channel `rust-toolchain.toml` pins; the selected toolchain is printed. |
+| 1 | `check-toolchain` | The cargo on `PATH` and the rustc it runs are the release `rust-toolchain.toml` pins, with each component the file names present and built from that compiler; the accepted toolchain is printed. |
 | 2 | `lock-check` | `Cargo.lock`, `fuzz/Cargo.lock` and `pixi.lock` match their manifests offline. |
 | 3 | `lint` | The complete read-only hook gate passes. |
 | 4 | `fmt-check` | Rust formatting matches rustfmt, in the workspace and the fuzz crate. |
@@ -45,10 +45,13 @@ snapshot. A green dirty baseline means the checks changed nothing; hand-back add
 requires a committed clean worktree. Gates 4 and 5 also run inside lint deliberately,
 so a failure has a named place in the aggregate list.
 
-The toolchain gate refuses an active toolchain other than the pinned channel for
-rustup's default host. When `RUSTUP_TOOLCHAIN` or a `rustup override` supersedes the
-repository pin, the gate names the toolchain it selects on stderr: remove the override
-and rerun. An uninstalled override is refused, never downloaded.
+The toolchain gate does not ask who provides cargo. It asks cargo and rustc for their
+release, refuses any other than the pinned channel, and names both versions on stderr.
+rustfmt and clippy must report the pinned compiler's commit, and the LLVM tools must sit
+in its sysroot, so a component reached through `PATH` from another toolchain is refused
+too. When `RUSTUP_TOOLCHAIN` or a `rustup override` supersedes the repository pin, the
+release differs and the gate says so: remove the override and rerun. An uninstalled
+override is refused, never downloaded.
 
 ## Evidence that checks can fail
 

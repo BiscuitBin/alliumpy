@@ -79,11 +79,11 @@ def member_versions(root: Path) -> dict[str, str] | None:
     directory does not.
 
     The recipe runs without check-toolchain, so an override that names an uninstalled
-    toolchain must fail here: RUSTUP_AUTO_INSTALL=0 makes rustup's proxy refuse it
-    rather than download it.
+    toolchain must fail here: where rustup provides cargo, RUSTUP_AUTO_INSTALL=0 makes
+    its proxy refuse it rather than download it.
     """
     metadata = subprocess.run(
-        [  # noqa: S607 - just check's check-toolchain proves PATH's cargo is rustup's proxy.
+        [  # noqa: S607 - just check's check-toolchain proves PATH's cargo runs the pinned compiler.
             "cargo",
             "metadata",
             "--no-deps",

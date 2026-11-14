@@ -26,7 +26,7 @@ and `fuzz-build` are reports or proofs a person runs, never part of `check`.
 | --- | --- |
 | `default` | Print the recipe list when just has no arguments. |
 | `initialize` | Install pixi's pinned environment, Rust toolchain, both extra tool lists and dependencies; prepare hooks only in the primary checkout. Never formats, stages, commits, tags or pushes. |
-| `check-toolchain` | Refuse a cargo other than rustup's proxy or an active toolchain other than the pinned channel, then print it. |
+| `check-toolchain` | Refuse a cargo or rustc whose release is not the pinned channel, or a pinned component that is missing or belongs to another toolchain, whoever provides them; then print what it accepted. |
 | `install-toolchain` | Install the toolchain and components the toolchain file names. |
 | `install-tools` | Install `tools.txt` binary-only; for `tools-source.txt`, accept a signed quickinstall build or compile crates.io source locked. Never take unsigned release assets in the source pass; unset tokens and disable discovery there. |
 | `sync` | Fetch the workspace's and the fuzz crate's Cargo dependencies and install pixi's committed resolution without rewriting any of the three locks. |
@@ -77,11 +77,15 @@ and `fuzz-build` are reports or proofs a person runs, never part of `check`.
 | `check-agents` | Validate the agent inventory, adapters, skills and bridges. |
 | `check-links-online` | Resolve external links manually; network failures keep it outside check. |
 
+Two private recipes, `hook-validate-docs` and `hook-ripsecrets`, are hook entry points
+and are hidden from `just --list`: a git hook does not inherit the Justfile's `PATH`,
+so the documentation-contract and secret-scan hooks reach their commands through them.
+
 ## Python
 
 | Recipe | Purpose |
 | --- | --- |
-| `py-develop` | Build and install the extension editable into pixi via maturin, using CONDA_PREFIX and pinned uv. |
+| `py-develop` | Build and install the extension editable via maturin into the environment of the interpreter on the recipe's `PATH`, using CONDA_PREFIX and pinned uv. |
 | `py-lint` | Ruff lint and format; require the package in its input and the positive fixture's F401 and E501 failures. |
 | `py-typecheck` | mypy over package, stub, tests and scripts; require the deliberate type-error fixture to fail with status 1. |
 | `py-test` | Rebuild with py-develop, then run pytest on the binding. |

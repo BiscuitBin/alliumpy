@@ -58,19 +58,26 @@ On a crate this small the denominator is small too, so one untested branch in
 the conversion is enough to breach the floor on its own. Test it or delete it; the number
 stays where it is.
 
-## `cargo resolves to <path>, not rustup's proxy`
+## `check-toolchain: cargo is <version>, not the pinned <version>`
 
-`just check-toolchain`, the first gate, found a `cargo` on `PATH` that is not rustup's.
-A cargo from pixi, Homebrew or a distribution ignores `rust-toolchain.toml` and builds
+`just check-toolchain`, the first gate, asked the `cargo` on `PATH` for its release and
+got one other than the channel `rust-toolchain.toml` pins; the line ends with that
+cargo's path. A cargo from pixi, Homebrew or a distribution ignores the file and builds
 with whatever version it is, so the gate stops before anything compiles. Put
 `~/.cargo/bin` ahead of the other directory on `PATH`, or remove the other cargo — for a
 global pixi install, `pixi global uninstall rust` — until `command -v cargo` prints the
-proxy in `~/.cargo/bin`.
+proxy in `~/.cargo/bin`. If the path is already rustup's proxy, `RUSTUP_TOOLCHAIN` or a
+`rustup override` selects another toolchain: remove it.
 
-## `rustup is not installed`
+The same gate says `rustc is <version>` when cargo is right and the compiler it would
+run is not, and `<component> is '<version line>', not the pinned compiler's` when
+rustfmt or clippy on `PATH` belongs to another toolchain.
 
-The same gate, one step earlier: there is no `rustup` on `PATH` at all. Install rustup
-as [Develop locally](../how-to/develop-locally.md) describes, then run
+## `check-toolchain: cargo (<path>) cannot run the pinned <version>`
+
+The same gate, one step earlier: there is no `cargo` on `PATH`, or rustup's proxy has no
+such toolchain installed and was told not to download one. Install rustup as
+[Develop locally](../how-to/develop-locally.md) describes, then run
 `just install-toolchain`.
 
 ## A recipe cannot find `prek` or a `bg-*` script

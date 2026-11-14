@@ -17,9 +17,9 @@ pixi install --locked
 # file names.
 just install-toolchain
 
-# The pin in `rust-toolchain.toml` is honoured only by rustup's cargo proxy, so
-# this refuses any other cargo, the pixi environment holding none, before
-# anything is built with it.
+# Whoever provides cargo, this refuses a compiler other than the one
+# `rust-toolchain.toml` pins, or one without its components, before anything is
+# built with it.
 just check-toolchain
 
 # What conda-forge lacks, from `tools.txt` and `tools-source.txt` into

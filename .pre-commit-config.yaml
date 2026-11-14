@@ -16,10 +16,10 @@ exclude: >-
 repos:
   - repo: local
     hooks:
-      # Rust hooks run through `just`: a git hook does not inherit the Justfile's
-      # PATH, so routing through the recipe is what lets a hook find the pixi
-      # environment's taplo, and it keeps each tool's arguments in exactly one
-      # place. Clippy is deliberately
+      # Local hooks run through `just`: a git hook does not inherit the Justfile's
+      # PATH, so routing through the recipe is what lets a hook find the tool
+      # provider's taplo or `bg-*` command by name, and it keeps each tool's
+      # arguments in exactly one place. Clippy is deliberately
       # not a hook: a cold build blocks every commit for minutes, so it is a gate
       # in `just check` and a CI step instead.
       - id: fmt-check
@@ -59,14 +59,14 @@ repos:
 
       - id: validate-docs
         name: Documentation contract
-        entry: pixi run --frozen bg-validate-docs
+        entry: just hook-validate-docs
         language: system
         pass_filenames: false
         files: ^(README\.md|SECURITY\.md|docs/|pyproject\.toml$)
 
       - id: validate-agents
         name: Agent instruction contract
-        entry: pixi run --frozen bg-validate-agents
+        entry: just check-agents
         language: system
         pass_filenames: false
         files: ^(AGENTS\.md|CLAUDE\.md|\.agents/|\.claude/|\.codex/|\.github/copilot-instructions\.md|pyproject\.toml$)
@@ -166,4 +166,6 @@ repos:
     rev: 7d94620933e79b8acaa0cd9e60e9864b07673d86 # v0.1.11
     hooks:
       - id: ripsecrets
-        entry: .pixi/envs/default/bin/bg-ripsecrets
+        # Through the recipe, which finds the redacting wrapper by name; prek's
+        # hook environment supplies ripsecrets itself.
+        entry: just hook-ripsecrets

@@ -7,8 +7,8 @@ dependencies = []
 
 # pixi owns every tool binary and the Python environment (.pixi/envs/default,
 # gitignored; pixi.lock is the pin). rustup owns the compiler: rust is deliberately
-# absent here, so the cargo first on a recipe's PATH is still rustup's proxy and
-# rust-toolchain.toml is honoured (check-toolchain proves it).
+# absent here, so the cargo a recipe finds is the one after this environment on
+# PATH, and check-toolchain proves it runs the compiler rust-toolchain.toml pins.
 [tool.pixi.workspace]
 channels = ["conda-forge"]
 # CI is linux-64; the maintainer is osx-arm64. osx-64 joins when a claim verifies it;

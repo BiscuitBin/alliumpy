@@ -16,10 +16,11 @@ reason for two Python manifests and a static wheel version.
 
 | Variable | Read by and effect |
 | --- | --- |
-| `PYO3_PYTHON` | Set by the Justfile to the absolute pixi interpreter path for every Cargo invocation. |
-| `CONDA_PREFIX` | Set on py-develop so maturin finds the pixi environment. |
+| `PYO3_PYTHON` | Set by the Justfile, for every Cargo invocation, to the absolute path of the `python` the tool provider puts on `PATH`: the pixi interpreter. |
+| `CONDA_PREFIX` | Set on py-develop to that interpreter's own prefix, so maturin finds the pixi environment. |
 | `RUSTDOCFLAGS` | Set on doc to `-D warnings --cfg docsrs`. |
-| `CARGO_HOME` | check-toolchain expects the rustup proxy here, defaulting to the user's cargo directory. |
+| `RUSTC` | If set, check-toolchain checks this compiler, as cargo would run it, in place of the `rustc` on `PATH`. |
+| `RUSTUP_AUTO_INSTALL` | Set to 0 by check-toolchain, so an uninstalled toolchain is refused where rustup provides cargo. |
 | `PREK_HOME` | Hook cache; CI places it outside the workspace. |
 | `GITHUB_TOKEN`, `GH_TOKEN` | Release lookup credentials; unset for install-tools' source-build pass, with token discovery disabled. |
 | `INSTA_UPDATE` | no during checks; new during snapshot acceptance. |

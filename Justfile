@@ -1,17 +1,22 @@
 set positional-arguments := true
 set shell := ["sh", "-eu", "-c"]
 
-# pixi owns every tool binary and the Python environment (.pixi/envs/default;
-# pyproject.toml is the manifest, pixi.lock the pin). Tools conda-forge lacks
-# (tools.txt, and tools-source.txt for those with no release binary) live in
-# .tools/bin, which holds only what conda-forge lacks. Every recipe, and every hook that
-# runs through a recipe, sees both first; cargo finds cargo-nextest and friends
-# on PATH by name. Neither directory holds a cargo, so rustup's proxy stays
-# first for the compiler (check-toolchain proves it).
-export PATH := justfile_directory() / ".pixi" / "envs" / "default" / "bin" + ":" + justfile_directory() / ".tools" / "bin" + ":" + env("PATH")
+# Who provides the tools is said here and nowhere else. pixi owns every tool
+# binary and the Python environment (.pixi/envs/default; pyproject.toml is the
+# manifest, pixi.lock the pin). Tools conda-forge lacks (tools.txt, and
+# tools-source.txt for those with no release binary) live in .tools/bin, which
+# holds only what conda-forge lacks. Every recipe, and every hook that runs
+# through a recipe, sees both first, and finds Python and every tool on PATH by
+# name. Neither directory holds a cargo, so the compiler is whichever cargo
+# PATH names next; check-toolchain proves it is the one rust-toolchain.toml pins.
+provider_path := justfile_directory() / ".pixi" / "envs" / "default" / "bin" + ":" + justfile_directory() / ".tools" / "bin"
 
-# Every cargo invocation compiles the bindings against pixi Python.
-export PYO3_PYTHON := justfile_directory() / ".pixi" / "envs" / "default" / "bin" / "python"
+export PATH := provider_path + ":" + env("PATH")
+
+# Every cargo invocation compiles the bindings against the provider's Python,
+# found by name. A missing interpreter leaves the bare name, so pyo3's build
+# script says what it could not run and no recipe fails before it starts.
+export PYO3_PYTHON := shell('PATH="$1:$PATH"; command -v python || printf "%s\n" python', provider_path)
 
 # Line-coverage floor over crates/alliumpy-core/src/**. Lower the complexity, not the
 # number.
@@ -26,17 +31,58 @@ default:
 initialize:
     sh scripts/initialize.sh
 
-# The pin in rust-toolchain.toml is honoured only by rustup's cargo proxy. A
-# cargo from pixi, Homebrew or a distribution ignores the file and builds with
-# whatever it is, so the gate refuses it before anything else runs. The proxy
-# still obeys RUSTUP_TOOLCHAIN or a `rustup override`, so the gate then requires
-# the active toolchain to be exactly the channel the file pins, for rustup's
-# default host. rustup reports both, so no rustc runs, and RUSTUP_AUTO_INSTALL=0
-# makes an uninstalled toolchain a refusal instead of a download.
+# Whoever provides cargo, the compiler it runs must be the one rust-toolchain.toml
+# pins, with the components the file names: a cargo from pixi, Homebrew or a
+# distribution ignores the file and builds with whatever it is, and rustup's
+# proxy obeys RUSTUP_TOOLCHAIN or a `rustup override` before it. So the gate asks
+# cargo and the rustc cargo will run (RUSTC, if set) for their release, and
+# refuses any other than the channel, which must be an exact release for the
+# comparison to mean anything. rustfmt and clippy must report that rustc's commit,
+# which a component of another toolchain reached through PATH cannot, and the
+# LLVM tools coverage needs must sit in that rustc's own sysroot. A component the
+# file names and this recipe cannot verify is refused, not skipped.
+# RUSTUP_AUTO_INSTALL=0 makes an uninstalled toolchain a refusal instead of a
+# download where rustup is the provider; no other provider reads it.
 check-toolchain:
-    command -v rustup >/dev/null || { printf '%s\n' 'rustup is not installed; see docs/how-to/develop-locally.md' >&2; exit 2; }
-    case "$(command -v cargo)" in "${CARGO_HOME:-$HOME/.cargo}"/bin/cargo) ;; *) printf '%s\n' "cargo resolves to $(command -v cargo), not rustup's proxy" >&2; exit 2;; esac
-    pin=$(sed -n 's/^channel = "\(.*\)"$/\1/p' rust-toolchain.toml); [ -n "$pin" ] || { printf '%s\n' 'rust-toolchain.toml names no channel' >&2; exit 2; }; rustup_info=$(RUSTUP_AUTO_INSTALL=0 rustup show); host=$(printf '%s\n' "$rustup_info" | sed -n 's/^Default host: //p'); [ -n "$host" ] || { printf '%s\n' 'rustup show names no default host' >&2; exit 2; }; active=$(RUSTUP_AUTO_INSTALL=0 rustup show active-toolchain); case "${active%% *}" in "$pin" | "$pin-$host") ;; *) printf '%s\n' "the active toolchain is ${active%% *}, not the pinned $pin" >&2; exit 2;; esac; printf '%s\n' "$active"
+    #!/bin/sh
+    set -eu
+    export RUSTUP_AUTO_INSTALL=0
+    fail() { printf 'check-toolchain: %s\n' "$1" >&2; exit 2; }
+    pin=$(sed -n 's/^channel = "\(.*\)"$/\1/p' rust-toolchain.toml)
+    [ -n "$pin" ] || fail 'rust-toolchain.toml names no channel'
+    case "$pin" in
+        *[!0-9.]* | *.*.*.* | .* | *. | *..*) fail "the channel $pin is not an exact release" ;;
+        *.*.*) ;;
+        *) fail "the channel $pin is not an exact release" ;;
+    esac
+    cargo_info=$(cargo -vV) || fail "cargo ($(command -v cargo || printf missing)) cannot run the pinned $pin"
+    cargo_release=$(printf '%s\n' "$cargo_info" | sed -n 's/^release: //p')
+    [ "$cargo_release" = "$pin" ] || fail "cargo is ${cargo_release:-unknown}, not the pinned $pin ($(command -v cargo))"
+    rustc=${RUSTC:-rustc}
+    rustc_info=$("$rustc" -vV) || fail "$rustc cannot run"
+    rustc_release=$(printf '%s\n' "$rustc_info" | sed -n 's/^release: //p')
+    [ "$rustc_release" = "$pin" ] || fail "rustc is ${rustc_release:-unknown}, not the pinned $pin ($(command -v "$rustc"))"
+    host=$(printf '%s\n' "$rustc_info" | sed -n 's/^host: //p')
+    commit=$(printf '%s\n' "$rustc_info" | sed -n 's/^commit-hash: \(.........\).*$/\1/p')
+    [ -n "$host" ] && [ -n "$commit" ] || fail 'rustc names no host or no commit'
+    components=$(sed -n 's/^components = \[\(.*\)\]$/\1/p' rust-toolchain.toml | tr -d '" ' | tr ',' ' ')
+    [ -n "$components" ] || fail 'rust-toolchain.toml names no components'
+    for component in $components; do
+        case "$component" in
+            rustfmt) have=$(cargo fmt --version 2>/dev/null) || fail 'the rustfmt component is missing' ;;
+            clippy) have=$(cargo clippy --version 2>/dev/null) || fail 'the clippy component is missing' ;;
+            llvm-tools | llvm-tools-preview)
+                have=$("$rustc" --print sysroot)/lib/rustlib/$host/bin/llvm-profdata
+                [ -x "$have" ] || fail "the $component component is missing from $rustc's sysroot"
+                continue ;;
+            *) fail "rust-toolchain.toml names the component $component, which this recipe cannot verify" ;;
+        esac
+        case "$have" in
+            *"($commit"*) ;;
+            *) fail "$component is '$have', not the pinned compiler's ($commit)" ;;
+        esac
+    done
+    printf '%s (%s) with %s, from %s\n' "$pin" "$host" "$components" "$(command -v cargo)"
 
 # Installs the toolchain, components and targets rust-toolchain.toml names.
 install-toolchain:
@@ -95,7 +141,7 @@ lock-check:
 # without RUSTUP_AUTO_INSTALL=0 rustup would install that toolchain.
 install-hooks:
     git rev-parse --is-inside-work-tree >/dev/null
-    test -x .pixi/envs/default/bin/prek || { printf '%s\n' 'the pixi environment is not installed; run just initialize first' >&2; exit 2; }
+    command -v prek >/dev/null || { printf '%s\n' 'prek is not on PATH; run just initialize first' >&2; exit 2; }
     prek install --overwrite --hook-type=pre-commit --prepare-hooks
     prek prepare-hooks --config .pre-commit-fix.yaml
     -RUSTUP_AUTO_INSTALL=0 prek run lychee --files README.md
@@ -292,18 +338,33 @@ check-docs:
 check-agents:
     bg-validate-agents
 
+# The two hook entries with no gate of their own (the agent-contract hook runs
+# check-agents). A git hook does not inherit this file's PATH, so each hook
+# reaches its `bg-*` command through a recipe, as the Rust and Python hooks do,
+# and none names where the command lives. The secret scan receives the staged
+# files as arguments, and finds ripsecrets on the PATH prek gives its hook
+# environment, which the recipe's PATH keeps behind the provider's.
+[private]
+hook-validate-docs:
+    bg-validate-docs
+
+[private]
+hook-ripsecrets *files:
+    bg-ripsecrets "$@"
+
 check-links-online:
     prek run --all-files --hook-stage manual lychee-online
 
 # ------------------------------------------------------------------ python ---
 
-# Builds the extension into the pixi environment in place (the .so beside
-# __init__.py, gitignored). maturin needs an environment to install into and
-# finds the pixi one through CONDA_PREFIX, set on this line alone; it installs
-# with the pinned uv on PATH. `locked = true` in crates/alliumpy/pyproject.toml
-# makes it honour Cargo.lock. Not a gate: py-test and py-stubtest depend on it.
+# Builds the extension into the provider's Python environment in place (the .so
+# beside __init__.py, gitignored). maturin needs an environment to install into
+# and is handed the one the interpreter on PATH belongs to, through CONDA_PREFIX,
+# set on this line alone; it installs with the pinned uv on PATH. `locked = true`
+# in crates/alliumpy/pyproject.toml makes it honour Cargo.lock. Not a gate:
+# py-test and py-stubtest depend on it.
 py-develop:
-    CONDA_PREFIX="{{ justfile_directory() }}/.pixi/envs/default" maturin develop --manifest-path crates/alliumpy/Cargo.toml
+    CONDA_PREFIX="$(python -I -c 'import sys; print(sys.prefix)')" maturin develop --manifest-path crates/alliumpy/Cargo.toml
 
 # Gate: ruff over every Python file ruff.toml names; --show-files must list
 # the package, or an exclude has emptied the gate (ruff exits 0 on no files);
@@ -348,7 +409,7 @@ wheel:
 
 # Gate: the wheel installs and works in a fresh virtual environment, offline.
 # Exactly one wheel, which must exist (an unmatched glob is one literal argument);
-# a venv on the pixi interpreter with no download; install
+# a venv on the provider's interpreter, found by name, with no download; install
 # from dist/ alone; then import, parse the smoke fixtures, and run the console
 # script's --version and its check on the clean fixture, which must exit 0.
 # Python runs with -I so nothing in the worktree shadows the package.
@@ -358,7 +419,7 @@ wheel-smoke: wheel
     set -- dist/*.whl
     [ "$#" -eq 1 ] && [ -f "$1" ] || { printf 'wheel-smoke: expected one wheel in dist/, found: %s\n' "$*" >&2; exit 1; }
     rm -rf target/wheel-smoke
-    uv venv --python .pixi/envs/default/bin/python --no-python-downloads --offline target/wheel-smoke/venv
+    uv venv --python "$(command -v python)" --no-python-downloads --offline target/wheel-smoke/venv
     uv pip install --python target/wheel-smoke/venv --offline --no-index --no-deps "$1"
     target/wheel-smoke/venv/bin/python -I tests/fixtures/smoke/smoke.py
     target/wheel-smoke/venv/bin/allium --version
