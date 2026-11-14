@@ -29,6 +29,11 @@ The Justfile supports POSIX development on Linux x86_64 and macOS arm64.
 The release workflow builds the other wheel platforms
 ([decision 0015](../decisions/0015-release-process.md)).
 
+A Nix flake is being introduced as the single owner of these tools
+([decision 0018](../decisions/0018-nix-owns-the-tools.md)). `nix develop` enters its
+dev shell, and the gates it already covers run there with nothing from this table. It
+is not yet the supported path: the list above is.
+
 ## First run
 
 Two tools are installed once per machine, and everything after them comes from this

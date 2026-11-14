@@ -6,6 +6,7 @@ exclude: >-
   (?x)^(
     \.git/|
     \.pixi/|
+    \.direnv/|
     ai_tmp/|
     target/|
     \.tools/|

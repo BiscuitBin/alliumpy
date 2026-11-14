@@ -626,6 +626,20 @@
         "decision_dependency_updates"
       ],
       "requires": []
+    },
+    {
+      "path": "decisions/0018-nix-owns-the-tools.md",
+      "title": "Decision 0018: A Nix flake owns the tools",
+      "kind": "decision",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_nix_tool_owner"
+      ],
+      "requires": []
     }
   ]
 }

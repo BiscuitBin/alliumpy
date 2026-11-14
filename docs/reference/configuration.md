@@ -16,6 +16,7 @@ reason for two Python manifests and a static wheel version.
 
 | Variable | Read by and effect |
 | --- | --- |
+| `ALLIUMPY_TOOLS` | Set to `nix` by the flake's dev shell and by nothing else. The Justfile reads it in one place: `nix` leaves `PATH` as the shell made it, unset selects pixi, and any other value is refused. |
 | `PYO3_PYTHON` | Set by the Justfile, for every Cargo invocation, to the absolute path of the `python` the tool provider puts on `PATH`: the pixi interpreter. |
 | `CONDA_PREFIX` | Set on py-develop to that interpreter's own prefix, so maturin finds the pixi environment. |
 | `RUSTDOCFLAGS` | Set on doc to `-D warnings --cfg docsrs`. |
@@ -57,6 +58,8 @@ stay on the recipe.
 | `Justfile` | Recipes, tool PATH, PYO3_PYTHON and the core line-coverage floor. |
 | `scripts/initialize.sh` | Bootstrap order and primary-checkout-only hook installation. |
 | `scripts/version_check.py` | Version-copy assertions and the installed wheel-smoke version check. |
+| `flake.nix`, `flake.lock` | The dev shell's contents and their pinned sources ([decision 0018](../decisions/0018-nix-owns-the-tools.md)). |
+| `.envrc` | `use flake`, for direnv; inert until the directory is allowed. |
 | `.pre-commit-config.yaml` | Installed read-only hooks. |
 | `.pre-commit-fix.yaml` | Mutating hooks invoked by fix; excludes deliberately invalid Python controls. |
 | `.editorconfig` | Whitespace, newlines and indentation, including four-space Python. |

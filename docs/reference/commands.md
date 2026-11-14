@@ -29,7 +29,7 @@ and `fuzz-build` are reports or proofs a person runs, never part of `check`.
 | `check-toolchain` | Refuse a cargo or rustc whose release is not the pinned channel, or a pinned component that is missing or belongs to another toolchain, whoever provides them; then print what it accepted. |
 | `install-toolchain` | Install the toolchain and components the toolchain file names. |
 | `install-tools` | Install `tools.txt` binary-only; for `tools-source.txt`, accept a signed quickinstall build or compile crates.io source locked. Never take unsigned release assets in the source pass; unset tokens and disable discovery there. |
-| `sync` | Fetch the workspace's and the fuzz crate's Cargo dependencies and install pixi's committed resolution without rewriting any of the three locks. |
+| `sync` | Fetch the workspace's and the fuzz crate's Cargo dependencies and, where pixi is the provider, install its committed resolution, without rewriting any lock. |
 | `lock` | Relock `Cargo.lock` and `fuzz/Cargo.lock` after a manifest edit and run pixi lock. Read every diff. |
 | `lock-upgrade` | Move both Cargo resolutions and pixi's within manifest constraints. |
 | `lock-check` | Compare `Cargo.lock`, `fuzz/Cargo.lock` and `pixi.lock` with their manifests offline without writing. |
@@ -80,6 +80,16 @@ and `fuzz-build` are reports or proofs a person runs, never part of `check`.
 Two private recipes, `hook-validate-docs` and `hook-ripsecrets`, are hook entry points
 and are hidden from `just --list`: a git hook does not inherit the Justfile's `PATH`,
 so the documentation-contract and secret-scan hooks reach their commands through them.
+
+## Nix
+
+These two run only in the flake's dev shell, which provides their tools
+([decision 0018](../decisions/0018-nix-owns-the-tools.md)).
+
+| Recipe | Purpose |
+| --- | --- |
+| `nix-check` | Require Git to list a Nix file, then check nixfmt formatting, statix lints and deadnix's unused bindings over the tracked Nix files. Outside check until the shell is the only provider. |
+| `nix-format` | Format the tracked Nix files with nixfmt; `format` and `fix` call it in the dev shell. |
 
 ## Python
 

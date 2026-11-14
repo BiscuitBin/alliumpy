@@ -1,22 +1,32 @@
 set positional-arguments := true
 set shell := ["sh", "-eu", "-c"]
 
-# Who provides the tools is said here and nowhere else. pixi owns every tool
-# binary and the Python environment (.pixi/envs/default; pyproject.toml is the
-# manifest, pixi.lock the pin). Tools conda-forge lacks (tools.txt, and
-# tools-source.txt for those with no release binary) live in .tools/bin, which
-# holds only what conda-forge lacks. Every recipe, and every hook that runs
-# through a recipe, sees both first, and finds Python and every tool on PATH by
-# name. Neither directory holds a cargo, so the compiler is whichever cargo
-# PATH names next; check-toolchain proves it is the one rust-toolchain.toml pins.
-provider_path := justfile_directory() / ".pixi" / "envs" / "default" / "bin" + ":" + justfile_directory() / ".tools" / "bin"
+# Who provides the tools is said here and nowhere else. There are two providers
+# while the Nix flake is being introduced (decision 0018).
+#
+# Inside the flake's dev shell, which sets ALLIUMPY_TOOLS=nix, the shell provides
+# every tool and the compiler, and PATH is left exactly as the shell made it:
+# nothing in .pixi or .tools is consulted, even when both exist.
+#
+# Anywhere else pixi owns every tool binary and the Python environment
+# (.pixi/envs/default; pyproject.toml is the manifest, pixi.lock the pin). Tools
+# conda-forge lacks (tools.txt, and tools-source.txt for those with no release
+# binary) live in .tools/bin, which holds only what conda-forge lacks. Every
+# recipe, and every hook that runs through a recipe, sees both first. Neither
+# directory holds a cargo, so the compiler is whichever cargo PATH names next.
+#
+# Either way a recipe finds Python and every tool on PATH by name, and
+# check-toolchain proves the compiler is the one rust-toolchain.toml pins. Any
+# other value is refused, so a typo cannot fall through to the machine's tools.
+tools := env("ALLIUMPY_TOOLS", "pixi")
+provider_path := if tools == "nix" { "" } else if tools == "pixi" { justfile_directory() / ".pixi" / "envs" / "default" / "bin" + ":" + justfile_directory() / ".tools" / "bin" } else { error("ALLIUMPY_TOOLS is '" + tools + "'; the flake's dev shell sets it to nix, and nothing else should set it") }
 
-export PATH := provider_path + ":" + env("PATH")
+export PATH := if provider_path == "" { env("PATH") } else { provider_path + ":" + env("PATH") }
 
 # Every cargo invocation compiles the bindings against the provider's Python,
 # found by name. A missing interpreter leaves the bare name, so pyo3's build
 # script says what it could not run and no recipe fails before it starts.
-export PYO3_PYTHON := shell('PATH="$1:$PATH"; command -v python || printf "%s\n" python', provider_path)
+export PYO3_PYTHON := shell('PATH="$1${1:+:}$PATH"; command -v python || printf "%s\n" python', provider_path)
 
 # Line-coverage floor over crates/alliumpy-core/src/**. Lower the complexity, not the
 # number.
@@ -104,11 +114,12 @@ install-tools:
     pins=$(sed -e '/^#/d' -e '/^$/d' tools.txt); [ -z "$pins" ] || cargo binstall --root .tools --no-confirm --locked --disable-strategies compile $pins
     pins=$(sed -e '/^#/d' -e '/^$/d' tools-source.txt); [ -z "$pins" ] || env -u GITHUB_TOKEN -u GH_TOKEN cargo binstall --root .tools --no-confirm --locked --disable-strategies crate-meta-data --only-signed --no-discover-github-token $pins
 
-# All three lockfiles, exactly as committed. Never rewrites any.
+# Every lockfile, exactly as committed. Never rewrites any. pixi's environment is
+# installed only where pixi is the provider; the dev shell's is already there.
 sync:
     cargo fetch --locked
     cargo fetch --locked --manifest-path fuzz/Cargo.toml
-    pixi install --frozen
+    {{ if tools == "pixi" { "pixi install --frozen" } else { "true" } }}
 
 lock:
     cargo update --workspace
@@ -218,6 +229,7 @@ format:
     cargo fmt --all
     cargo fmt --manifest-path fuzz/Cargo.toml
     taplo fmt
+    {{ if tools == "nix" { "just nix-format" } else { "true" } }}
 
 # Automatic repairs. The fix config is run twice because a
 # fixer's first pass may itself fail on what another fixer then repairs.
@@ -227,6 +239,7 @@ fix:
     cargo fmt --manifest-path fuzz/Cargo.toml
     cargo clippy --workspace --all-targets --all-features --locked --fix --allow-dirty --allow-staged
     cargo clippy --manifest-path fuzz/Cargo.toml --all-targets --locked --fix --allow-dirty --allow-staged
+    {{ if tools == "nix" { "just nix-format" } else { "true" } }}
     just lint
 
 # ------------------------------------------------------------------ check ---
@@ -354,6 +367,26 @@ hook-ripsecrets *files:
 
 check-links-online:
     prek run --all-files --hook-stage manual lychee-online
+
+# --------------------------------------------------------------------- nix ---
+
+# The flake's own files are code: formatted exactly as nixfmt writes them, with
+# nothing statix warns about and no binding deadnix finds unused. The three tools
+# come from the dev shell, so this runs only there; it joins check's recipe list
+# when the shell becomes the only provider. Git names the files, because a flake
+# sees only what Git tracks, and a listing that names none fails: all three tools
+# exit 0 when handed nothing.
+nix-check:
+    #!/bin/sh
+    set -eu
+    [ "$(git ls-files '*.nix' | grep -c .)" -gt 0 ] || { printf '%s\n' 'nix-check: git lists no Nix file' >&2; exit 1; }
+    git ls-files -z '*.nix' | xargs -0 nixfmt --check
+    git ls-files -z '*.nix' | xargs -0 -n 1 statix check
+    git ls-files -z '*.nix' | xargs -0 deadnix --fail
+
+# The mutating counterpart: `just format` and `just fix` call it in the dev shell.
+nix-format:
+    git ls-files -z '*.nix' | xargs -0 nixfmt
 
 # ------------------------------------------------------------------ python ---
 

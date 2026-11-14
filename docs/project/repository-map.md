@@ -22,6 +22,9 @@ follow [Architecture](../explanation/architecture.md); the dependency direction 
 ├── pixi.lock                  Tool environment resolution
 ├── tools.txt                  Binary-only extra tools
 ├── tools-source.txt           Extra tools with source builds accepted
+├── flake.nix                  The Nix dev shell: the tool owner being introduced
+├── flake.lock                 Pinned sources for the dev shell
+├── .envrc                     direnv entry to the dev shell
 ├── Justfile                   Supported recipes
 ├── crates/
 │   ├── alliumpy-core/

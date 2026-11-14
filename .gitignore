@@ -8,6 +8,11 @@
 # writes it beside the config and reads it on the next run.
 .lycheecache
 
+# direnv's cache of the flake's dev shell, and the link `nix build` leaves.
+.direnv/
+result
+result-*
+
 # Scratch for agents and maintainers alike: anything that is not a
 # deliverable goes here, never in a commit.
 ai_tmp/

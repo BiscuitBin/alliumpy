@@ -25,10 +25,11 @@ env:
   CARGO_NET_RETRY: '10'
   RUST_BACKTRACE: '1'
 
-# Ubuntu only: two crates and a wheel, with eol=lf forced by .gitattributes
-# and rustfmt, so a second operating system would prove nothing here the
-# first does not; the other platforms' wheels are the release workflow's.
-# `check`, last, is the one required check; the seven gate jobs are its
+# Ubuntu only for the pixi jobs: two crates and a wheel, with eol=lf forced by
+# .gitattributes and rustfmt, so a second operating system would prove nothing
+# here the first does not; the other platforms' wheels are the release
+# workflow's. nix-shell is the exception and says why.
+# `check`, last, is the one required check; the gate jobs are its
 # `needs`, so no name carries a slash or a space. wheel-smoke-py311 is the
 # one gate job not on the setup action: it installs the wheel `python`
 # built on Python 3.11, an interpreter pixi does not have, and must not
@@ -219,6 +220,44 @@ jobs:
       # For the reason rust's last step gives.
       - run: just check-clean
 
+  # The flake's dev shell (decision 0018), beside the pixi jobs until it
+  # replaces them. Nix comes from the install action and every tool from
+  # flake.lock, so this job uses neither the setup action nor anything the
+  # runner image carries: each step builds or reuses the shell and runs one
+  # recipe inside it, in the gate's order. Linux is the CI platform. macOS on
+  # Apple silicon is where contributors work, and until a contributor has Nix
+  # there this job is the only place the shell is exercised on it. The flags
+  # are written out so that nothing depends on what an installer enables.
+  nix-shell:
+    name: nix-shell-${{ matrix.system }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - system: linux
+            os: ubuntu-latest
+          - system: macos
+            os: macos-latest
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31.11.3
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+      - run: nix develop --command just check-toolchain
+      - run: nix develop --command just nix-check
+      - run: nix develop --command just fmt-check
+      - run: nix develop --command just clippy
+      - run: nix develop --command just test
+      - run: nix develop --command just doc
+      # For the reason rust's last step gives. check-clean's own command
+      # arrives in the shell with the hook tools; until then git answers.
+      - run: git status --porcelain && test -z "$(git status --porcelain)"
+
   # The one required check (CONVENTIONS.md §10). It needs every gate job and
   # fails if any of them failed, was cancelled or was skipped, so protection
   # names `check` alone and never changes when a job is added, renamed or
@@ -228,7 +267,7 @@ jobs:
   # no setup action, and no `${{ }}` inside a shell line.
   check:
     name: check
-    needs: [rust, python, wheel-smoke-py311, parity, coverage, deny, documents]
+    needs: [rust, python, wheel-smoke-py311, parity, coverage, deny, documents, nix-shell]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
