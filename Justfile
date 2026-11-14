@@ -512,6 +512,12 @@ wheel:
 # script's --version and its check on the clean fixture, which must exit 0.
 # Python runs with -I so nothing in the worktree shadows the package.
 wheel-smoke: wheel
+    just smoke-dist
+
+# wheel-smoke's body, over whatever single wheel dist/ holds: the one `wheel`
+# built, or the one `nix-wheel` copied there.
+[private]
+smoke-dist:
     #!/bin/sh
     set -eu
     set -- dist/*.whl
@@ -553,6 +559,11 @@ install-parity-reference:
 # The reference comes from the provider: the dev shell builds it in the flake and
 # names it in ALLIUMPY_PARITY_REFERENCE; under pixi it is install-parity-reference's.
 parity: wheel-smoke
+    just parity-dist
+
+# parity's body, against whichever wheel wheel-smoke or nix-wheel last installed.
+[private]
+parity-dist:
     #!/bin/sh
     set -eu
     reference=${ALLIUMPY_PARITY_REFERENCE:-$PWD/.tools/parity/bin/allium}
@@ -560,6 +571,27 @@ parity: wheel-smoke
     case "$(command -v allium || true)" in "$reference") printf '%s\n' 'parity: the reference is the allium on PATH' >&2; exit 2;; esac
     python -I tests/parity/run.py --reference "$reference" --candidate "$PWD/target/wheel-smoke/venv/bin/allium" --corpus tests/fixtures/parity
     ALLIUMPY_SMOKE_BIN="$PWD/target/wheel-smoke/venv/bin/allium" python -m pytest crates/alliumpy/tests/test_cli.py -rs
+
+# The wheel as the Nix sandbox builds it (decision 0018): no network, the
+# workspace Cargo.lock, the pinned toolchain, maturin's release build. It lands
+# in dist/ in place of `wheel`'s, then gets the same smoke and the same parity
+# comparison. The build leaves no result link: --no-link, and the store path is
+# read from the output. Evidence, not a release artefact: it links against Nix's
+# libraries, and the release workflow builds the published wheels. Outside
+# check; a cold store needs the network.
+nix-wheel:
+    #!/bin/sh
+    set -eu
+    out=$(nix build --no-link --print-out-paths .#wheel)
+    set -- "$out"/*.whl
+    [ "$#" -eq 1 ] && [ -f "$1" ] || { printf 'nix-wheel: expected one wheel in %s, found: %s\n' "$out" "$*" >&2; exit 1; }
+    rm -rf dist
+    mkdir -p dist
+    cp "$1" dist/
+    chmod u+w dist/*.whl
+    printf 'nix-wheel: %s\n' "$(basename "$1")"
+    just smoke-dist
+    just parity-dist
 
 # --------------------------------------------------------------- aggregate ---
 

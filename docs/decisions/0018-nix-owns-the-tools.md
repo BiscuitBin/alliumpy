@@ -89,6 +89,7 @@ Each input is a dependency under [decision 0004](0004-dependency-policy.md), and
 | --- | --- | --- | --- | --- |
 | `nixpkgs`, the `nixpkgs-unstable` branch | Every tool except the compiler. | A release branch, such as `nixos-26.05`, moves less but lags the cargo tools by months; unstable carried every tool the gates need, and is built for all three systems. | Every gate run in the shell. `flake.lock` is outside the lock check until the cutover. | MIT |
 | `rust-overlay` (oxalica) | Builds the toolchain `rust-toolchain.toml` names, exact channel and components, from the official release binaries, each pinned by hash in the overlay's own manifests. It follows this flake's `nixpkgs`, so no second nixpkgs is fetched. | fenix also reads the toolchain file but tracks its own manifest snapshots; nixpkgs' own `rustc` is one version, not the pinned one, and has no `llvm-tools` component. | The toolchain check and every Rust gate in the shell. | MIT |
+| `crane` (ipetkov) | Builds the crates and the wheel in the sandbox from `Cargo.lock`, with the dependencies as a derivation of their own that the wheel and the flake checks reuse. It takes this flake's toolchain and has no `nixpkgs` input of its own. | nixpkgs' `buildRustPackage` with `importCargoLock` needs no new input but rebuilds every dependency for each derivation; `naersk` is less maintained. | `just nix-wheel` and `nix flake check`; not `just check`. | MIT |
 | `biscuit-games-tooling`, built in the flake from GitHub | The `bg-*` commands, `just check`'s runner among them ([decision 0002](0002-hook-runner-and-checkers.md)). Pinned to the commit the pixi manifest's `v0.3.0` tag resolves to, by content hash. Its build backend's upper bound is relaxed to nixpkgs' `uv_build`. | None: nixpkgs does not carry it, and it is this organisation's own. | `just check`, the docs and agents checks, the secret scan. | None declared at this revision: no licence file or field. It is the maintainer's own package and never ships. |
 | `allium-cli` 3.6.1, built in the flake from crates.io | The parity reference (invariant 1). The crate and version the `allium-parser` pin names, with the crate's own lockfile, pinned by source and vendor hashes. | `cargo install` into the worktree, as under pixi: not pinned by hash and not reproducible offline. | `parity` and `version-check` in the shell. | MIT |
 | rustqual 1.8.3, built in the flake from crates.io | The metrics gate ([decision 0007](0007-metrics-gate.md)); nixpkgs does not carry it. The same crate and version `tools-source.txt` pins, pinned here by source and vendor hashes. | A prebuilt binary does not exist for any version. | The metrics gate in the shell. | MIT |
@@ -175,6 +176,14 @@ are made.
   bump that leaves the flake behind fails by design. In the shell the version check also
   runs the reference and refuses a named one that is missing; under pixi it reads
   `.tools/parity/bin/allium` as before.
+- **The wheel as a Nix build.** The flake's `wheel` package builds the bindings
+  crate's release dependencies once, then runs maturin over them in the sandbox with
+  `--locked` from the wheel manifest. The source it sees is the tracked crates, the
+  workspace manifests and lockfile, the toolchain file, the lint configuration and the
+  test fixtures, nothing else. `just nix-wheel` builds it with no result link, puts it
+  alone in `dist/` and gives it `wheel-smoke`'s smoke and `parity`'s comparison, whose
+  bodies are shared private recipes. maturin tags this wheel `linux_aarch64` (or the
+  host's) rather than manylinux, which is the honest tag for a Nix build.
 
 ## Related pages
 

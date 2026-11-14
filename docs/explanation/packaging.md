@@ -98,6 +98,16 @@ Cloud; this repository is public.
 [Decision 0015](../decisions/0015-release-process.md) records what changes if that stops
 holding.
 
+## Wheels built by Nix
+
+`just nix-wheel` builds the wheel in the Nix sandbox, from the workspace `Cargo.lock`
+with the pinned toolchain, then smokes it and runs parity against it
+([decision 0018](../decisions/0018-nix-owns-the-tools.md)). That wheel is evidence that
+the sources build hermetically, never a release artefact. It links against Nix's own
+libraries and carries a plain `linux_*` or local macOS tag, not a manylinux one, so it is
+not portable. Never upload one. The published wheels come only from `release-pypi.yml`
+([decision 0015](../decisions/0015-release-process.md)).
+
 ## Related pages
 
 - [Install and run](../how-to/install-and-run.md)
