@@ -1,7 +1,7 @@
 name: Set up the alliumpy dev shell
 description: >-
   Nix, the store the flake's dev shell needs, restored from a cache keyed on
-  flake.lock, and the crates Cargo.lock names (decision 0018). Every tool,
+  the flake's inputs, and the crates Cargo.lock names (decision 0018). Every tool,
   the compiler and Python come from the dev shell; nothing comes from the
   runner image. A job that uses this runs its steps in the shell through
   `defaults.run.shell: nix develop --command bash -e {0}`. Runs after the
@@ -17,15 +17,17 @@ runs:
         extra_nix_config: |
           experimental-features = nix-command flakes
           sandbox = true
-    # The Nix store, keyed on the runner and on flake.nix and flake.lock, which
-    # decide everything in it: a moved lock is a new key, restored from the
-    # newest earlier one, and saved once the job succeeds. No credential: the
-    # action's token input is only used to purge caches, which is not enabled
-    # here. The store is bounded before saving so one cache stays well inside
-    # the repository's cache quota.
+    # The Nix store, keyed on the runner and on flake.nix, flake.lock and
+    # rust-toolchain.toml, which decide the dev shell in it. The crate sources
+    # feed only the packages and checks, so they stay out of the key, or nearly
+    # every commit would save a new store. A moved input is a new key, restored
+    # from the newest earlier one, and saved once the job succeeds. No
+    # credential: the action's token input is only used to purge caches, which
+    # is not enabled here. The store is bounded before saving so one cache
+    # stays well inside the repository's cache quota.
     - uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7.0.2
       with:
-        primary-key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flake.nix', 'flake.lock') }}
+        primary-key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flake.nix', 'flake.lock', 'rust-toolchain.toml') }}
         restore-prefixes-first-match: nix-${{ runner.os }}-${{ runner.arch }}-
         gc-max-store-size-linux: 6G
         gc-max-store-size-macos: 6G

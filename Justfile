@@ -592,7 +592,7 @@ parity-dist:
     test -x "$reference" || { printf 'parity: no reference at %s; %s\n' "$reference" {{ if tools == "nix" { "'the dev shell builds it'" } else { "'run just install-parity-reference'" } }} >&2; exit 2; }
     case "$(command -v allium || true)" in "$reference") printf '%s\n' 'parity: the reference is the allium on PATH' >&2; exit 2;; esac
     "$PYO3_PYTHON" -I tests/parity/run.py --reference "$reference" --candidate "$PWD/target/wheel-smoke/venv/bin/allium" --corpus tests/fixtures/parity
-    ALLIUMPY_SMOKE_BIN="$PWD/target/wheel-smoke/venv/bin/allium" "{{ develop_env }}/bin/python" -m pytest crates/alliumpy/tests/test_cli.py -rs
+    ALLIUMPY_SMOKE_BIN="$PWD/target/wheel-smoke/venv/bin/allium" "$PYO3_PYTHON" -m pytest crates/alliumpy/tests/test_cli.py -rs
 
 # The wheel as the Nix sandbox builds it (decision 0018): no network, the
 # workspace Cargo.lock, the pinned toolchain, maturin's release build. It lands
