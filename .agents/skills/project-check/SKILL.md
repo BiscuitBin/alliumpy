@@ -7,8 +7,9 @@ description: Bring a workspace to a state where the full gate runs, and interpre
 
 1. Read `AGENTS.md`. The `Justfile` is the supported interface to the checks; use its
    recipes rather than assembling an equivalent pipeline by hand.
-2. Check prerequisites: rustup's cargo first on `PATH` (`just check-toolchain` proves
-   it); the pixi environment at `.pixi/envs/default/bin` with nextest, llvm-cov, deny,
+2. Check prerequisites: a cargo and rustc of the release `rust-toolchain.toml` pins,
+   with its components (`just check-toolchain` proves it; rustup's proxy first on `PATH`
+   provides them); the pixi environment at `.pixi/envs/default/bin` with nextest, llvm-cov, deny,
    shear, taplo, prek, just, the `bg-*` scripts, maturin, uv, pytest, ruff and mypy;
    `.tools/bin/cargo-hack`, `.tools/bin/rustqual`, `Cargo.lock` and `pixi.lock`.
    `just initialize` creates missing prerequisites and skips hook installation in a

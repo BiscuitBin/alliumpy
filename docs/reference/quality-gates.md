@@ -47,9 +47,13 @@ so a failure has a named place in the aggregate list.
 
 The toolchain gate does not ask who provides cargo. It asks cargo and rustc for their
 release, refuses any other than the pinned channel, and names both versions on stderr.
-rustfmt and clippy must report the pinned compiler's commit, and the LLVM tools must sit
-in its sysroot, so a component reached through `PATH` from another toolchain is refused
-too. When `RUSTUP_TOOLCHAIN` or a `rustup override` supersedes the repository pin, the
+rustfmt, cargo-clippy and clippy-driver must report the pinned compiler's commit, and
+llvm-cov and llvm-profdata must sit in its sysroot and report its release, so a component
+reached through `PATH` from another toolchain is refused too. Stable cargo cannot say
+which compiler it will run, so `CARGO_BUILD_RUSTC`, `RUSTC_WRAPPER`,
+`CARGO_BUILD_RUSTC_WRAPPER` and `RUSTC_WORKSPACE_WRAPPER` are refused when set; `RUSTC` is
+honoured and checked. Cargo configuration files are not read; this repository has none.
+`channel` and `components` must each stay on one line in `rust-toolchain.toml`. When `RUSTUP_TOOLCHAIN` or a `rustup override` supersedes the repository pin, the
 release differs and the gate says so: remove the override and rerun. An uninstalled
 override is refused, never downloaded.
 
@@ -72,8 +76,10 @@ will arrive with modules, rather than claiming an empty rule set enforces a grap
 Read-only hooks include Rust and TOML formatting, unused dependencies, Python lint and
 types, documentation and agent contracts, EditorConfig, markdownlint, typos, offline
 links, shellcheck, actionlint, secret scanning and builtin file hygiene.
-The Python recipes run through just to inherit the pinned tool PATH. Contract hooks
-use frozen pixi resolution. Clippy, pytest, stubtest and wheel builds are deliberately
+The Python recipes run through just to inherit the pinned tool PATH. The contract
+hooks and the secret scan reach their `bg-*` commands through recipes too, so they run
+whatever the tool provider has installed; `just sync` brings pixi's environment up to
+`pixi.lock`. Clippy, pytest, stubtest and wheel builds are deliberately
 outside commit hooks because they build; the full gate and CI run them.
 
 Remote hooks use full commit SHAs. `.pre-commit-fix.yaml` is the mutating counterpart,

@@ -48,7 +48,8 @@ jobs:
           cache-key: rust
       # One recipe per step, in the gate's order, so a failure names itself
       # in the step list. `check-toolchain` first: it proves the runner's
-      # cargo is rustup's proxy on the pinned release before anything builds.
+      # cargo and rustc are the pinned release, with its components, before
+      # anything builds.
       - run: just check-toolchain
       - run: just lock-check
       - run: just fmt-check

@@ -58,10 +58,16 @@ initialize:
 # proxy obeys RUSTUP_TOOLCHAIN or a `rustup override` before it. So the gate asks
 # cargo and the rustc cargo will run (RUSTC, if set) for their release, and
 # refuses any other than the channel, which must be an exact release for the
-# comparison to mean anything. rustfmt and clippy must report that rustc's commit,
-# which a component of another toolchain reached through PATH cannot, and the
-# LLVM tools coverage needs must sit in that rustc's own sysroot. A component the
-# file names and this recipe cannot verify is refused, not skipped.
+# comparison to mean anything. Stable cargo cannot say which rustc it will run, so
+# the variables that would make it run another one (CARGO_BUILD_RUSTC and the
+# three wrapper variables) are refused outright; cargo's config files are not
+# read, and this repository has none (decision 0004). rustfmt, cargo-clippy and
+# clippy-driver must report that rustc's commit, which a component of another
+# toolchain reached through PATH cannot, and llvm-cov and llvm-profdata, which
+# coverage needs, must sit in that rustc's own sysroot and report its release.
+# A component the file names and this recipe cannot verify is refused, not
+# skipped. `channel` and `components` must each sit on one line, spelt as
+# rust-toolchain.toml spells them now; any other form is refused, not misread.
 # RUSTUP_AUTO_INSTALL=0 makes an uninstalled toolchain a refusal instead of a
 # download where rustup is the provider; no other provider reads it.
 check-toolchain:
@@ -79,6 +85,10 @@ check-toolchain:
     cargo_info=$(cargo -vV) || fail "cargo ($(command -v cargo || printf missing)) cannot run the pinned $pin"
     cargo_release=$(printf '%s\n' "$cargo_info" | sed -n 's/^release: //p')
     [ "$cargo_release" = "$pin" ] || fail "cargo is ${cargo_release:-unknown}, not the pinned $pin ($(command -v cargo))"
+    for var in CARGO_BUILD_RUSTC RUSTC_WRAPPER CARGO_BUILD_RUSTC_WRAPPER RUSTC_WORKSPACE_WRAPPER; do
+        eval "value=\${$var:-}"
+        [ -z "$value" ] || fail "$var is set ($value), so cargo may run a compiler this check cannot see; unset it"
+    done
     rustc=${RUSTC:-rustc}
     rustc_info=$("$rustc" -vV) || fail "$rustc cannot run"
     rustc_release=$(printf '%s\n' "$rustc_info" | sed -n 's/^release: //p')
@@ -91,10 +101,22 @@ check-toolchain:
     for component in $components; do
         case "$component" in
             rustfmt) have=$(cargo fmt --version 2>/dev/null) || fail 'the rustfmt component is missing' ;;
-            clippy) have=$(cargo clippy --version 2>/dev/null) || fail 'the clippy component is missing' ;;
+            clippy)
+                have=$(cargo clippy --version 2>/dev/null) || fail 'the clippy component is missing'
+                driver=$(clippy-driver --version 2>/dev/null) || fail 'clippy-driver is missing'
+                case "$driver" in
+                    *"($commit"*) ;;
+                    *) fail "clippy-driver is '$driver', not the pinned compiler's ($commit)" ;;
+                esac ;;
             llvm-tools | llvm-tools-preview)
-                have=$("$rustc" --print sysroot)/lib/rustlib/$host/bin/llvm-profdata
-                [ -x "$have" ] || fail "the $component component is missing from $rustc's sysroot"
+                bin=$("$rustc" --print sysroot)/lib/rustlib/$host/bin
+                for tool in llvm-cov llvm-profdata; do
+                    version=$("$bin/$tool" --version 2>/dev/null) || fail "$tool from the $component component is missing from $rustc's sysroot"
+                    case "$version" in
+                        *"-rust-$pin-"*) ;;
+                        *) fail "$tool in $rustc's sysroot is not the pinned $pin's" ;;
+                    esac
+                done
                 continue ;;
             *) fail "rust-toolchain.toml names the component $component, which this recipe cannot verify" ;;
         esac
