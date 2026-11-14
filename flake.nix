@@ -328,16 +328,19 @@
             ALLIUMPY_PARITY_REFERENCE = "${parityReference}/bin/allium";
           };
         };
+      # One nixpkgs evaluation per system, shared by every output below.
+      perSystem = forEachSystem (pkgs: (build pkgs) // { formatter = pkgs.nixfmt-tree; });
+      project = f: nixpkgs.lib.mapAttrs (_: f) perSystem;
     in
     {
-      formatter = forEachSystem (pkgs: pkgs.nixfmt-tree);
+      formatter = project (s: s.formatter);
 
-      packages = forEachSystem (pkgs: (build pkgs).packages);
+      packages = project (s: s.packages);
 
-      checks = forEachSystem (pkgs: (build pkgs).checks);
+      checks = project (s: s.checks);
 
-      devShells = forEachSystem (pkgs: {
-        default = (build pkgs).devShell;
+      devShells = project (s: {
+        default = s.devShell;
       });
     };
 }

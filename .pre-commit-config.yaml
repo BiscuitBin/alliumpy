@@ -122,18 +122,22 @@ repos:
         types: [text]
 
       # lychee is a binary here, so no version argument is needed: it never
-      # runs `git describe` inside a hook checkout.
+      # runs `git describe` inside a hook checkout. Serial, as upstream's hook
+      # is, so one process owns .lycheecache; shellcheck likewise, so it sees
+      # scripts that source each other in one run.
       - id: lychee
         name: lychee
         entry: lychee --offline --cache --config lychee.toml --no-progress --root-dir .
         language: system
         types: [markdown]
+        require_serial: true
 
       - id: lychee-online
         name: Lychee online (manual)
         entry: lychee --cache --config lychee.toml --no-progress --root-dir .
         language: system
         types: [markdown]
+        require_serial: true
         stages: [manual]
 
       - id: shellcheck
@@ -141,6 +145,7 @@ repos:
         entry: shellcheck
         language: system
         types: [shell]
+        require_serial: true
 
       - id: actionlint
         name: Lint GitHub Actions workflow files
@@ -149,12 +154,15 @@ repos:
         files: ^\.github/workflows/.*\.ya?ml$
 
       # Through the recipe, which runs the redacting wrapper; the dev shell
-      # supplies ripsecrets itself.
+      # supplies ripsecrets itself. The arguments and serial run are the ones
+      # upstream's hook definition carries, which the gate used before.
       - id: ripsecrets
         name: ripsecrets
         entry: just hook-ripsecrets
         language: system
         types: [text]
+        args: [--strict-ignore]
+        require_serial: true
 
       # The flake's own files: formatted, linted and free of unused bindings.
       - id: nix-check

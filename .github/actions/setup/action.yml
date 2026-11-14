@@ -4,8 +4,18 @@ description: >-
   the flake's inputs, and the crates Cargo.lock names (decision 0018). Every
   tool, the compiler and Python come from the dev shell; nothing comes from the
   runner image. A job that uses this runs its steps in the shell through
-  `defaults.run.shell: nix develop --no-update-lock-file --command bash -e {0}`,
-  which never rewrites flake.lock. Runs after the checkout.
+  `defaults.run.shell: nix develop --no-update-lock-file --command bash
+  --noprofile --norc -eo pipefail {0}`, which never rewrites flake.lock. Runs
+  after the checkout.
+
+inputs:
+  store:
+    description: >-
+      Which store this job keeps: `shell` for the jobs that run recipes, or
+      `flake-check` for the jobs that also build the flake's packages and
+      checks, so the two never race to save one key with different contents.
+    required: false
+    default: shell
 
 runs:
   using: composite
@@ -17,22 +27,29 @@ runs:
         extra_nix_config: |
           experimental-features = nix-command flakes
           sandbox = true
-    # The Nix store, keyed on the runner and on flake.nix, flake.lock and
-    # rust-toolchain.toml, which decide the dev shell in it. The crate sources
-    # feed only the packages and checks, so they stay out of the key, or nearly
-    # every commit would save a new store. A moved input is a new key, restored
-    # from the newest earlier one, and saved once the job succeeds. No
-    # credential: the action's token input is only used to purge caches, which
-    # is not enabled here. The store is bounded before saving so one cache
-    # stays well inside the repository's cache quota.
+    # The Nix store, keyed on the runner, the kind of store and flake.nix,
+    # flake.lock and rust-toolchain.toml, which decide the dev shell in it. The
+    # crate sources feed only the packages and checks, so they stay out of the
+    # key, or nearly every commit would save a new store. A moved input is a
+    # new key, restored from the newest earlier one of the same kind, else of
+    # any kind. Saved from main only, once the job succeeds: a pull request
+    # restores main's store and never writes its own, so the repository's
+    # cache quota holds one store per kind and runner. No credential: the
+    # action's token input is only used to purge caches, which is not enabled
+    # here. The store is bounded before saving; the dev shell is rooted below,
+    # so that bound never collects it.
     - uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7.0.2
       with:
-        primary-key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flake.nix', 'flake.lock', 'rust-toolchain.toml') }}
-        restore-prefixes-first-match: nix-${{ runner.os }}-${{ runner.arch }}-
+        primary-key: nix-${{ runner.os }}-${{ runner.arch }}-${{ inputs.store }}-${{ hashFiles('flake.nix', 'flake.lock', 'rust-toolchain.toml') }}
+        restore-prefixes-first-match: |
+          nix-${{ runner.os }}-${{ runner.arch }}-${{ inputs.store }}-
+          nix-${{ runner.os }}-${{ runner.arch }}-
+        save: ${{ github.ref == 'refs/heads/main' }}
         gc-max-store-size-linux: 6G
         gc-max-store-size-macos: 6G
     # The dev shell, built or restored, and the one step that fetches crates:
     # exactly what Cargo.lock and fuzz/Cargo.lock say, neither rewritten.
-    # Every gate after it runs offline.
-    - run: nix develop --no-update-lock-file --command just sync
+    # Every gate after it runs offline. --profile roots the shell for the
+    # rest of the job, so the store bound above keeps it.
+    - run: nix develop --no-update-lock-file --profile "$RUNNER_TEMP/alliumpy-dev-shell" --command just sync
       shell: bash

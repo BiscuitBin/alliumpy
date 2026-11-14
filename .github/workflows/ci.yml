@@ -37,7 +37,7 @@ env:
 # two jobs outside the shell, and set their own shell.
 defaults:
   run:
-    shell: nix develop --no-update-lock-file --command bash -e {0}
+    shell: nix develop --no-update-lock-file --command bash --noprofile --norc -eo pipefail {0}
 
 jobs:
   rust:
@@ -229,7 +229,9 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup
       - run: just check
-      - run: just parity
+      # parity's body alone: `just parity` would build and smoke the wheel a
+      # second time, and this compares the wheel `check` just smoked.
+      - run: just parity-dist
       # For the reason rust's last step gives.
       - run: just check-clean
 
@@ -253,6 +255,8 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
+        with:
+          store: flake-check
       # Asserted, not printed: a check that built with network access proves
       # nothing about the sandbox. macOS's sandbox is weaker than Linux's, and
       # `relaxed` is accepted there only; nothing here asks to leave it.

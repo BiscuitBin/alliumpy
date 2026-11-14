@@ -219,10 +219,13 @@ are made.
   `cachix/install-nix-action` with the sandbox on, restores the store through
   `nix-community/cache-nix-action` keyed on `flake.nix`, `flake.lock` and
   `rust-toolchain.toml`, the dev shell's inputs (the crate sources stay out of the key,
-  or nearly every commit would save a new store), and runs
-  `just sync` in the shell; every job that uses it sets
-  `nix develop --command bash -e {0}` as its default shell, so its `run: just ...` steps
-  are unchanged. Both actions are pinned by digest and neither is given a credential.
+  or nearly every commit would save a new store), one store for the shell and one for the
+  flake checks per runner, saved from `main` only, as the old caches were, so the
+  repository's cache quota holds them; it roots the shell and runs `just sync` in it.
+  Every job that uses it sets
+  `nix develop --no-update-lock-file --command bash --noprofile --norc -eo pipefail {0}`
+  as its default shell, so its `run: just ...` steps are unchanged and a pipe's failure
+  still fails the step. Both actions are pinned by digest and neither is given a credential.
   The cargo target cache is gone with rust-cache, which needs a cargo on the runner's
   own `PATH`. The tracer-bullet job folded into the Rust job, which now runs
   `nix-check`; a `macos` job runs the whole gate. The Python 3.11 smoke keeps the
