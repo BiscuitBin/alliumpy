@@ -5,8 +5,11 @@ set shell := ["sh", "-eu", "-c"]
 # while the Nix flake is being introduced (decision 0018).
 #
 # Inside the flake's dev shell, which sets ALLIUMPY_TOOLS=nix, the shell provides
-# every tool and the compiler, and PATH is left exactly as the shell made it:
-# nothing in .pixi or .tools is consulted, even when both exist.
+# the tools and the compiler, and PATH is left as the shell made it: the Justfile
+# adds nothing from .pixi or .tools, even when both exist. A tool the shell does
+# not hold falls through to the PATH the shell inherited, so the shell, not this
+# file, decides what is complete; check-toolchain at least requires the compiler
+# to come from the Nix store.
 #
 # Anywhere else pixi owns every tool binary and the Python environment
 # (.pixi/envs/default; pyproject.toml is the manifest, pixi.lock the pin). Tools
@@ -125,6 +128,14 @@ check-toolchain:
             *) fail "$component is '$have', not the pinned compiler's ($commit)" ;;
         esac
     done
+    if [ "{{ tools }}" = nix ]; then
+        for tool in cargo "$rustc"; do
+            case "$(command -v "$tool")" in
+                /nix/store/*) ;;
+                *) fail "the dev shell is the provider, but $tool resolves to $(command -v "$tool"), outside the Nix store" ;;
+            esac
+        done
+    fi
     printf '%s (%s) with %s, from %s\n' "$pin" "$host" "$components" "$(command -v cargo)"
 
 # Installs the toolchain, components and targets rust-toolchain.toml names.
@@ -259,20 +270,20 @@ snapshots-accept: lock-check
 # ----------------------------------------------------------------- format ---
 
 format:
+    {{ if tools == "nix" { "just nix-format" } else { "true" } }}
     cargo fmt --all
     cargo fmt --manifest-path fuzz/Cargo.toml
     taplo fmt
-    {{ if tools == "nix" { "just nix-format" } else { "true" } }}
 
 # Automatic repairs. The fix config is run twice because a
 # fixer's first pass may itself fail on what another fixer then repairs.
 fix:
+    {{ if tools == "nix" { "just nix-format" } else { "true" } }}
     -prek run --all-files --config .pre-commit-fix.yaml
     prek run --all-files --config .pre-commit-fix.yaml
     cargo fmt --manifest-path fuzz/Cargo.toml
     cargo clippy --workspace --all-targets --all-features --locked --fix --allow-dirty --allow-staged
     cargo clippy --manifest-path fuzz/Cargo.toml --all-targets --locked --fix --allow-dirty --allow-staged
-    {{ if tools == "nix" { "just nix-format" } else { "true" } }}
     just lint
 
 # ------------------------------------------------------------------ check ---

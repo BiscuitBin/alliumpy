@@ -30,8 +30,9 @@ The release workflow builds the other wheel platforms
 ([decision 0015](../decisions/0015-release-process.md)).
 
 A Nix flake is being introduced as the single owner of these tools
-([decision 0018](../decisions/0018-nix-owns-the-tools.md)). `nix develop` enters its
-dev shell, and the gates it already covers run there with nothing from this table. It
+([decision 0018](../decisions/0018-nix-owns-the-tools.md)).
+`nix --extra-experimental-features 'nix-command flakes' develop` enters its dev shell
+(plain `nix develop` where those features are already enabled), and the gates it already covers run there with nothing from this table. It
 is not yet the supported path: the list above is.
 
 ## First run

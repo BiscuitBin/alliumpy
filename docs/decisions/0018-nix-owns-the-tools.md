@@ -60,14 +60,18 @@ work, as before. arm64 Linux is added so the same shell runs natively in a Linux
 container on an Apple silicon Mac.
 
 **One seam says who provides the tools.** The dev shell sets `ALLIUMPY_TOOLS=nix`. The
-`Justfile` reads it in one place: inside the shell it leaves `PATH` exactly as the
-shell made it, and nothing in `.pixi` or `.tools` is consulted even when both exist.
-Any other value is refused. Every recipe finds Python and each tool by name either way.
+`Justfile` reads it in one place: inside the shell it leaves `PATH` as the shell made
+it and adds nothing from `.pixi` or `.tools`, even when both exist. A tool the shell does
+not hold still falls through to the `PATH` the shell inherited, so the shell's contents
+decide what is complete; the toolchain check requires cargo and rustc to come from the
+Nix store there. Any other value is refused. Every recipe finds Python and each tool by
+name either way. The proof that nothing outside the shell is needed is a run with
+nothing else on `PATH`, which belongs to the cutover.
 
 **The Nix files are code.** nixfmt formats them, statix lints them and deadnix finds
 unused bindings, all three from the dev shell. `just nix-check` runs the three and
-fails when Git lists no Nix file; `just format` and `just fix` format them in the
-shell; `nix fmt` works through the flake's `formatter` output. The recipe joins
+fails when Git lists no Nix file; `just format` and `just fix` format them first in the
+shell, before any tool the shell may not yet hold; `nix fmt` works through the flake's `formatter` output. The recipe joins
 `just check`'s list when the shell becomes the only provider, because pixi has no Nix
 formatter. The hook gate, the flake checks and CI each gain it as they move to the
 shell.
@@ -81,11 +85,11 @@ first; `git add --intent-to-add` is enough.
 Each input is a dependency under [decision 0004](0004-dependency-policy.md), and
 `flake.lock` pins each to a commit and a content hash.
 
-| Input | Why it is here | Licence |
-| --- | --- | --- |
-| `nixpkgs`, the `nixpkgs-unstable` branch | Every tool except the compiler. The unstable branch carries current versions of the cargo tools and is built for all three systems. | MIT |
-| `rust-overlay` (oxalica) | Builds the toolchain `rust-toolchain.toml` names, exact channel and components, from the official release binaries, each pinned by hash in the overlay's own manifests. It follows this flake's `nixpkgs`, so no second nixpkgs is fetched. | MIT |
-| rustqual 1.8.3, built in the flake from crates.io | The metrics gate ([decision 0007](0007-metrics-gate.md)); nixpkgs does not carry it. The same crate and version `tools-source.txt` pins, pinned here by source and vendor hashes. | MIT |
+| Input | Why it is here | Alternatives considered | Gate impact | Licence |
+| --- | --- | --- | --- | --- |
+| `nixpkgs`, the `nixpkgs-unstable` branch | Every tool except the compiler. | A release branch, such as `nixos-26.05`, moves less but lags the cargo tools by months; unstable carried every tool the gates need, and is built for all three systems. | Every gate run in the shell. `flake.lock` is outside the lock check until the cutover. | MIT |
+| `rust-overlay` (oxalica) | Builds the toolchain `rust-toolchain.toml` names, exact channel and components, from the official release binaries, each pinned by hash in the overlay's own manifests. It follows this flake's `nixpkgs`, so no second nixpkgs is fetched. | fenix also reads the toolchain file but tracks its own manifest snapshots; nixpkgs' own `rustc` is one version, not the pinned one, and has no `llvm-tools` component. | The toolchain check and every Rust gate in the shell. | MIT |
+| rustqual 1.8.3, built in the flake from crates.io | The metrics gate ([decision 0007](0007-metrics-gate.md)); nixpkgs does not carry it. The same crate and version `tools-source.txt` pins, pinned here by source and vendor hashes. | A prebuilt binary does not exist for any version. | The metrics gate in the shell. | MIT |
 
 ## Consequences
 
@@ -105,8 +109,8 @@ pixi stays the supported path and [decision 0006](0006-tool-manager.md) stands u
 then.
 
 When this was decided Nix was not installed on the maintainer's Mac. Linux evidence
-came from a Nix container and from CI, and macOS evidence from a CI job on an Apple
-silicon runner.
+comes from a Nix container and from CI, and macOS evidence from a CI job on an Apple
+silicon runner; the commit messages cite each run.
 
 ## What would reopen this
 
