@@ -240,7 +240,7 @@ jobs:
           - system: macos
             os: macos-latest
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 40
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -250,11 +250,31 @@ jobs:
           extra_nix_config: |
             experimental-features = nix-command flakes
       - run: nix develop --command just check-toolchain
+      - run: nix develop --command just lock-check
+      - run: nix develop --command just lint
       - run: nix develop --command just nix-check
       - run: nix develop --command just fmt-check
+      - run: nix develop --command just toml-check
       - run: nix develop --command just clippy
+      - run: nix develop --command just metrics
+      - run: nix develop --command just features
       - run: nix develop --command just test
+      - run: nix develop --command just coverage
       - run: nix develop --command just doc
+      - run: nix develop --command just deny
+      - run: nix develop --command just deps-unused
+      - run: nix develop --command just fuzz-build
+      - run: nix develop --command just snapshots-check
+      - run: nix develop --command just py-lint
+      - run: nix develop --command just py-typecheck
+      - run: nix develop --command just py-test
+      - run: nix develop --command just py-stubtest
+      - run: nix develop --command just wheel-smoke
+      - run: nix develop --command just version-check
+      - run: nix develop --command just check-docs
+      - run: nix develop --command just check-agents
+      # The flake's parity reference against the wheel-smoke build above.
+      - run: nix develop --command just parity
       # For the reason rust's last step gives. check-clean's own command
       # arrives in the shell with the hook tools; until then git answers.
       - run: git status --porcelain && test -z "$(git status --porcelain)"
