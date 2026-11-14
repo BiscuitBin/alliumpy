@@ -14,5 +14,6 @@
     "MD041": false
   },
   "globs": ["**/*.md"],
+  // .tools and .pixi exist only as leftovers in a checkout made before decision 0018.
   "ignores": ["target", ".tools", ".pixi", "ai_tmp"]
 }

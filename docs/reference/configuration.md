@@ -16,12 +16,14 @@ reason for two Python manifests and a static wheel version.
 
 | Variable | Read by and effect |
 | --- | --- |
-| `PYO3_PYTHON` | Set by the Justfile to the absolute pixi interpreter path for every Cargo invocation. |
-| `CONDA_PREFIX` | Set on py-develop so maturin finds the pixi environment. |
+| `ALLIUMPY_PYTHON` | Set by the dev shell, and by nothing else, to its own interpreter, which the Justfile uses as `PYO3_PYTHON`; a lookup by name would find the editable-install environment, first on a recipe's `PATH`. Unset, the Justfile refuses to load, `just initialize` refuses and the first hook refuses the commit. |
+| `ALLIUMPY_PARITY_REFERENCE` | Set by the dev shell to the `allium` the flake builds as the parity reference, which is never on `PATH`. parity and version-check use it, and version-check fails when it is missing or prints another version than the pin. |
+| `ALLIUMPY_RUSTQUAL_VERSION` | Set by the dev shell to the rustqual version the flake builds; the metrics gate's expectation, which must also equal `rustqualVersion` in `flake.nix`. |
+| `PYO3_PYTHON` | Set by the Justfile, for every Cargo invocation, to `ALLIUMPY_PYTHON`, the dev shell's own `python`. Never the virtual environment's, so the value does not move when py-develop first runs. py-develop and wheel-smoke build their environments on it. |
+| `VIRTUAL_ENV` | Set on py-develop to `target/py-develop/`, where maturin installs the extension editable. |
+| `CONDA_PREFIX` | Unset on py-develop: maturin refuses to choose between it and `VIRTUAL_ENV`. |
 | `RUSTDOCFLAGS` | Set on doc to `-D warnings --cfg docsrs`. |
-| `CARGO_HOME` | check-toolchain expects the rustup proxy here, defaulting to the user's cargo directory. |
-| `PREK_HOME` | Hook cache; CI places it outside the workspace. |
-| `GITHUB_TOKEN`, `GH_TOKEN` | Release lookup credentials; unset for install-tools' source-build pass, with token discovery disabled. |
+| `RUSTC` | If set, check-toolchain checks this compiler, as cargo would run it, in place of the `rustc` on `PATH`. |
 | `INSTA_UPDATE` | no during checks; new during snapshot acceptance. |
 | `CARGO_NET_OFFLINE` | true after lock validation in the snapshot recipes, `fuzz` and `fuzz-build`. |
 | `CARGO_TERM_COLOR`, `CARGO_INCREMENTAL`, `CARGO_NET_RETRY`, `RUST_BACKTRACE` | CI log colour, incremental policy, fetch retries and panic traces. |
@@ -40,11 +42,8 @@ stay on the recipe.
 | `crates/alliumpy-core/Cargo.toml` | rlib, upstream dependency, inherited workspace lint table, and the divan dev-dependency with the `parse` bench. |
 | `fuzz/Cargo.toml`, `fuzz/Cargo.lock` | The fuzz crate outside the workspace: its libfuzzer-sys range, the path dependency on the core, the repeated `forbid` and Clippy tables, and its own committed resolution. |
 | `crates/alliumpy/Cargo.toml` | cdylib, path dependency on core, pyo3 and the bindings crate's own lint table. |
-| `pyproject.toml` | pixi tooling environment, exact tool pins, supported tooling platforms and ordered gate recipes. No Rust compiler package. |
-| `pixi.lock` | Generated tooling resolution; never hand-edited. |
-| `crates/alliumpy/pyproject.toml` | maturin build backend, static distribution metadata, entry point, module layout, locked builds and trusted-publishing settings; no pixi table. |
-| `tools.txt` | Binary-only extra tools, currently cargo-hack and cargo-fuzz. |
-| `tools-source.txt` | Extras whose source build is accepted, currently rustqual. |
+| `pyproject.toml` | The tooling project's metadata and the gate's ordered recipe list, which `bg-project-check` reads. No tool pins. |
+| `crates/alliumpy/pyproject.toml` | maturin build backend, static distribution metadata, entry point, module layout, locked builds and trusted-publishing settings. |
 | `rustfmt.toml` | Stable Rust formatting settings and style edition. |
 | `clippy.toml` | Complexity thresholds, test relaxations and deterministic collection guidance. |
 | `rustqual.toml` | Complexity, cohesion, coupling and IOSP thresholds; module rules wait for modules. |
@@ -53,10 +52,12 @@ stay on the recipe.
 | `.config/nextest.toml` | Test-runner version floor, default fail-fast and CI reporting profiles. |
 | `ruff.toml` | Python target floor, lint/format rules, exclusions and documented per-file exceptions. |
 | `mypy.ini` | Python type-checking inputs, strictness, exclusions and native module handling. |
-| `Justfile` | Recipes, tool PATH, PYO3_PYTHON and the core line-coverage floor. |
+| `Justfile` | Recipes, the editable-install environment ahead of the dev shell's PATH, PYO3_PYTHON and the core line-coverage floor. |
 | `scripts/initialize.sh` | Bootstrap order and primary-checkout-only hook installation. |
 | `scripts/version_check.py` | Version-copy assertions and the installed wheel-smoke version check. |
-| `.pre-commit-config.yaml` | Installed read-only hooks. |
+| `flake.nix`, `flake.lock` | The dev shell's contents and their pinned sources: `flake.lock`'s nixpkgs revision decides every tool's version, and `flake.nix` states `alliumCliVersion` and `rustqualVersion` ([decision 0018](../decisions/0018-nix-owns-the-tools.md)). |
+| `.envrc` | `use flake`, for direnv; inert until the directory is allowed. |
+| `.pre-commit-config.yaml` | Installed read-only hooks, each tool the dev shell's by name; the first refuses a commit made outside the shell. |
 | `.pre-commit-fix.yaml` | Mutating hooks invoked by fix; excludes deliberately invalid Python controls. |
 | `.editorconfig` | Whitespace, newlines and indentation, including four-space Python. |
 | `.gitattributes` | Text normalization and generated file classification. |

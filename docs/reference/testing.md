@@ -42,11 +42,11 @@ deliberate runtime/stub mismatch must fail. mypy checks declared types; it does 
 ## Installed wheel smoke
 
 `just wheel-smoke` empties dist and builds the release wheel, requires exactly one real
-wheel, creates a fresh venv on pixi's interpreter with no Python download, and installs
-with `--offline --no-index --no-deps`. Isolated Python (`-I`) imports that installation,
-parses the clean and broken smoke fixtures and checks versions. The installed console
-script must print upstream's version string and exit 0 from `allium check` on the clean
-fixture.
+wheel, creates a fresh venv on the dev shell's own interpreter with no Python download,
+and installs with `--offline --no-index --no-deps`. Isolated Python (`-I`) imports that
+installation, parses the clean and broken smoke fixtures and checks versions. The
+installed console script must print upstream's version string and exit 0 from
+`allium check` on the clean fixture.
 A release build on every gate is the cost of testing the artefact that will ship.
 
 ## Coverage
@@ -89,9 +89,10 @@ diff and explain it. `snapshots-review` offers interactive review at a terminal.
 
 ## Command parity
 
-`just parity` is POSIX-only and outside `check`, because its reference needs the network
-to build; the `parity` CI job runs it on Linux. The reference is upstream's `allium-cli`
-built from crates.io at the pin into `.tools/parity/`, off `PATH`.
+`just parity` is POSIX-only and outside `check`, a second gate on behaviour; the
+`parity` CI job runs it on Linux. The reference is upstream's `allium-cli` built from
+crates.io at the pin: the flake builds it and the dev shell names it in
+`ALLIUMPY_PARITY_REFERENCE`, off `PATH`.
 `tests/parity/run.py` runs both commands over `tests/fixtures/parity/` (upstream's
 `.allium` files at the tag, plus one cross-module pair of this repository's) and the
 argument matrix in `tests/parity/README.md`, and compares stdout bytes and exit status;

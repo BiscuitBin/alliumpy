@@ -21,9 +21,14 @@ house replacement. This repository also needs Python for maturin and the binding
 ## Decision
 
 Keep the Python checkers and prek. The root `pyproject.toml` configures the shared
-package and names the twenty-two gate recipes in order. [Decision
+package and names the twenty-three gate recipes in order. [Decision
 0006](0006-tool-manager.md) owns their installation through pixi; no fork of the
 checkers lives here.
+
+Note, 2026-11-14: decision 0006 is superseded by [decision
+0018](0018-nix-owns-the-tools.md). The flake builds the shared package at the same
+revision, and every hook's tool is the dev shell's own, called by name; there is one hook
+configuration and no pixi.
 
 Until the required phrases become configurable, `AGENTS.md` carries honest explanations
 for phrases the validator requires but this repository does not otherwise use; the

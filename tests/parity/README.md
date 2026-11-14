@@ -9,23 +9,24 @@ records the route it proves.
 
 ## Running it
 
+Inside the flake's dev shell:
+
 ```sh
-just install-parity-reference   # once per pin; network
 just parity
 ```
 
-`install-parity-reference` builds the reference with `cargo install allium-cli@<pin>
---locked --root .tools/parity`, the pin read from `Cargo.toml`. `.tools/parity/bin` is
-never on `PATH`. `parity` rebuilds the wheel through `wheel-smoke`, runs this harness
-with the reference by absolute path and the smoke venv's `allium` as the candidate,
-then runs `crates/alliumpy/tests/test_cli.py` against the same candidate. Both are
-POSIX-only and outside `just check`, because the reference needs the network to build;
-the `parity` CI job runs them on Linux.
+The flake builds the reference, upstream's `allium-cli` at the version `flake.nix` states
+(`version-check` holds it to the pin), and the dev shell names it in
+`ALLIUMPY_PARITY_REFERENCE`; it is never on `PATH`. `parity` rebuilds the wheel through
+`wheel-smoke`, runs this harness with the reference by absolute path and the smoke venv's
+`allium` as the candidate, then runs `crates/alliumpy/tests/test_cli.py` against the same
+candidate on the dev shell's Python. Both are POSIX-only and outside `just check`, a second gate
+on behaviour; the `parity` CI job runs them on Linux.
 
-The harness by hand:
+The harness by hand, inside the dev shell after `just wheel-smoke`:
 
 ```sh
-python -I tests/parity/run.py --reference "$PWD/.tools/parity/bin/allium" \
+"$ALLIUMPY_PYTHON" -I tests/parity/run.py --reference "$ALLIUMPY_PARITY_REFERENCE" \
   --candidate "$PWD/target/wheel-smoke/venv/bin/allium" --corpus tests/fixtures/parity
 ```
 

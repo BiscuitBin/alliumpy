@@ -9,7 +9,7 @@ requires: []
 # Make your first change
 
 About half an hour after setup, from a green baseline through one small change and its
-tests. The first run needs network access, rustup and pixi;
+tests. The first run needs network access and Nix;
 [Develop locally](../how-to/develop-locally.md) describes them. The change crosses the
 core, native binding, Python stub and pytest case. Work in a disposable branch or
 worktree: this exercise demonstrates a field addition, rather than asking you to ship it.
@@ -17,11 +17,13 @@ worktree: this exercise demonstrates a field addition, rather than asking you to
 ## 1. Get the workspace running
 
 ```console
+nix --extra-experimental-features 'nix-command flakes' develop
 just initialize
 just check
 ```
 
-Initialization installs pinned tools and dependencies. It installs hooks only from the
+The first line enters the dev shell, which holds every pinned tool; the rest run inside
+it. Initialization checks the compiler and fetches the crates. It installs hooks only from the
 primary checkout, never formats, and never stages, commits, tags or pushes.
 Read the first gate failure before editing; start only from a green baseline.
 

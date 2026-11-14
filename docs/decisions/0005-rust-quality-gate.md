@@ -12,7 +12,7 @@ Carried from pachinko's decision 0009 at `bf51e0d`, which carried libpawdoku's d
 
 ## Context
 
-`just check` runs twenty-two recipes in order, then check-clean proves the tree
+`just check` runs twenty-three recipes in order, then check-clean proves the tree
 unchanged. The Rust half covers formatting, TOML, clippy, metrics, feature combinations,
 doctests, core coverage, rustdoc, dependency policy and unused dependencies. [Quality
 gates](../reference/quality-gates.md) owns their complete order; [decision
@@ -43,6 +43,10 @@ run uncovered. Tool binaries come through pixi, cargo-hack through `tools.txt`, 
 rustqual through `tools-source.txt`, one owner per pin (decision 0006). Clippy runs at
 gate 6 and in CI but never as a commit hook, because a cold run blocks every commit for
 tens of seconds to minutes.
+
+Note, 2026-11-14: pixi, `tools.txt` and `tools-source.txt` are gone. Every tool binary
+above, cargo-hack and rustqual included, now comes from the flake's dev shell, which
+[decision 0018](0018-nix-owns-the-tools.md) makes the one owner of every pin.
 
 The binding has its own `[lints]` table. Cargo does not let a member inherit the
 workspace table and lower an inherited `forbid`; a local table lets the thin boundary

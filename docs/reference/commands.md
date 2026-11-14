@@ -12,28 +12,27 @@ requires: []
 is the supported interface: if something is worth running twice, it belongs there
 rather than in a shell history.
 
-`initialize`, `install-toolchain`, `install-tools`, `install-hooks`, `sync`, `lock`,
-`lock-upgrade`, `audit` and `check-links-online` reach the network. Initialization
-prepares the caches; later `check` runs need no network. A cold cache fails instead of
-fetching. Setup recipes and mutating recipes sit outside `check`. `fuzz` and `fuzz-build`
-are not network recipes: their lock guard is offline and cargo-fuzz runs with
-`CARGO_NET_OFFLINE`, so after `just sync` they need no network. `mutants`, `bench`, `fuzz`
-and `fuzz-build` are reports or proofs a person runs, never part of `check`.
+`initialize`, `sync`, `lock`, `lock-upgrade`, `audit` and `check-links-online` reach
+the network, and so do `nix-wheel` and `nix-flake-check` on a cold Nix store. Entering
+the dev shell fetches the tools; initialization fills the Cargo cache; later `check`
+runs need no network. A cold cache fails instead of fetching. Setup recipes and
+mutating recipes sit outside `check`. `fuzz` and `fuzz-build` are not network recipes:
+their lock guard is offline and cargo-fuzz runs with `CARGO_NET_OFFLINE`, so after
+`just sync` they need no network. `mutants`, `bench`, `fuzz` and `fuzz-build` are reports
+or proofs a person runs, never part of `check`.
 
 ## Setup
 
 | Recipe | Purpose |
 | --- | --- |
 | `default` | Print the recipe list when just has no arguments. |
-| `initialize` | Install pixi's pinned environment, Rust toolchain, both extra tool lists and dependencies; prepare hooks only in the primary checkout. Never formats, stages, commits, tags or pushes. |
-| `check-toolchain` | Refuse a cargo other than rustup's proxy or an active toolchain other than the pinned channel, then print it. |
-| `install-toolchain` | Install the toolchain and components the toolchain file names. |
-| `install-tools` | Install `tools.txt` binary-only; for `tools-source.txt`, accept a signed quickinstall build or compile crates.io source locked. Never take unsigned release assets in the source pass; unset tokens and disable discovery there. |
-| `sync` | Fetch the workspace's and the fuzz crate's Cargo dependencies and install pixi's committed resolution without rewriting any of the three locks. |
-| `lock` | Relock `Cargo.lock` and `fuzz/Cargo.lock` after a manifest edit and run pixi lock. Read every diff. |
-| `lock-upgrade` | Move both Cargo resolutions and pixi's within manifest constraints. |
-| `lock-check` | Compare `Cargo.lock`, `fuzz/Cargo.lock` and `pixi.lock` with their manifests offline without writing. |
-| `install-hooks` | Install the shared hook shim and prepare environments; primary checkout only. |
+| `initialize` | Inside the dev shell only: check the toolchain, fetch the Cargo dependencies and install hooks only in the primary checkout. Never formats, stages, commits, tags or pushes. |
+| `check-toolchain` | Refuse a cargo or rustc whose release is not the pinned channel, or that resolves outside `/nix/store`, or a pinned component that is missing or belongs to another toolchain; then print what it accepted. |
+| `sync` | Fetch the workspace's and the fuzz crate's Cargo dependencies without rewriting any lock. The tools are the dev shell's. |
+| `lock` | Relock `Cargo.lock` and `fuzz/Cargo.lock` after a manifest edit, then `flake.lock` for any input `flake.nix` adds. Read every diff. |
+| `lock-upgrade` | Move both Cargo resolutions within manifest constraints, and every flake input, which moves every tool the dev shell holds. |
+| `lock-check` | Compare `Cargo.lock` and `fuzz/Cargo.lock` with their manifests offline without writing, and `flake.lock` with `flake.nix`. |
+| `install-hooks` | Install the shared hook shim for `.pre-commit-config.yaml`, replacing one an earlier install wrote; primary checkout only. Nothing needs preparing. |
 
 ## Develop
 
@@ -55,7 +54,7 @@ and `fuzz-build` are reports or proofs a person runs, never part of `check`.
 | --- | --- |
 | `format` | Write rustfmt formatting over the workspace and the fuzz crate, and taplo's. |
 | `fix` | Run the mutating hook configuration twice, format the fuzz crate, then clippy's repairs over the workspace and the fuzz crate, then lint. |
-| `lint` | Run the complete read-only hook gate over all files. |
+| `lint` | Run the complete read-only hook gate, `.pre-commit-config.yaml`, over all files. |
 | `fmt-check` | Check Rust formatting in the workspace and the fuzz crate. |
 | `toml-check` | Check TOML formatting and lint. |
 | `clippy` | Lint all targets and features, and the fuzz crate's targets, with warnings as errors. |
@@ -77,31 +76,46 @@ and `fuzz-build` are reports or proofs a person runs, never part of `check`.
 | `check-agents` | Validate the agent inventory, adapters, skills and bridges. |
 | `check-links-online` | Resolve external links manually; network failures keep it outside check. |
 
+Two private recipes, `hook-validate-docs` and `hook-ripsecrets`, are hook entry points
+and are hidden from `just --list`: a git hook does not inherit the Justfile's `PATH`,
+so the documentation-contract and secret-scan hooks reach their commands through them.
+
+## Nix
+
+These run in the flake's dev shell, which provides their tools
+([decision 0018](../decisions/0018-nix-owns-the-tools.md)), as every recipe does.
+
+| Recipe | Purpose |
+| --- | --- |
+| `nix-check` | Require Git to list a Nix file, then check nixfmt formatting, statix lints and deadnix's unused bindings over the tracked Nix files. Gate 23 in check. |
+| `nix-format` | Format the tracked Nix files with nixfmt; `format` and `fix` call it. |
+
 ## Python
 
 | Recipe | Purpose |
 | --- | --- |
-| `py-develop` | Build and install the extension editable into pixi via maturin, using CONDA_PREFIX and pinned uv. |
+| `py-develop` | Create the virtual environment `target/py-develop/` on the dev shell's interpreter if missing, offline, then build the extension and install it editable there via maturin and the pinned uv. |
 | `py-lint` | Ruff lint and format; require the package in its input and the positive fixture's F401 and E501 failures. |
 | `py-typecheck` | mypy over package, stub, tests and scripts; require the deliberate type-error fixture to fail with status 1. |
 | `py-test` | Rebuild with py-develop, then run pytest on the binding. |
 | `py-stubtest` | Rebuild, then compare the imported native module with its canonical stub and reviewed allowlist. |
 | `wheel` | Empty dist and build a locked release wheel for this platform. |
-| `wheel-smoke` | Build the wheel, require exactly one, install offline into a fresh venv, run isolated Python smoke, the console version and `allium check` on the clean fixture. |
-| `version-check` | Compare version copies, each member crate's version included, with the installed wheel-smoke command, and its whole `--version` output with `ALLIUM_VERSION_STRING` and, when built at the pin, the parity reference's; a missing smoke venv fails. |
+| `wheel-smoke` | Build the wheel, require exactly one, install offline into a fresh venv on the dev shell's own interpreter, run isolated Python smoke, the console version and `allium check` on the clean fixture. |
+| `version-check` | Compare version copies, each member crate's version included, with the installed wheel-smoke command, and its whole `--version` output with `ALLIUM_VERSION_STRING` and the parity reference's, which must exist and print the pin; a missing smoke venv or reference fails. |
 
 ## Parity
 
 | Recipe | Purpose |
 | --- | --- |
-| `install-parity-reference` | Build upstream's `allium-cli` at the pin from crates.io, locked, into `.tools/parity/`, off `PATH`. Network; outside check. |
-| `parity` | Run wheel-smoke, then compare the wheel's `allium` with the reference byte for byte on stdout and exactly on exit status over the parity corpus, with its controls, then run `test_cli.py`. POSIX; outside check. |
+| `nix-flake-check` | Run `nix flake check`: the crates build, clippy over the workspace, the core's nextest tests and doctests, the Nix-built wheel's smoke and the Nix files' format and lint, as derivations over one shared dependency build, sandboxed where Nix's sandbox is on, whose setting it prints first. Outside check; never the gate. |
+| `nix-wheel` | Print Nix's sandbox setting, then build the wheel with `nix build`, sandboxed and offline where that setting is on, from `Cargo.lock`, leaving no result link; put it alone in `dist/`, then smoke it and run parity against it as `wheel-smoke` and `parity` do. Evidence, never a release artefact; outside check; a cold Nix store needs the network. |
+| `parity` | Run wheel-smoke, then, against the reference the dev shell names in `ALLIUMPY_PARITY_REFERENCE`, compare the wheel's `allium` with the reference byte for byte on stdout and exactly on exit status over the parity corpus, with its controls, then run `test_cli.py`. POSIX; outside check. |
 
 ## Aggregate
 
 | Recipe | Purpose |
 | --- | --- |
-| `check` | Run the twenty-two configured gates in order with worktree snapshots, then check-clean. |
+| `check` | Run the twenty-three configured gates in order with worktree snapshots, then check-clean. |
 | `check-clean` | Require a clean worktree, or equality with a supplied baseline. |
 
 ## Related pages

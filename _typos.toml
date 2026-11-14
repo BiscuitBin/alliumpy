@@ -3,12 +3,14 @@
 
 [files]
 # Lockfiles and vendored reference carry hashes and names that look like
-# typos; the environment and tool directories hold binaries.
+# typos; the environment directories hold binaries (.pixi/ and .tools/ only in
+# a checkout made before decision 0018).
 extend-exclude = [
   "tests/fixtures/parity/",
   "Cargo.lock",
-  "pixi.lock",
+  "flake.lock",
   ".pixi/",
+  ".direnv/",
   ".tools/",
   "target/",
   "ai_tmp/",

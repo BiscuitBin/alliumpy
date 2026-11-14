@@ -8,6 +8,10 @@ requires: []
 
 # Decision 0006: Tool manager
 
+> **Superseded** on 2026-11-14 by [decision 0018](0018-nix-owns-the-tools.md). The record
+> below is unchanged; pixi, the two tool lists and the rustup recipes it describes no
+> longer exist in this repository.
+
 Carried from pachinko's decision 0011 at `bf51e0d`, which carried libpawdoku's decision 0011 at `ccdd001`.
 
 ## Context
@@ -45,7 +49,10 @@ nothing runs through `pixi run` inside a recipe.
 
 rustup keeps the compiler. `rust-toolchain.toml` remains the single owner of the Rust
 version, its components and its targets; the pixi environment holds no `rust` package,
-and `check-toolchain` keeps refusing any cargo that is not rustup's proxy.
+and `check-toolchain` refuses a cargo or compiler other than the pinned release with its
+pinned components. Until November 2026 it refused any cargo that was not rustup's proxy;
+it now asks what the compiler is, not who provides it, and the `Justfile` names the tool
+provider in one place.
 
 `tools.txt` remains as the escape hatch for a tool conda-forge does not carry. It lists
 `cargo-hack` alone; cargo-binstall, itself a pixi dependency, installs it into

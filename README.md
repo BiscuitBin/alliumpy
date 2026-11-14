@@ -56,9 +56,11 @@ diagnostics; the command also runs the checker. See `docs/reference/api.md`.
 
 ## Contribute
 
-Read the prerequisites in `docs/how-to/develop-locally.md`, then from a clone run:
+Read the prerequisites in `docs/how-to/develop-locally.md`: Nix is the one tool to
+install. Then, from a clone:
 
 ```console
+nix --extra-experimental-features 'nix-command flakes' develop
 just initialize
 just check
 ```

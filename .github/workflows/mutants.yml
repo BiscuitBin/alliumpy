@@ -23,6 +23,12 @@ env:
   CARGO_INCREMENTAL: '0'
   CARGO_NET_RETRY: '10'
 
+# Every `run` step is in the flake's dev shell (decision 0018), which the
+# setup action prepares.
+defaults:
+  run:
+    shell: nix develop --no-update-lock-file --command bash --noprofile --norc -eo pipefail {0}
+
 jobs:
   mutants:
     name: mutants
@@ -33,8 +39,6 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
-        with:
-          cache-key: mutants
       - run: just mutants
       # Unless cancelled, so a run that found a surviving mutant (exit 2)
       # still leaves its report. Four weeks, to compare a month of runs.

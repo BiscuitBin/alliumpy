@@ -15,6 +15,18 @@ are listed here; upstream's own changes belong to upstream's release notes.
   the upstream-bump runbook,
   `docs/how-to/bump-upstream.md`, with `scripts/vendor_cli.py`, which generates the
   vendored command.
+- A project-local Nix flake (`flake.nix`, `flake.lock`, `.envrc`; decision 0018) that
+  provides every tool, the pinned compiler and Python; `just nix-check` (gate 23),
+  `just nix-wheel` and `just nix-flake-check`. CI runs every gate job in its dev shell.
+
+### Removed
+
+- pixi (`pixi.lock` and the root `pyproject.toml`'s pixi tables), `tools.txt`,
+  `tools-source.txt` and the `install-toolchain`, `install-tools` and
+  `install-parity-reference` recipes: run every recipe inside the dev shell. A hook shim
+  installed before this names pixi's prek; run `just install-hooks` once from the
+  primary checkout, inside the shell, to replace it. `.pixi/` and `.tools/` are no
+  longer used and can be deleted.
 
 ## [3.6.1] - 2026-11-05
 

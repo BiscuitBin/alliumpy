@@ -26,7 +26,7 @@ until evidence supports a decision.
 | [0003](0003-apache-2-0-with-upstream-mit.md) | Apache-2.0 for this repository, upstream's MIT shipped beside it |
 | [0004](0004-dependency-policy.md) | Dependency policy: caret ranges and `Cargo.lock` |
 | [0005](0005-rust-quality-gate.md) | The Rust quality gate |
-| [0006](0006-tool-manager.md) | Tool manager |
+| [0006](0006-tool-manager.md) | Tool manager (superseded by [0018](0018-nix-owns-the-tools.md)) |
 | [0007](0007-metrics-gate.md) | The metrics gate |
 | [0008](0008-api-reference-on-github-pages.md) | The API reference on GitHub Pages, when the repository's visibility allows it |
 | [0009](0009-pypi-name-alliumpy.md) | PyPI name `alliumpy`, console script `allium` |
@@ -38,6 +38,7 @@ until evidence supports a decision.
 | [0015](0015-release-process.md) | The release process |
 | [0016](0016-mutation-bench-and-fuzz.md) | Mutation testing, benchmarks and fuzzing |
 | [0017](0017-renovate.md) | Dependency updates through Renovate, except the upstream pin |
+| [0018](0018-nix-owns-the-tools.md) | A Nix flake owns the tools |
 
 T14 wrote 0015, T15 wrote 0016 and T17 wrote 0017. Record 0014 is S01's draft, landed by
 T13.
@@ -47,9 +48,22 @@ T13.
 This series is the repository's own and starts at 0001. Records 0002 to 0008 carry the
 chain from the pinned source repositories and keep their topic slugs. Each opening names
 both source commits so its argument can be checked. New records have no carried-from
-chain. [Decision 0006](0006-tool-manager.md) replaces the older installation details
+chain. [Decision 0006](0006-tool-manager.md) replaced the older installation details
 behind [decision 0002](0002-hook-runner-and-checkers.md), while keeping its choice of
-runner and shared checkers.
+runner and shared checkers, and is itself superseded by [decision
+0018](0018-nix-owns-the-tools.md).
+
+## Marking a superseded record
+
+A record is never deleted, renumbered or rewritten. When a later record replaces one:
+
+- the old record gains, directly under its title, a quoted paragraph beginning
+  `**Superseded** on YYYY-MM-DD by` and linking the successor, and nothing else in it
+  changes;
+- its row in the table above gains `(superseded by NNNN)`, linking the successor;
+- a record that only leans on the superseded one keeps its text and gains a paragraph
+  beginning `Note, YYYY-MM-DD:` where it names what no longer exists, saying what
+  replaced it.
 
 ## Writing a new one
 

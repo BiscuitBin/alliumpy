@@ -8,6 +8,11 @@
 # writes it beside the config and reads it on the next run.
 .lycheecache
 
+# direnv's cache of the flake's dev shell, and the link `nix build` leaves.
+.direnv/
+/result
+/result-*
+
 # Scratch for agents and maintainers alike: anything that is not a
 # deliverable goes here, never in a commit.
 ai_tmp/
@@ -28,14 +33,11 @@ ai_tmp/
 # read.
 target/
 
-# The pixi environment `just initialize` installs from pixi.lock: every tool
-# binary, Python, prek and the tooling package's scripts. Ignored for the same
-# reason as target/: `just check` snapshots the worktree between recipes, and
-# an environment Git can see aborts the snapshot.
+# Leftovers from a checkout made before decision 0018: the pixi environment and
+# the project-local tools directory, which nothing creates any more. Safe to
+# delete; ignored so an older checkout still passes `just check`'s worktree
+# snapshot without anyone deleting their files for them.
 .pixi/
-
-# The tools tools.txt and tools-source.txt pin because conda-forge lacks them,
-# installed by `just install-tools`. Git ignores these generated binaries.
 .tools/
 
 # Raw profiles cargo-llvm-cov leaves behind when a run is interrupted before

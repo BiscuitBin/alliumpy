@@ -12,11 +12,45 @@ from pathlib import Path
 # A reference that hangs is a failed read, not a gate that never returns.
 REFERENCE_TIMEOUT_SECONDS = 60
 
+# The dev shell names where the flake built the reference (decision 0018).
+REFERENCE_VARIABLE = "ALLIUMPY_PARITY_REFERENCE"
+
+
+def reference_path() -> Path | None:
+    """The parity reference the dev shell names, or None when it names none."""
+    named = os.environ.get(REFERENCE_VARIABLE, "")
+    if not named:
+        print(
+            f"version-check: {REFERENCE_VARIABLE} is not set; run this inside the dev shell",
+            file=sys.stderr,
+        )
+        return None
+    return Path(named)
+
+
+def flake_reference_version(root: Path) -> str | None:
+    """The allium-cli version flake.nix builds as the reference, or None when unstated."""
+    flake = root / "flake.nix"
+    if not flake.is_file():
+        print("version-check: flake.nix is missing", file=sys.stderr)
+        return None
+    found: list[str] = re.findall(
+        r'^\s*alliumCliVersion = "([^"]+)";$', flake.read_text(), re.MULTILINE
+    )
+    if len(found) != 1:
+        print(
+            'version-check: flake.nix must state alliumCliVersion = "x.y.z"; exactly once',
+            file=sys.stderr,
+        )
+        return None
+    return found[0]
+
 
 def reference_output(reference: Path) -> str | None:
-    """The reference's `--version` output, empty when it is missing, None when it fails."""
+    """The reference's `--version` output, or None when it is missing or fails."""
     if not reference.is_file():
-        return ""
+        print(f"version-check: the reference {reference} is missing", file=sys.stderr)
+        return None
     try:
         result = subprocess.run(
             [str(reference), "--version"],
@@ -35,7 +69,7 @@ def reference_output(reference: Path) -> str | None:
     return result.stdout
 
 
-def version_string(root: Path, pin: str, source: str, console: str) -> int:
+def version_string(pin: str, source: str, console: str) -> int:
     """Compare the whole console output with the literal and, at the pin, the reference."""
     literal = re.search(r'pub const ALLIUM_VERSION_STRING: &str = "([^"]+)";', source)
     if literal is None:
@@ -48,18 +82,19 @@ def version_string(root: Path, pin: str, source: str, console: str) -> int:
             file=sys.stderr,
         )
         return 1
-    # The reference is built by a network recipe outside check: a missing or stale
-    # one is a note, not drift (T13). One that exists but fails to run or prints no
-    # version line is a failed read.
-    output = reference_output(root / ".tools/parity/bin/allium")
+    # The dev shell builds its reference, so it must exist, run, print a version line
+    # and be at the pin; anything else is a failure, not a note.
+    reference = reference_path()
+    output = None if reference is None else reference_output(reference)
     if output is None:
         return 1
     if output.split()[1:2] != [pin]:
         print(
-            f"version-check: note: no reference allium {pin} to compare;"
-            " run just install-parity-reference"
+            f"version-check: the dev shell's reference prints {output.strip()!r}, not"
+            f" allium {pin}; leave the shell and enter it again",
+            file=sys.stderr,
         )
-        return 0
+        return 1
     if output != console:
         print(
             f"version-check: console output {console!r} differs from the reference's {output!r}",
@@ -77,13 +112,9 @@ def member_versions(root: Path) -> dict[str, str] | None:
     explicit one would drift silently past the workspace table. Cargo, not a glob over
     members, decides membership: a path dependency joins the workspace and an excluded
     directory does not.
-
-    The recipe runs without check-toolchain, so an override that names an uninstalled
-    toolchain must fail here: RUSTUP_AUTO_INSTALL=0 makes rustup's proxy refuse it
-    rather than download it.
     """
     metadata = subprocess.run(
-        [  # noqa: S607 - just check's check-toolchain proves PATH's cargo is rustup's proxy.
+        [  # noqa: S607 - just check's check-toolchain proves PATH's cargo runs the pinned compiler.
             "cargo",
             "metadata",
             "--no-deps",
@@ -96,7 +127,6 @@ def member_versions(root: Path) -> dict[str, str] | None:
         capture_output=True,
         text=True,
         check=False,
-        env={**os.environ, "RUSTUP_AUTO_INSTALL": "0"},
     )
     if metadata.returncode != 0:
         print(f"version-check: cargo metadata failed: {metadata.stderr}", file=sys.stderr)
@@ -127,8 +157,7 @@ def main(argv: list[str]) -> int:
     root = Path(__file__).resolve().parents[1]
     cargo = tomllib.loads((root / "Cargo.toml").read_text())
     pin = cargo["workspace"]["dependencies"]["allium-parser"].removeprefix("=")
-    # install-parity-reference reads the pin before any wheel exists (T13), so this
-    # path reads Cargo.toml alone.
+    # The pin alone, before any wheel exists (T13): this path reads Cargo.toml only.
     if argv == ["--print-pin"]:
         print(pin)
         return 0
@@ -160,10 +189,15 @@ def main(argv: list[str]) -> int:
         "ALLIUM_VERSION": match[1],
         "console version": words[1],
     }
+    flake_reference = flake_reference_version(root)
     members = member_versions(root)
-    if members is None or not versions_agree(versions | members):
+    if (
+        flake_reference is None
+        or members is None
+        or not versions_agree(versions | {"flake.nix parity reference": flake_reference} | members)
+    ):
         return 1
-    return version_string(root, pin, source, result.stdout)
+    return version_string(pin, source, result.stdout)
 
 
 if __name__ == "__main__":

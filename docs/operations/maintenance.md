@@ -35,16 +35,24 @@ pass and merge what is green; they rebase and rerun while they wait.
 **Monthly.** Read Renovate's dependency dashboard and approve what is due, one kind at a
 time, then read each pull request it opens and merge it yourself;
 [Maintain dependencies](../how-to/maintain-dependencies.md) lists what it proposes and what
-each kind needs. Approve a `tools-source.txt` line one release at a time, because
-rustqual is a gate. What Renovate does not read moves by hand, as that page lists; to move
-a lockfile without waiting for it, `just lock-upgrade` moves all three within the
-manifests' constraints, and `just check` and a commit follow.
+each kind needs. What Renovate does not read moves by hand, as that page lists; to move
+a lockfile without waiting for it, `just lock-upgrade` moves both Cargo lockfiles within
+the manifests' constraints and `flake.lock` to each input's head, and `just check` and a
+commit follow.
+
+**Monthly, the flake.** Approve the `nix flake` update on the dashboard, or, if Renovate
+cannot relock the flake, run `just lock-upgrade` in the dev shell yourself. Either way it
+moves every tool at once, so leave the shell, enter it again and run `just check`, then
+read what moved, as
+[A flake update](../how-to/maintain-dependencies.md#a-flake-update) describes. A tool
+that moved somewhere unwanted is held back there, not by skipping the update.
 
 **Monthly.** Run `just check-links-online`. It is not part of the gate because it needs
 the network, so external links rot silently until someone looks.
 
 **Per toolchain release.** Approve Renovate's `rust toolchain` update, which moves
-`rust-toolchain.toml` and `rust-version` in both manifests together, then run `just clippy`
+`rust-toolchain.toml` and `rust-version` in both manifests together, then enter the dev
+shell again on its branch, which fetches the new compiler, and run `just clippy`
 on its branch before anything else: clippy's lint set moves with the release, and a lint
 that is new under `-D warnings` fails the gate with no change to the code. `just check`
 follows.

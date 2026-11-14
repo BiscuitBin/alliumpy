@@ -8,8 +8,9 @@ description: Diagnose and repair a failing quality gate at its root instead of s
 1. Read `AGENTS.md`, then reproduce with the narrowest recipe: `just check` names
    the failed recipe; run that one alone and read its first failure.
 2. Dispatch on which gate failed:
-   - `check-toolchain` — cargo is not rustup's proxy, or rustup is missing. Put
-     `~/.cargo/bin` first on `PATH`; only that proxy honours `rust-toolchain.toml`.
+   - `check-toolchain` — cargo, rustc or a component is not the pinned release, or
+     is missing, or comes from outside the Nix store. Run inside the dev shell, and
+     remove whatever puts another cargo ahead of the shell's on `PATH`.
    - `lock-check` — run `just lock`, a network recipe needing explicit authorization,
      and read the lockfile diff before accepting it.
    - `lint` — a pre-commit hook failed. Hooks named `fmt-check`, `toml-check`,
@@ -25,9 +26,8 @@ description: Diagnose and repair a failing quality gate at its root instead of s
      trips is allowed in `crates/alliumpy/Cargo.toml`'s own `[lints]` table with a
      comment naming the macro, never in the workspace table. Keep unsafe forbidden.
    - `metrics` — lower the complexity, cohesion or coupling rustqual reports. Never
-     raise a threshold in `rustqual.toml`. A version mismatch means
-     `just install-tools`, a network recipe needing explicit authorization, has not
-     run in this worktree.
+     raise a threshold in `rustqual.toml`. A version mismatch means the dev shell
+     was entered before `flake.nix` moved: leave it and enter it again.
    - `features` — fix the `cfg` for the failing feature combination; keep every
      combination in the powerset.
    - `test-doc` — fix the example or the item it documents; doc examples are tests.
@@ -49,9 +49,8 @@ description: Diagnose and repair a failing quality gate at its root instead of s
    - `py-stubtest` — the stub and module disagree: change whichever is wrong. Never
      add an allowlist entry without a reason beside it.
    - `wheel-smoke` — two wheels in `dist/` mean something wrote there after
-     `just wheel` emptied it; rerun `just wheel-smoke`. Missing uv means the pixi
-     environment is incomplete; `just initialize`, a network recipe needing explicit
-     authorization, rebuilds it. A network error means the recipe reached out,
+     `just wheel` emptied it; rerun `just wheel-smoke`. Missing uv means the recipe
+     ran outside the dev shell. A network error means the recipe reached out,
      which is a defect in the recipe: the wheel smoke must install offline.
    - `version-check` — five copies of one version disagree; the message names the two.
      A bare `allium-parser` bump is a release (decision 0010), with the wheel's

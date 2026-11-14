@@ -38,11 +38,12 @@ is whatever maturin-action's `manylinux: auto` image produces, and whether each 
 label exists is settled by the first rehearsal run, not by this page.
 [Cut a release](../how-to/release.md) runs the matrix.
 
-`just check` builds and smokes only the developer's platform, using pixi Python 3.14.
-The POSIX Justfile and pixi platforms cover Linux x86_64 and macOS arm64. T01's CI adds
-a Python 3.11 smoke of the Linux wheel to prove the abi3 floor. Other targets,
-musllinux and `cp314t` are release-matrix evidence, not a claim made by a local gate.
-The release workflow's rehearsal supplies the Windows launcher and exit-code proof.
+`just check` builds and smokes only the developer's platform, using the dev shell's
+Python 3.14. The POSIX Justfile and the flake's systems cover Linux x86_64 and arm64 and
+macOS arm64. T01's CI adds a Python 3.11 smoke of the Linux wheel to prove the abi3
+floor. Other targets, musllinux and `cp314t` are release-matrix evidence, not a claim
+made by a local gate. The release workflow's rehearsal supplies the Windows launcher
+and exit-code proof.
 
 ## Versions
 
@@ -57,11 +58,11 @@ the member manifests to verify it.
 
 ## Two manifests, two owners
 
-The root `pyproject.toml` owns pixi's tooling environment, exact tool pins, Python and
-the ordered gate recipes. `pixi.lock` records its resolution. pixi searches the current
-directory and parents, never nested manifests; run recipes from the repository root.
+The root `pyproject.toml` owns the tooling project's metadata and the ordered gate
+recipes `bg-project-check` reads; it pins no tool. The tools, Python among them, are the
+flake's dev shell's ([decision 0018](../decisions/0018-nix-owns-the-tools.md)).
 
-`crates/alliumpy/pyproject.toml` belongs to maturin alone and has no `[tool.pixi]` table.
+`crates/alliumpy/pyproject.toml` belongs to maturin alone.
 It owns the distribution name, static version, Python floor, metadata, console entry
 point and native module layout. `locked = true` makes its builds honour `Cargo.lock`.
 Release LTO remains enabled; panic behaviour remains unwind so pyo3 can turn a panic
@@ -97,6 +98,17 @@ public repositories on every current plan and on private ones only under Enterpr
 Cloud; this repository is public.
 [Decision 0015](../decisions/0015-release-process.md) records what changes if that stops
 holding.
+
+## Wheels built by Nix
+
+`just nix-wheel` builds the wheel in the Nix sandbox where it is on (the recipe prints
+the setting; CI asserts it), from the workspace `Cargo.lock` with the pinned toolchain,
+then smokes it and runs parity against it
+([decision 0018](../decisions/0018-nix-owns-the-tools.md)). That wheel is evidence that
+the sources build hermetically, never a release artefact. It links against Nix's own
+libraries and carries a plain `linux_*` or local macOS tag, not a manylinux one, so it is
+not portable. Never upload one. The published wheels come only from `release-pypi.yml`
+([decision 0015](../decisions/0015-release-process.md)).
 
 ## Related pages
 

@@ -151,6 +151,14 @@ An upstream `enabled` key for IOSP would remove the second consequence above. ru
 publishing release binaries, or arriving on conda-forge, would move its pin into
 `tools.txt` or `pyproject.toml` and empty `tools-source.txt`.
 
+Note, 2026-11-14: `tools.txt`, `tools-source.txt`, cargo-binstall and `.tools` are gone.
+The flake of [decision 0018](0018-nix-owns-the-tools.md) builds rustqual from the crate
+crates.io publishes, at the version `rustqualVersion` in `flake.nix` states, with the
+crate's lockfile and a content hash, because nixpkgs does not carry it. The metrics gate
+reads the expected version from the dev shell and requires `flake.nix` to state the same.
+The source-build risk above is unchanged in kind: the build is still from source, now
+inside the Nix sandbox with no network.
+
 ## Related pages
 
 - [Decision 0005: The Rust quality gate](0005-rust-quality-gate.md)

@@ -64,3 +64,4 @@ which also provides the `allium` console script.
 - [Architecture decisions](decisions/README.md) — the record of what was chosen and why.
 - [Decision 0016: Mutation testing, benchmarks and fuzzing](decisions/0016-mutation-bench-and-fuzz.md)
 - [Decision 0017: Dependency updates through Renovate, except the upstream pin](decisions/0017-renovate.md)
+- [Decision 0018: A Nix flake owns the tools](decisions/0018-nix-owns-the-tools.md)

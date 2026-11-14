@@ -30,6 +30,11 @@ libpython at load time.
 
 cargo-mutants 27.1.0 is pinned in `pyproject.toml`; on 2026-10-30 conda-forge's linux-64
 and osx-arm64 builds depended on no rust, so rustup's cargo stays first on `PATH`.
+
+Note, 2026-11-14: pixi, rustup's place on `PATH` and `tools.txt` are gone. cargo-mutants
+and cargo-fuzz come from the flake's dev shell of [decision
+0018](0018-nix-owns-the-tools.md), at the versions `flake.lock` decides, and the shell
+builds cargo-fuzz for the host, so the Rosetta 2 prerequisite below no longer applies.
 `just mutants` mutates a copy of the tree, `--package alliumpy-core` alone, with every
 feature, under `cargo test` so a doctest can catch a mutant. Its first line fails when
 the mutant list is empty, so a wrong filter cannot pass over zero mutants. It watches
