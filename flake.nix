@@ -53,6 +53,23 @@
             ps.pytest
             ps.mypy
           ]);
+          # nixpkgs does not carry rustqual, so it is built here from the crate
+          # crates.io publishes, with the crate's own lockfile and the pinned
+          # toolchain. This version is the one the metrics gate requires.
+          rustPlatform = pkgs.makeRustPlatform {
+            cargo = rustToolchain;
+            rustc = rustToolchain;
+          };
+          rustqual = rustPlatform.buildRustPackage (finalAttrs: {
+            pname = "rustqual";
+            version = "1.8.3";
+            src = pkgs.fetchCrate {
+              inherit (finalAttrs) pname version;
+              hash = "sha256-xplBYaftBxCRwNZwyoHU68vPi1ooQ2krckwi0RoJ0pM=";
+            };
+            cargoHash = "sha256-oz6R8k7NoE2Gf51N7ZCFaPU+ij/AL315qFzdMz6hCh4=";
+            doCheck = false;
+          });
         in
         {
           # mkShell, not mkShellNoCC: cargo links through the C compiler, and
@@ -66,6 +83,15 @@
               pkgs.maturin
               pkgs.uv
               pkgs.ruff
+              pkgs.cargo-hack
+              pkgs.cargo-llvm-cov
+              pkgs.cargo-deny
+              pkgs.cargo-shear
+              pkgs.cargo-insta
+              pkgs.cargo-fuzz
+              pkgs.cargo-mutants
+              pkgs.taplo
+              rustqual
               pkgs.nixfmt
               pkgs.statix
               pkgs.deadnix
@@ -74,6 +100,8 @@
 
             # The Justfile reads this to know the shell, not pixi, provides the tools.
             ALLIUMPY_TOOLS = "nix";
+            # The metrics gate refuses a rustqual of any other version.
+            ALLIUMPY_RUSTQUAL_VERSION = rustqual.version;
           };
         }
       );

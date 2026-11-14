@@ -79,7 +79,9 @@ libFuzzer's C++ through libfuzzer-sys's build script, so a C++ compiler is a
 prerequisite of the gate; the fuzz crate's clippy line took 4.5 seconds cold and 0.08
 warm, and `just fuzz-build` 21.4 seconds cold and 0.3 warm, on an Apple-silicon
 workstation. The cargo-fuzz release has no arm64 macOS binary, so Apple silicon needs
-Rosetta 2 for `just fuzz` and `just fuzz-build`. A third lockfile moves with the other
+Rosetta 2 for `just fuzz` and `just fuzz-build`. (Note, November 2026: the Nix dev shell
+of [decision 0018](0018-nix-owns-the-tools.md) builds cargo-fuzz for the host, so
+under it this prerequisite does not apply; it remains for the pixi path.) A third lockfile moves with the other
 two, and because the fuzz crate's path dependency names no version, a version bump leaves
 `fuzz/Cargo.lock` stale until `just lock`; `lock-check` refuses it meanwhile. divan adds
 16 packages to `Cargo.lock`, a second `syn` major among them, outside the shipped graph

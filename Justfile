@@ -152,7 +152,7 @@ lock-upgrade:
 lock-check:
     cargo update --workspace --locked --offline
     cargo update --workspace --locked --offline --manifest-path fuzz/Cargo.toml
-    pixi lock --check --offline --dry-run
+    {{ if tools == "pixi" { "pixi lock --check --offline --dry-run" } else { "true" } }}
 
 # The shim, then every hook environment (seven clones; Go under prek's cache;
 # the ripsecrets build with the machine's rustup and the pinned toolchain), so
@@ -279,15 +279,22 @@ clippy:
 
 # Gate 7: complexity, cohesion and coupling, through rustqual against
 # rustqual.toml, once per crate. The version check comes first: rustqual's
-# version decides what the gate reports, so a missing .tools/bin/rustqual must
-# not fall through to another one on PATH.
+# version decides what the gate reports, so a missing rustqual must not fall
+# through to another one on PATH. Each provider owns the version it expects: the
+# dev shell exports the one the flake builds, and pixi's side reads
+# tools-source.txt. An expectation that is empty is refused too.
 metrics:
     #!/bin/sh
     set -eu
-    pin=$(sed -n 's/^rustqual@//p' tools-source.txt)
+    if [ "{{ tools }}" = nix ]; then
+        pin=${ALLIUMPY_RUSTQUAL_VERSION:-}; owner=flake.nix; remedy='enter the dev shell'
+    else
+        pin=$(sed -n 's/^rustqual@//p' tools-source.txt); owner=tools-source.txt; remedy='run just install-tools'
+    fi
+    [ -n "$pin" ] || { printf 'metrics: %s names no rustqual version; %s\n' "$owner" "$remedy" >&2; exit 1; }
     have=$(rustqual --version 2>/dev/null | sed -n 's/^rustqual //p')
     if [ "$have" != "$pin" ]; then
-        printf 'metrics: rustqual %s on PATH, tools-source.txt pins %s; run just install-tools\n' "${have:-missing}" "$pin" >&2
+        printf 'metrics: rustqual %s on PATH, %s pins %s; %s\n' "${have:-missing}" "$owner" "$pin" "$remedy" >&2
         exit 1
     fi
     rustqual crates/alliumpy-core --config rustqual.toml --fail-on-warnings --format github

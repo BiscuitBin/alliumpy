@@ -146,7 +146,10 @@ again; `--locked` means it resolves the same versions each time.
 `metrics: rustqual missing on PATH, tools-source.txt pins 1.8.3` means
 `.tools/bin/rustqual` is absent, and a version in place of `missing` means the binary
 found is not the pin, as after a bump to `tools-source.txt`. Run `just install-tools`.
-The gate refuses any other rustqual because its version decides what the gate reports.
+In the Nix dev shell the line names `flake.nix` instead: the flake builds rustqual and
+exports the version it built, so a mismatch there means the shell is stale; leave it
+and enter it again. The gate refuses any other rustqual because its version decides what
+the gate reports.
 
 ## prek behaves as if a pin had not moved
 

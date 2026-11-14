@@ -85,6 +85,7 @@ Each input is a dependency under [decision 0004](0004-dependency-policy.md), and
 | --- | --- | --- |
 | `nixpkgs`, the `nixpkgs-unstable` branch | Every tool except the compiler. The unstable branch carries current versions of the cargo tools and is built for all three systems. | MIT |
 | `rust-overlay` (oxalica) | Builds the toolchain `rust-toolchain.toml` names, exact channel and components, from the official release binaries, each pinned by hash in the overlay's own manifests. It follows this flake's `nixpkgs`, so no second nixpkgs is fetched. | MIT |
+| rustqual 1.8.3, built in the flake from crates.io | The metrics gate ([decision 0007](0007-metrics-gate.md)); nixpkgs does not carry it. The same crate and version `tools-source.txt` pins, pinned here by source and vendor hashes. | MIT |
 
 ## Consequences
 
@@ -137,6 +138,17 @@ are made.
   falls back to its own libraries. Installed offline into a virtual environment on
   Debian's Python 3.13 (glibc 2.41), in a container with no `/nix`, it passed the smoke.
   Python 3.11 from outside Nix is CI's Python 3.11 smoke job to show.
+- **The remaining Rust gates.** cargo-hack, cargo-llvm-cov, cargo-deny, cargo-shear,
+  cargo-insta, cargo-fuzz, cargo-mutants and taplo come from nixpkgs. nixpkgs does not
+  carry rustqual, so the flake builds it from the crate crates.io publishes, at the
+  version `tools-source.txt` pins, with the crate's own lockfile, the pinned toolchain
+  and two content hashes, and exports that version as `ALLIUMPY_RUSTQUAL_VERSION`. The
+  metrics gate reads its expectation from there in the shell and from
+  `tools-source.txt` under pixi, so each provider has one owner for it. No LLVM tool is
+  on the shell's `PATH`; coverage can only use the ones in the pinned compiler's
+  sysroot. cargo-fuzz is built for the host, so the Rosetta prerequisite does not apply
+  in the shell. The lock check skips pixi's lock in the shell; covering `flake.lock`
+  arrives with the cutover.
 
 ## Related pages
 

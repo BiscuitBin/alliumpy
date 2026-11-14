@@ -20,7 +20,7 @@ read-only; an ignored path is outside the snapshot.
 | 4 | `fmt-check` | Rust formatting matches rustfmt, in the workspace and the fuzz crate. |
 | 5 | `toml-check` | TOML formatting and lint pass. |
 | 6 | `clippy` | Both lint tables pass over every target and feature, and the fuzz crate's repeated tables over its targets, with warnings as errors. |
-| 7 | `metrics` | The pinned rustqual passes once per crate against the configured thresholds. |
+| 7 | `metrics` | The pinned rustqual passes once per crate against the configured thresholds. The pin is `tools-source.txt`'s under pixi and the flake's in the Nix dev shell. |
 | 8 | `features` | Every feature combination compiles. |
 | 9 | `test-doc` | Core doc examples compile and pass. |
 | 10 | `coverage` | Core nextest tests pass and line coverage is at least 90 percent. |
