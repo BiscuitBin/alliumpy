@@ -250,6 +250,9 @@ jobs:
           extra_nix_config: |
             experimental-features = nix-command flakes
       - run: nix develop --command just check-toolchain
+      # The one step here that fetches crates, as the setup action's `just
+      # sync` does for the pixi jobs; every gate after it runs offline.
+      - run: nix develop --command just sync
       - run: nix develop --command just lock-check
       - run: nix develop --command just lint
       - run: nix develop --command just nix-check
