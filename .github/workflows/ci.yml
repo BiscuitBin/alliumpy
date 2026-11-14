@@ -282,6 +282,34 @@ jobs:
       # arrives in the shell with the hook tools; until then git answers.
       - run: git status --porcelain && test -z "$(git status --porcelain)"
 
+  # The build-shaped gates as sandboxed flake checks (decision 0018): a second
+  # opinion beside the gate jobs, never instead of them. The sandbox setting is
+  # printed first, so the log shows the builds ran with no network.
+  nix-flake-check:
+    name: nix-flake-check-${{ matrix.system }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - system: linux
+            os: ubuntu-latest
+          - system: macos
+            os: macos-latest
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31.11.3
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+      - run: nix config show sandbox
+      - run: nix develop --command just nix-flake-check
+      # For the reason rust's last step gives.
+      - run: git status --porcelain && test -z "$(git status --porcelain)"
+
   # The one required check (CONVENTIONS.md §10). It needs every gate job and
   # fails if any of them failed, was cancelled or was skipped, so protection
   # names `check` alone and never changes when a job is added, renamed or
@@ -291,7 +319,7 @@ jobs:
   # no setup action, and no `${{ }}` inside a shell line.
   check:
     name: check
-    needs: [rust, python, wheel-smoke-py311, parity, coverage, deny, documents, nix-shell]
+    needs: [rust, python, wheel-smoke-py311, parity, coverage, deny, documents, nix-shell, nix-flake-check]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5

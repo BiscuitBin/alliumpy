@@ -138,6 +138,7 @@
               ./rust-toolchain.toml
               ./clippy.toml
               ./rustfmt.toml
+              ./.config/nextest.toml
               ./crates
               ./tests/fixtures
             ];
@@ -190,8 +191,89 @@
               '';
             }
           );
+
+          # The build-shaped gates as sandboxed checks, beside `just check` and
+          # never instead of it. They use the recipes' lint tables, features and
+          # lockfile, in the dev profile the recipes use, over dependencies built
+          # once and shared. The fuzz crate is outside the workspace and outside
+          # these checks; `just clippy` and `just fuzz-build` cover it.
+          # Every tracked Nix file, as `just nix-check` sees them.
+          nixFiles = lib.fileset.toSource {
+            root = ./.;
+            fileset = lib.fileset.fileFilter (file: file.hasExt "nix") ./.;
+          };
+          checkArgs = commonArgs // {
+            CARGO_PROFILE = "dev";
+            cargoExtraArgs = "--locked --workspace --all-features";
+          };
+          checkDeps = craneLib.buildDepsOnly (checkArgs // { pnameSuffix = "-check-deps"; });
+          checks = {
+            build = craneLib.cargoBuild (checkArgs // { cargoArtifacts = checkDeps; });
+            # `just clippy`'s workspace line.
+            clippy = craneLib.cargoClippy (
+              checkArgs
+              // {
+                cargoArtifacts = checkDeps;
+                cargoClippyExtraArgs = "--all-targets -- -D warnings";
+              }
+            );
+            # `just test`: nextest over the core, then its doctests. The bindings
+            # crate's tests are Python's (decision 0005).
+            tests = craneLib.cargoNextest (
+              checkArgs
+              // {
+                cargoArtifacts = checkDeps;
+                cargoExtraArgs = "--locked --all-features";
+                cargoNextestExtraArgs = "--workspace --exclude alliumpy";
+                INSTA_UPDATE = "no";
+              }
+            );
+            doctests = craneLib.cargoDocTest (
+              checkArgs
+              // {
+                cargoArtifacts = checkDeps;
+                cargoExtraArgs = "--locked --workspace --exclude alliumpy --all-features";
+              }
+            );
+            # wheel-smoke over the Nix-built wheel, offline: a fresh environment,
+            # the wheel alone, the smoke script, the console script.
+            wheel-smoke =
+              pkgs.runCommand "alliumpy-wheel-smoke"
+                {
+                  nativeBuildInputs = [ buildPython ];
+                  PIP_NO_CACHE_DIR = "1";
+                }
+                ''
+                  python -m venv "$TMPDIR/venv"
+                  "$TMPDIR/venv/bin/python" -m pip install --quiet --no-index --no-deps ${wheel}/*.whl
+                  "$TMPDIR/venv/bin/python" -I ${./tests/fixtures/smoke}/smoke.py
+                  "$TMPDIR/venv/bin/allium" --version
+                  "$TMPDIR/venv/bin/allium" check ${./tests/fixtures/smoke}/ok.allium
+                  touch "$out"
+                '';
+            # `just nix-check` over the tracked Nix files.
+            nix-format =
+              pkgs.runCommand "alliumpy-nix-format"
+                {
+                  nativeBuildInputs = [
+                    pkgs.nixfmt
+                    pkgs.statix
+                    pkgs.deadnix
+                  ];
+                }
+                ''
+                  cd ${nixFiles}
+                  files=$(find . -name '*.nix' | sort)
+                  [ -n "$files" ] || { echo 'nix-format: no Nix file' >&2; exit 1; }
+                  nixfmt --check $files
+                  for f in $files; do statix check "$f"; done
+                  deadnix --fail $files
+                  touch "$out"
+                '';
+          };
         in
         {
+          inherit checks;
           packages = {
             inherit wheel parityReference;
             default = wheel;
@@ -245,6 +327,8 @@
       formatter = forEachSystem (pkgs: pkgs.nixfmt-tree);
 
       packages = forEachSystem (pkgs: (build pkgs).packages);
+
+      checks = forEachSystem (pkgs: (build pkgs).checks);
 
       devShells = forEachSystem (pkgs: {
         default = (build pkgs).devShell;

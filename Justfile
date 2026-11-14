@@ -593,6 +593,14 @@ nix-wheel:
     just smoke-dist
     just parity-dist
 
+# The build-shaped gates as sandboxed flake checks (decision 0018): the crates
+# build, clippy, the core's tests and doctests, the Nix-built wheel's smoke and
+# the Nix files' formatting, over one shared dependency build. A second opinion
+# beside `check`, never part of it: `check` stays the gate. A cold store needs
+# the network.
+nix-flake-check:
+    nix flake check --print-build-logs
+
 # --------------------------------------------------------------- aggregate ---
 
 check-clean baseline="":

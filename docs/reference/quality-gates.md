@@ -57,6 +57,19 @@ honoured and checked. Cargo configuration files are not read; this repository ha
 release differs and the gate says so: remove the override and rerun. An uninstalled
 override is refused, never downloaded.
 
+## Flake checks
+
+`just nix-flake-check` runs `nix flake check`, whose checks are sandboxed builds with no
+network ([decision 0018](../decisions/0018-nix-owns-the-tools.md)): the crates build,
+clippy over the workspace with warnings as errors, the core's nextest tests and its
+doctests, the smoke over the Nix-built wheel, and the Nix files' format and lint. They use
+the same lint tables, features and lockfile as the recipes, over dependencies built once.
+They are a second opinion beside `just check` and never part of it. The checks that need
+a worktree, a report or the network stay recipes only: coverage, the hook gate, the docs
+and agents checks, parity, mutation testing and fuzzing. The fuzz crate is outside the
+workspace and outside these checks. The `nix-flake-check` CI job runs them on Linux and
+macOS.
+
 ## Evidence that checks can fail
 
 A ruff run over nothing can pass, so py-lint requires the package in `--show-files`.

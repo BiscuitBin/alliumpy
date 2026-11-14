@@ -184,6 +184,12 @@ are made.
   alone in `dist/` and gives it `wheel-smoke`'s smoke and `parity`'s comparison, whose
   bodies are shared private recipes. maturin tags this wheel `linux_aarch64` (or the
   host's) rather than manylinux, which is the honest tag for a Nix build.
+- **Flake checks.** Six checks share one dependency build in the dev profile: the
+  crates build, clippy, nextest over the core, its doctests, the Nix-built wheel's
+  smoke and the Nix files' format and lint. The ticket named five; the doctests are a
+  check of their own because nextest cannot run them, as in `just test`. A deliberate
+  clippy violation, a failing core test, a wheel with no console script and a
+  misformatted Nix file each fail the matching check.
 
 ## Related pages
 

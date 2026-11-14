@@ -109,6 +109,7 @@ These two run only in the flake's dev shell, which provides their tools
 | Recipe | Purpose |
 | --- | --- |
 | `install-parity-reference` | Build upstream's `allium-cli` at the pin from crates.io, locked, into `.tools/parity/`, off `PATH`. Network; outside check. Under pixi only: the dev shell builds its own. |
+| `nix-flake-check` | Run `nix flake check`: the crates build, clippy over the workspace, the core's nextest tests and doctests, the Nix-built wheel's smoke and the Nix files' format and lint, as sandboxed derivations over one shared dependency build. Outside check; never the gate. |
 | `nix-wheel` | Build the wheel with `nix build` in the sandbox, offline, from `Cargo.lock`, leaving no result link; put it alone in `dist/`, then smoke it and run parity against it as `wheel-smoke` and `parity` do. Evidence, never a release artefact; outside check; a cold Nix store needs the network. |
 | `parity` | Run wheel-smoke, then, against the reference the provider names (`ALLIUMPY_PARITY_REFERENCE` in the dev shell, else `.tools/parity/`), compare the wheel's `allium` with the reference byte for byte on stdout and exactly on exit status over the parity corpus, with its controls, then run `test_cli.py`. POSIX; outside check. |
 
