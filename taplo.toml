@@ -2,7 +2,7 @@
 include = ["**/*.toml"]
 # Generated environments, build output and scratch files have other owners;
 # fixtures are input data, including deliberately invalid TOML in later lanes.
-exclude = ["target/**", ".tools/**", ".pixi/**", "ai_tmp/**", "tests/fixtures/**"]
+exclude = ["target/**", ".tools/**", ".nix/**", ".direnv/**", "ai_tmp/**", "tests/fixtures/**"]
 
 [formatting]
 # Match rustfmt's width and use compact two-space TOML nesting.

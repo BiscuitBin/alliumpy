@@ -1,4 +1,5 @@
-# Keep profile semantics tied to the runner pinned by pixi.
+# A floor, not a pin: the dev shell's cargo-nextest (flake.lock) must be at least this
+# version. Raise it by hand when a profile needs a newer feature (decision 0018).
 nextest-version = "0.9.146"
 
 [profile.default]

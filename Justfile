@@ -1,17 +1,20 @@
 set positional-arguments := true
 set shell := ["sh", "-eu", "-c"]
 
-# pixi owns every tool binary and the Python environment (.pixi/envs/default;
-# pyproject.toml is the manifest, pixi.lock the pin). Tools conda-forge lacks
-# (tools.txt, and tools-source.txt for those with no release binary) live in
-# .tools/bin, which holds only what conda-forge lacks. Every recipe, and every hook that
-# runs through a recipe, sees both first; cargo finds cargo-nextest and friends
-# on PATH by name. Neither directory holds a cargo, so rustup's proxy stays
-# first for the compiler (check-toolchain proves it).
-export PATH := justfile_directory() / ".pixi" / "envs" / "default" / "bin" + ":" + justfile_directory() / ".tools" / "bin" + ":" + env("PATH")
+# The dev shell flake.nix defines, pinned by flake.lock, owns the compiler, Python and
+# every tool a recipe or hook calls (decision 0018); this file adds nothing to PATH.
+# Outside that shell a recipe would run whatever the machine happens to have, so every
+# run refuses first. From a shell that is not inside it, run
+# `nix develop --command just <recipe>`. The shell also exports PYO3_PYTHON, so every
+# cargo invocation compiles the bindings against the flake's Python.
+export ALLIUMPY_DEV_SHELL := if env("ALLIUMPY_DEV_SHELL", "") == "" { error("not in the dev shell: run `nix develop`, or `nix develop --command just <recipe>` (docs/how-to/develop-locally.md)") } else { "1" }
 
-# Every cargo invocation compiles the bindings against pixi Python.
-export PYO3_PYTHON := justfile_directory() / ".pixi" / "envs" / "default" / "bin" / "python"
+# Every tool a gate or hook calls by name, beside the four the toolchain provides.
+# check-toolchain refuses any of them that resolves outside the Nix store.
+gate_tools := "just prek git python uv maturin ruff mypy pytest taplo rustqual nixfmt cargo-nextest cargo-llvm-cov cargo-deny cargo-insta cargo-hack cargo-shear typos lychee shellcheck actionlint markdownlint-cli2 editorconfig-checker ripsecrets bg-project-check bg-validate-docs bg-validate-agents bg-ripsecrets"
+
+# The throwaway venv py-develop builds the extension into, on the shell's interpreter.
+py_env := justfile_directory() / "target" / "py-env"
 
 # Line-coverage floor over crates/alliumpy-core/src/**. Lower the complexity, not the
 # number.
@@ -26,79 +29,76 @@ default:
 initialize:
     sh scripts/initialize.sh
 
-# The pin in rust-toolchain.toml is honoured only by rustup's cargo proxy. A
-# cargo from pixi, Homebrew or a distribution ignores the file and builds with
-# whatever it is, so the gate refuses it before anything else runs. The proxy
-# still obeys RUSTUP_TOOLCHAIN or a `rustup override`, so the gate then requires
-# the active toolchain to be exactly the channel the file pins, for rustup's
-# default host. rustup reports both, so no rustc runs, and RUSTUP_AUTO_INSTALL=0
-# makes an uninstalled toolchain a refusal instead of a download.
+# Gate 1. Nothing outside the dev shell honours rust-toolchain.toml or flake.lock, so
+# before anything builds this proves three things. The shell is the one the committed
+# flake.nix, flake.lock, nix/ and rust-toolchain.toml produce: the shell exports a
+# digest of those files and the recipe recomputes it from the worktree, so a shell
+# entered before a pull, a lock or an edit is refused. cargo, rustc, rustfmt and clippy
+# resolve inside the flake's toolchain, and every other tool a gate calls resolves inside
+# the Nix store, so a rustup proxy in ~/.cargo/bin, a Homebrew cargo or a uv in
+# ~/.local/bin is refused by path, wherever it sits on PATH. And rustc and cargo report
+# exactly the channel rust-toolchain.toml pins.
 check-toolchain:
-    command -v rustup >/dev/null || { printf '%s\n' 'rustup is not installed; see docs/how-to/develop-locally.md' >&2; exit 2; }
-    case "$(command -v cargo)" in "${CARGO_HOME:-$HOME/.cargo}"/bin/cargo) ;; *) printf '%s\n' "cargo resolves to $(command -v cargo), not rustup's proxy" >&2; exit 2;; esac
-    pin=$(sed -n 's/^channel = "\(.*\)"$/\1/p' rust-toolchain.toml); [ -n "$pin" ] || { printf '%s\n' 'rust-toolchain.toml names no channel' >&2; exit 2; }; rustup_info=$(RUSTUP_AUTO_INSTALL=0 rustup show); host=$(printf '%s\n' "$rustup_info" | sed -n 's/^Default host: //p'); [ -n "$host" ] || { printf '%s\n' 'rustup show names no default host' >&2; exit 2; }; active=$(RUSTUP_AUTO_INSTALL=0 rustup show active-toolchain); case "${active%% *}" in "$pin" | "$pin-$host") ;; *) printf '%s\n' "the active toolchain is ${active%% *}, not the pinned $pin" >&2; exit 2;; esac; printf '%s\n' "$active"
+    #!/bin/sh
+    set -eu
+    fail() { printf 'check-toolchain: %s\n' "$1" >&2; exit 2; }
+    have=$(for f in $ALLIUMPY_ENV_FILES; do [ -f "$f" ] || fail "$f is missing"; sha256sum "$f" | cut -d' ' -f1; done | tr -d '\n' | sha256sum | cut -d' ' -f1)
+    [ "$have" = "${ALLIUMPY_ENV_FINGERPRINT:-}" ] || fail 'the dev shell is stale: flake.nix, flake.lock, nix/ or rust-toolchain.toml changed since it was entered; leave it and run nix develop again'
+    for tool in cargo rustc rustfmt cargo-clippy; do
+        at=$(command -v "$tool") || fail "$tool is not on PATH"
+        case "$at" in "$ALLIUMPY_RUST_TOOLCHAIN"/bin/*) ;; *) fail "$tool resolves to $at, not the flake's toolchain";; esac
+    done
+    for tool in {{ gate_tools }}; do
+        at=$(command -v "$tool") || fail "$tool is not on PATH"
+        case "$at" in /nix/store/*) ;; *) fail "$tool resolves to $at, not the dev shell";; esac
+    done
+    pin=$(sed -n 's/^channel = "\(.*\)"$/\1/p' rust-toolchain.toml)
+    [ -n "$pin" ] || fail 'rust-toolchain.toml names no channel'
+    for tool in rustc cargo; do
+        got=$("$tool" --version | cut -d' ' -f2)
+        [ "$got" = "$pin" ] || fail "$tool is $got, not the pinned $pin"
+    done
+    rustc --version --verbose | sed -n -e '1p' -e '/^host:/p'
 
-# Installs the toolchain, components and targets rust-toolchain.toml names.
-install-toolchain:
-    rustup toolchain install
-
-# Tools conda-forge lacks into .tools/bin (network). cargo-binstall comes from
-# the pixi environment. tools.txt is binary-only: a release archive or nothing.
-# tools-source.txt holds tools with no release binary, so its loop may compile,
-# and cargo-binstall passes --locked through to `cargo install`. It tries a
-# signed cargo-quickinstall build first, and would take one that appeared for
-# the pin; --only-signed refuses an unsigned one, and an upstream release
-# asset, which nothing would sign, is refused too (decision 0007). That pass runs without a GitHub token, so no build script it
-# compiles can read one; its one quickinstall lookup needs no rate-limit lift.
-# A pass whose list is empty is skipped, since cargo binstall with no crate
-# fails; the guard is plain sh, so it holds for GNU and BSD alike. sed, not
-# grep, strips the comments: it exits 0 on a list with no pins but still fails,
-# and so fails the recipe, when the file is missing or unreadable.
-install-tools:
-    pins=$(sed -e '/^#/d' -e '/^$/d' tools.txt); [ -z "$pins" ] || cargo binstall --root .tools --no-confirm --locked --disable-strategies compile $pins
-    pins=$(sed -e '/^#/d' -e '/^$/d' tools-source.txt); [ -z "$pins" ] || env -u GITHUB_TOKEN -u GH_TOKEN cargo binstall --root .tools --no-confirm --locked --disable-strategies crate-meta-data --only-signed --no-discover-github-token $pins
-
-# All three lockfiles, exactly as committed. Never rewrites any.
+# What Cargo.lock and fuzz/Cargo.lock name into the cargo cache, and the dev shell as a
+# GC root under the gitignored .nix/, so that a store garbage collection keeps it and
+# the flake's inputs, and re-entering the shell stays offline. Network on a cold cache.
+# Never rewrites a lockfile.
 sync:
     cargo fetch --locked
     cargo fetch --locked --manifest-path fuzz/Cargo.toml
-    pixi install --frozen
+    nix build --no-update-lock-file --out-link .nix/dev-shell .#dev-shell
 
+# nix flake lock adds an input flake.nix newly names and moves no other. Leave the shell
+# and enter it again afterwards: check-toolchain refuses the stale one.
 lock:
     cargo update --workspace
     cargo update --workspace --manifest-path fuzz/Cargo.toml
-    pixi lock
+    nix flake lock
 
-# Within the manifest's constraints only; every direct pin is exact, so this
-# moves transitives (openssl, libcxx, the Python patch level). `pixi upgrade`
-# rewrites the pins themselves and is not this recipe.
+# Every input to the head of the ref flake.nix names: nixpkgs and rust-overlay move,
+# and with nixpkgs every tool; the checkers stay on their tag.
 lock-upgrade:
     cargo update
     cargo update --manifest-path fuzz/Cargo.toml
-    pixi update
+    nix flake update
 
-# Offline, like every gate recipe: a cold Cargo cache fails rather than
-# fetching the registry index (`just sync` fills it), and an offline solve on a
-# stale lock still fails, which is the right answer. --dry-run because pixi
-# would otherwise rewrite a stale lock from that restricted solve.
+# Offline, like every gate recipe: a cold Cargo cache fails rather than fetching the
+# registry index (`just sync` fills it). --no-update-lock-file makes a flake.lock that
+# disagrees with flake.nix an error instead of a rewrite, and --offline makes an input
+# missing from the store one too.
 lock-check:
     cargo update --workspace --locked --offline
     cargo update --workspace --locked --offline --manifest-path fuzz/Cargo.toml
-    pixi lock --check --offline --dry-run
+    nix flake metadata --no-update-lock-file --offline . >/dev/null
 
-# The shim, then every hook environment (seven clones; Go under prek's cache;
-# the ripsecrets build with the machine's rustup and the pinned toolchain), so
-# that `just check` never fetches. lychee is `language: script` and downloads
-# its binary at first run, not at prepare, so it is run once here on one
-# Markdown file; its exit status is lint's business, not this recipe's. Its
-# checkout pins `stable`, and its script's cargo-binstall calls rustc, so
-# without RUSTUP_AUTO_INSTALL=0 rustup would install that toolchain.
+# The pre-commit hook: a committed shim that names no store path, so that a moved
+# flake.lock never leaves a dangling hook behind. It runs prek in the dev shell, entering
+# it when the commit comes from outside. Every hook runs a tool the shell provides, so
+# nothing is cloned or built here and the recipe is offline.
 install-hooks:
     git rev-parse --is-inside-work-tree >/dev/null
-    test -x .pixi/envs/default/bin/prek || { printf '%s\n' 'the pixi environment is not installed; run just initialize first' >&2; exit 2; }
-    prek install --overwrite --hook-type=pre-commit --prepare-hooks
-    prek prepare-hooks --config .pre-commit-fix.yaml
-    -RUSTUP_AUTO_INSTALL=0 prek run lychee --files README.md
+    install -m 0755 scripts/pre-commit-hook.sh "$(git rev-parse --git-path hooks/pre-commit)"
 
 # ---------------------------------------------------------------- develop ---
 
@@ -115,8 +115,8 @@ bench *args:
 # fuzz/Cargo.lock, so the first line refuses one offline; `cargo fetch` would be
 # a network command, and this is not a network recipe (`just sync` fills the
 # cache). CARGO_NET_OFFLINE keeps cargo-fuzz's own build offline too. --target
-# because cargo-fuzz defaults to the triple it was built for, and its macOS
-# binary is x86_64. seconds bounds the fuzzing, not the build.
+# because cargo-fuzz defaults to the triple it was built for, which need not be
+# the host's. seconds bounds the fuzzing, not the build.
 fuzz target seconds="300":
     cargo update --workspace --locked --offline --manifest-path fuzz/Cargo.toml
     CARGO_NET_OFFLINE=true cargo fuzz run --sanitizer none --target "$(rustc -vV | sed -n 's/^host: //p')" "$1" -- -max_total_time="$2"
@@ -172,6 +172,7 @@ format:
     cargo fmt --all
     cargo fmt --manifest-path fuzz/Cargo.toml
     taplo fmt
+    nixfmt flake.nix nix/*.nix
 
 # Automatic repairs. The fix config is run twice because a
 # fixer's first pass may itself fail on what another fixer then repairs.
@@ -188,10 +189,12 @@ fix:
 lint:
     prek run --all-files
 
-# cargo fmt --all skips the fuzz crate, which is outside the workspace.
+# cargo fmt --all skips the fuzz crate, which is outside the workspace. The flake's
+# Nix files are formatted too, by the nixfmt the shell pins.
 fmt-check:
     cargo fmt --all --check
     cargo fmt --manifest-path fuzz/Cargo.toml --check
+    nixfmt --check flake.nix nix/*.nix
 
 toml-check:
     taplo fmt --check
@@ -208,18 +211,10 @@ clippy:
     cargo clippy --manifest-path fuzz/Cargo.toml --all-targets --locked -- -D warnings
 
 # Gate 7: complexity, cohesion and coupling, through rustqual against
-# rustqual.toml, once per crate. The version check comes first: rustqual's
-# version decides what the gate reports, so a missing .tools/bin/rustqual must
-# not fall through to another one on PATH.
+# rustqual.toml, once per crate. rustqual's version decides what the gate reports;
+# nix/rustqual.nix pins it, and check-toolchain has already refused a rustqual from
+# outside the Nix store.
 metrics:
-    #!/bin/sh
-    set -eu
-    pin=$(sed -n 's/^rustqual@//p' tools-source.txt)
-    have=$(rustqual --version 2>/dev/null | sed -n 's/^rustqual //p')
-    if [ "$have" != "$pin" ]; then
-        printf 'metrics: rustqual %s on PATH, tools-source.txt pins %s; run just install-tools\n' "${have:-missing}" "$pin" >&2
-        exit 1
-    fi
     rustqual crates/alliumpy-core --config rustqual.toml --fail-on-warnings --format github
     rustqual crates/alliumpy --config rustqual.toml --fail-on-warnings --format github
 
@@ -266,7 +261,7 @@ audit:
 # Mutation testing, a report and never a gate: it grows with the core towards
 # hours, and a mutant that survives asks for a judgement. It mutates a copy of the
 # tree, so the worktree gains only mutants.out/, which Git ignores; the copy leaves
-# out what Git ignores, or it would carry .pixi/ and .tools/ into every build.
+# out what Git ignores, or it would carry target/ and .tools/ into every build.
 # `cargo test`, not nextest, because nextest skips doctests and a mutant only a
 # doc example catches would be reported missed. The core alone: the pyo3 crate's
 # tests are Python's, so every mutant there would be missed, and its test binary
@@ -297,13 +292,16 @@ check-links-online:
 
 # ------------------------------------------------------------------ python ---
 
-# Builds the extension into the pixi environment in place (the .so beside
-# __init__.py, gitignored). maturin needs an environment to install into and
-# finds the pixi one through CONDA_PREFIX, set on this line alone; it installs
-# with the pinned uv on PATH. `locked = true` in crates/alliumpy/pyproject.toml
-# makes it honour Cargo.lock. Not a gate: py-test and py-stubtest depend on it.
+# Builds the extension in place (the .so beside __init__.py, gitignored) and installs
+# it, editable, into target/py-env. The shell's Python is read-only, so maturin needs a
+# venv to install into: made on the shell's interpreter, offline, and recreated on every
+# run so it never outlives that interpreter. --system-site-packages is how it sees
+# pytest, mypy and the checkers, which live in the shell's Python. `locked = true` in
+# crates/alliumpy/pyproject.toml makes maturin honour Cargo.lock. Not a gate: py-test,
+# py-stubtest and parity depend on it.
 py-develop:
-    CONDA_PREFIX="{{ justfile_directory() }}/.pixi/envs/default" maturin develop --manifest-path crates/alliumpy/Cargo.toml
+    uv venv --clear --offline --no-python-downloads --system-site-packages --python "$PYO3_PYTHON" --quiet "{{ py_env }}"
+    UV_OFFLINE=1 VIRTUAL_ENV="{{ py_env }}" maturin develop --uv --manifest-path crates/alliumpy/Cargo.toml
 
 # Gate: ruff over every Python file ruff.toml names; --show-files must list
 # the package, or an exclude has emptied the gate (ruff exits 0 on no files);
@@ -332,12 +330,12 @@ py-typecheck:
 
 # Gate: the binding's behaviour tests, against the extension py-develop built.
 py-test: py-develop
-    python -m pytest crates/alliumpy/tests
+    "{{ py_env }}/bin/python" -m pytest crates/alliumpy/tests
 
 # Gate: the stub file describes the built module exactly. The allowlist is
 # reviewed in T03 and must stay short; an entry hides a discrepancy.
 py-stubtest: py-develop
-    python -m mypy.stubtest alliumpy._alliumpy --allowlist crates/alliumpy/tests/stubtest-allowlist.txt
+    "{{ py_env }}/bin/python" -m mypy.stubtest alliumpy._alliumpy --allowlist crates/alliumpy/tests/stubtest-allowlist.txt
 
 # The release wheel for this platform into dist/, which is emptied first so a
 # stale wheel can never be smoked. A release build on every `just check` is
@@ -348,7 +346,7 @@ wheel:
 
 # Gate: the wheel installs and works in a fresh virtual environment, offline.
 # Exactly one wheel, which must exist (an unmatched glob is one literal argument);
-# a venv on the pixi interpreter with no download; install
+# a venv on the shell's interpreter with no download; install
 # from dist/ alone; then import, parse the smoke fixtures, and run the console
 # script's --version and its check on the clean fixture, which must exit 0.
 # Python runs with -I so nothing in the worktree shadows the package.
@@ -358,7 +356,7 @@ wheel-smoke: wheel
     set -- dist/*.whl
     [ "$#" -eq 1 ] && [ -f "$1" ] || { printf 'wheel-smoke: expected one wheel in dist/, found: %s\n' "$*" >&2; exit 1; }
     rm -rf target/wheel-smoke
-    uv venv --python .pixi/envs/default/bin/python --no-python-downloads --offline target/wheel-smoke/venv
+    uv venv --python "$PYO3_PYTHON" --no-python-downloads --offline target/wheel-smoke/venv
     uv pip install --python target/wheel-smoke/venv --offline --no-index --no-deps "$1"
     target/wheel-smoke/venv/bin/python -I tests/fixtures/smoke/smoke.py
     target/wheel-smoke/venv/bin/allium --version
@@ -390,10 +388,10 @@ install-parity-reference:
 # `check` because the reference needs the network to build. Fails closed on an
 # empty corpus and runs its own positive and negative controls first, then the
 # behaviours beyond the corpus (`test_cli.py`) against the same candidate.
-parity: wheel-smoke
+parity: wheel-smoke py-develop
     test -x .tools/parity/bin/allium || { printf '%s\n' 'parity: no reference; run just install-parity-reference' >&2; exit 2; }
     python -I tests/parity/run.py --reference "$PWD/.tools/parity/bin/allium" --candidate "$PWD/target/wheel-smoke/venv/bin/allium" --corpus tests/fixtures/parity
-    ALLIUMPY_SMOKE_BIN="$PWD/target/wheel-smoke/venv/bin/allium" python -m pytest crates/alliumpy/tests/test_cli.py -rs
+    ALLIUMPY_SMOKE_BIN="$PWD/target/wheel-smoke/venv/bin/allium" "{{ py_env }}/bin/python" -m pytest crates/alliumpy/tests/test_cli.py -rs
 
 # --------------------------------------------------------------- aggregate ---
 

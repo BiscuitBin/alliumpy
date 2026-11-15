@@ -28,14 +28,17 @@ ai_tmp/
 # read.
 target/
 
-# The pixi environment `just initialize` installs from pixi.lock: every tool
-# binary, Python, prek and the tooling package's scripts. Ignored for the same
-# reason as target/: `just check` snapshots the worktree between recipes, and
-# an environment Git can see aborts the snapshot.
-.pixi/
+# The dev shell's GC root, which `just sync` writes (.nix/dev-shell), direnv's cache
+# of the shell when .envrc is allowed, and the result links `nix build` leaves without
+# --out-link. Ignored for the same reason as target/: `just check` snapshots the
+# worktree between recipes, and a path Git can see aborts the snapshot.
+.nix/
+.direnv/
+result
+result-*
 
-# The tools tools.txt and tools-source.txt pin because conda-forge lacks them,
-# installed by `just install-tools`. Git ignores these generated binaries.
+# The parity reference `just install-parity-reference` builds into .tools/parity,
+# off PATH. Git ignores the generated binary.
 .tools/
 
 # Raw profiles cargo-llvm-cov leaves behind when a run is interrupted before

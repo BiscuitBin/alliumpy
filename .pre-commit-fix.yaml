@@ -1,11 +1,12 @@
 # Mutating counterpart to .pre-commit-config.yaml. Never installed as a hook;
 # run it explicitly with `just fix`.
-# pixi.lock is YAML, so without this line the builtin check-yaml would parse
-# the whole lockfile on every commit.
+# Every tool comes from the dev shell, as in the gate config. Generated lockfiles are
+# excluded so no fixer rewrites them.
 exclude: >-
   (?x)^(
     \.git/|
-    \.pixi/|
+    \.nix/|
+    \.direnv/|
     ai_tmp/|
     target/|
     \.tools/|
@@ -14,7 +15,7 @@ exclude: >-
     target/wheel-smoke/|
     tests/fixtures/parity/.*\.allium$|
     Cargo\.lock$|
-    pixi\.lock$
+    flake\.lock$
   )
 repos:
   - repo: local
@@ -26,7 +27,6 @@ repos:
         pass_filenames: false
         types: [rust]
 
-      # `just fix` is the only caller, so .pixi/envs/default/bin is already on PATH here.
       - id: taplo-fmt
         name: taplo format
         entry: taplo fmt
@@ -35,13 +35,13 @@ repos:
 
       - id: ruff-format
         name: ruff-format
-        entry: .pixi/envs/default/bin/ruff format
+        entry: ruff format
         language: system
         files: \.pyi?$
 
       - id: ruff-fix
         name: ruff-fix
-        entry: .pixi/envs/default/bin/ruff check --fix
+        entry: ruff check --fix
         language: system
         files: \.pyi?$
 
@@ -56,9 +56,17 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
 
-  - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: b82a6c8896e491b9cb377a99ff3412131920681b # v0.23.2
+  - repo: local
     hooks:
+      - id: nixfmt
+        name: nixfmt
+        entry: nixfmt
+        language: system
+        files: ^(flake\.nix|nix/.*\.nix)$
+
       - id: markdownlint-cli2
         name: markdownlint fix
+        entry: markdownlint-cli2
         args: [--fix]
+        language: system
+        types: [markdown]

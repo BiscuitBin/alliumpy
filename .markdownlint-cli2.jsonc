@@ -14,5 +14,5 @@
     "MD041": false
   },
   "globs": ["**/*.md"],
-  "ignores": ["target", ".tools", ".pixi", "ai_tmp"]
+  "ignores": ["target", ".tools", ".nix", ".direnv", "ai_tmp"]
 }
