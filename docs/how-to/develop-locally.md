@@ -12,73 +12,79 @@ requires: []
 
 | Tool | Why |
 | --- | --- |
-| `rustup` | Installs the exact toolchain `rust-toolchain.toml` pins, and provides the only cargo the gate accepts. `~/.cargo/bin` must come ahead of `~/.pixi/bin` on `PATH`, or run `pixi global uninstall rust`. |
-| `pixi`, at or above `requires-pixi` in `pyproject.toml` | Installs every other tool, and the Python environment the hook gate runs on, from `pixi.lock` into the gitignored `.pixi/envs/default`. |
-| `just` | The task runner, and the only supported interface to the checks. `pixi global install just` provides one. Any `just` launches the recipes, because the pinned one in the environment runs every nested call and CI; `pixi run --frozen just <recipe>` is the escape hatch when no global `just` is installed. |
-| A C++ compiler | libfuzzer-sys's build script compiles libFuzzer's C++ whenever the fuzz crate builds, so `just check`'s `clippy` line over `fuzz/` needs one: Xcode's command-line tools on macOS, `g++` on Ubuntu, which the runner image carries. That line is plain cargo and needs nothing else. |
-| Rosetta 2, on Apple silicon | For `just fuzz` and `just fuzz-build` only: cargo-fuzz 0.13.2 publishes an x86_64 macOS binary and no arm64 one (`softwareupdate --install-rosetta`). |
+| Nix, with the `nix-command` and `flakes` features enabled | Builds the dev shell `flake.nix` defines and `flake.lock` pins: the exact Rust toolchain `rust-toolchain.toml` names, Python, every tool a recipe or hook calls, and the C++ compiler the fuzz crate's libFuzzer build needs. Nothing else is installed on the machine. |
 | `gh` | Only for the pin-bump commands in [Maintain dependencies](maintain-dependencies.md). |
 
-Nothing else: not uv, not cargo-binstall. `rust-toolchain.toml` names the exact
-toolchain, its components, and rustup installs them the first
-time cargo runs here. `pyproject.toml` names every other tool and `pixi.lock`
-pins it, with `tools.txt` and `tools-source.txt`, one line each, the exceptions for what
-conda-forge lacks.
-[Configuration](../reference/configuration.md) has each figure; this page states none.
-The Justfile supports POSIX development on Linux x86_64 and macOS arm64.
-The release workflow builds the other wheel platforms
-([decision 0015](../decisions/0015-release-process.md)).
+Nothing else: not rustup, not just, not uv, not Python. The dev shell carries all of them,
+and the `Justfile` refuses to run outside it ([decision 0018](../decisions/0018-nix-dev-environment.md)).
+The shell is defined for Linux x86_64 and macOS on Apple silicon. CI builds it on both
+(`macos-smoke` is the Apple silicon proof). The release workflow builds the other wheel
+platforms ([decision 0015](../decisions/0015-release-process.md)).
+[Configuration](../reference/configuration.md) has each file and variable; this page
+names no version.
+
+Install Nix with its own installer or with the Determinate Systems installer. Either
+works; the Determinate one enables flakes for you. With the upstream installer, add this
+line to `~/.config/nix/nix.conf` (or `/etc/nix/nix.conf`):
+
+```text
+experimental-features = nix-command flakes
+```
 
 ## First run
 
-Two tools are installed once per machine, and everything after them comes from this
-repository's pins.
-
-Install rustup and pixi using their own installation documentation. Ensure rustup's
-cargo proxy is first on `PATH`. The pixi floor is `requires-pixi` in `pyproject.toml`.
-Then install a global `just` if your shell has none:
-
 ```console
-pixi global install just
-```
-
-One hazard catches almost everyone once. A cargo from `pixi global`, Homebrew's `rust`
-formula or a Linux distribution ignores `rust-toolchain.toml` and builds with whatever
-release it happens to be, so the lint set and the target list silently differ from CI's.
-`just check-toolchain` refuses it before anything else runs, with one of two lines:
-
-```text
-rustup is not installed; see docs/how-to/develop-locally.md
-cargo resolves to /home/you/.pixi/bin/cargo, not rustup's proxy
-```
-
-The remedy is `~/.cargo/bin` ahead of `~/.pixi/bin` on `PATH`, or
-`pixi global uninstall rust`. The repository's own pixi environment holds no cargo and is
-not the hazard; a `pixi global` rust is.
-
-```console
+nix develop
 just initialize
 ```
 
-This installs the pixi environment from `pixi.lock`, installs the pinned toolchain,
-refuses a cargo that is not rustup's, installs cargo-hack and cargo-fuzz from `tools.txt` and builds
-rustqual from `tools-source.txt` into `.tools/bin`, syncs the three
-lockfiles, and installs the pre-commit hook with every hook
-environment. Run it once per clone. It needs the network for the pixi environment, the
-toolchain, cargo-hack, rustqual's source, `cargo fetch` and the hook clones. It never stages, commits, tags or pushes.
+`nix develop` downloads the toolchain and the tools the first time, mostly prebuilt from
+`cache.nixos.org`, and builds the two that nixpkgs lacks (rustqual and the shared
+checkers). Later entries are offline and take a second. `just initialize` then proves
+the shell with `just check-toolchain`, fetches what `Cargo.lock` and `fuzz/Cargo.lock`
+name, records the shell as a garbage-collector root under the gitignored `.nix/`, and
+installs the pre-commit hook. Run it once per clone. It needs the network for the cargo
+fetch, and never stages, commits, tags or pushes.
 
 The hook is installed from the primary checkout only, because every worktree shares one
-`.git/hooks`. In a secondary worktree `just initialize` says so and skips it, and the
-first `just lint` there clones and builds any hook environment the primary checkout has
-not already built, which needs the network too. `just check` runs `lint` as its third
-gate and adds no network need of its own, so once the hook environments exist the whole
-gate is offline.
+`.git/hooks`. In a secondary worktree `just initialize` says so and skips it. The hook
+is a committed shim, `scripts/pre-commit-hook.sh`, that names no store path: it runs prek
+inside the dev shell of whichever checkout the commit is made in, entering the shell
+itself when the commit comes from an editor or a terminal outside it. Every hook runs a
+binary the shell provides, so nothing is cloned or downloaded, and the whole gate is
+offline once the shell exists.
 
-`.pixi/envs/default/bin` and `.tools/bin` are both gitignored, and the `Justfile`
-prepends them to `PATH`, in that order, for every recipe. They are not on your shell's
-`PATH`, so a bare `cargo nextest` from a shell needs
-`PATH="$PWD/.pixi/envs/default/bin:$PWD/.tools/bin:$PATH"`, a recipe, or
-`pixi run --frozen cargo nextest`.
+### From a shell that is not the dev shell
+
+Agents, scripts and one-off commands use one spelling:
+
+```console
+nix develop --command just check
+```
+
+Anything else fails at once, with:
+
+```text
+error: not in the dev shell: run `nix develop`, or `nix develop --command just <recipe>` (docs/how-to/develop-locally.md)
+```
+
+### direnv
+
+The committed `.envrc` holds `use flake`. After `direnv allow` once, entering the
+directory enters the shell. nix-direnv makes it cache the shell. It is opt-in, and the
+recipes do not depend on it.
+
+### A stale shell
+
+The shell records a digest of `flake.nix`, `flake.lock`, `rust-toolchain.toml` and the
+files under `nix/`. After a pull, a `just lock` or an edit that moved one of them, the
+first gate refuses the old shell:
+
+```text
+check-toolchain: the dev shell is stale: flake.nix, flake.lock, nix/ or rust-toolchain.toml changed since it was entered; leave it and run nix develop again
+```
+
+Leave the shell and run `nix develop` again. A direnv shell reloads by itself.
 
 ## Every day
 
@@ -89,15 +95,15 @@ just doc
 ```
 
 `just build` compiles the workspace with every feature. The workspace consists of
-`alliumpy-core` and the thin `alliumpy` bindings. Run `just py-develop` to build the
-extension into pixi's environment, then `just py-test` for its Python tests.
-The Justfile sets `PYO3_PYTHON` to the pixi interpreter for every Cargo invocation;
-set it to that same absolute path when invoking Cargo directly. `CONDA_PREFIX` is set
-by `py-develop` so maturin can install into that environment.
-
-`just build` compiles the workspace with every feature. `just test` runs the unit and
+`alliumpy-core` and the thin `alliumpy` bindings. `just test` runs the unit and
 integration tests through nextest, then the doctests. `just doc` builds the API
 documentation into `target/doc/`, with warnings as errors, as CI does.
+
+Inside the shell every tool is on `PATH`, so `cargo nextest run -p alliumpy-core` works
+directly. The shell exports `PYO3_PYTHON`, so a bare `cargo` builds the bindings against
+the shell's Python too. Run `just py-develop` to build the extension into the venv
+`target/py-env`, then `just py-test` for its Python tests; for one file,
+`target/py-env/bin/python -m pytest crates/alliumpy/tests/test_parse.py`.
 
 ## Before handing work back
 
@@ -112,16 +118,16 @@ the worktree before and after each recipe.
 
 ## Keeping the workspace current
 
-After pulling, re-sync so the installed dependencies match the lockfiles:
+After pulling, leave the shell and enter it again if `flake.lock` moved, then re-sync so
+the cargo cache matches the lockfiles:
 
 ```console
 just sync
 ```
 
-It installs a moved `pixi.lock` exactly as committed and fetches what `Cargo.lock` and
-`fuzz/Cargo.lock` name.
-After `tools.txt` or `tools-source.txt` has moved, run `just install-tools` as well; it
-skips a version that is already there.
+It fetches what `Cargo.lock` and `fuzz/Cargo.lock` name and moves the `.nix/dev-shell`
+root to the current shell, so a store garbage collection keeps it. It rewrites no
+lockfile.
 
 ## Related pages
 
@@ -129,3 +135,4 @@ skips a version that is already there.
 - [Test and debug](test-and-debug.md)
 - [Troubleshooting](../operations/troubleshooting.md)
 - [Configuration](../reference/configuration.md)
+- [Decision 0018: Nix owns the development environment](../decisions/0018-nix-dev-environment.md)

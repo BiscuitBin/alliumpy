@@ -38,8 +38,9 @@ until evidence supports a decision.
 | [0015](0015-release-process.md) | The release process |
 | [0016](0016-mutation-bench-and-fuzz.md) | Mutation testing, benchmarks and fuzzing |
 | [0017](0017-renovate.md) | Dependency updates through Renovate, except the upstream pin |
+| [0018](0018-nix-dev-environment.md) | Nix owns the development environment |
 
-T14 wrote 0015, T15 wrote 0016 and T17 wrote 0017. Record 0014 is S01's draft, landed by
+T14 wrote 0015, T15 wrote 0016, T17 wrote 0017 and T19 wrote 0018. Record 0014 is S01's draft, landed by
 T13.
 
 ## The numbering
@@ -49,7 +50,8 @@ chain from the pinned source repositories and keep their topic slugs. Each openi
 both source commits so its argument can be checked. New records have no carried-from
 chain. [Decision 0006](0006-tool-manager.md) replaces the older installation details
 behind [decision 0002](0002-hook-runner-and-checkers.md), while keeping its choice of
-runner and shared checkers.
+runner and shared checkers, and [decision 0018](0018-nix-dev-environment.md) supersedes
+0006: a Nix flake now owns the whole environment.
 
 ## Writing a new one
 

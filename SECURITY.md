@@ -34,8 +34,8 @@ runbook, `docs/how-to/bump-upstream.md`.
   lock flag; snapshot checks validate locks first and run offline.
 - `cargo deny` checks licences, bans and sources in the gate; the separate audit
   workflow checks locked Rust dependencies against RustSec advisories.
-- Tools and the compiler are pinned, and remote hooks and GitHub Actions use commit
-  SHAs. The supply-chain limits are described in `docs/explanation/security-model.md`.
+- The compiler and every tool are pinned by `flake.lock`, the hooks run those pinned
+  tools, and GitHub Actions use commit SHAs. The supply-chain limits are described in `docs/explanation/security-model.md`.
 - The parity gate compares the wheel command's stdout and exit codes with upstream
   over the corpus.
 - Secret scanning runs through the pre-commit hook where installed and on the checked

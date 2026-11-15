@@ -9,6 +9,14 @@ are listed here; upstream's own changes belong to upstream's release notes.
 
 ## [Unreleased]
 
+### Changed
+
+- A Nix flake owns the development environment, locally on Linux x86_64 and macOS arm64
+  and in CI (`flake.nix`, `flake.lock`, `nix/`, decision 0018). It replaces pixi,
+  rustup, cargo-binstall and the hook repositories prek cloned. The one prerequisite is
+  Nix with flakes, and every recipe runs inside `nix develop`. CI adds a `macos-smoke`
+  job on Apple silicon. The wheel and its release builds are unchanged.
+
 ### Added
 
 - Renovate over every pin except `allium-parser` (`renovate.json`, decision 0017), and

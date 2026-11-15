@@ -39,6 +39,7 @@ snapshot.
 | T15 | Mutation testing, benchmarks and fuzzing over `alliumpy-core` | `T15-mutants-bench-fuzz.md` | T11 | T12, T13, T14 | open |
 | T17 | Renovate over every pin except the upstream crate; the upstream-bump runbook | `T17-renovate.md` | T14, T15 | none | done |
 | T18 | Verification gaps: the checks the wave-0 and wave-1 hand-backs did not run | `T18-verification-gaps.md` | T11 | T12, T13, T14, T15, T17 | done |
+| T19 | Nix owns the development environment: one flake for the toolchain, the tools and CI | `T19-nix-dev-environment.md` | T17 | none | open |
 
 The ids follow pachinko's where the ticket is the same kind of work, so that the two
 repositories stay comparable, and fill the gaps pachinko left: T03 and S01 are new here;
@@ -57,6 +58,7 @@ T00 ─┬─ T01 ──────────────┐
      ├─ T07 ──────────────┤       │                     ├─ T17
      └─ S01 ──────────────┘       ├─ T15 ───────────────┘
                                   └─ T18
+T17 ── T19
 ```
 
 The graph is acyclic: T00, then six wave-1 lanes, then T11, then wave 2.
@@ -108,8 +110,10 @@ ticket can be picked up. T00 and every later lane then branch from that `main`.
    nothing (`CONVENTIONS.md` §11).
 
    Then run `just initialize` in the new worktree (network, authorised), except in T00,
-   which creates the `Justfile`. The `Justfile` puts the worktree's own gitignored
-   `.pixi/` and `.tools/` on `PATH`, so a new worktree has no tools until it runs.
+   which creates the `Justfile`. Until T19 the `Justfile` put the worktree's own
+   gitignored `.pixi/` and `.tools/` on `PATH`, so a new worktree had no tools until it
+   ran; from T19 every recipe runs in the dev shell (decision 0018), which a new worktree
+   enters with `nix develop`.
    P `scripts/initialize.sh` skips `install-hooks` in a secondary worktree, so once,
    after T00 merges and before the first wave-1 worktree, run `just initialize` in the
    primary checkout on an up-to-date `main`. Only that run installs the shared hook shim
