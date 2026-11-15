@@ -7,16 +7,15 @@ description: Bring a workspace to a state where the full gate runs, and interpre
 
 1. Read `AGENTS.md`. The `Justfile` is the supported interface to the checks; use its
    recipes rather than assembling an equivalent pipeline by hand.
-2. Check prerequisites: rustup's cargo first on `PATH` (`just check-toolchain` proves
-   it); the pixi environment at `.pixi/envs/default/bin` with nextest, llvm-cov, deny,
-   shear, taplo, prek, just, the `bg-*` scripts, maturin, uv, pytest, ruff and mypy;
-   `.tools/bin/cargo-hack`, `.tools/bin/rustqual`, `Cargo.lock` and `pixi.lock`.
-   `just initialize` creates missing prerequisites and skips hook installation in a
-   secondary worktree. It downloads, so it needs explicit authorization unless the
-   task already grants it. `just install-tools` provisions only the two tool lists
-   under the same authorization rule. Rustqual is needed for gate 7, cargo-hack for
-   gate 8; the Python tools serve gates 14–19. No reference `allium` belongs in
-   `.tools/bin`: it would shadow the wheel's command.
+2. Check prerequisites: Nix with flakes, and the dev shell `flake.nix` defines, which
+   holds the toolchain, Python and every tool a gate calls (decision 0018). Run inside
+   it, or as `nix develop --command just <recipe>`; the Justfile refuses to run
+   anywhere else, and `just check-toolchain` proves the shell is current and every tool
+   comes from it. Entering the shell for the first time, or after `flake.lock` moves,
+   downloads, and so does `just initialize`, which fetches the cargo cache, records the
+   shell as a GC root and skips hook installation in a secondary worktree; both need
+   explicit authorization unless the task already grants it. No reference `allium`
+   belongs on `PATH`: it would shadow the wheel's command.
 3. Run `just check`. It runs the 22 gates in `tickets/CONVENTIONS.md` §4 order and
    snapshots the worktree between them: 1 toolchain, 2 locks, 3 hooks, 4–5 formatting,
    6 clippy, 7 metrics, 8 features, 9 doctests, 10 core coverage, 11 rustdoc,

@@ -102,7 +102,10 @@ release appearing upstream cannot bypass both the signature and the registry che
 Compiling is acceptable for this one tool because it is paid once per worktree (a cold
 source build) and, in CI, once per pin by the jobs that need it, in parallel, on the
 cold cache; `.tools` is then cached on the hash of both lists. A line joins this list
-only on a decision record that accepts the same cost.
+only on a decision record that accepts the same cost. Amended by [decision 0018](0018-nix-dev-environment.md): `nix/rustqual.nix`
+now builds rustqual from the crates.io source in Nix's sandbox, against pinned hashes of
+the source and its vendored dependencies, and CI's store cache carries the build; the
+source-build cost stands, paid once per `flake.lock` move.
 
 **The pin** is held at 1.8.3 until implementation has landed under it, then bumped by
 hand, one release at a time, with `just check` run on each. Nothing bumps a tool pin

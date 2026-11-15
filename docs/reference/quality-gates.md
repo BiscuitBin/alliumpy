@@ -14,10 +14,10 @@ read-only; an ignored path is outside the snapshot.
 
 | Order | Gate | Proves |
 | --- | --- | --- |
-| 1 | `check-toolchain` | Cargo resolves to the expected rustup proxy path, and the active toolchain is the channel `rust-toolchain.toml` pins; the selected toolchain is printed. |
-| 2 | `lock-check` | `Cargo.lock`, `fuzz/Cargo.lock` and `pixi.lock` match their manifests offline. |
+| 1 | `check-toolchain` | The dev shell is the one the committed flake files produce; cargo, rustc, rustfmt and clippy resolve inside the flake's toolchain and every other gate tool inside the shell's own packages; rustc and cargo report the channel `rust-toolchain.toml` pins. The toolchain and host are printed. |
+| 2 | `lock-check` | `Cargo.lock`, `fuzz/Cargo.lock` and `flake.lock` match their manifests offline. |
 | 3 | `lint` | The complete read-only hook gate passes. |
-| 4 | `fmt-check` | Rust formatting matches rustfmt, in the workspace and the fuzz crate. |
+| 4 | `fmt-check` | Rust formatting matches rustfmt, in the workspace and the fuzz crate, and the flake's Nix files match nixfmt. |
 | 5 | `toml-check` | TOML formatting and lint pass. |
 | 6 | `clippy` | Both lint tables pass over every target and feature, and the fuzz crate's repeated tables over its targets, with warnings as errors. |
 | 7 | `metrics` | The pinned rustqual passes once per crate against the configured thresholds. |
@@ -45,10 +45,14 @@ snapshot. A green dirty baseline means the checks changed nothing; hand-back add
 requires a committed clean worktree. Gates 4 and 5 also run inside lint deliberately,
 so a failure has a named place in the aggregate list.
 
-The toolchain gate refuses an active toolchain other than the pinned channel for
-rustup's default host. When `RUSTUP_TOOLCHAIN` or a `rustup override` supersedes the
-repository pin, the gate names the toolchain it selects on stderr: remove the override
-and rerun. An uninstalled override is refused, never downloaded.
+The toolchain gate reads its checks from the shell itself. The dev shell exports a digest
+of `flake.nix`, `flake.lock`, `rust-toolchain.toml` and `nix/*.nix`, and the gate
+recomputes it from the worktree, so a shell entered before a pull, a lock or an edit is
+refused. Tools are checked by where they resolve, not by their order on `PATH`, so a
+rustup proxy, a Homebrew cargo or a uv in `~/.local/bin` placed ahead of the shell is
+refused by name. Each refusal starts `check-toolchain:` and exits 2;
+[Troubleshooting](../operations/troubleshooting.md) has the remedies. Outside the dev
+shell no recipe runs at all ([decision 0018](../decisions/0018-nix-dev-environment.md)).
 
 ## Evidence that checks can fail
 
@@ -60,8 +64,9 @@ would hide a discrepancy, and a deliberate stub error fails py-stubtest.
 
 The wheel smoke empties dist, requires one real wheel and installs only that artefact
 with offline, no-index and no-deps flags. Python runs with `-I`. The core's small
-coverage denominator makes a single untested branch material. Metrics checks the tool
-version before invoking it; internal module-boundary rules and their positive control
+coverage denominator makes a single untested branch material. Metrics runs the rustqual
+`nix/rustqual.nix` pins, which gate 1 has proved comes from the store; internal
+module-boundary rules and their positive control
 will arrive with modules, rather than claiming an empty rule set enforces a graph.
 
 ## What the hook gate contains
@@ -69,21 +74,28 @@ will arrive with modules, rather than claiming an empty rule set enforces a grap
 Read-only hooks include Rust and TOML formatting, unused dependencies, Python lint and
 types, documentation and agent contracts, EditorConfig, markdownlint, typos, offline
 links, shellcheck, actionlint, secret scanning and builtin file hygiene.
-The Python recipes run through just to inherit the pinned tool PATH. Contract hooks
-use frozen pixi resolution. Clippy, pytest, stubtest and wheel builds are deliberately
-outside commit hooks because they build; the full gate and CI run them.
+Every hook is a system hook on a binary the dev shell provides, so `flake.lock` pins
+each checker and nothing is cloned or downloaded. The Rust, TOML and Python hooks run
+through just, which keeps each tool's arguments in one place. Clippy, pytest, stubtest
+and wheel builds are deliberately outside commit hooks because they build; the full gate
+and CI run them.
 
-Remote hooks use full commit SHAs. `.pre-commit-fix.yaml` is the mutating counterpart,
-never installed, run by `just fix`; its positive-control fixtures are excluded from repair.
-Actionlint validates workflow structure but can skip embedded shell analysis when its
-own environment cannot find shellcheck. Review multi-line workflow shell explicitly.
+`.pre-commit-fix.yaml` is the mutating counterpart, never installed, run by `just fix`;
+its positive-control fixtures are excluded from repair. Actionlint validates workflow
+structure and runs the shell's shellcheck over `run:` blocks in `bash` or `sh`. It does
+not recognise the dev-shell default shell the gate jobs set, so it skips the `run:`
+blocks of those jobs. Review multi-line workflow shell there explicitly.
 
 ## Continuous integration
 
-CI runs six gate jobs: `rust`, `python`, `wheel-smoke-py311`, `coverage`, `deny` and
-`documents`. The aggregate `check` job fails if any dependency fails, is cancelled or
-skipped. The Python job uploads the Linux wheel and the Python 3.11 job installs that
-same artefact. The Rust job runs test where the local aggregate runs test-doc and
+CI runs seven gate jobs: `rust`, `python`, `wheel-smoke-py311`, `parity`, `coverage`,
+`deny` and `documents`. The aggregate `check` job fails if any of them fails, is cancelled
+or skipped. Every gate job but `wheel-smoke-py311` runs the shared setup action and then
+its `run:` steps inside the dev shell, so CI and a local `just check` share one
+environment. The Python job uploads the Linux wheel and the Python 3.11 job installs that
+same artefact on a stock interpreter outside Nix. `macos-smoke`, outside `check`'s
+`needs`, runs check-toolchain, build, test, fuzz-build and wheel-smoke in the dev shell
+on Apple silicon. The Rust job runs test where the local aggregate runs test-doc and
 coverage, and runs `fuzz-build` after `clippy`, so a fuzz target that no longer builds
 names itself in the step list without waiting for the weekly run.
 

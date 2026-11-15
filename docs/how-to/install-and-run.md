@@ -46,7 +46,7 @@ records platform coverage and the source distribution.
 
 ## Use the API
 
-After `just py-develop` in a checkout, run these five lines with the pixi interpreter;
+After `just py-develop` in a checkout, run these five lines with `target/py-env/bin/python`;
 installed users can use their own interpreter. `parse` returns upstream diagnostics:
 
 ```python

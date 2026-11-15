@@ -7,8 +7,9 @@
 extend-exclude = [
   "tests/fixtures/parity/",
   "Cargo.lock",
-  "pixi.lock",
-  ".pixi/",
+  "flake.lock",
+  ".nix/",
+  ".direnv/",
   ".tools/",
   "target/",
   "ai_tmp/",

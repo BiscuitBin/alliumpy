@@ -31,7 +31,6 @@ allium = "alliumpy._cli:main"
 Repository = "https://github.com/BiscuitBin/alliumpy"
 Upstream = "https://github.com/juxt/allium-tools"
 
-# No [tool.pixi] table: pixi reads only the root pyproject.toml.
 [tool.maturin]
 python-source = "python"
 module-name = "alliumpy._alliumpy"

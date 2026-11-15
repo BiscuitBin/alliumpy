@@ -30,11 +30,15 @@ writes JSON to stdout.
   The snapshot recipes first validate locks and run offline because cargo-insta cannot
   forward `--locked`. `just deny` checks licences, bans and sources offline;
   `just audit` checks advisories separately because it needs the network.
-- **Tools.** Remote hooks and actions use full commit SHAs. cargo-hack arrives over TLS
-  as a release binary without an independently published checksum or signature.
-  rustqual is built from crates.io with `--locked`, or uses a signed quickinstall build;
-  unsigned crate release assets are refused for that pass. The source-build pass unsets
-  `GITHUB_TOKEN` and `GH_TOKEN` and disables token discovery.
+- **Tools.** Every tool, the compiler included, comes from the dev shell `flake.lock`
+  pins ([decision 0018](../decisions/0018-nix-dev-environment.md)), and actions use full
+  commit SHAs. The trust roots are cache.nixos.org's signing key for every substituted
+  store path; the content hash `flake.lock` records for nixpkgs; the git revisions it
+  records for rust-overlay and the shared checkers; rust-overlay's manifests, whose
+  hashes are the ones static.rust-lang.org publishes for the toolchain; and the two
+  hashes `nix/rustqual.nix` pins for rustqual's crates.io source and vendored
+  dependencies, which Nix checks before it builds them in its sandbox. Hooks run those
+  same binaries: nothing is cloned or downloaded at hook time.
 - **Memory safety.** Both crates forbid unsafe code through their lint tables: the core
   inherits the workspace table, and the binding carries its own. pyo3 macro output
   compiles under that policy. This protects repository code; it is not an audit of all

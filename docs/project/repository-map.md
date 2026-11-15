@@ -18,10 +18,11 @@ follow [Architecture](../explanation/architecture.md); the dependency direction 
 ├── Cargo.toml                 Workspace members, dependencies, lints and profiles
 ├── Cargo.lock                 Locked Cargo resolution
 ├── rust-toolchain.toml        Rust compiler and components
-├── pyproject.toml             pixi tooling manifest
-├── pixi.lock                  Tool environment resolution
-├── tools.txt                  Binary-only extra tools
-├── tools-source.txt           Extra tools with source builds accepted
+├── flake.nix                  Dev shell inputs and outputs
+├── flake.lock                 Locked flake inputs, and so every tool version
+├── nix/                       The dev shell and the two packages nixpkgs lacks
+├── pyproject.toml             Ordered gate recipes for the shared checkers
+├── .envrc                     Opt-in direnv entry to the dev shell
 ├── Justfile                   Supported recipes
 ├── crates/
 │   ├── alliumpy-core/
@@ -41,12 +42,12 @@ follow [Architecture](../explanation/architecture.md); the dependency direction 
 ├── tests/fixtures/            Smoke inputs and linter positive controls
 ├── docs/                      Handbook, manifest and decisions
 ├── tickets/                   Work and acceptance evidence
-├── scripts/                   initialize.sh and version_check.py
+├── scripts/                   initialize.sh, version_check.py and the hook shim
 ├── .agents/skills/            Canonical house skills
 ├── .claude/skills/            Discovery bridges
 ├── .codex/skills/             Discovery bridges
 ├── .github/                   Adapters, workflows and setup action
-└── target/ dist/ .pixi/ .tools/ ai_tmp/  Ignored output and scratch
+└── target/ dist/ .nix/ .tools/ ai_tmp/  Ignored output and scratch
 ```
 
 ## What each part is responsible for
@@ -60,8 +61,9 @@ because all worktrees share their hook directory.
 The configuration files at the root include `rustfmt.toml`, `clippy.toml`,
 `rustqual.toml`, `taplo.toml`, `deny.toml`, `ruff.toml`, `mypy.ini` and
 `.config/nextest.toml`; [Configuration](../reference/configuration.md) owns their meanings.
-`.pixi/envs/default/bin` holds the tooling environment; `.tools/bin` holds tools
-conda-forge lacks. Neither holds the repository's compiler.
+The dev shell `flake.nix` defines holds the compiler, Python and every tool, all in the
+Nix store; `.nix/dev-shell` is its GC root. `.tools/parity/` holds only the parity
+reference, off `PATH`. `target/py-env` is the venv `just py-develop` builds into.
 
 ## Related pages
 

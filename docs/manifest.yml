@@ -626,6 +626,20 @@
         "decision_dependency_updates"
       ],
       "requires": []
+    },
+    {
+      "path": "decisions/0018-nix-dev-environment.md",
+      "title": "Decision 0018: Nix owns the development environment",
+      "kind": "decision",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_dev_environment"
+      ],
+      "requires": []
     }
   ]
 }

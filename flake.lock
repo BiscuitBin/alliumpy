@@ -1,0 +1,65 @@
+{
+  "nodes": {
+    "biscuit-games-tooling": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790142138,
+        "narHash": "sha256-iHgEOv3KnCpSNO4/jLyc9jJqcl1pP+zoVsqyMlxuMvk=",
+        "ref": "refs/tags/v0.3.0",
+        "rev": "6c5c07f6bec86e86b3930dfa41392e4b440e8c85",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/steven-cutting/biscuit_games_tooling"
+      },
+      "original": {
+        "ref": "refs/tags/v0.3.0",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/steven-cutting/biscuit_games_tooling"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1794495034,
+        "narHash": "sha256-QG/HY0t5t3sfT2ozW/Ikis5Klqf0X4nfTuLvFaBpNno=",
+        "rev": "2074cc672349f14240fb7ea90d509e0b643e9dd4",
+        "type": "tarball",
+        "url": "https://releases.nixos.org/nixpkgs/nixpkgs-26.11pre1118975.2074cc672349/nixexprs.tar.xz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.xz"
+      }
+    },
+    "root": {
+      "inputs": {
+        "biscuit-games-tooling": "biscuit-games-tooling",
+        "nixpkgs": "nixpkgs",
+        "rust-overlay": "rust-overlay"
+      }
+    },
+    "rust-overlay": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1794646145,
+        "narHash": "sha256-rpqDyUM/d5fACYB8W+wKxxO57ICWjjalzb2X25oFFkY=",
+        "ref": "refs/heads/master",
+        "rev": "5b87ee0513c29127a01ad06e9cb362ea5ce91e78",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/oxalica/rust-overlay"
+      },
+      "original": {
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/oxalica/rust-overlay"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

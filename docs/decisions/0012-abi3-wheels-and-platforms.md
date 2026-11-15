@@ -23,7 +23,8 @@ release matrix: Linux x86_64 and aarch64, each with manylinux and musllinux; mac
 and x86_64; Windows x86_64.
 
 [Python packaging](../explanation/packaging.md) owns the matrix and build mechanics. The
-Justfile is POSIX-only, and pixi supports `linux-64` and `osx-arm64` here. Local `just
+Justfile is POSIX-only, and pixi supports `linux-64` and `osx-arm64` here (Amended by [decision 0018](0018-nix-dev-environment.md):
+the flake's systems, `x86_64-linux` and `aarch64-darwin`, are the same two). Local `just
 check` builds one developer wheel; T01 adds the CI Python 3.11 floor smoke. Other
 targets are release-matrix builds, and T14's rehearsal is the Windows proof. T13 proves
 parity on POSIX only.

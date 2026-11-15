@@ -29,6 +29,11 @@ jobs:
   fuzz:
     name: fuzz
     runs-on: ubuntu-latest
+    # Every run step below runs inside the dev shell the setup action built
+    # (decision 0018); the composite action's own steps name their shell.
+    defaults:
+      run:
+        shell: nix develop --no-update-lock-file --command bash --noprofile --norc -eo pipefail {0}
     timeout-minutes: 30
     strategy:
       # Without it, the first target that crashes cancels its siblings

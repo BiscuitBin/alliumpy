@@ -56,9 +56,11 @@ diagnostics; the command also runs the checker. See `docs/reference/api.md`.
 
 ## Contribute
 
-Read the prerequisites in `docs/how-to/develop-locally.md`, then from a clone run:
+The one prerequisite is Nix with flakes; `docs/how-to/develop-locally.md` has the
+details. From a clone run:
 
 ```console
+nix develop
 just initialize
 just check
 ```

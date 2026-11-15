@@ -23,7 +23,8 @@ house replacement. This repository also needs Python for maturin and the binding
 Keep the Python checkers and prek. The root `pyproject.toml` configures the shared
 package and names the twenty-two gate recipes in order. [Decision
 0006](0006-tool-manager.md) owns their installation through pixi; no fork of the
-checkers lives here.
+checkers lives here. Amended by [decision 0018](0018-nix-dev-environment.md): the flake builds the checkers from a
+release tag, and prek runs every hook on a dev-shell binary.
 
 Until the required phrases become configurable, `AGENTS.md` carries honest explanations
 for phrases the validator requires but this repository does not otherwise use; the
