@@ -59,7 +59,7 @@ three things:
 - The shell is the one the committed files produce. It compares a digest of
   `flake.nix`, `flake.lock`, `rust-toolchain.toml` and `nix/`.
 - cargo, rustc, rustfmt and clippy resolve inside the flake's toolchain, and every
-  other tool a gate calls resolves inside the Nix store.
+  other tool a gate calls resolves inside the shell's own packages.
 - rustc and cargo report the pinned channel.
 
 A rustup proxy, a Homebrew cargo or a uv in `~/.local/bin` is refused by path,
@@ -141,8 +141,9 @@ The ones that hurt come first.
 - **The CI wheel is the dev shell's, not the release's.** `wheel-smoke-py311` installs
   the wheel `just wheel` built with nixpkgs' maturin and the shell's linker, not one
   built by the release workflow's maturin-action with its own maturin pin. The `wheel`
-  recipe keeps the store's paths out of the extension's RUNPATH, and the shell keeps the
-  worktree out, so the artefact names nothing on the machine that built it.
+  recipe keeps the store's paths out of the extension's RUNPATH, in a target directory of
+  its own, and the shell keeps the worktree out, so the extension's RUNPATH names nothing
+  on the machine that built it.
 - **Commits and first runs cost time.** A commit made outside the shell pays a few
   seconds to enter it. A first `nix develop` fills about 2.5 GiB of store on Linux.
 - **A store garbage collection can break built files.** It can remove what `target/`

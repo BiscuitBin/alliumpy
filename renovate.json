@@ -87,7 +87,7 @@
       "dependencyDashboardApproval": true
     },
     {
-      "description": "The flake's inputs (decision 0018): nixpkgs, which pins every tool in the dev shell, rust-overlay, and the checkers. One pull request, held for dashboard approval, because a nixpkgs move can change what a gate reports; run just check on it. A vulnerability-fix pull request skips that approval.",
+      "description": "The flake's inputs (decision 0018): nixpkgs, which pins every tool in the dev shell, and rust-overlay; the checkers' tag has its own rule. One pull request, held for dashboard approval, because a nixpkgs move can change what a gate reports; run just check on it. A vulnerability-fix pull request skips that approval.",
       "matchManagers": ["nix"],
       "groupName": "nix",
       "dependencyDashboardApproval": true

@@ -36,7 +36,7 @@ editing `renovate.json`, validate it against the pinned nixpkgs' Renovate, a dow
 first use:
 
 ```console
-nix shell --inputs-from . nixpkgs#renovate --command renovate-config-validator --strict renovate.json
+nix shell --inputs-from . nixpkgs#renovate --command renovate-config-validator --strict --no-global renovate.json
 ```
 
 The hosted app's own check is that no `Action Required: Fix Renovate Configuration` issue
@@ -123,7 +123,8 @@ just lock-check
 
 This runs `cargo update --workspace --locked --offline`, the same line over
 `fuzz/Cargo.toml`, and `nix flake metadata --no-update-lock-file --offline .`, which fails
-when `flake.lock` disagrees with `flake.nix`. None of them writes. It is gate 2 of
+when `flake.lock` disagrees with `flake.nix`. None of them writes. An input pointed at a
+new git URL makes git try that URL before the failure. It is gate 2 of
 `just check`, so a manifest edited without relocking fails the gate rather than
 drifting.
 

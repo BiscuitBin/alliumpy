@@ -137,9 +137,11 @@ old path: run `just install-hooks` from the primary checkout.
 ## A commit fails with `has no flake.nix, so it predates the dev shell`
 
 `.git/hooks` is shared by every branch and worktree, so the shim also runs for a branch
-cut before the flake existed. That checkout has no dev shell to enter. The shim runs a
-`prek` from `PATH` if there is one; otherwise it stops with this message. Commit from that
-checkout's own environment, or run its checks by hand and commit with `--no-verify`.
+cut before the flake existed. That checkout has no dev shell to enter. The shim runs the
+`prek` of that checkout's own pixi environment if it has one, never a dev shell's, which
+would run the old configuration with the wrong tools; otherwise it stops with this
+message. Run `just initialize` in that checkout first, or run its checks by hand and
+commit with `--no-verify`.
 
 ## After a store garbage collection, a reference or a build fails to start
 

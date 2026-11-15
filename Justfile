@@ -10,7 +10,7 @@ set shell := ["sh", "-eu", "-c"]
 export ALLIUMPY_DEV_SHELL := if env("ALLIUMPY_DEV_SHELL", "") == "" { error("not in the dev shell: run `nix develop`, or `nix develop --command just <recipe>` (docs/how-to/develop-locally.md)") } else { "1" }
 
 # Every tool a gate or hook calls by name, beside the four the toolchain provides.
-# check-toolchain refuses any of them that resolves outside the Nix store.
+# check-toolchain refuses any of them that resolves outside the shell's own packages.
 gate_tools := "just prek git python uv maturin ruff mypy pytest taplo rustqual nixfmt cargo-nextest cargo-llvm-cov cargo-deny cargo-insta cargo-hack cargo-shear typos lychee shellcheck actionlint markdownlint-cli2 editorconfig-checker ripsecrets bg-project-check bg-validate-docs bg-validate-agents bg-ripsecrets"
 
 # The throwaway venv py-develop builds the extension into, on the shell's interpreter.
@@ -89,8 +89,9 @@ lock-upgrade:
 # Offline, like every gate recipe: a cold Cargo cache fails rather than fetching the
 # registry index (`just sync` fills it). --no-update-lock-file makes a flake.lock that
 # disagrees with flake.nix (an input added, removed or pointed elsewhere) an error
-# instead of a rewrite; --offline keeps it from fetching. It checks the lock's shape, not
-# its hashes: those are checked when the shell is built from it.
+# instead of a rewrite. --offline stops Nix's own fetchers, but an input pointed at a new
+# git URL still makes git try it before the error; that run fails either way. It checks
+# the lock's shape, not its hashes: those are checked when the shell is built from it.
 lock-check:
     cargo update --workspace --locked --offline
     cargo update --workspace --locked --offline --manifest-path fuzz/Cargo.toml
@@ -217,7 +218,7 @@ clippy:
 # Gate 7: complexity, cohesion and coupling, through rustqual against
 # rustqual.toml, once per crate. rustqual's version decides what the gate reports;
 # nix/rustqual.nix pins it, and check-toolchain has already refused a rustqual from
-# outside the Nix store.
+# anywhere but the shell.
 metrics:
     rustqual crates/alliumpy-core --config rustqual.toml --fail-on-warnings --format github
     rustqual crates/alliumpy --config rustqual.toml --fail-on-warnings --format github
@@ -347,10 +348,12 @@ py-stubtest: py-develop
 #
 # NIX_DONT_SET_RPATH keeps the dev shell's linker from writing its store paths into the
 # extension's RUNPATH: the wheel is for machines without Nix, and on one with Nix those
-# paths would load the store's libgcc_s instead of the system's.
+# paths would load the store's libgcc_s instead of the system's. cargo does not
+# fingerprint that variable, so the wheel builds in a target directory of its own, which
+# nothing links into without it.
 wheel:
     rm -rf dist
-    NIX_DONT_SET_RPATH=1 maturin build --release --manifest-path crates/alliumpy/Cargo.toml --out dist
+    NIX_DONT_SET_RPATH=1 maturin build --release --target-dir target/wheel-build --manifest-path crates/alliumpy/Cargo.toml --out dist
 
 # Gate: the wheel installs and works in a fresh virtual environment, offline.
 # Exactly one wheel, which must exist (an unmatched glob is one literal argument);
