@@ -84,11 +84,17 @@ pkgs.mkShell {
   env = {
     ALLIUMPY_DEV_SHELL = "1";
     ALLIUMPY_RUST_TOOLCHAIN = "${rustToolchain}";
-    # The bin directories of exactly the packages above, and of the interpreter under
-    # pythonEnv, which the checkers' wrapped scripts put first on PATH for the recipes
-    # they run: check-toolchain refuses a gate tool from anywhere else, another store path
-    # included.
-    ALLIUMPY_TOOL_PATH = lib.makeBinPath (packages ++ [ python ]);
+    # The bin directories of exactly the packages above, plus the two the checkers'
+    # wrapped scripts put first on PATH for the recipes bg-project-check runs: their own
+    # package's and the interpreter's under pythonEnv. check-toolchain refuses a gate
+    # tool from anywhere else, another store path included.
+    ALLIUMPY_TOOL_PATH = lib.makeBinPath (
+      packages
+      ++ [
+        tooling
+        python
+      ]
+    );
     ALLIUMPY_ENV_FILES = lib.concatStringsSep " " envFiles;
     ALLIUMPY_ENV_FINGERPRINT = fingerprint;
     # Only for the string context: the inputs' source trees join the shell's closure,
