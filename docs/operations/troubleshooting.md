@@ -77,16 +77,17 @@ shell again, until `command -v cargo` prints a path under `$ALLIUMPY_RUST_TOOLCH
 
 ## `check-toolchain: <tool> resolves to <path>, not the dev shell`
 
-The same gate, for every other tool a gate calls: one resolved outside `/nix/store`, such
-as a uv in `~/.local/bin` or a just from a package manager, ahead of the shell's own.
-The fix is the same: nothing from outside the store may come before the shell on `PATH`.
+The same gate, for every other tool a gate calls: one resolved outside the shell's own
+packages, such as a uv in `~/.local/bin`, a just from a package manager, or a tool from
+another Nix shell (`nix shell nixpkgs#uv` inside this one), ahead of the shell's own. The
+fix is the same: nothing may come before the shell's packages on `PATH`.
 
 ## `check-toolchain: the dev shell is stale`
 
 `flake.nix`, `flake.lock`, `rust-toolchain.toml` or a file under `nix/` changed after
 this shell was entered: a pull, a `just lock` or an edit. Leave the shell and run
-`nix develop` again; a direnv shell reloads on its own. A file the shell lists that is
-missing fails the same way.
+`nix develop` again; a direnv shell reloads on its own. A file the shell was built from
+that is now missing is refused with `check-toolchain: <file> is missing`.
 
 ## The first `nix develop` downloads for minutes
 

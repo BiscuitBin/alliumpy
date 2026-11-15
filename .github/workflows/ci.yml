@@ -25,9 +25,11 @@ env:
   CARGO_NET_RETRY: '10'
   RUST_BACKTRACE: '1'
 
-# Ubuntu only: two crates and a wheel, with eol=lf forced by .gitattributes
-# and rustfmt, so a second operating system would prove nothing here the
-# first does not; the other platforms' wheels are the release workflow's.
+# The gate on Ubuntu only: two crates and a wheel, with eol=lf forced by
+# .gitattributes and rustfmt, so a second operating system would prove nothing
+# about the code the first does not; the other platforms' wheels are the
+# release workflow's. What a second one does prove is the dev shell, which
+# macos-smoke builds and exercises on Apple silicon.
 # `check`, last, is the one required check; the seven gate jobs are its
 # `needs`, so no name carries a slash or a space. wheel-smoke-py311 is the
 # one gate job not on the setup action: it installs the wheel `python`

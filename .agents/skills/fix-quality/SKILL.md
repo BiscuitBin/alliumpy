@@ -51,7 +51,7 @@ description: Diagnose and repair a failing quality gate at its root instead of s
      add an allowlist entry without a reason beside it.
    - `wheel-smoke` — two wheels in `dist/` mean something wrote there after
      `just wheel` emptied it; rerun `just wheel-smoke`. Missing uv or Python means
-     the run is outside the dev shell, which `check-toolchain` reports. A network error means the recipe reached out,
+     a tool is shadowed in the shell, which `check-toolchain` reports. A network error means the recipe reached out,
      which is a defect in the recipe: the wheel smoke must install offline.
    - `version-check` — five copies of one version disagree; the message names the two.
      A bare `allium-parser` bump is a release (decision 0010), with the wheel's

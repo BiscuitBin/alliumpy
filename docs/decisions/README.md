@@ -26,7 +26,7 @@ until evidence supports a decision.
 | [0003](0003-apache-2-0-with-upstream-mit.md) | Apache-2.0 for this repository, upstream's MIT shipped beside it |
 | [0004](0004-dependency-policy.md) | Dependency policy: caret ranges and `Cargo.lock` |
 | [0005](0005-rust-quality-gate.md) | The Rust quality gate |
-| [0006](0006-tool-manager.md) | Tool manager |
+| [0006](0006-tool-manager.md) | Tool manager (superseded by [0018](0018-nix-dev-environment.md)) |
 | [0007](0007-metrics-gate.md) | The metrics gate |
 | [0008](0008-api-reference-on-github-pages.md) | The API reference on GitHub Pages, when the repository's visibility allows it |
 | [0009](0009-pypi-name-alliumpy.md) | PyPI name `alliumpy`, console script `allium` |

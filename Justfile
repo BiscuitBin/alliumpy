@@ -44,7 +44,8 @@ check-toolchain:
     set -eu
     fail() { printf 'check-toolchain: %s\n' "$1" >&2; exit 2; }
     [ -n "${ALLIUMPY_ENV_FILES:-}" ] && [ -n "${ALLIUMPY_TOOL_PATH:-}" ] || fail 'not in the dev shell: ALLIUMPY_DEV_SHELL is set, but the variables the shell exports are not; run nix develop'
-    have=$(for f in $ALLIUMPY_ENV_FILES; do [ -f "$f" ] || fail "$f is missing"; sha256sum "$f" | cut -d' ' -f1; done | tr -d '\n' | sha256sum | cut -d' ' -f1)
+    for f in $ALLIUMPY_ENV_FILES; do [ -f "$f" ] || fail "$f is missing; the dev shell was built from it"; done
+    have=$(for f in $ALLIUMPY_ENV_FILES; do sha256sum "$f" | cut -d' ' -f1; done | tr -d '\n' | sha256sum | cut -d' ' -f1)
     [ "$have" = "${ALLIUMPY_ENV_FINGERPRINT:-}" ] || fail 'the dev shell is stale: flake.nix, flake.lock, nix/ or rust-toolchain.toml changed since it was entered; leave it and run nix develop again'
     for tool in cargo rustc rustfmt cargo-clippy; do
         at=$(command -v "$tool") || fail "$tool is not on PATH"

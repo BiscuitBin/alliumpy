@@ -141,7 +141,7 @@ Run `just check-agents`.
 <important if="a gate is failing, or you are handing work back">
 
 Use the `fix-quality` skill for the failing recipe and the `project-check` skill for
-the full gate. `just fix` formats with cargo fmt, taplo and ruff. Never disable a gate
+the full gate. `just fix` formats with cargo fmt, taplo, ruff and nixfmt. Never disable a gate
 or lower a threshold to make a run green. A recipe that changes the worktree is a
 defect in that recipe: checks are read-only.
 

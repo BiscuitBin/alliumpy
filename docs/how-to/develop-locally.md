@@ -62,11 +62,8 @@ Agents, scripts and one-off commands use one spelling:
 nix develop --command just check
 ```
 
-Anything else fails at once, with:
-
-```text
-error: not in the dev shell: run `nix develop`, or `nix develop --command just <recipe>` (docs/how-to/develop-locally.md)
-```
+Any other spelling refuses before the recipe runs
+([Troubleshooting](../operations/troubleshooting.md#error-not-in-the-dev-shell)).
 
 ### direnv
 
@@ -78,13 +75,8 @@ recipes do not depend on it.
 
 The shell records a digest of `flake.nix`, `flake.lock`, `rust-toolchain.toml` and the
 files under `nix/`. After a pull, a `just lock` or an edit that moved one of them, the
-first gate refuses the old shell:
-
-```text
-check-toolchain: the dev shell is stale: flake.nix, flake.lock, nix/ or rust-toolchain.toml changed since it was entered; leave it and run nix develop again
-```
-
-Leave the shell and run `nix develop` again. A direnv shell reloads by itself.
+first gate refuses the old shell; leave it and run `nix develop` again
+([Troubleshooting](../operations/troubleshooting.md#check-toolchain-the-dev-shell-is-stale)).
 
 ## Every day
 

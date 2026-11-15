@@ -28,7 +28,7 @@ and `fuzz-build` are reports or proofs a person runs, never part of `check`.
 | --- | --- |
 | `default` | Print the recipe list when just has no arguments. |
 | `initialize` | Refuse outside the dev shell, run check-toolchain, sync, and install the hook only in the primary checkout. Never formats, stages, commits, tags or pushes. |
-| `check-toolchain` | Refuse a stale dev shell, a cargo, rustc, rustfmt or clippy outside the flake's toolchain, any other gate tool outside the Nix store, or a toolchain other than the pinned channel; then print the toolchain and host. |
+| `check-toolchain` | Refuse a stale dev shell, a cargo, rustc, rustfmt or clippy outside the flake's toolchain, any other gate tool outside the shell's own packages, or a toolchain other than the pinned channel; then print the toolchain and host. |
 | `sync` | Fetch the workspace's and the fuzz crate's Cargo dependencies and record the dev shell as a GC root at `.nix/dev-shell`, without rewriting any of the three locks. |
 | `lock` | Relock `Cargo.lock` and `fuzz/Cargo.lock` after a manifest edit, and lock any input `flake.nix` newly names. Read every diff. |
 | `lock-upgrade` | Move both Cargo resolutions within manifest constraints and every flake input to the head of its ref. |
