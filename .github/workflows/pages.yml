@@ -35,6 +35,11 @@ jobs:
   build:
     name: build
     runs-on: ubuntu-latest
+    # Every run step below runs inside the dev shell the setup action built
+    # (decision 0018); the composite action's own steps name their shell.
+    defaults:
+      run:
+        shell: nix develop --no-update-lock-file --command bash --noprofile --norc -eo pipefail {0}
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

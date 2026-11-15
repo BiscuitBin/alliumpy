@@ -31,12 +31,18 @@ env:
 # `check`, last, is the one required check; the seven gate jobs are its
 # `needs`, so no name carries a slash or a space. wheel-smoke-py311 is the
 # one gate job not on the setup action: it installs the wheel `python`
-# built on Python 3.11, an interpreter pixi does not have, and must not
-# depend on the environment that built it.
+# built on Python 3.11, an interpreter the dev shell does not have, and
+# must not depend on the environment that built it. macos-smoke is the one
+# job off Ubuntu, and it is not among `check`'s needs (decision 0018).
 jobs:
   rust:
     name: rust
     runs-on: ubuntu-latest
+    # Every run step below runs inside the dev shell the setup action built
+    # (decision 0018); the composite action's own steps name their shell.
+    defaults:
+      run:
+        shell: nix develop --no-update-lock-file --command bash --noprofile --norc -eo pipefail {0}
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -46,8 +52,8 @@ jobs:
         with:
           cache-key: rust
       # One recipe per step, in the gate's order, so a failure names itself
-      # in the step list. `check-toolchain` first: it proves the runner's
-      # cargo is rustup's proxy on the pinned release before anything builds.
+      # in the step list. `check-toolchain` first: it proves the dev shell is
+      # current and its cargo is the pinned release before anything builds.
       - run: just check-toolchain
       - run: just lock-check
       - run: just fmt-check
@@ -71,6 +77,11 @@ jobs:
   python:
     name: python
     runs-on: ubuntu-latest
+    # Every run step below runs inside the dev shell the setup action built
+    # (decision 0018); the composite action's own steps name their shell.
+    defaults:
+      run:
+        shell: nix develop --no-update-lock-file --command bash --noprofile --norc -eo pipefail {0}
     # The extension is built twice: in place for the tests and stubtest,
     # then as the release wheel for the smoke.
     timeout-minutes: 30
@@ -99,9 +110,10 @@ jobs:
       - run: just check-clean
 
   # The one pre-release proof of the abi3 floor (CONVENTIONS.md §9): every
-  # local run smokes the wheel on pixi's Python 3.14, so only this job shows
-  # that the abi3-py311 wheel installs and runs on 3.11. Plain shell, no
-  # setup action and no `just`, so the proof does not depend on pixi.
+  # local run smokes the wheel on the dev shell's Python 3.14, so only this
+  # job shows that the abi3-py311 wheel installs and runs on 3.11, and on a
+  # stock Ubuntu interpreter outside Nix. Plain shell, no setup action and no
+  # `just`, so the proof does not depend on the dev shell.
   # Network is allowed here; `--no-index` and `--no-deps` are what keep the
   # install to the one downloaded file, and `-I` keeps the checkout's
   # sources off the import path.
@@ -131,15 +143,19 @@ jobs:
 
   # Byte-for-byte stdout and exit-code parity with upstream's allium-cli at the
   # pin, and the behaviours beyond the corpus (decision 0014). After python, so
-  # that python's post-job save of the setup action's .tools cache always
-  # precedes this job and .tools/parity never enters that tools-keyed cache.
-  # The reference has its own cache, keyed on the runner and on Cargo.toml,
+  # that it reuses the store cache python's job saved. The reference has its
+  # own cache, keyed on the runner and on Cargo.toml,
   # which holds the pin; a hit leaves cargo install nothing to build. The one
   # job where the reference exists, so version-check's reference clause fires.
   parity:
     name: parity
     needs: [python]
     runs-on: ubuntu-latest
+    # Every run step below runs inside the dev shell the setup action built
+    # (decision 0018); the composite action's own steps name their shell.
+    defaults:
+      run:
+        shell: nix develop --no-update-lock-file --command bash --noprofile --norc -eo pipefail {0}
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -151,7 +167,8 @@ jobs:
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .tools/parity
-          key: ${{ runner.os }}-${{ runner.arch }}-parity-${{ hashFiles('Cargo.toml') }}
+          # flake.lock too: the reference links against the store's libraries.
+          key: ${{ runner.os }}-${{ runner.arch }}-parity-${{ hashFiles('Cargo.toml', 'flake.lock') }}
       - run: just install-parity-reference
       - run: just parity
       - run: just version-check
@@ -161,6 +178,11 @@ jobs:
   coverage:
     name: coverage
     runs-on: ubuntu-latest
+    # Every run step below runs inside the dev shell the setup action built
+    # (decision 0018); the composite action's own steps name their shell.
+    defaults:
+      run:
+        shell: nix develop --no-update-lock-file --command bash --noprofile --norc -eo pipefail {0}
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -187,7 +209,13 @@ jobs:
   deny:
     name: deny
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Every run step below runs inside the dev shell the setup action built
+    # (decision 0018); the composite action's own steps name their shell.
+    defaults:
+      run:
+        shell: nix develop --no-update-lock-file --command bash --noprofile --norc -eo pipefail {0}
+    # Room for a cold store: a cache miss builds the shell before anything runs.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -205,6 +233,11 @@ jobs:
   documents:
     name: documents
     runs-on: ubuntu-latest
+    # Every run step below runs inside the dev shell the setup action built
+    # (decision 0018); the composite action's own steps name their shell.
+    defaults:
+      run:
+        shell: nix develop --no-update-lock-file --command bash --noprofile --norc -eo pipefail {0}
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -216,6 +249,35 @@ jobs:
       - run: just lint
       - run: just check-docs
       - run: just check-agents
+      # For the reason rust's last step gives.
+      - run: just check-clean
+
+  # The dev shell on Apple silicon, the maintainer's platform (decision 0018):
+  # it builds, tests and fuzz-builds the workspace and smokes the wheel there.
+  # Not among `check`'s needs: the required gate stays the Ubuntu one, and a
+  # macOS runner's queue cannot hold a merge.
+  macos-smoke:
+    name: macos-smoke
+    runs-on: macos-latest
+    # Every run step below runs inside the dev shell the setup action built
+    # (decision 0018); the composite action's own steps name their shell.
+    defaults:
+      run:
+        shell: nix develop --no-update-lock-file --command bash --noprofile --norc -eo pipefail {0}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          cache-key: macos-smoke
+      - run: just check-toolchain
+      - run: just build
+      - run: just test
+      # cargo-fuzz and libFuzzer's C++ on arm64, natively.
+      - run: just fuzz-build
+      - run: just wheel-smoke
       # For the reason rust's last step gives.
       - run: just check-clean
 

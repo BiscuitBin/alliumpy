@@ -1,9 +1,10 @@
-name: Set up the alliumpy toolchain
+name: Set up the alliumpy dev shell
 description: >-
-  pixi and the environment pixi.lock pins (every tool binary, Python, prek and
-  the tooling package's checkers), the toolchain rust-toolchain.toml pins
-  through the runner's rustup, the cargo caches, the binaries in .tools/bin
-  that conda-forge lacks, and the lockfile sync. Runs after the checkout.
+  Nix, the store cache, and the dev shell flake.nix defines and flake.lock pins
+  (the toolchain rust-toolchain.toml names, Python, every tool and the shared
+  checkers, decision 0018), then the cargo caches and the lockfile sync. Runs
+  after the checkout. A job that uses it sets its default shell to the dev
+  shell, so every later `run: just <recipe>` step runs inside it.
 
 inputs:
   cache-key:
@@ -15,79 +16,43 @@ inputs:
 runs:
   using: composite
   steps:
-    # The one version pin in YAML is pixi itself, which nothing else can
-    # install. It must satisfy the `requires-pixi` floor in pyproject.toml,
-    # so the version appears twice, exact here and as a floor there, rather
-    # than pretend one owner. `locked` refuses a lockfile that disagrees with
-    # the manifest, which makes this step the CI lockfile check. Activation
-    # puts .pixi/envs/default/bin, and so `just`, on every later step's PATH.
-    # The environment holds no rust, so cargo stays the runner's rustup
-    # proxy. The cache is keyed on pixi.lock's hash and written from main
-    # only, for the reason rust-cache's save-if gives below.
-    - uses: prefix-dev/setup-pixi@d3f436a425481402e6a95a1d1fc10331c708cd9e # v0.10.2
+    # Upstream Nix through its own installer. No input names a github: flake,
+    # so no token is passed: every input is fetched from channels.nixos.org or
+    # over git.
+    - uses: cachix/install-nix-action@3dc140bfc76c49fbd4dd958429132e3746bcb086 # v31.11.5
+    # The Nix store, keyed on everything the shell is built from, so every job
+    # on one OS and architecture shares one entry. A hit restores the shell
+    # whole; a miss substitutes from cache.nixos.org and builds what it lacks
+    # (rustqual, the checkers), and is saved from any branch, because the key
+    # alone decides the content. The size bound keeps a growing store from
+    # outgrowing the repository's cache quota.
+    - uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7.0.2
       with:
-        pixi-version: v0.84.1
-        manifest-path: pyproject.toml
-        locked: true
-        cache: true
-        cache-write: ${{ github.ref == 'refs/heads/main' }}
-        activate-environment: true
-    # The runner image ships rustup, and rustup 1.28 or later reads
-    # rust-toolchain.toml when given no toolchain, so the pin stays in one
-    # file. dtolnay/rust-toolchain is not used: at a SHA it requires a
-    # `toolchain` input, which would be a second copy of the pin.
-    - run: just install-toolchain
+        primary-key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flake.nix', 'flake.lock', 'nix/**', 'rust-toolchain.toml') }}
+        restore-prefixes-first-match: nix-${{ runner.os }}-${{ runner.arch }}-
+        gc-max-store-size: 5G
+    # Builds or substitutes the shell once, and refuses a flake.lock that
+    # disagrees with flake.nix: CI's lockfile check for the environment.
+    - run: nix develop --no-update-lock-file --command true
       shell: bash
-    # After the toolchain, because the key hashes the rustc version. Saved
-    # from main only: a pull request restores main's cache and never writes
-    # its own, so one branch's target/ cannot evict another's. cache-bin
-    # governs ~/.cargo/bin, which holds nothing this gate installs: every
-    # tool is in the pixi environment setup-pixi restored above, or in
-    # .tools/bin, which actions/cache restores below.
+    # rust-cache runs `rustc -vV` and `cargo metadata` as an action, outside
+    # any shell. Without this line it would find the runner's rustup proxy,
+    # which reads rust-toolchain.toml and downloads a second toolchain.
+    - run: nix develop --no-update-lock-file --command sh -c 'dirname "$(command -v cargo)"' >> "$GITHUB_PATH"
+      shell: bash
+    # Saved from main only: a pull request restores main's cache and never
+    # writes its own, so one branch's target/ cannot evict another's. The key
+    # also hashes flake.lock, because target/ holds build scripts and proc
+    # macros linked against the store's libraries, which a moved lock replaces.
+    # cache-bin governs ~/.cargo/bin, which holds nothing: every tool is in the
+    # dev shell.
     - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
       with:
         shared-key: ${{ inputs.cache-key }}
+        key: ${{ hashFiles('flake.lock') }}
         save-if: ${{ github.ref == 'refs/heads/main' }}
         cache-bin: false
-    # .tools holds what pixi cannot: cargo-hack from tools.txt, rustqual
-    # built from source from tools-source.txt. Keyed on both pin lists: a
-    # bumped line in either is a new key, and cargo-binstall skips a
-    # matching version already present on a hit. A key that missed a list
-    # would hit the old cache on a bump, and the new version would be
-    # installed, rustqual rebuilt, on every run and never saved, since a hit
-    # writes nothing back.
-    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-      with:
-        path: .tools
-        key: ${{ runner.os }}-${{ runner.arch }}-tools-${{ hashFiles('tools.txt', 'tools-source.txt') }}
-    # On the step that installs, never on the job: cargo-binstall (the
-    # environment's) reads GITHUB_TOKEN to raise the GitHub API rate limit
-    # while it resolves the release archive, and no other step has a use for
-    # it. It is the run's own token, minted and discarded with the run, so
-    # nothing is stored here. The recipe unsets it for the tools-source.txt
-    # pass, which compiles, so no build script sees it.
-    - run: just install-tools
-      shell: bash
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-    # Exactly what the lockfiles say: Cargo.lock fetched, pixi.lock
-    # installed, neither rewritten.
-    - run: just sync
-      shell: bash
-    # prek's cache outside the workspace, so check-clean's snapshot never
-    # sees it. PREK_HOME is prek 0.5.3's cache variable.
-    - run: echo "PREK_HOME=${{ runner.temp }}/prek" >> "$GITHUB_ENV"
-      shell: bash
-    # The seven hook clones, the Go, Node and rustup toolchains and the
-    # ripsecrets build, which every gate job would otherwise fetch again.
-    # Keyed on both hook configs and on pixi.lock, which pins prek; saved on
-    # any branch, like .tools.
-    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-      with:
-        path: ${{ runner.temp }}/prek
-        key: ${{ runner.os }}-${{ runner.arch }}-prek-${{ hashFiles('.pre-commit-config.yaml', '.pre-commit-fix.yaml', 'pixi.lock') }}
-    # The prepare and the lychee warm are the point; the shim it writes into
-    # the runner's .git is harmless. After this step no step reaches the
-    # network.
-    - run: just install-hooks
+    # Exactly what the lockfiles say: Cargo.lock and fuzz/Cargo.lock fetched,
+    # neither rewritten. After this step no step reaches the network.
+    - run: nix develop --no-update-lock-file --command just sync
       shell: bash
