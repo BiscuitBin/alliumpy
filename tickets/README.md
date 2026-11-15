@@ -39,7 +39,7 @@ snapshot.
 | T15 | Mutation testing, benchmarks and fuzzing over `alliumpy-core` | `T15-mutants-bench-fuzz.md` | T11 | T12, T13, T14 | open |
 | T17 | Renovate over every pin except the upstream crate; the upstream-bump runbook | `T17-renovate.md` | T14, T15 | none | done |
 | T18 | Verification gaps: the checks the wave-0 and wave-1 hand-backs did not run | `T18-verification-gaps.md` | T11 | T12, T13, T14, T15, T17 | done |
-| T19 | Nix owns the development environment: one flake for the toolchain, the tools and CI | `T19-nix-dev-environment.md` | T17 | none | open |
+| T19 | Nix owns the development environment: one flake for the toolchain, the tools and CI | `T19-nix-dev-environment.md` | T17 | none | done |
 
 The ids follow pachinko's where the ticket is the same kind of work, so that the two
 repositories stay comparable, and fill the gaps pachinko left: T03 and S01 are new here;
