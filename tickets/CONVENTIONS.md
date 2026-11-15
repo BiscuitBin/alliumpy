@@ -7,6 +7,15 @@ document disagree, this document wins and the ticket is corrected. Changes to th
 document go through a pull request on `main`, never through a lane branch, because every
 lane reads it.
 
+**Amended by T19 (decision 0018).** A Nix flake now owns the development environment:
+the compiler, Python and every tool a recipe or hook calls, pinned by `flake.lock`.
+Wherever a section below names pixi, `pixi.lock`, rustup's cargo proxy, `tools.txt`,
+`tools-source.txt`, cargo-binstall, `.pixi/`, `.tools/bin` or prek's remote hook
+repositories as the owner or location of a tool, read decision 0018 and
+`docs/how-to/develop-locally.md` instead. Those sections are kept as the record of how
+the bootstrap was built. §11's evidence and network-denial rules and §14 are unchanged.
+T19 made this one edit on its lane branch, as a recorded departure from the rule above.
+
 The foundation is a copy of pachinko's, adapted, and pachinko's is a copy of
 libpawdoku's. Almost every file a ticket writes already exists, finished and green, in P
 at the pinned commit; a ticket names that file and the delta, and the agent reads the
