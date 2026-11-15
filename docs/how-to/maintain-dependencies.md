@@ -51,7 +51,7 @@ working, not a failed read.
 | `crates` | `Cargo.lock` and `fuzz/Cargo.lock` within the caret ranges, or a range itself when a release falls outside it, which is the diff to read |
 | `github actions` | each remote action's SHA with its version comment, in the workflows and the `setup` action |
 | `rust toolchain` | `channel` in `rust-toolchain.toml` and `rust-version` in the root and fuzz manifests |
-| `nix` | `flake.lock`'s inputs: nixpkgs, and with it every tool in the dev shell; rust-overlay; the checkers' revision |
+| `nix` | `flake.lock`'s inputs: nixpkgs, and with it every tool in the dev shell, and rust-overlay. The checkers' input is left to its tag's own rule |
 | `uv` | the release job's `setup-uv` `version`, read from PyPI |
 | `maturin` | every `maturin-version` in `release-pypi.yml`, read from PyPI |
 | `python build backend` | the `maturin` range in `crates/alliumpy/pyproject.toml` |

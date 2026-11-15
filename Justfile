@@ -34,14 +34,16 @@ initialize:
 # flake.nix, flake.lock, nix/ and rust-toolchain.toml produce: the shell exports a
 # digest of those files and the recipe recomputes it from the worktree, so a shell
 # entered before a pull, a lock or an edit is refused. cargo, rustc, rustfmt and clippy
-# resolve inside the flake's toolchain, and every other tool a gate calls resolves inside
-# the Nix store, so a rustup proxy in ~/.cargo/bin, a Homebrew cargo or a uv in
-# ~/.local/bin is refused by path, wherever it sits on PATH. And rustc and cargo report
+# resolve inside the flake's toolchain, and every other tool a gate calls resolves in one
+# of the shell's own packages, so a rustup proxy in ~/.cargo/bin, a Homebrew cargo, a uv
+# in ~/.local/bin or a tool from another Nix shell is refused by path, wherever it sits
+# on PATH. And rustc and cargo report
 # exactly the channel rust-toolchain.toml pins.
 check-toolchain:
     #!/bin/sh
     set -eu
     fail() { printf 'check-toolchain: %s\n' "$1" >&2; exit 2; }
+    [ -n "${ALLIUMPY_ENV_FILES:-}" ] && [ -n "${ALLIUMPY_TOOL_PATH:-}" ] || fail 'not in the dev shell: ALLIUMPY_DEV_SHELL is set, but the variables the shell exports are not; run nix develop'
     have=$(for f in $ALLIUMPY_ENV_FILES; do [ -f "$f" ] || fail "$f is missing"; sha256sum "$f" | cut -d' ' -f1; done | tr -d '\n' | sha256sum | cut -d' ' -f1)
     [ "$have" = "${ALLIUMPY_ENV_FINGERPRINT:-}" ] || fail 'the dev shell is stale: flake.nix, flake.lock, nix/ or rust-toolchain.toml changed since it was entered; leave it and run nix develop again'
     for tool in cargo rustc rustfmt cargo-clippy; do
@@ -50,7 +52,7 @@ check-toolchain:
     done
     for tool in {{ gate_tools }}; do
         at=$(command -v "$tool") || fail "$tool is not on PATH"
-        case "$at" in /nix/store/*) ;; *) fail "$tool resolves to $at, not the dev shell";; esac
+        case ":$ALLIUMPY_TOOL_PATH:" in *":${at%/*}:"*) ;; *) fail "$tool resolves to $at, not the dev shell";; esac
     done
     pin=$(sed -n 's/^channel = "\(.*\)"$/\1/p' rust-toolchain.toml)
     [ -n "$pin" ] || fail 'rust-toolchain.toml names no channel'
@@ -85,8 +87,9 @@ lock-upgrade:
 
 # Offline, like every gate recipe: a cold Cargo cache fails rather than fetching the
 # registry index (`just sync` fills it). --no-update-lock-file makes a flake.lock that
-# disagrees with flake.nix an error instead of a rewrite, and --offline makes an input
-# missing from the store one too.
+# disagrees with flake.nix (an input added, removed or pointed elsewhere) an error
+# instead of a rewrite; --offline keeps it from fetching. It checks the lock's shape, not
+# its hashes: those are checked when the shell is built from it.
 lock-check:
     cargo update --workspace --locked --offline
     cargo update --workspace --locked --offline --manifest-path fuzz/Cargo.toml
@@ -149,7 +152,7 @@ test-doc:
 # Gate 22: snapshots match, and every .snap file is referenced by a test.
 # Run the whole suite so the orphan check sees every reference. --check and
 # INSTA_UPDATE=no fail mismatches without writing pending files.
-# cargo-insta 1.48.0 forwards trailing options as test arguments, so nextest
+# cargo-insta forwards trailing options as test arguments, so nextest
 # rejects --locked. Check the locks first, offline, before cargo-insta runs.
 # Doctests already have their own gate; disabling its extra run avoids a warning.
 snapshots-check: lock-check
@@ -340,9 +343,13 @@ py-stubtest: py-develop
 # The release wheel for this platform into dist/, which is emptied first so a
 # stale wheel can never be smoked. A release build on every `just check` is
 # the price of smoking the artefact the release ships (CONVENTIONS.md §9).
+#
+# NIX_DONT_SET_RPATH keeps the dev shell's linker from writing its store paths into the
+# extension's RUNPATH: the wheel is for machines without Nix, and on one with Nix those
+# paths would load the store's libgcc_s instead of the system's.
 wheel:
     rm -rf dist
-    maturin build --release --manifest-path crates/alliumpy/Cargo.toml --out dist
+    NIX_DONT_SET_RPATH=1 maturin build --release --manifest-path crates/alliumpy/Cargo.toml --out dist
 
 # Gate: the wheel installs and works in a fresh virtual environment, offline.
 # Exactly one wheel, which must exist (an unmatched glob is one literal argument);

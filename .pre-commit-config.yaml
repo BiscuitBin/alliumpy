@@ -88,8 +88,9 @@ repos:
       # editorconfig-checker and markdownlint report the same defects here.
 
   # The third-party checkers, as system hooks on the binaries the dev shell provides.
-  # Each keeps the id, name, file selection and arguments of the upstream hook it
-  # replaces (decision 0018), so `just check-docs` still selects them by id.
+  # Each keeps the id, file selection, stages and arguments of the upstream hook it
+  # replaces, and the name this configuration gave it (decision 0018), so
+  # `just check-docs` still selects them by id.
   - repo: local
     hooks:
       # Upstream declares no `types`, which would widen this to every file in the
@@ -114,6 +115,7 @@ repos:
         args: [--force-exclude]
         language: system
         types: [text]
+        stages: [pre-commit, pre-merge-commit, pre-push, manual]
 
       - id: lychee
         name: lychee
@@ -139,9 +141,10 @@ repos:
         types: [shell]
         require_serial: true
 
-      # actionlint runs the shell's shellcheck over every `run:` block it finds.
+      # actionlint runs the shell's shellcheck over every `run:` block whose shell it
+      # recognises; a job that defaults to the dev shell is not one (decision 0018).
       - id: actionlint
-        name: actionlint
+        name: Lint GitHub Actions workflow files
         entry: actionlint
         language: system
         types: [yaml]

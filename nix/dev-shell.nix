@@ -38,9 +38,7 @@ let
   fingerprint = builtins.hashString "sha256" (
     lib.concatMapStrings (file: builtins.hashFile "sha256" (../. + lib.removePrefix "." file)) envFiles
   );
-in
-pkgs.mkShell {
-  name = "alliumpy-dev";
+
   packages = [
     rustToolchain
     pythonEnv
@@ -78,10 +76,17 @@ pkgs.mkShell {
     pkgs.nixfmt
   ]
   ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [ pkgs.libiconv ];
+in
+pkgs.mkShell {
+  name = "alliumpy-dev";
+  inherit packages;
 
   env = {
     ALLIUMPY_DEV_SHELL = "1";
     ALLIUMPY_RUST_TOOLCHAIN = "${rustToolchain}";
+    # The bin directories of exactly the packages above: check-toolchain refuses a gate
+    # tool from anywhere else, another store path included.
+    ALLIUMPY_TOOL_PATH = lib.makeBinPath packages;
     ALLIUMPY_ENV_FILES = lib.concatStringsSep " " envFiles;
     ALLIUMPY_ENV_FINGERPRINT = fingerprint;
     # Only for the string context: the inputs' source trees join the shell's closure,
@@ -89,6 +94,9 @@ pkgs.mkShell {
     ALLIUMPY_FLAKE_INPUTS = "${inputs.nixpkgs} ${inputs.rust-overlay} ${inputs.biscuit-games-tooling}";
     # Every cargo invocation compiles the bindings against this interpreter.
     PYO3_PYTHON = "${pythonEnv}/bin/python";
+    # stdenv would add `-rpath $out/lib` to every link, and in a shell $out is a path
+    # under the worktree, which would then be baked into every binary built here.
+    NIX_NO_SELF_RPATH = "1";
     # uv uses the shell's interpreter and never downloads one.
     UV_PYTHON_DOWNLOADS = "never";
     UV_PYTHON_PREFERENCE = "only-system";

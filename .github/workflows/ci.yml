@@ -43,7 +43,8 @@ jobs:
     defaults:
       run:
         shell: nix develop --no-update-lock-file --command bash --noprofile --norc -eo pipefail {0}
-    timeout-minutes: 20
+    # Room for a cold store: a cache miss builds the shell before anything runs.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -183,7 +184,8 @@ jobs:
     defaults:
       run:
         shell: nix develop --no-update-lock-file --command bash --noprofile --norc -eo pipefail {0}
-    timeout-minutes: 20
+    # Room for a cold store: a cache miss builds the shell before anything runs.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -238,7 +240,8 @@ jobs:
     defaults:
       run:
         shell: nix develop --no-update-lock-file --command bash --noprofile --norc -eo pipefail {0}
-    timeout-minutes: 15
+    # Room for a cold store: a cache miss builds the shell before anything runs.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

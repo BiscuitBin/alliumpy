@@ -33,7 +33,7 @@
       "minimumReleaseAge": "7 days"
     },
     {
-      "description": "The toolchain: channel in rust-toolchain.toml and rust-version in both manifests, one pull request. rust-release-channel versioning keeps the precision of the value it replaces, so rust-version stays major.minor. Held for dashboard approval, because a toolchain moves the clippy lint set; a vulnerability-fix pull request skips that approval.",
+      "description": "The toolchain: channel in rust-toolchain.toml and rust-version in both manifests, one pull request. rust-release-channel versioning keeps the precision of the value it replaces, so rust-version stays major.minor. Held for dashboard approval, because a toolchain moves the clippy lint set; a vulnerability-fix pull request skips that approval. The dev shell reads the channel through rust-overlay, so a channel newer than the locked rust-overlay fails the setup action with Stable <version> is not available: run nix flake update rust-overlay on the branch and push the moved flake.lock (docs/how-to/maintain-dependencies.md).",
       "matchDepNames": ["rust"],
       "groupName": "rust toolchain",
       "dependencyDashboardApproval": true
@@ -91,6 +91,12 @@
       "matchManagers": ["nix"],
       "groupName": "nix",
       "dependencyDashboardApproval": true
+    },
+    {
+      "description": "The checkers' input is a release tag, which the regex manager on flake.nix owns; the nix manager would read the same input from flake.lock, so it leaves this one alone and the tag has one owner.",
+      "matchManagers": ["nix"],
+      "matchDepNames": ["biscuit-games-tooling"],
+      "enabled": false
     },
     {
       "description": "twine in the release workflow's check of every job's dist/: first exercised by the release rehearsal, because the workflow does not run on pull requests. Held for dashboard approval; a vulnerability-fix pull request skips that approval.",

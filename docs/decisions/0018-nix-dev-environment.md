@@ -135,6 +135,14 @@ The ones that hurt come first.
   - The git revisions and content hashes in `flake.lock`.
 
   [Security model](../explanation/security-model.md) has the detail.
+- **actionlint no longer shellchecks the gate jobs' `run:` blocks.** It does not
+  recognise the dev-shell default shell those jobs set, so it skips them. They are
+  one-line `just` calls; multi-line shell there needs reading by eye.
+- **The CI wheel is the dev shell's, not the release's.** `wheel-smoke-py311` installs
+  the wheel `just wheel` built with nixpkgs' maturin and the shell's linker, not one
+  built by the release workflow's maturin-action with its own maturin pin. The `wheel`
+  recipe keeps the store's paths out of the extension's RUNPATH, and the shell keeps the
+  worktree out, so the artefact names nothing on the machine that built it.
 - **Commits and first runs cost time.** A commit made outside the shell pays a few
   seconds to enter it. A first `nix develop` fills about 2.5 GiB of store on Linux.
 - **A store garbage collection can break built files.** It can remove what `target/`

@@ -13,7 +13,13 @@ Wherever a section below names pixi, `pixi.lock`, rustup's cargo proxy, `tools.t
 `tools-source.txt`, cargo-binstall, `.pixi/`, `.tools/bin` or prek's remote hook
 repositories as the owner or location of a tool, read decision 0018 and
 `docs/how-to/develop-locally.md` instead. Those sections are kept as the record of how
-the bootstrap was built. §11's evidence and network-denial rules and §14 are unchanged.
+the bootstrap was built. In §11's "Network" bullet the recipes that reach the network are
+now those `AGENTS.md` lists (`initialize`, `sync`, `lock`, `lock-upgrade`, `audit`,
+`check-links-online`, `install-parity-reference`), plus entering the dev shell on a first
+run or after `flake.lock` moves; `install-toolchain` and `install-tools` are gone, and
+`install-hooks` is offline. On a single-user Nix store the OS-level denial is
+`unshare -n` as root, because `unshare -rn` leaves Nix unable to write its store. §11's
+other evidence rules and §14 are unchanged.
 T19 made this one edit on its lane branch, as a recorded departure from the rule above.
 
 The foundation is a copy of pachinko's, adapted, and pachinko's is a copy of
