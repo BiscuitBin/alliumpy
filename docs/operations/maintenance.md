@@ -35,8 +35,8 @@ pass and merge what is green; they rebase and rerun while they wait.
 **Monthly.** Read Renovate's dependency dashboard and approve what is due, one kind at a
 time, then read each pull request it opens and merge it yourself;
 [Maintain dependencies](../how-to/maintain-dependencies.md) lists what it proposes and what
-each kind needs. Approve a `tools-source.txt` line one release at a time, because
-rustqual is a gate. What Renovate does not read moves by hand, as that page lists; to move
+each kind needs. Approve a rustqual bump one release at a time, because rustqual is a
+gate, and the `nix` group on its own, because a nixpkgs move moves every tool at once. What Renovate does not read moves by hand, as that page lists; to move
 a lockfile without waiting for it, `just lock-upgrade` moves all three within the
 manifests' constraints, and `just check` and a commit follow.
 

@@ -35,6 +35,13 @@ Regex managers read `rust-version`, `tools.txt` and `tools-source.txt`, `nextest
 `maturin-version`, the `setup-uv` version, `twine`, the tooling tag, the pixi bootstrap
 pair and the hook revs.
 
+Amended by [decision 0018](0018-nix-dev-environment.md): the pixi manager, the pixi bootstrap pair, the tool lists,
+`nextest-version` and the hook revs are gone with what they read. The `nix` manager
+reads `flake.lock`'s inputs, which pin every tool, as one held group; regex managers read
+rustqual's version in `nix/rustqual.nix` and the tooling tag in `flake.nix`, each held;
+and the release workflow's `maturin-version` and `setup-uv` version are read from PyPI,
+no longer paired with a local pin.
+
 **The exclusion.** A rule disables `allium-parser` under the cargo manager, in both cargo
 roots. An upstream bump moves the wheel version, the version constants, the vendored code
 and the parity reference together, and `just version-check` fails a bare one by design; it

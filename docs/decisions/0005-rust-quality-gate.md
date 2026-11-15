@@ -40,7 +40,9 @@ rustdoc with `-D warnings --cfg docsrs`, so a broken intra-doc link fails the ga
 taplo for every TOML file, formatting and lint. `cargo-shear` for a dependency nothing
 uses. nextest for unit and integration tests and `cargo test --doc` for doctests, which
 run uncovered. Tool binaries come through pixi, cargo-hack through `tools.txt`, and
-rustqual through `tools-source.txt`, one owner per pin (decision 0006). Clippy runs at
+rustqual through `tools-source.txt`, one owner per pin (decision 0006). Amended by [decision 0018](0018-nix-dev-environment.md):
+every tool, rustqual and cargo-hack included, now comes from the dev shell `flake.lock`
+pins. Clippy runs at
 gate 6 and in CI but never as a commit hook, because a cold run blocks every commit for
 tens of seconds to minutes.
 

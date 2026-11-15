@@ -25,10 +25,9 @@ INSTA_UPDATE=no cargo nextest run -p alliumpy-core --all-features --locked -E 't
 INSTA_UPDATE=no RUST_BACKTRACE=1 cargo nextest run -p alliumpy-core --all-features --locked -E 'test(name)'
 ```
 
-The tools live in `.pixi/envs/default/bin` and `.tools/bin`, which the `Justfile` puts on
-`PATH` for every recipe and your shell does not. From a shell, prefix
-`PATH="$PWD/.pixi/envs/default/bin:$PWD/.tools/bin:$PATH"`, or use
-`pixi run --frozen cargo nextest ...`.
+Run these inside the dev shell, where cargo-nextest and every other tool are on `PATH`
+([Develop locally](develop-locally.md)). From a shell outside it, prefix
+`nix develop --command`.
 
 Framework configuration and conventions are described in
 [Testing](../reference/testing.md); this page is about narrowing down a failure.
@@ -47,8 +46,8 @@ Framework configuration and conventions are described in
    upstream issue with a reproducing input.
 
 For bindings failures, run `just py-test`, then narrow to a file with
-`.pixi/envs/default/bin/python -m pytest crates/alliumpy/tests/test_parse.py` after
-`just py-develop`. Run `just py-stubtest` to compare the built module with its stub.
+`target/py-env/bin/python -m pytest crates/alliumpy/tests/test_parse.py` after
+`just py-develop`, which builds the extension into that venv. Run `just py-stubtest` to compare the built module with its stub.
 Run `just wheel-smoke` to test the release wheel in a fresh isolated environment.
 
 ## Read and accept a changed snapshot

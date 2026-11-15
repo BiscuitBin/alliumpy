@@ -38,9 +38,11 @@ is whatever maturin-action's `manylinux: auto` image produces, and whether each 
 label exists is settled by the first rehearsal run, not by this page.
 [Cut a release](../how-to/release.md) runs the matrix.
 
-`just check` builds and smokes only the developer's platform, using pixi Python 3.14.
-The POSIX Justfile and pixi platforms cover Linux x86_64 and macOS arm64. T01's CI adds
-a Python 3.11 smoke of the Linux wheel to prove the abi3 floor. Other targets,
+`just check` builds and smokes only the developer's platform, using the dev shell's
+Python 3.14. The POSIX Justfile and the flake's two systems cover Linux x86_64 and macOS
+arm64 ([decision 0018](../decisions/0018-nix-dev-environment.md)). T01's CI adds a Python
+3.11 smoke of the Linux wheel, on a stock interpreter outside Nix, to prove the abi3
+floor. Other targets,
 musllinux and `cp314t` are release-matrix evidence, not a claim made by a local gate.
 The release workflow's rehearsal supplies the Windows launcher and exit-code proof.
 
@@ -57,11 +59,11 @@ the member manifests to verify it.
 
 ## Two manifests, two owners
 
-The root `pyproject.toml` owns pixi's tooling environment, exact tool pins, Python and
-the ordered gate recipes. `pixi.lock` records its resolution. pixi searches the current
-directory and parents, never nested manifests; run recipes from the repository root.
+The root `pyproject.toml` holds only the ordered gate recipes the shared checkers read;
+it is not a project. The tools and the interpreter that run the gates come from the dev
+shell, pinned by `flake.lock`.
 
-`crates/alliumpy/pyproject.toml` belongs to maturin alone and has no `[tool.pixi]` table.
+`crates/alliumpy/pyproject.toml` belongs to maturin alone.
 It owns the distribution name, static version, Python floor, metadata, console entry
 point and native module layout. `locked = true` makes its builds honour `Cargo.lock`.
 Release LTO remains enabled; panic behaviour remains unwind so pyo3 can turn a panic

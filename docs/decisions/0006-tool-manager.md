@@ -10,6 +10,10 @@ requires: []
 
 Carried from pachinko's decision 0011 at `bf51e0d`, which carried libpawdoku's decision 0011 at `ccdd001`.
 
+**Superseded by [decision 0018](0018-nix-dev-environment.md).** A Nix flake now owns the
+compiler, Python and every tool, pinned by `flake.lock`; pixi, rustup's proxy and the two
+tool lists are gone. The record below is kept as the reasoning 0018 replaces.
+
 ## Context
 
 The carried hook-runner decision kept Python and named the installers of its day: uv for

@@ -42,7 +42,7 @@ deliberate runtime/stub mismatch must fail. mypy checks declared types; it does 
 ## Installed wheel smoke
 
 `just wheel-smoke` empties dist and builds the release wheel, requires exactly one real
-wheel, creates a fresh venv on pixi's interpreter with no Python download, and installs
+wheel, creates a fresh venv on the dev shell's interpreter with no Python download, and installs
 with `--offline --no-index --no-deps`. Isolated Python (`-I`) imports that installation,
 parses the clean and broken smoke fixtures and checks versions. The installed console
 script must print upstream's version string and exit 0 from `allium check` on the clean

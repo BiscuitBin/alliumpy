@@ -16,7 +16,7 @@ The recipe is the defect, not your change. Checks are read-only; anything that w
 belongs in `.pre-commit-fix.yaml` and runs from `just fix`. The report names which paths
 moved. Move the offending hook, or add the generated path to the ignore rules.
 Here the usual paths are a build or tool directory that escaped the ignore rules —
-`target/`, `.tools/` or `.pixi/` — or a rewritten `Cargo.lock` or `pixi.lock`, which
+`target/`, `.tools/` or `.nix/` — or a rewritten `Cargo.lock` or `flake.lock`, which
 means a recipe resolved dependencies instead of reading the lockfile.
 
 ## `docs validation: frontmatter <field> disagrees with the manifest`
@@ -58,34 +58,62 @@ On a crate this small the denominator is small too, so one untested branch in
 the conversion is enough to breach the floor on its own. Test it or delete it; the number
 stays where it is.
 
-## `cargo resolves to <path>, not rustup's proxy`
+## `error: not in the dev shell`
 
-`just check-toolchain`, the first gate, found a `cargo` on `PATH` that is not rustup's.
-A cargo from pixi, Homebrew or a distribution ignores `rust-toolchain.toml` and builds
-with whatever version it is, so the gate stops before anything compiles. Put
-`~/.cargo/bin` ahead of the other directory on `PATH`, or remove the other cargo — for a
-global pixi install, `pixi global uninstall rust` — until `command -v cargo` prints the
-proxy in `~/.cargo/bin`.
+Every recipe refuses to run outside the dev shell `flake.nix` defines, because outside it
+a recipe would run whatever tools the machine has. Enter it with `nix develop`, or run
+one recipe from any shell with `nix develop --command just <recipe>`. With direnv,
+`direnv allow` once makes the shell follow `cd` into the checkout.
+[Develop locally](../how-to/develop-locally.md) describes both.
 
-## `rustup is not installed`
+## `check-toolchain: <tool> resolves to <path>, not the flake's toolchain`
 
-The same gate, one step earlier: there is no `rustup` on `PATH` at all. Install rustup
-as [Develop locally](../how-to/develop-locally.md) describes, then run
-`just install-toolchain`.
+`just check-toolchain`, the first gate, found a `cargo`, `rustc`, `rustfmt` or
+`cargo-clippy` on `PATH` from outside the flake's toolchain: usually a rustup proxy in
+`~/.cargo/bin` or a Homebrew cargo put ahead of the shell's `PATH` after it was entered,
+by a shell startup file or by hand. Such a cargo ignores the pin and builds with whatever
+release it is. Remove the directory from the front of `PATH`, or leave and enter the
+shell again, until `command -v cargo` prints a path under `$ALLIUMPY_RUST_TOOLCHAIN`.
 
-## A recipe cannot find `prek` or a `bg-*` script
+## `check-toolchain: <tool> resolves to <path>, not the dev shell`
 
-The pixi environment under `.pixi/` and the binaries under `.tools/bin/` are installed
-per worktree, and a fresh worktree has neither. `pixi install --frozen` restores the
-environment, `just install-tools` the tools `tools.txt` and `tools-source.txt` pin, and
-`just initialize` does both. A worktree
-that was renamed or moved needs `pixi install --frozen` again even though `.pixi/` is
-there: the `bg-*` scripts' shebangs name the Python at the worktree's old absolute path.
+The same gate, for every other tool a gate calls: one resolved outside `/nix/store`, such
+as a uv in `~/.local/bin` or a just from a package manager, ahead of the shell's own.
+The fix is the same: nothing from outside the store may come before the shell on `PATH`.
 
-## `just lock-check` or `pixi install --locked` fails on `pixi.lock`
+## `check-toolchain: the dev shell is stale`
 
-`pixi.lock` is stale against `pyproject.toml`: a pin moved in the manifest and the
-lockfile was not solved again. Run `just lock`, read the diff, and commit the lockfile.
+`flake.nix`, `flake.lock`, `rust-toolchain.toml` or a file under `nix/` changed after
+this shell was entered: a pull, a `just lock` or an edit. Leave the shell and run
+`nix develop` again; a direnv shell reloads on its own. A file the shell lists that is
+missing fails the same way.
+
+## The first `nix develop` downloads for minutes
+
+Expected once per machine and once after each `flake.lock` move: Nix substitutes the
+toolchain and tools from cache.nixos.org and builds the two packages nixpkgs lacks.
+It needs the network, as `just initialize` does. Re-entering an unchanged shell is
+offline, and `just sync` records a GC root at `.nix/dev-shell`, so a store garbage
+collection keeps it.
+
+## `nix develop` fails on a TLS certificate
+
+Behind a TLS-intercepting proxy Nix must trust the proxy's CA. Point `ssl-cert-file` in
+the Nix configuration, or `NIX_SSL_CERT_FILE`, at a bundle that contains it.
+`nix develop` keeps the caller's `SSL_CERT_FILE` and `NIX_SSL_CERT_FILE`, so the network
+recipes inside the shell see the same bundle.
+
+## `Path 'nix/<file>.nix' ... is not tracked by Git`
+
+A flake sees only the files Git tracks. A new file under `nix/`, or a new file
+`flake.nix` names, must be added (`git add`) before the flake can evaluate it; nothing
+needs to be committed.
+
+## `just lock-check` fails: `requires lock file changes but they're not allowed`
+
+`flake.lock` disagrees with `flake.nix`: an input was added, removed or its URL edited
+without relocking. Run `just lock`, read the `flake.lock` diff, and commit it with the
+`flake.nix` change. Then enter the shell again.
 
 ## `cargo` reports that `Cargo.lock` needs to be updated but `--locked` was passed
 
@@ -96,68 +124,36 @@ manifest. A new dependency is a decision before it is an edit:
 [Decision 0004](../decisions/0004-dependency-policy.md) says what one has to
 justify.
 
-## `just lint` clones or downloads
+## A commit fails in the hook with `nix: not found`, or is slow
 
-Every hook environment should already be prepared, so `lint`, and `just check` around
-it, never reaches the network. If it does, prek's cache was cleared, or this is a
-secondary worktree whose primary checkout never ran `just initialize`. Run
-`just install-hooks` from the primary checkout; it prepares every hook environment and
-warms the link checker. `just initialize` is where the network belongs, and `just check`
-must not need it.
+The installed hook is `scripts/pre-commit-hook.sh`. From inside the dev shell it runs
+prek directly. From outside, as from an editor or a GUI client, it enters the shell with
+`nix develop` first, which costs a few seconds, and it looks for `nix` on `PATH`, then in
+`/nix/var/nix/profiles/default/bin` and `~/.nix-profile/bin`. A Nix installed anywhere
+else needs that directory on the client's `PATH`. A hook that predates this shim names an
+old path: run `just install-hooks` from the primary checkout.
 
-## The ripsecrets hook fails to install: the package believes it is in a workspace
+## After a store garbage collection, a reference or a build fails to start
 
-`PREK_HOME` points inside a Cargo workspace, this checkout included. ripsecrets is a Rust
-hook, built in prek's cache, and a build under a workspace root is taken for a member of
-it. Point `PREK_HOME` at a directory outside any checkout, as CI does with the runner's
-temporary directory, and run `just install-hooks` again.
-
-## `just install-tools` will not compile a tool in `tools.txt`
-
-The refusal comes from the `tools.txt` pass, and it is deliberate: that list is
-binary-only (`--disable-strategies compile`), so a tool that cannot be installed from a
-release binary fails loudly rather than compiling at bootstrap. The pin names a version
-with no release binary for this host; choose one that has one. A tool with no release
-binary for any version belongs in `tools-source.txt` instead, which may compile, and only
-on a decision record that accepts the build, as decision 0007 does for rustqual. To see
-which cargo-binstall is running, ask it with `cargo binstall -V -v`: `cargo --list -v`
-names the last one on `PATH`, not the one cargo runs.
-
-## rustqual's source build fails with no toolchain
-
-The `tools-source.txt` pass compiles rustqual with whichever toolchain rustup selects.
-From inside the repository, that is the one `rust-toolchain.toml` pins; from anywhere
-else it is rustup's default, and on a machine with no default rustup has no toolchain
-to choose, so the build fails before it starts. `just` runs every recipe from the
-repository root wherever it is called, so this happens only to a `cargo binstall` or
-`cargo install` run by hand elsewhere: run `just install-toolchain`, then
-`just install-tools`. A build that fails partway on a network error can simply be run
-again; `--locked` means it resolves the same versions each time.
-
-## `just metrics` reports the wrong rustqual
-
-`metrics: rustqual missing on PATH, tools-source.txt pins 1.8.3` means
-`.tools/bin/rustqual` is absent, and a version in place of `missing` means the binary
-found is not the pin, as after a bump to `tools-source.txt`. Run `just install-tools`.
-The gate refuses any other rustqual because its version decides what the gate reports.
-
-## prek behaves as if a pin had not moved
-
-A hook whose `rev` changed still runs its old environment. Clear prek's cache with
-`pixi run --frozen prek cache clean`, then run `just install-hooks` again to prepare
-every environment from the current configuration.
+`nix-collect-garbage` removes store paths nothing roots. The dev shell itself is rooted
+once `just sync` has run, but two things built from it are not: the parity reference in
+`.tools/parity/`, and the build scripts and proc macros under `target/`, which link
+against store libraries. A reference that no longer starts fails `version-check`: run
+`just install-parity-reference` again. A build script that no longer starts needs
+`cargo clean`.
 
 ## pyo3 finds the wrong Python
 
-A direct Cargo call without `PYO3_PYTHON` can select a system Python older than the ABI
-floor. Use the Justfile, which sets it to the absolute pixi interpreter, or export that
-same path for direct calls. Rebuild after correcting it.
+The dev shell exports `PYO3_PYTHON` as its own interpreter, so every Cargo invocation
+inside it builds the bindings against that Python. A direct Cargo call from outside the
+shell can select a system Python older than the ABI floor, and is outside the pins anyway:
+run it inside the shell, or through `nix develop --command`. Rebuild after correcting it.
 
 ## maturin develop cannot find an environment
 
-Use `just py-develop`. It sets `CONDA_PREFIX` to the pixi environment for that invocation
-and finds the pinned uv on PATH. Run from the root so pixi uses the tooling manifest,
-rather than the nested maturin-only manifest.
+Use `just py-develop`. The shell's Python is read-only, so the recipe recreates the venv
+`target/py-env` on it, then runs maturin with `VIRTUAL_ENV` naming that venv. A bare
+`maturin develop` has no venv to install into.
 
 ## Python still sees an old attribute set
 

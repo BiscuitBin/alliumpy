@@ -9,19 +9,21 @@ requires: []
 # Make your first change
 
 About half an hour after setup, from a green baseline through one small change and its
-tests. The first run needs network access, rustup and pixi;
-[Develop locally](../how-to/develop-locally.md) describes them. The change crosses the
+tests. The first run needs network access and Nix with flakes enabled;
+[Develop locally](../how-to/develop-locally.md) describes both. The change crosses the
 core, native binding, Python stub and pytest case. Work in a disposable branch or
 worktree: this exercise demonstrates a field addition, rather than asking you to ship it.
 
 ## 1. Get the workspace running
 
 ```console
+nix develop
 just initialize
 just check
 ```
 
-Initialization installs pinned tools and dependencies. It installs hooks only from the
+`nix develop` enters the dev shell, which holds every pinned tool; every recipe refuses
+to run outside it. Initialization fetches the Cargo dependencies and installs the hook. It installs hooks only from the
 primary checkout, never formats, and never stages, commits, tags or pushes.
 Read the first gate failure before editing; start only from a green baseline.
 

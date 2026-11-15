@@ -80,7 +80,8 @@ The ones that hurt.
 - **Two settings live outside the repository.** The Pages source and the environment's
   rule are not in any file, so no gate reads them.
 - **The build installs the whole gate's tooling to run one `cargo doc`**, because the
-  setup action is the one tested path to `just` and the pinned toolchain.
+  setup action is the one tested path to `just` and the pinned toolchain. Amended by [decision 0018](0018-nix-dev-environment.md):
+  that tooling is now the dev shell, restored from the store cache.
 
 ## What would reopen this
 
