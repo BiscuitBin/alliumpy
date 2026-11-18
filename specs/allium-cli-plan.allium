@@ -1,0 +1,260 @@
+-- allium: 3
+-- allium-cli-plan.allium
+
+-- Scope: upstream's `allium plan` at v3.6.1: the test obligations it derives
+--   from one parsed spec file.
+-- Authority: upstream's behaviour, vendored unchanged as
+--   crates/alliumpy-core/src/cli/test_plan.rs (decision 0014). Upstream decides
+--   it; `just parity` proves the command's output against the reference.
+-- Includes: every obligation kind, the construct that yields it, how many it
+--   yields, the obligation's identity and the plan's order.
+-- Excludes:
+--   - Arity, read errors, diagnostics and exit status: allium-cli.allium.
+--   - The wording of each kind's description and the output's field spelling.
+-- Evidence: line numbers refer to crates/alliumpy-core/src/cli/test_plan.rs.
+
+use "./allium-cli.allium" as cli
+
+------------------------------------------------------------
+-- External Entities
+------------------------------------------------------------
+
+-- A named construct in the parsed module: an entity, value type, enum,
+-- variant, config parameter, contract signature, invariant, surface, rule, or
+-- a member of one of them. The parser governs it.
+external entity Construct {
+    name: String
+}
+
+------------------------------------------------------------
+-- Value Types
+------------------------------------------------------------
+
+-- Where the construct that yields an obligation sits in the spec file.
+-- evidence: 33-37
+value SourceSpan {
+    start: Integer
+    end: Integer
+}
+
+-- What a rule-derived obligation depends on. Each set prints sorted.
+-- evidence: 125-150, 1174-1231
+value RuleDependencies {
+    entities_read: Set<String>        -- named in `when` and every `requires`
+    entities_written: Set<String>     -- assigned or transitioned in `ensures`
+    entities_created: Set<String>     -- every `X` in `X.created(...)`
+    entities_removed: Set<String>     -- every `X` in `X.remove(...)` or `X.removed(...)`
+    deferred_specs: Set<String>       -- declared deferred names called or referenced
+    trigger_emissions: Set<String>    -- capitalised calls in `ensures` that are not entities
+    trigger_source: TriggerSource
+}
+
+------------------------------------------------------------
+-- Enumerations
+------------------------------------------------------------
+
+-- How a rule's trigger is classified. evidence: 1085-1122, 1136-1172
+enum TriggerSource { external | state_transition | temporal | creation | chained }
+
+-- evidence: 45-92
+enum ObligationKind {
+    entity_fields | entity_optional | entity_relationship | value_equality
+    | enum_comparable | sum_type_variant | derived | projection | config_default
+    | invariant | rule_success | rule_failure | rule_entity_creation
+    | transition_edge | transition_rejected | transition_terminal
+    | when_presence | when_set | when_clear | temporal
+    | surface_exposure | surface_provides | surface_actor | contract_signature
+}
+
+------------------------------------------------------------
+-- Entities
+------------------------------------------------------------
+
+entity TestPlan {
+    module: cli/Module
+    obligations: TestObligation with plan = this
+}
+
+entity TestObligation {
+    plan: TestPlan
+    kind: ObligationKind
+    source: Construct
+    key: List<String>                 -- the construct path below the kind
+    source_span: SourceSpan
+    expression: String?               -- an invariant's body, as written
+    dependencies: RuleDependencies?   -- rule_success, rule_failure, temporal, rule_entity_creation
+
+    -- The kind in kebab case, then the key, joined by dots: for example
+    -- `transition-edge.Order.pending.done` or `rule-failure.Ship.2`.
+    -- evidence: 350-1021
+    id: obligation_id(kind, key)
+
+    invariant OnlyInvariantsCarryExpressions {
+        (kind = invariant) = (expression != null)
+    }
+}
+
+------------------------------------------------------------
+-- Rules
+------------------------------------------------------------
+
+-- Each rule below walks the module's declarations in source order. Actors,
+-- givens, defaults, uses, deferred specs and open questions yield nothing.
+-- evidence: 160-208
+rule PlanStarted {
+    when: cli/PlanRequested(module)
+    ensures: TestPlan.created(module: module)
+}
+
+-- Entities, internal and external alike. Per item, in item order: a
+-- when_presence per when-qualified field; per transition graph, a
+-- transition_edge per declared edge (duplicates kept), one
+-- transition_rejected, and one transition_terminal when it declares terminal
+-- states; an invariant per entity invariant. After the items: one
+-- entity_fields when the entity has fields, then entity_optional,
+-- entity_relationship, projection and derived per qualifying field, each in
+-- field order. Parameterised derived values yield nothing.
+-- evidence: 538-750, 1041-1049
+rule EntityObligations {
+    when: plan: TestPlan.created
+    ensures:
+        for e in entities(plan.module):
+            for f in when_qualified_fields(e):
+                TestObligation.created(plan: plan, kind: when_presence, source: f, key: [e.name, f.name], source_span: span(f))
+            for g in transition_graphs(e):
+                for edge in edges(g):
+                    TestObligation.created(plan: plan, kind: transition_edge, source: e, key: edge_key(e, edge), source_span: span(edge))
+                TestObligation.created(plan: plan, kind: transition_rejected, source: e, key: [e.name, g.name], source_span: span(g))
+                if terminal_states(g).count > 0:
+                    TestObligation.created(plan: plan, kind: transition_terminal, source: e, key: [e.name, g.name], source_span: span(g))
+            for i in entity_invariants(e):
+                TestObligation.created(plan: plan, kind: invariant, source: i, key: [e.name, i.name], source_span: span(i), expression: body_text(i))
+            if fields(e).count > 0:
+                TestObligation.created(plan: plan, kind: entity_fields, source: e, key: [e.name], source_span: span(e))
+            for f in optional_fields(e):
+                TestObligation.created(plan: plan, kind: entity_optional, source: f, key: [e.name, f.name], source_span: span(f))
+            for f in relationships(e):
+                TestObligation.created(plan: plan, kind: entity_relationship, source: f, key: [e.name, f.name], source_span: span(f))
+            for f in projections(e):
+                TestObligation.created(plan: plan, kind: projection, source: f, key: [e.name, f.name], source_span: span(f))
+            for f in derived_values(e):
+                TestObligation.created(plan: plan, kind: derived, source: f, key: [e.name, f.name], source_span: span(f))
+}
+
+-- A value type yields value_equality, then entity_fields when it has fields.
+-- A named enum yields enum_comparable; an inline enum yields nothing. Each
+-- `variant X : Base` yields sum_type_variant. evidence: 752-799, 1003-1017
+rule ValueEnumAndVariantObligations {
+    when: plan: TestPlan.created
+    ensures:
+        for v in value_types(plan.module):
+            TestObligation.created(plan: plan, kind: value_equality, source: v, key: [v.name], source_span: span(v))
+            if fields(v).count > 0:
+                TestObligation.created(plan: plan, kind: entity_fields, source: v, key: [v.name], source_span: span(v))
+        for n in named_enums(plan.module):
+            TestObligation.created(plan: plan, kind: enum_comparable, source: n, key: [n.name], source_span: span(n))
+        for s in variants(plan.module):
+            TestObligation.created(plan: plan, kind: sum_type_variant, source: s, key: [s.name], source_span: span(s))
+}
+
+-- A config_default per parameter of every config block, keyed by name alone;
+-- a contract_signature per signature; an invariant per top-level invariant.
+-- evidence: 965-1001, 1019-1033
+rule ConfigContractAndInvariantObligations {
+    when: plan: TestPlan.created
+    ensures:
+        for p in config_parameters(plan.module):
+            TestObligation.created(plan: plan, kind: config_default, source: p, key: [p.name], source_span: span(p))
+        for k in contracts(plan.module):
+            for sig in signatures(k):
+                TestObligation.created(plan: plan, kind: contract_signature, source: sig, key: [k.name, sig.name], source_span: span(sig))
+        for i in top_level_invariants(plan.module):
+            TestObligation.created(plan: plan, kind: invariant, source: i, key: [i.name], source_span: span(i), expression: body_text(i))
+}
+
+-- Every surface yields surface_actor, then a surface_exposure per `exposes`
+-- clause and a surface_provides per `provides` clause, in clause order.
+-- evidence: 913-963, 1074-1081
+rule SurfaceObligations {
+    when: plan: TestPlan.created
+    ensures:
+        for s in surfaces(plan.module):
+            TestObligation.created(plan: plan, kind: surface_actor, source: s, key: [s.name], source_span: span(s))
+            for c in exposes_clauses(s):
+                TestObligation.created(plan: plan, kind: surface_exposure, source: s, key: [s.name], source_span: span(c))
+            for c in provides_clauses(s):
+                TestObligation.created(plan: plan, kind: surface_provides, source: s, key: [s.name], source_span: span(c))
+}
+
+-- Every rule yields rule_success, then, clause by clause in document order
+-- (descending into rule-level `for` and `if` blocks): a rule_failure per
+-- `requires`, numbered from 1; a temporal for a `when` that compares with
+-- `now` on the right; and a rule_entity_creation, numbered from 1, per
+-- `when` or `ensures` clause holding an `X.created(...)` at its top level.
+-- evidence: 801-911, 1051-1072
+rule RuleObligations {
+    when: plan: TestPlan.created
+    ensures:
+        for r in rules(plan.module):
+            let deps = dependencies_of(r)
+            TestObligation.created(plan: plan, kind: rule_success, source: r, key: [r.name], source_span: span(r), dependencies: deps)
+            for c in requires_clauses(r):
+                TestObligation.created(plan: plan, kind: rule_failure, source: r, key: ordinal_key(r, c), source_span: span(c), dependencies: deps)
+            for c in temporal_triggers(r):
+                TestObligation.created(plan: plan, kind: temporal, source: r, key: [r.name], source_span: span(c), dependencies: deps)
+            for c in creating_clauses(r):
+                TestObligation.created(plan: plan, kind: rule_entity_creation, source: r, key: ordinal_key(r, c), source_span: span(c), dependencies: deps)
+}
+
+-- Last of all, per rule and per when-qualified field whose status field the
+-- rule sets: when_set if a source state the rule's first `requires` names is
+-- outside the field's states and the target is inside, when_clear if the
+-- reverse. With no source states, when_set if the target is inside and the
+-- entity has an edge into it. At most one of each per rule, entity and field;
+-- moves within or wholly outside the states yield nothing. These carry no
+-- dependencies. evidence: 204-205, 210-532
+rule WhenCrossingObligations {
+    when: plan: TestPlan.created
+    ensures:
+        for crossing in when_crossings(plan.module):
+            TestObligation.created(plan: plan, kind: crossing_kind(crossing), source: crossing, key: crossing_key(crossing), source_span: span(crossing))
+}
+
+------------------------------------------------------------
+-- Surfaces
+------------------------------------------------------------
+
+surface PlanOutput {
+    facing user: cli/CommandUser
+    context plan: TestPlan
+
+    exposes:
+        plan.obligations
+
+    @guarantee PlanOrder
+        -- Obligations follow the declaration order of the constructs that
+        -- yield them, in the per-construct order the rules above give. All
+        -- when_set and when_clear obligations come last, by rule order and
+        -- then by when-qualified field.
+
+    @guarantee NoDeduplication
+        -- Nothing deduplicates obligations or checks that ids are unique.
+}
+
+------------------------------------------------------------
+-- Open Questions
+------------------------------------------------------------
+
+open question "When-crossing walks entities in hash order (test_plan.rs:229, 275, 308): with a bare `status = s` target and several when-field entities whose graphs contain s, their when_set and when_clear order is unspecified. Accept, or require declaration order?"
+open question "Ids repeat: several exposes or provides clauses on one surface, config parameters across blocks, duplicate edges, and a value type sharing an entity's name. Intended?"
+open question "Removal is detected only from `X.remove()` and `X.removed()`, while the language removes with `not exists`, so entities_removed is empty for idiomatic specs. Gap?"
+open question "Deferred specs are matched only as bare calls or identifiers of their leaf name; `Spec.op(...)` is missed. Intended?"
+open question "A variable resolves to an entity by capitalising its name (order to Order), so `o: Order` resolves differently. Intended?"
+open question "Temporal detection needs `now` on the right: `now >= x` and derived-condition triggers yield no temporal obligation and classify as external. Accidental?"
+open question "A `X.created(...)` in `when` yields rule_entity_creation, and the binding form `x: X.created` yields none. Intended?"
+open question "A creation inside an `if` or `for` within one ensures clause is missed, though rule-level blocks are walked. Intended?"
+open question "When-crossing reads only the first requires clause and the first ensures equality. Intended?"
+open question "when_set and when_clear carry no dependencies, though rules yield them. Intended?"
+open question "Chained classification counts any rule's emission, the rule's own included, and does not exclude entity names. Intended?"
+open question "When-qualified fields yield no relationship, projection or derived obligations, and value-type derived fields none. Intended?"
+open question "Every transitions block yields transition_rejected, even with no edges; a comment at test_plan.rs:730 says terminal obligations are per state, but one is emitted per graph. Which is intended?"

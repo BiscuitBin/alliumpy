@@ -1,0 +1,239 @@
+-- allium: 3
+-- alliumpy.allium
+
+-- Scope: what the alliumpy wheel adds around upstream's Allium parser and
+--   command: the Python parse API, the version identity and the `allium`
+--   console script's process behaviour.
+-- Authority: upstream decides behaviour (AGENTS.md invariant 1). This spec
+--   describes the conversion and the process wrapper only; `just check` and
+--   `just parity` test them.
+-- Includes: alliumpy.parse and Diagnostic, the version constants, the console
+--   script's signal and descriptor handling, panics, arguments that are not
+--   UTF-8, and stream flushing.
+-- Excludes:
+--   - What the command does with its arguments: allium-cli.allium.
+--   - What the parser accepts and the messages it reports: upstream's language.
+--   - Building, releasing and the quality gates: the handbook and decisions.
+-- Evidence: crates/alliumpy-core/src/lib.rs and cli.rs,
+--   crates/alliumpy/src/lib.rs, crates/alliumpy/python/alliumpy/, and the
+--   tests beside them.
+
+use "./allium-cli.allium" as cli
+
+------------------------------------------------------------
+-- External Entities
+------------------------------------------------------------
+
+-- Python code that imports alliumpy.
+external entity PythonProgram {}
+
+-- The operating-system process running the console script, as it started.
+external entity ConsoleProcess {
+    sigint_inherited_ignored: Boolean
+    closed_streams: Set<cli/StandardStream>
+}
+
+------------------------------------------------------------
+-- Value Types
+------------------------------------------------------------
+
+-- A diagnostic as allium-parser reports it: at the zero-based line and byte
+-- column of its start. evidence: crates/alliumpy-core/src/lib.rs:12-25
+value ParserDiagnostic {
+    start_line: Integer
+    start_col: Integer
+    severity: cli/Severity
+    message: String
+    code: String?
+}
+
+------------------------------------------------------------
+-- Enumerations
+------------------------------------------------------------
+
+enum SigintAction { terminate | ignore }
+
+------------------------------------------------------------
+-- Entities
+------------------------------------------------------------
+
+-- One call of alliumpy.parse. The returned diagnostics are the parser's,
+-- converted and never reinterpreted: one per parser diagnostic, in the same
+-- (source) order, each at line start_line + 1 and col start_col + 1, with
+-- severity, message and code unchanged. These are the coordinates the
+-- command prints. evidence: crates/alliumpy-core/src/lib.rs:5-27, 63-69
+entity ParseCall {
+    program: PythonProgram
+    source: String
+    found: List<ParserDiagnostic>
+    returned: List<cli/Diagnostic>
+
+    invariant OnePerParserDiagnostic {
+        returned.count = found.count
+    }
+
+    invariant OneBasedPositions {
+        returned.all(d => d.line >= 1 and d.col >= 1)
+    }
+}
+
+-- One run of the console script. evidence: _cli.py:10-32
+entity ConsoleRun {
+    process: ConsoleProcess
+    arguments: List<String>              -- as the operating system passed them
+    sigint: SigintAction
+    status: running | exited
+    exit_status: cli/ExitStatus when status = exited
+
+    transitions status {
+        running -> exited
+        terminal: exited
+    }
+}
+
+------------------------------------------------------------
+-- Config
+------------------------------------------------------------
+
+-- evidence: crates/alliumpy-core/src/lib.rs:30-34
+config {
+    allium_version: String = "3.6.1"
+    version_string: String = "allium 3.6.1 (language versions: 1, 2, 3)"
+}
+
+------------------------------------------------------------
+-- Rules: the Python API
+------------------------------------------------------------
+
+-- Any string that encodes as UTF-8 is parsed and yields diagnostics, never an
+-- exception. evidence: crates/alliumpy/src/lib.rs:82-89
+rule SourceParsed {
+    when: ParseRequested(program, source)
+    requires: is_utf8(source)
+    let found = parser_diagnostics(source)   -- black box: allium-parser at the pinned version
+    ensures: ParseCall.created(
+        program: program,
+        source: source,
+        found: found,
+        returned: one_based(found)
+    )
+
+    @guidance
+        -- The result equals the leading diagnostics `allium check` prints for
+        -- the same file, and has as many as `allium parse` prints
+        -- (crates/alliumpy/tests/test_cli.py:361-373). An empty source yields
+        -- the parser's one missing-version-marker warning at line 1, col 1.
+}
+
+-- A source that is not a string (TypeError), or a string that does not encode
+-- as UTF-8, such as one holding a lone surrogate (UnicodeEncodeError), is
+-- refused by the binding before the parser sees it; never with AlliumError.
+-- evidence: crates/alliumpy/tests/test_parse.py:48-51; observed on the built wheel
+rule SourceRefused {
+    when: ParseRequested(program, source)
+    requires: not is_utf8(source)
+    ensures: SourceRefusedError(program: program)
+}
+
+------------------------------------------------------------
+-- Rules: the console script
+------------------------------------------------------------
+
+-- SIGINT ends the run at once, as upstream's binary does, unless the process
+-- inherited it ignored. A standard stream that was closed at start points at
+-- the null device, so the command's writes to it go nowhere.
+-- evidence: _cli.py:13-26
+rule ConsoleScriptStarts {
+    when: ConsoleScriptInvoked(process, arguments)
+    ensures: ConsoleRun.created(
+        process: process,
+        arguments: arguments,
+        sigint: if process.sigint_inherited_ignored: ignore else: terminate,
+        status: running
+    )
+    ensures: NullDeviceAttached(process: process, streams: process.closed_streams)
+}
+
+-- The command runs on the process's own stdout and stderr, and the run ends
+-- with the exit status allium-cli.allium gives the same arguments, crashed
+-- (101) included, after stdout and stderr are flushed; a failed final flush
+-- changes nothing. A panic never surfaces as a Python traceback.
+-- evidence: crates/alliumpy-core/src/cli.rs:57-77; crates/alliumpy/src/lib.rs:91-99; _cli.py:27-32
+rule ArgumentsReachTheCommand {
+    when: run: ConsoleRun.created
+    requires: run.status = running
+    requires: run.arguments.all(a => is_utf8(a))
+    ensures: cli/CommandInvoked(user: run.process, arguments: run.arguments)
+    ensures:
+        run.status = exited
+        run.exit_status = command_exit_status(run.arguments)
+}
+
+-- Upstream reads its arguments as UTF-8 and panics on one that is not; the
+-- console script prints that panic's message on stderr and nothing on stdout.
+-- evidence: crates/alliumpy-core/src/cli.rs:79-111, test an_argument_that_is_not_utf8_exits_101_as_upstreams_panic_does
+rule ArgumentNotUtf8 {
+    when: run: ConsoleRun.created
+    requires: run.status = running
+    requires: run.arguments.any(a => not is_utf8(a))
+    ensures: ConsoleScriptWrote(run: run, stream: stderr, content: unwrap_panic_message(run.arguments))
+    ensures:
+        run.status = exited
+        run.exit_status = crashed
+}
+
+------------------------------------------------------------
+-- Surfaces
+------------------------------------------------------------
+
+-- The `alliumpy` package. evidence: python/alliumpy/__init__.py, _alliumpy.pyi
+surface PythonApi {
+    facing program: PythonProgram
+
+    exposes:
+        config.allium_version
+
+    provides:
+        ParseRequested(program, source)
+
+    @guarantee PublicNames
+        -- alliumpy exports exactly parse, Diagnostic, AlliumError and
+        -- ALLIUM_VERSION. The version string stays in the native module.
+
+    @guarantee DiagnosticsAreValues
+        -- A Diagnostic is immutable, and compares and hashes by value. Its
+        -- severity is the string "error", "warning" or "info", and its repr
+        -- shows every field with Python quoting.
+
+    @guarantee AlliumErrorIsAValueError
+        -- AlliumError subclasses ValueError and keeps its message.
+
+    @guarantee PackageVersionTracksUpstream
+        -- The package version with any `.postN` stripped equals
+        -- allium_version (decision 0010).
+}
+
+surface ConsoleScript {
+    facing process: ConsoleProcess
+
+    exposes:
+        config.version_string
+
+    provides:
+        ConsoleScriptInvoked(process, arguments)
+
+    @guarantee VersionLine
+        -- `allium --version` and `allium -V` print version_string, which
+        -- begins "allium " followed by allium_version and a space.
+
+    @guarantee UpstreamParity
+        -- Over the parity corpus, stdout and the exit status equal those of
+        -- `allium-cli` at allium_version.
+}
+
+------------------------------------------------------------
+-- Open Questions
+------------------------------------------------------------
+
+open question "AlliumError is exported, but nothing in the package raises it: parse refuses only what the binding cannot convert, with TypeError or UnicodeEncodeError. Is it reserved for a future API, or should it go?"
+open question "The Python API offers parse only: is a cross-file check, with the command's check-set diagnostics, wanted from Python?"

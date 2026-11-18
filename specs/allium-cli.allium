@@ -1,0 +1,401 @@
+-- allium: 3
+-- allium-cli.allium
+
+-- Scope: upstream's `allium` command at v3.6.1: how it dispatches its
+--   arguments, finds spec files, reports diagnostics and chooses an exit status.
+-- Authority: this is upstream's behaviour, vendored unchanged into
+--   crates/alliumpy-core/src/cli/ (decision 0014). Upstream decides it; where
+--   this spec and `allium-cli` 3.6.1 disagree, the spec is wrong. `just parity`
+--   proves the command's stdout and exit status against the reference.
+-- Includes: argument dispatch and help, file discovery for check and analyse,
+--   the cross-module check set, per-file reports, single-file commands and the
+--   exit-status policy.
+-- Excludes:
+--   - What check and analyse diagnose: the parser library's checker and
+--     analyser, which this spec treats as black boxes.
+--   - The output format's field spelling and indentation, and help wording.
+--   - The test plan and the domain model: allium-cli-plan.allium and
+--     allium-cli-model.allium.
+--   - The console script around the command: alliumpy.allium.
+-- Evidence: line numbers refer to crates/alliumpy-core/src/cli/main.rs unless
+--   another file is named.
+
+------------------------------------------------------------
+-- External Entities
+------------------------------------------------------------
+
+-- The person or program running `allium`. A placeholder: alliumpy.allium's
+-- ConsoleProcess plays it.
+external entity CommandUser {}
+
+-- A path the command was given or found. The filesystem governs it.
+external entity SpecFile {
+    path: String          -- as given or as discovery produced it, not canonicalised
+    readable: Boolean
+}
+
+-- The parser's result for one spec file. The parser is error-tolerant, so a
+-- readable file always yields a module, possibly a partial one.
+-- evidence: 259-278, 663-676
+external entity Module {
+    spec_file: SpecFile
+    version: Integer?                     -- the file's `-- allium: N` marker
+    parse_diagnostics: List<Diagnostic>   -- the parser's own, in source order
+}
+
+------------------------------------------------------------
+-- Value Types
+------------------------------------------------------------
+
+-- One diagnostic at a one-based position: the line, and the byte column, of
+-- the diagnostic's start. The parser counts from zero; the command adds one.
+-- evidence: 763-784
+value Diagnostic {
+    line: Integer
+    col: Integer
+    severity: Severity
+    message: String       -- the parser's, unchanged
+    code: String?
+}
+
+-- A diagnostic as check, analyse, plan and model print it: with the file.
+-- evidence: 763-784
+value ReportedDiagnostic {
+    file: String          -- the spec file's path, as given or discovered
+    diagnostic: Diagnostic
+}
+
+-- A process-level finding from analyse (data flow, edge reachability,
+-- deadlock, conflict, invariant). The parser library's analyser produces it;
+-- the command passes it through. evidence: 62-76, 647-655
+value Finding {
+    summary: String
+}
+
+-- What check and analyse print for one readable file. Its diagnostics are the
+-- parser's, then the checker's or analyser's. evidence: 286-312
+value FileReport {
+    command: Command
+    spec_file: SpecFile
+    diagnostics: List<ReportedDiagnostic>
+    findings: List<Finding>               -- always empty for check
+}
+
+------------------------------------------------------------
+-- Enumerations
+------------------------------------------------------------
+
+enum Severity { error | warning | info }
+
+-- The five subcommands. `help`, `--help`, `-h`, `--version` and `-V` are not
+-- subcommands. evidence: 142-148, 159-175
+enum Command { check | analyse | parse | plan | model }
+
+-- evidence: 117, 123, 154, 255, 314, 672-675, 693, 702; cli.rs:58-77
+enum ExitStatus {
+    success       -- 0
+    issues        -- 1: something was reported, or an input could not be read
+    usage_error   -- 2: no or unknown command, wrong argument count, no files found
+    crashed       -- 101: the command panicked, on a failed write among others
+}
+
+enum StandardStream { stdin | stdout | stderr }
+
+------------------------------------------------------------
+-- Entities
+------------------------------------------------------------
+
+-- One run of the command. Its arguments exclude the program name.
+entity Invocation {
+    arguments: List<String>
+    status: running | exited
+    exit_status: ExitStatus when status = exited
+
+    emissions: Emission with invocation = this
+
+    -- The first argument decides everything; global flags count only there.
+    -- evidence: 121-129
+    leading: arguments.first
+    operands: rest(arguments)             -- black box: the arguments after the first
+
+    -- `--help` or `-h` anywhere after a subcommand wins over running it.
+    -- evidence: 137-141
+    wants_subcommand_help: operands.any(a => a in {"--help", "-h"})
+
+    transitions status {
+        running -> exited
+        terminal: exited
+    }
+}
+
+-- One write the command makes, in order, to one stream.
+entity Emission {
+    invocation: Invocation
+    stream: StandardStream
+    content: String
+}
+
+------------------------------------------------------------
+-- Rules: dispatch
+------------------------------------------------------------
+
+rule CommandStarts {
+    when: CommandInvoked(user, arguments)
+    ensures: Invocation.created(arguments: arguments, status: running)
+}
+
+-- evidence: 114-118; cli.rs test no_arguments_exit_2_with_usage_on_stderr
+rule NoArguments {
+    when: invocation: Invocation.created
+    requires: invocation.status = running
+    requires: invocation.arguments.count = 0
+    ensures: Emission.created(invocation: invocation, stream: stderr, content: missing_command_usage())
+    ensures:
+        invocation.status = exited
+        invocation.exit_status = usage_error
+}
+
+-- evidence: 121-124
+rule GeneralHelp {
+    when: invocation: Invocation.created
+    requires: invocation.status = running
+    requires: invocation.leading in {"--help", "-h"}
+    ensures: Emission.created(invocation: invocation, stream: stdout, content: general_help())
+    ensures:
+        invocation.status = exited
+        invocation.exit_status = success
+}
+
+-- The line printed is the pinned version string (alliumpy.allium).
+-- evidence: 125-128; cli.rs:16-17
+rule VersionRequested {
+    when: invocation: Invocation.created
+    requires: invocation.status = running
+    requires: invocation.leading in {"--version", "-V"}
+    ensures: Emission.created(invocation: invocation, stream: stdout, content: version_line())
+    ensures:
+        invocation.status = exited
+        invocation.exit_status = success
+}
+
+-- `help` alone, or `help` with a subcommand; later arguments are ignored.
+-- evidence: 129, 159-168
+rule HelpCommand {
+    when: invocation: Invocation.created
+    requires: invocation.status = running
+    requires: invocation.leading = "help"
+    requires: invocation.operands.count = 0 or is_subcommand(invocation.operands.first)
+    ensures: Emission.created(invocation: invocation, stream: stdout, content: help_for(invocation.operands))
+    ensures:
+        invocation.status = exited
+        invocation.exit_status = success
+}
+
+-- An unknown name, as the command or as help's topic.
+-- evidence: 151-155, 169-173
+rule UnknownCommand {
+    when: invocation: Invocation.created
+    requires: invocation.status = running
+    requires: invocation.arguments.count > 0
+    requires:
+        (invocation.leading = "help"
+            and invocation.operands.count > 0
+            and not is_subcommand(invocation.operands.first))
+        or (not is_subcommand(invocation.leading)
+            and not (invocation.leading in {"help", "--help", "-h", "--version", "-V"}))
+    ensures: Emission.created(invocation: invocation, stream: stderr, content: unknown_command(invocation.arguments))
+    ensures:
+        invocation.status = exited
+        invocation.exit_status = usage_error
+}
+
+-- evidence: 137-141
+rule SubcommandHelp {
+    when: invocation: Invocation.created
+    requires: invocation.status = running
+    requires: is_subcommand(invocation.leading)
+    requires: invocation.wants_subcommand_help
+    ensures: Emission.created(invocation: invocation, stream: stdout, content: help_for(invocation.arguments))
+    ensures:
+        invocation.status = exited
+        invocation.exit_status = success
+}
+
+------------------------------------------------------------
+-- Rules: check and analyse
+------------------------------------------------------------
+
+-- Each operand that is a directory is walked recursively for files ending
+-- `.allium`, in the order the filesystem lists them. Any other operand is kept
+-- as given, whatever its extension. Unreadable directories are skipped and
+-- duplicates are kept. evidence: 786-815
+rule NoSpecFilesFound {
+    when: invocation: Invocation.created
+    requires: invocation.status = running
+    requires: invocation.leading in {"check", "analyse"}
+    requires: not invocation.wants_subcommand_help
+    requires: discover(invocation.operands).count = 0
+    ensures: Emission.created(invocation: invocation, stream: stderr, content: "No .allium files found.")
+    ensures:
+        invocation.status = exited
+        invocation.exit_status = usage_error
+}
+
+-- Every discovered file is read and parsed before any is checked. An unreadable
+-- file is reported on stderr and left out of the check set; the run goes on.
+-- The readable files form one check set: each file's `use` imports resolve
+-- against the others (by canonical path), which gives the checker the
+-- declarations, triggers and field schemas each import supplies, the
+-- declarations other files reference, the imports that are broken (a
+-- `.allium` path that does not exist on disk), and the names two distinct
+-- imported files both supply. An import outside the check set contributes
+-- nothing and is not reported as broken. Then one report per readable file is
+-- printed, in discovery order.
+-- evidence: 199-312, 318-643
+rule CheckSetReported {
+    when: invocation: Invocation.created
+    requires: invocation.status = running
+    requires: invocation.leading in {"check", "analyse"}
+    requires: not invocation.wants_subcommand_help
+    let found = discover(invocation.operands)
+    requires: found.count > 0
+    let unreadable = found where readable = false
+    let reports = file_reports(invocation.leading, found where readable = true)
+    ensures:
+        for f in unreadable:
+            Emission.created(invocation: invocation, stream: stderr, content: read_error(f))
+    ensures:
+        for r in reports:
+            Emission.created(invocation: invocation, stream: stdout, content: render(r))
+    ensures:
+        invocation.status = exited
+        invocation.exit_status =
+            if unreadable.count > 0 or reports.any(r => reports_issues(r)): issues
+            else: success
+
+    @guidance
+        -- reports_issues: for check, any diagnostic of error or warning
+        -- severity; for analyse, any finding. Analyse's diagnostics, of any
+        -- severity, never change its exit status (645-657).
+}
+
+------------------------------------------------------------
+-- Rules: parse, plan and model
+------------------------------------------------------------
+
+-- evidence: 692-695, 726-729
+rule SingleFileWrongArity {
+    when: invocation: Invocation.created
+    requires: invocation.status = running
+    requires: invocation.leading in {"parse", "plan", "model"}
+    requires: not invocation.wants_subcommand_help
+    requires: invocation.operands.count != 1
+    ensures: Emission.created(invocation: invocation, stream: stderr, content: single_file_usage(invocation.leading))
+    ensures:
+        invocation.status = exited
+        invocation.exit_status = usage_error
+}
+
+-- The one operand is a path: no directory walk and no extension test.
+-- evidence: 698-704, 732-738
+rule SingleFileUnreadable {
+    when: invocation: Invocation.created
+    requires: invocation.status = running
+    requires: invocation.leading in {"parse", "plan", "model"}
+    requires: not invocation.wants_subcommand_help
+    requires: invocation.operands.count = 1
+    let file = spec_file(invocation.operands.first)
+    requires: not file.readable
+    ensures: Emission.created(invocation: invocation, stream: stderr, content: read_error(file))
+    ensures:
+        invocation.status = exited
+        invocation.exit_status = issues
+}
+
+-- One document on stdout, printed even when the file has errors. parse prints
+-- the module and the parser's diagnostics in the parser's own form; plan and
+-- model print the test plan or the domain model with the parser's diagnostics
+-- as ReportedDiagnostics, and no checker diagnostics. Only an error-severity
+-- parser diagnostic makes the exit non-zero, so an empty plan or model from a
+-- file that does not parse is never a silent success.
+-- evidence: 663-676, 706-719, 740-757
+rule SingleFileReported {
+    when: invocation: Invocation.created
+    requires: invocation.status = running
+    requires: invocation.leading in {"parse", "plan", "model"}
+    requires: not invocation.wants_subcommand_help
+    requires: invocation.operands.count = 1
+    let file = spec_file(invocation.operands.first)
+    requires: file.readable
+    let module = parse(file)
+    ensures:
+        if invocation.leading = "plan":
+            PlanRequested(module: module)
+        if invocation.leading = "model":
+            ModelRequested(module: module)
+    ensures: Emission.created(invocation: invocation, stream: stdout, content: single_file_document(invocation.leading, module))
+    ensures:
+        invocation.status = exited
+        invocation.exit_status =
+            if module.parse_diagnostics.any(d => d.severity = error): issues
+            else: success
+}
+
+-- A failed write to either stream (a reader that closed the pipe, a full
+-- device) panics, as upstream's print macros do, and the run ends with the
+-- panic's status. evidence: cli.rs:22-48, 58-77
+rule CommandPanics {
+    when: OutputStreamFailed(user, invocation)
+    requires: invocation.status = running
+    ensures:
+        invocation.status = exited
+        invocation.exit_status = crashed
+}
+
+------------------------------------------------------------
+-- Invariants
+------------------------------------------------------------
+
+-- A usage error writes nothing to stdout, which carries only help, the
+-- version line and reports. evidence: 115-117, 152-155, 170-173, 255, 693
+invariant UsageErrorsWriteNothingToStdout {
+    for i in Invocations:
+        (i.status = exited and i.exit_status = usage_error)
+            implies i.emissions.all(e => e.stream = stderr)
+}
+
+------------------------------------------------------------
+-- Surfaces
+------------------------------------------------------------
+
+surface CommandLine {
+    facing user: CommandUser
+
+    provides:
+        CommandInvoked(user, arguments)
+        OutputStreamFailed(user, invocation)
+
+    @guarantee ReportsInDiscoveryOrder
+        -- check and analyse print one report per readable file, in the
+        -- order discovery produced the files, duplicates included.
+
+    @guarantee ParserDiagnosticsLead
+        -- In every report, the parser's diagnostics come first and in source
+        -- order; the checker's or analyser's follow.
+}
+
+------------------------------------------------------------
+-- Open Questions
+------------------------------------------------------------
+
+open question "Directory walks follow the filesystem's listing order, unsorted (main.rs:802-815), so the order of check and analyse reports can differ across platforms. Intended?"
+open question "The check set's cross-module context is built in hash maps and sets (main.rs:8-10 expect disallowed_types and iter_over_hash_type). Can any checker diagnostic's order or text depend on hash order? Parity proves only the corpus."
+open question "analyse exits 0 on error diagnostics with no findings, while check exits 1 on any warning. Intended split?"
+open question "plan and model help says their diagnostics mirror check, but they carry the parser's diagnostics only, not the checker's (main.rs:706-712). Intended?"
+open question "parse prints the parser's raw diagnostics (spans, no file, line or column), unlike the other four commands (main.rs:740-741). Intended?"
+open question "A non-directory operand is kept whatever its extension (main.rs:792-797), so `check notes.txt` parses it as Allium. Is the extension test vestigial?"
+open question "Broken-import detection tests existence on disk, so one spec diagnoses differently on case-insensitive and case-sensitive filesystems (main.rs:434-448). Accepted?"
+open question "A path that cannot be canonicalised keeps its raw form as identity; mixed success in one run can split one file into two identities and miss imports (main.rs:618-625). Accepted?"
+open question "Duplicate operands, or a file and its directory, are parsed and reported twice. Intended?"
+open question "Directory walks follow symlinked directories with no cycle guard (main.rs:807-810). Accepted?"
+open question "--help and --version count only as the first argument, so `allium check --version` checks a path named --version. Intended?"

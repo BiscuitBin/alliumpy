@@ -1,0 +1,181 @@
+-- allium: 3
+-- allium-cli-model.allium
+
+-- Scope: upstream's `allium model` at v3.6.1: the domain model it extracts
+--   from one parsed spec file.
+-- Authority: upstream's behaviour, vendored unchanged as
+--   crates/alliumpy-core/src/cli/domain_model.rs (decision 0014). Upstream
+--   decides it; `just parity` proves the command's output against the reference.
+-- Includes: what the model holds, which declarations it keeps and drops, how
+--   members are classified, and its order.
+-- Excludes:
+--   - Arity, read errors, diagnostics and exit status: allium-cli.allium.
+--   - The output's field spelling, and the omission of empty fields.
+-- Evidence: line numbers refer to crates/alliumpy-core/src/cli/domain_model.rs.
+-- Every "source text" below is the exact slice of the spec file the parsed
+-- expression covers, not a re-printed form (433-435).
+
+use "./allium-cli.allium" as cli
+
+------------------------------------------------------------
+-- Value Types
+------------------------------------------------------------
+
+-- A field's presence tied to a status field's states. evidence: 68-72
+value WhenSet {
+    status_field: String
+    qualifying_states: List<String>
+}
+
+-- A bound from an entity invariant of the form `this.f <op> literal`, either
+-- way round, attached to the first field named f. The operator is mirrored
+-- when `this.f` is on the right. evidence: 89-93, 299-311, 488-559
+value FieldConstraint {
+    invariant_name: String
+    bound: String                     -- "<op> <literal>", e.g. ">= 1"
+}
+
+-- evidence: 74-87, 215-265, 437-453
+value ModelField {
+    name: String
+    type_description: String          -- source text of the declared type
+    optional: Boolean                 -- declared `T?`
+    enum_values: List<String>         -- the lowercase alternatives of an inline enum
+    when_set: WhenSet?
+    constraints: List<FieldConstraint>
+}
+
+-- `target` and `source` are the identifier before `with` or `where`, or the
+-- string "unknown" when that operand is anything else. evidence: 95-112, 455-475
+value ModelRelationship { name: String, target: String }
+value ModelProjection { name: String, source: String }
+value ModelDerivedValue { name: String, when_set: WhenSet? }
+
+value TransitionEdge { from: String, to: String }
+
+-- evidence: 114-128, 266-286
+value TransitionGraph {
+    field: String
+    edges: List<TransitionEdge>       -- source order
+    terminal: List<String>            -- source order, duplicates kept
+    states: Set<String>               -- edge ends and terminals, sorted
+}
+
+value EntityInvariant {
+    name: String
+    expression: String                -- source text of the body
+}
+
+-- evidence: 44-66, 195-323
+value ModelEntity {
+    name: String
+    kind: internal | external
+    fields: List<ModelField>
+    relationships: List<ModelRelationship>
+    projections: List<ModelProjection>
+    derived_values: List<ModelDerivedValue>
+    transition_graphs: List<TransitionGraph>
+    invariants: List<EntityInvariant>
+}
+
+-- A value type keeps only its plain, non-derived fields. evidence: 143-147, 383-402
+value ModelValueType { name: String, fields: List<ModelField> }
+value ModelEnum { name: String, values: List<String> }
+
+-- The source text either side of `=`; with no `=`, the whole item is the type.
+-- evidence: 155-161, 417-429, 561-570
+value ConfigParameter {
+    name: String
+    type_description: String
+    default_description: String?
+}
+
+------------------------------------------------------------
+-- Entities
+------------------------------------------------------------
+
+-- evidence: 31-42, 163-193; main.rs:706-717
+entity DomainModel {
+    module: cli/Module
+    entities: List<ModelEntity>       -- internal and external, interleaved in source order
+    value_types: List<ModelValueType>
+    enums: List<ModelEnum>
+    config: List<ConfigParameter>     -- every config block's items, concatenated
+}
+
+------------------------------------------------------------
+-- Rules
+------------------------------------------------------------
+
+-- Entities, value types, named enums and config parameters are kept, each in
+-- declaration order. Variants, rules, surfaces, actors, contracts, givens,
+-- defaults, uses, top-level invariants, deferred specs and open questions are
+-- dropped. The model is extracted even from a module with parse errors.
+-- evidence: 172-190
+rule ModelExtracted {
+    when: cli/ModelRequested(module)
+    ensures: DomainModel.created(
+        module: module,
+        entities: model_entities(module),
+        value_types: model_value_types(module),
+        enums: model_enums(module),
+        config: model_config(module)
+    )
+
+    @guidance
+        -- An entity assignment is a relationship when its value is `X with
+        -- ...`, a projection when it is `X where ...`, a derived value when
+        -- its top-level operator is a comparison, logical, arithmetic or `not`,
+        -- and otherwise a field. A derived value's when-set is inferred from
+        -- the when-qualified fields declared before it that it references by
+        -- name: the first match's status field, and the sorted intersection
+        -- of the states of every match on that field (325-381).
+}
+
+------------------------------------------------------------
+-- Invariants
+------------------------------------------------------------
+
+invariant ValueTypeFieldsArePlain {
+    for m in DomainModels:
+        m.value_types.all(v => v.fields.all(f => f.when_set = null and f.constraints.count = 0))
+}
+
+------------------------------------------------------------
+-- Surfaces
+------------------------------------------------------------
+
+surface ModelOutput {
+    facing user: cli/CommandUser
+    context model: DomainModel
+
+    exposes:
+        model.entities
+        model.value_types
+        model.enums
+        model.config
+
+    @guarantee SourceOrder
+        -- Every list keeps declaration order, except a transition graph's
+        -- states and an inferred derived when-set, which are sorted. The
+        -- extraction uses no hash-ordered collection, so output is
+        -- deterministic.
+
+    @guarantee MembersPartitioned
+        -- Each entity assignment lands in exactly one of fields,
+        -- relationships, projections or derived values.
+}
+
+------------------------------------------------------------
+-- Open Questions
+------------------------------------------------------------
+
+open question "Variants, rules, surfaces, actors, contracts, defaults, top-level invariants and open questions are left out of the model: intended scope, or not yet built?"
+open question "Derived values are detected by top-level operator only, so `slots.count` or a call shows as a field whose type is the expression text. Intended?"
+open question "Constraints attach only from `this.f <op> literal`; the unqualified `balance >= 0` the language reference uses attaches nothing. Intended?"
+open question "When-set inference sees only when-fields declared earlier, so reordering an entity changes the output. Intended?"
+open question "When-set inference matches the last member of `a.b`, so `other.shipped_at` matches this entity's `shipped_at`. Accidental?"
+open question "Matches that share no state give a when-set with no states, not none. Intended?"
+open question "Inferred when-sets are sorted while declared ones keep source order. Intended?"
+open question "A relationship or projection source that is not a bare identifier renders as 'unknown'. Intended sentinel?"
+open question "How does a config parameter with an expression-form default render, given the split relies on reading `name: T = d` as an equality?"
