@@ -14,10 +14,11 @@ ai_tmp/
 
 # Claude Code writes runtime state into .claude/ mid-session
 # (settings.local.json, scheduled-task locks, checkpoints, nested worktrees).
-# bg-validate-agents lists files with `git ls-files --cached --others
+# scripts/validate_agents.py lists files with `git ls-files --cached --others
 # --exclude-from=.gitignore` and reports any other file under .claude/ as an
 # unexpected managed file, so everything there is ignored except the tracked
-# skills. Codex writes its local settings on first use.
+# skills and the vendored skills' links. Codex writes its local settings on first
+# use.
 .claude/*
 !.claude/skills/
 .codex/settings.local.json

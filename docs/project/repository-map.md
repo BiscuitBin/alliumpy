@@ -41,9 +41,9 @@ follow [Architecture](../explanation/architecture.md); the dependency direction 
 ├── tests/fixtures/            Smoke inputs and linter positive controls
 ├── docs/                      Handbook, manifest and decisions
 ├── tickets/                   Work and acceptance evidence
-├── scripts/                   initialize.sh and version_check.py
-├── .agents/skills/            Canonical house skills
-├── .claude/skills/            Discovery bridges
+├── scripts/                   initialize.sh, version_check.py and validate_agents.py
+├── .agents/skills/            Canonical house skills and vendored Allium skills
+├── .claude/skills/            Discovery bridges and vendored-skill links
 ├── .codex/skills/             Discovery bridges
 ├── .github/                   Adapters, workflows and setup action
 └── target/ dist/ .pixi/ .tools/ ai_tmp/  Ignored output and scratch
@@ -54,8 +54,9 @@ follow [Architecture](../explanation/architecture.md); the dependency direction 
 The core has no interpreter dependency. The bindings expose its values and functions;
 Python tests exercise the built module rather than the stub. Fixtures are inputs and
 positive controls, never authority for a behaviour change. Agent bridges point to the
-canonical skills and add nothing. Hooks are installed only from the primary checkout,
-because all worktrees share their hook directory.
+canonical skills and add nothing. The vendored Allium skills, pinned by
+`skills-lock.json`, are upstream's and are not edited here. Hooks are installed only
+from the primary checkout, because all worktrees share their hook directory.
 
 The configuration files at the root include `rustfmt.toml`, `clippy.toml`,
 `rustqual.toml`, `taplo.toml`, `deny.toml`, `ruff.toml`, `mypy.ini` and

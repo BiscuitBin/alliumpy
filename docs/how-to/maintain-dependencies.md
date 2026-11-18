@@ -217,7 +217,7 @@ or action.
 
 ## Moving the tooling package
 
-The documentation and agent gates and the runner
+The documentation gate, the secret scan and the runner
 behind `just check` are console scripts of `biscuit-games-tooling`, which
 `[tool.pixi.pypi-dependencies]` in `pyproject.toml` pins to a release tag of
 `steven-cutting/biscuit_games_tooling`. `pixi.lock` records the commit behind the tag, and
@@ -235,10 +235,34 @@ offline check cannot detect a remote tag being moved to a different commit.
 
 3. Run `just sync`, because the lock installs nothing.
 4. Run `just check` before committing, whatever the release level. The package supplies
-   the gate runner and the validators, and the hooks that read `pyproject.toml`, which re-run the contracts but not `lock-check` or the whole gate.
+   the gate runner, the documentation validator and the secret scan. The documentation
+   hook also runs when `pyproject.toml` changes, but it re-runs only its contract, not
+   `lock-check` or the whole gate.
 
 A tag the package has released is never moved, so relocking without editing the tag
 changes nothing.
+
+## Moving the vendored skills
+
+`skills-lock.json` pins the vendored Allium skills: for each, the `juxt/allium` commit
+and a content hash. Renovate does not read it. The skills are upstream's, so they change
+only through the skills tool that wrote the lock, never by hand
+([decision 0018](../decisions/0018-vendored-allium-skills.md)).
+
+1. Update through that tool. It reaches the network, so run it only when the task
+   authorises it:
+
+   ```console
+   npx skills update allium
+   ```
+
+   Then read the diff of the lock and of every file under the skills it touched.
+
+2. If a skill was added or removed, change the exemption list in each of `ruff.toml`,
+   `.markdownlint-cli2.jsonc`, `_typos.toml`, `lychee.toml`, `.pre-commit-config.yaml`
+   and `.pre-commit-fix.yaml` to match the lock. The validator follows the lock by
+   itself; nothing checks these lists against it.
+3. Run `just check-agents`, `just lint` and `just check-docs`, then `just check`.
 
 ## Moving the upstream parser
 

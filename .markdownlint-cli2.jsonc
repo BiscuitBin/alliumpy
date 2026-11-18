@@ -14,5 +14,14 @@
     "MD041": false
   },
   "globs": ["**/*.md"],
-  "ignores": ["target", ".tools", ".pixi", "ai_tmp"]
+  // The vendored skills skills-lock.json names are third-party, installed unchanged
+  // (decision 0018); keep the list in step with the lock.
+  "ignores": [
+    "target",
+    ".tools",
+    ".pixi",
+    "ai_tmp",
+    ".agents/skills/{allium,distill,elicit,propagate,tend,weed,witness}/**",
+    ".claude/skills/{allium,distill,elicit,propagate,tend,weed,witness}/**"
+  ]
 }

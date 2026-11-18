@@ -8,6 +8,9 @@ requires: []
 
 # Decision 0013: No specification gate and no Allium skills in this repository
 
+Superseded in part by [decision 0018](0018-vendored-allium-skills.md), which vendors the
+Allium skills. The specification gate stays out as recorded here.
+
 ## Context
 
 This repository builds the `allium` command other repositories use to check their Allium
@@ -40,3 +43,4 @@ the selected executable and retaining an offline, reproducible gate.
 - [Agent contract](../reference/agent-contract.md)
 - [Security model](../explanation/security-model.md)
 - [Purpose and scope](../project/purpose-and-scope.md)
+- [Decision 0018](0018-vendored-allium-skills.md)

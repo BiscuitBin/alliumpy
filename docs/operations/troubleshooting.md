@@ -38,7 +38,9 @@ The page exists and is registered, but nothing links to it. Add it to
 Something appeared under `.agents/`, `.claude/` or `.codex/` that is neither a declared
 skill nor `.claude/settings.json`. If it is local tool state, add it to `.gitignore` —
 the inventory reads Git, so an ignored file is invisible to it. If it is real content, it
-belongs in `.agents/skills/` with bridges, or somewhere else entirely.
+belongs in `.agents/skills/` with bridges, or somewhere else entirely. A third-party skill
+belongs in `skills-lock.json`, through the tool that writes it; see
+[vendored skills](../reference/agent-contract.md#vendored-skills).
 
 ## `agent validation: must stay a thin pointer to the canonical skill`
 
