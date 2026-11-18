@@ -81,6 +81,7 @@ apart, and what was not verified is listed.
 | Path | Class | Change |
 | --- | --- | --- |
 | `tickets/S02-adoption-research-spike.md` | ticket | the research note in the hand-back notes |
+| `tickets/README.md` | ticket index | the S02 row and one sentence placing it outside the waves |
 
 No other path. `ai_tmp/` holds the survey reports and is never committed.
 
@@ -606,9 +607,6 @@ fetched again and says what the survey reported.
 
 - **To the maintainer.** The choice among the options of section 7, and the open points
   below. This spike drafts no ticket and no decision record by design.
-- **To the maintainer.** `tickets/README.md`'s index has no S02 row. It is outside this
-  ticket's file list; one row and one sentence saying S02 is research outside the
-  bootstrap waves would close the gap.
 - **To the maintainer.** Two stale lines found in passing, neither fixed here:
   `docs/project/purpose-and-scope.md` still says the script answers `--version` only
   until T13, and decision 0009 says "nothing has been published yet"; the wheel has been
