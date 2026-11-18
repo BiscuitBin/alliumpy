@@ -3,7 +3,14 @@ target-version = "py311"
 # Match rustfmt's house line width.
 line-length = 100
 # Normal discovery skips deliberately broken controls; generated paths are gitignored.
-extend-exclude = ["tests/fixtures/py-lint-violation"]
+# The vendored skills skills-lock.json names are third-party, installed unchanged
+# (decision 0018), and their Markdown carries Python examples the formatter would
+# rewrite; keep the list in step with the lock.
+extend-exclude = [
+  "tests/fixtures/py-lint-violation",
+  ".agents/skills/{allium,distill,elicit,propagate,tend,weed,witness}",
+  ".claude/skills/{allium,distill,elicit,propagate,tend,weed,witness}",
+]
 # Leave force-exclude at its false default: explicitly named positive controls must run.
 
 [lint]
@@ -33,8 +40,8 @@ convention = "google"
 ]
 "scripts/**" = [
   "INP001", # Repository scripts are standalone, not an importable package.
-  "T201",   # The version checker prints its verdict.
-  "S603",   # The version checker executes a fixed console-script path without a shell.
+  "T201",   # The version and agent checkers print their verdicts.
+  "S603",   # The checkers execute fixed absolute paths (a console script, git) without a shell.
 ]
 "scripts/version_check.py" = [
   "PLR2004", # The frozen version checker requires two version-output words.

@@ -12,6 +12,10 @@ extend-exclude = [
   ".tools/",
   "target/",
   "ai_tmp/",
+  # The vendored skills skills-lock.json names: third-party, installed unchanged
+  # (decision 0018). Keep the list in step with the lock.
+  ".agents/skills/{allium,distill,elicit,propagate,tend,weed,witness}/",
+  ".claude/skills/{allium,distill,elicit,propagate,tend,weed,witness}",
 ]
 
 [default.extend-words]

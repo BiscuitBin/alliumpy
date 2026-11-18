@@ -8,8 +8,8 @@ requires: []
 
 # Agent contract
 
-Enforced by `bg-validate-agents`, a console script of the `biscuit-games-tooling`
-package, run by `just check-agents` and by a pre-commit hook. `AGENTS.md` is the single
+Enforced by `scripts/validate_agents.py`, which this repository owns, run by
+`just check-agents` and by a pre-commit hook. `AGENTS.md` is the single
 source of truth for how an agent works in this repository; everything else in the agent
 surface exists only so a particular tool can find it.
 
@@ -20,7 +20,7 @@ surface exists only so a particular tool can find it.
 | `AGENTS.md` | Canonical. Read natively by Codex, and by anything following the convention. |
 | `CLAUDE.md` | A pointer, byte-pinned to `@AGENTS.md` and nothing else. |
 | `.github/copilot-instructions.md` | A pointer, byte-pinned to one paragraph. |
-| `.agents/skills/` | Canonical task procedures, mirrored by thin bridges under `.claude/skills/` and `.codex/skills/`. |
+| `.agents/skills/` | Canonical task procedures, mirrored by thin bridges under `.claude/skills/` and `.codex/skills/`, beside the [vendored skills](#vendored-skills). |
 
 A `CODEX.md` at the repository root is forbidden: Codex reads `AGENTS.md` directly, and a
 second file would be a second source of truth.
@@ -36,7 +36,9 @@ is good; it verifies that the six topics were not dropped in an edit.
 
 The sixth phrase names the games' reactivity rule, which has nothing to govern in this
 repository. `AGENTS.md` satisfies it with one honest sentence saying the rule does not apply
-here, which stays until the tooling package makes the list configurable.
+here. The validator is this repository's own since
+[decision 0018](../decisions/0018-vendored-allium-skills.md); dropping the phrase is a
+change to `scripts/validate_agents.py`, not to this page alone.
 
 ## What a skill must be
 
@@ -93,27 +95,46 @@ brief. This is an instruction surface, so a clause smuggled into it is read as g
 becomes a second source of truth for the skill it points at. A bridge that grows content
 fails whether or not it is short.
 
+## Vendored skills
+
+The skills `skills-lock.json` names are third-party, installed unchanged by the skills
+tool that wrote the lock: today, seven Allium skills from `juxt/allium`. They are exempt
+from the rules above, and from the style and content linters, under
+[decision 0018](../decisions/0018-vendored-allium-skills.md). In their place:
+
+- `.agents/skills/<name>/SKILL.md` is a versioned regular file. The rest of the
+  directory is the skill's own.
+- `.claude/skills/<name>` is a versioned link to `../../.agents/skills/<name>`, the
+  link the tool makes. Codex reads `.agents/skills/` itself, so there is no
+  `.codex/skills/<name>`; one would be an unexpected file.
+- A lock entry with no installed skill fails, as does a lock without a readable
+  `skills` table.
+
+Update them only through the skills tool and the lock, never by hand. Taking a skill out
+of the lock makes it a house skill, and every rule above then applies to it.
+
 ## The inventory
 
 The validator lists managed files from Git, honouring only this repository's
 `.gitignore`, and compares that against what it expects.
 
-- Every expected file must exist. A skill without its two bridges fails.
+- Every expected file must exist. A house skill without its two bridges fails.
 - No unexpected file may exist under `.agents/`, `.claude/` or `.codex/`. The single
   exception is `.claude/settings.json`, which is tolerated but not required — it carries
   provider configuration rather than agent guidance.
-- Managed files must be regular files, never symlinks.
+- Managed files must be regular files, never symlinks. A vendored skill's Claude link
+  is the one exception, and it is checked as described above.
 
 Local assistant state stays out of the inventory by being listed in `.gitignore`. That is
 deliberate: the check reads Git rather than walking the filesystem, so an ignored file is
 invisible to it.
 
 On this tree `just check-agents` prints
-`Validated AGENTS.md, 2 adapters, and 7 skills.` There are no vendored Allium skills;
-[decision 0013](../decisions/0013-no-spec-gate-no-allium-skills.md) explains why.
+`Validated AGENTS.md, 2 adapters, 7 skills, and 7 vendored skills.`
 
 ## Related pages
 
 - [Documentation contract](documentation-contract.md)
 - [Quality gates](quality-gates.md)
 - [Decision 0013](../decisions/0013-no-spec-gate-no-allium-skills.md)
+- [Decision 0018](../decisions/0018-vendored-allium-skills.md)

@@ -66,10 +66,10 @@ repos:
 
       - id: validate-agents
         name: Agent instruction contract
-        entry: pixi run --frozen bg-validate-agents
+        entry: just check-agents
         language: system
         pass_filenames: false
-        files: ^(AGENTS\.md|CLAUDE\.md|\.agents/|\.claude/|\.codex/|\.github/copilot-instructions\.md|pyproject\.toml$)
+        files: ^(AGENTS\.md|CLAUDE\.md|\.agents/|\.claude/|\.codex/|\.github/copilot-instructions\.md|skills-lock\.json$|scripts/validate_agents\.py$)
 
   - repo: builtin
     hooks:
@@ -105,6 +105,10 @@ repos:
       - id: editorconfig-checker
         name: EditorConfig
         types: [text]
+        # The vendored skills skills-lock.json names are third-party, installed
+        # unchanged (decision 0018); keep the list in step with the lock. The
+        # secret and file checks above and below still read them.
+        exclude: ^\.(agents|claude)/skills/(allium|distill|elicit|propagate|tend|weed|witness)(/|$)
 
   - repo: https://github.com/DavidAnson/markdownlint-cli2
     rev: b82a6c8896e491b9cb377a99ff3412131920681b # v0.23.2

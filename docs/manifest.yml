@@ -626,6 +626,20 @@
         "decision_dependency_updates"
       ],
       "requires": []
+    },
+    {
+      "path": "decisions/0018-vendored-allium-skills.md",
+      "title": "Decision 0018: Vendored upstream Allium skills, exempt from the house rules",
+      "kind": "decision",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_vendored_allium_skills"
+      ],
+      "requires": []
     }
   ]
 }
