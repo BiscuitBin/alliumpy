@@ -140,7 +140,8 @@ surveys made on 2026-11-17 by subagents of the session that planned this spike; 
 citations are carried here but were not re-read line by line afterwards, except where
 "Spot checks" says so. Claims about this repository were re-read in the worktree at
 `545e7f2`. `main` was merged afterwards at `df07064`, which brought decision 0018; the
-passages it made stale were revised against that commit and each names the decision.
+passages it made stale were revised against that commit and each names the decision. A
+second merge, at `14d4cec`, brought the specifications under `specs/`.
 
 ### 1. How our projects use Allium today
 
@@ -504,10 +505,13 @@ pursuing.
 - **Invariant 2 and the stub rule.** New Python surface means the stub, a pytest case
   and the wheel smoke move with it (`AGENTS.md`, the Python block).
 - **Decision 0013.** This repository keeps no specification gate, so a gate built here
-  would not be exercised here by daily use. Its reopening condition is "A way to run a
-  specification gate through this repository's own installed wheel, proving the
-  selected executable and retaining an offline, reproducible gate"; a gate script in
-  the wheel is a step towards meeting it.
+  would not be exercised here by daily use. Since `14d4cec` it does keep four
+  specifications under `specs/`, distilled from `crates/`, which "describe behaviour
+  and gate nothing" (`AGENTS.md`); they are inputs a gate built here could be tried on
+  (inference). The decision's reopening condition is "A way to run a specification
+  gate through this repository's own installed wheel, proving the selected executable
+  and retaining an offline, reproducible gate"; a gate script in the wheel is a step
+  towards meeting it.
 - **Decision 0018** (at `df07064`). It supersedes the skills half of decision 0013: the
   seven upstream skills are committed unchanged under `.agents/skills/`, linked into
   `.claude/skills/`, and pinned by commit and content hash in a version 2
@@ -667,6 +671,13 @@ All checks passed and the worktree is unchanged.
 ```
 
 The revisions for decision 0018 were made after that run and gated when staged.
+
+At `6fc2905` (the merge of `main` at `14d4cec`), untouched: `just check` exit 0, last
+line:
+
+```text
+All checks passed and the worktree is unchanged.
+```
 
 ## Open points
 
