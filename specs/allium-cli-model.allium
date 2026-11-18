@@ -40,7 +40,7 @@ value ModelField {
     name: String
     type_description: String          -- source text of the declared type
     optional: Boolean                 -- declared `T?`
-    enum_values: List<String>         -- the lowercase alternatives of an inline enum
+    enum_values: List<String>         -- an entity field's inline-enum lowercase alternatives; empty in a value type
     when_set: WhenSet?
     constraints: List<FieldConstraint>
 }
@@ -78,7 +78,8 @@ value ModelEntity {
     invariants: List<EntityInvariant>
 }
 
--- A value type keeps only its plain, non-derived fields. evidence: 143-147, 383-402
+-- A value type keeps only its plain, non-derived fields, with no enum
+-- alternatives, when-set or constraints. evidence: 143-147, 383-402
 value ModelValueType { name: String, fields: List<ModelField> }
 value ModelEnum { name: String, values: List<String> }
 
@@ -129,7 +130,11 @@ rule ModelExtracted {
         -- and otherwise a field. A derived value's when-set is inferred from
         -- the when-qualified fields declared before it that it references by
         -- name: the first match's status field, and the sorted intersection
-        -- of the states of every match on that field (325-381).
+        -- of the states of every match on that field (325-381). References
+        -- are found only through arithmetic, comparison, logical and `not`
+        -- operators, as a bare identifier or the last member of `a.b`; calls
+        -- and every other expression are not searched, so `compute(x) + 1`
+        -- inherits nothing from `x` (362-381).
 }
 
 ------------------------------------------------------------
@@ -138,7 +143,7 @@ rule ModelExtracted {
 
 invariant ValueTypeFieldsArePlain {
     for m in DomainModels:
-        m.value_types.all(v => v.fields.all(f => f.when_set = null and f.constraints.count = 0))
+        m.value_types.all(v => v.fields.all(f => f.enum_values.count = 0 and f.when_set = null and f.constraints.count = 0))
 }
 
 ------------------------------------------------------------

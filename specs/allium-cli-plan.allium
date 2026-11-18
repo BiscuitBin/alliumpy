@@ -42,7 +42,7 @@ value SourceSpan {
 value RuleDependencies {
     entities_read: Set<String>        -- named in `when` and every `requires`
     entities_written: Set<String>     -- assigned or transitioned in `ensures`
-    entities_created: Set<String>     -- every `X` in `X.created(...)`
+    entities_created: Set<String>     -- every `X` in `X.created(...)` within `ensures`
     entities_removed: Set<String>     -- every `X` in `X.remove(...)` or `X.removed(...)`
     deferred_specs: Set<String>       -- declared deferred names called or referenced
     trigger_emissions: Set<String>    -- capitalised calls in `ensures` that are not entities
@@ -53,7 +53,8 @@ value RuleDependencies {
 -- Enumerations
 ------------------------------------------------------------
 
--- How a rule's trigger is classified. evidence: 1085-1122, 1136-1172
+-- How a rule's trigger is classified. evidence: 1278-1319; the module's
+-- emitted triggers, which make a trigger chained, are collected at 1136-1172
 enum TriggerSource { external | state_transition | temporal | creation | chained }
 
 -- evidence: 45-92
@@ -113,7 +114,8 @@ rule PlanStarted {
 -- states; an invariant per entity invariant. After the items: one
 -- entity_fields when the entity has fields, then entity_optional,
 -- entity_relationship, projection and derived per qualifying field, each in
--- field order. Parameterised derived values yield nothing.
+-- field order. These four carry the whole entity's span, not the field's
+-- (638-687). Parameterised derived values yield nothing.
 -- evidence: 538-750, 1041-1049
 rule EntityObligations {
     when: plan: TestPlan.created
@@ -132,13 +134,13 @@ rule EntityObligations {
             if fields(e).count > 0:
                 TestObligation.created(plan: plan, kind: entity_fields, source: e, key: [e.name], source_span: span(e))
             for f in optional_fields(e):
-                TestObligation.created(plan: plan, kind: entity_optional, source: f, key: [e.name, f.name], source_span: span(f))
+                TestObligation.created(plan: plan, kind: entity_optional, source: f, key: [e.name, f.name], source_span: span(e))
             for f in relationships(e):
-                TestObligation.created(plan: plan, kind: entity_relationship, source: f, key: [e.name, f.name], source_span: span(f))
+                TestObligation.created(plan: plan, kind: entity_relationship, source: f, key: [e.name, f.name], source_span: span(e))
             for f in projections(e):
-                TestObligation.created(plan: plan, kind: projection, source: f, key: [e.name, f.name], source_span: span(f))
+                TestObligation.created(plan: plan, kind: projection, source: f, key: [e.name, f.name], source_span: span(e))
             for f in derived_values(e):
-                TestObligation.created(plan: plan, kind: derived, source: f, key: [e.name, f.name], source_span: span(f))
+                TestObligation.created(plan: plan, kind: derived, source: f, key: [e.name, f.name], source_span: span(e))
 }
 
 -- A value type yields value_equality, then entity_fields when it has fields.
@@ -207,10 +209,12 @@ rule RuleObligations {
 }
 
 -- Last of all, per rule and per when-qualified field whose status field the
--- rule sets: when_set if a source state the rule's first `requires` names is
--- outside the field's states and the target is inside, when_clear if the
--- reverse. With no source states, when_set if the target is inside and the
--- entity has an edge into it. At most one of each per rule, entity and field;
+-- rule sets. Only a source state the rule's first `requires` names, and from
+-- which the entity's graph declares an edge to the target, counts: when_set if
+-- that source is outside the field's states and the target is inside,
+-- when_clear if the reverse. A rule on an entity with no declared edge from
+-- source to target yields nothing. With no source states, when_set if the
+-- target is inside and the entity has an edge into it (338-346). At most one of each per rule, entity and field;
 -- moves within or wholly outside the states yield nothing. These carry no
 -- dependencies. evidence: 204-205, 210-532
 rule WhenCrossingObligations {
@@ -251,7 +255,7 @@ open question "Removal is detected only from `X.remove()` and `X.removed()`, whi
 open question "Deferred specs are matched only as bare calls or identifiers of their leaf name; `Spec.op(...)` is missed. Intended?"
 open question "A variable resolves to an entity by capitalising its name (order to Order), so `o: Order` resolves differently. Intended?"
 open question "Temporal detection needs `now` on the right: `now >= x` and derived-condition triggers yield no temporal obligation and classify as external. Accidental?"
-open question "A `X.created(...)` in `when` yields rule_entity_creation, and the binding form `x: X.created` yields none. Intended?"
+open question "A `X.created(...)` in `when` yields rule_entity_creation but adds nothing to entities_created, which reads `ensures` only (test_plan.rs:1184-1231); the binding form `x: X.created` yields no obligation. Intended?"
 open question "A creation inside an `if` or `for` within one ensures clause is missed, though rule-level blocks are walked. Intended?"
 open question "When-crossing reads only the first requires clause and the first ensures equality. Intended?"
 open question "when_set and when_clear carry no dependencies, though rules yield them. Intended?"

@@ -156,8 +156,10 @@ rule ConsoleScriptStarts {
 
 -- The command runs on the process's own stdout and stderr, and the run ends
 -- with the exit status allium-cli.allium gives the same arguments, crashed
--- (101) included, after stdout and stderr are flushed; a failed final flush
--- changes nothing. A panic never surfaces as a Python traceback.
+-- (101) included. The native layer then flushes stdout and ignores a
+-- failure there; the console script then flushes Python's own stdout and
+-- stderr without catching an error. A panic in the command never surfaces as
+-- a Python traceback.
 -- evidence: crates/alliumpy-core/src/cli.rs:57-77; crates/alliumpy/src/lib.rs:91-99; _cli.py:27-32
 rule ArgumentsReachTheCommand {
     when: run: ConsoleRun.created

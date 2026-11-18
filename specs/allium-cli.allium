@@ -248,8 +248,12 @@ rule NoSpecFilesFound {
 -- declarations, triggers and field schemas each import supplies, the
 -- declarations other files reference, the imports that are broken (a
 -- `.allium` path that does not exist on disk), and the names two distinct
--- imported files both supply. An import outside the check set contributes
--- nothing and is not reported as broken. Then one report per readable file is
+-- imported files both supply. Each imported file also learns what its
+-- importers contribute back to it (qualified creations, provides and witnessed
+-- transitions), and each importer gets its imports' entity status
+-- vocabularies, which analyse uses to attribute rules to imported entities.
+-- An import outside the check set contributes nothing and is not reported as
+-- broken. Then one report per readable file is
 -- printed, in discovery order.
 -- evidence: 199-312, 318-643
 rule CheckSetReported {
@@ -398,4 +402,4 @@ open question "Broken-import detection tests existence on disk, so one spec diag
 open question "A path that cannot be canonicalised keeps its raw form as identity; mixed success in one run can split one file into two identities and miss imports (main.rs:618-625). Accepted?"
 open question "Duplicate operands, or a file and its directory, are parsed and reported twice. Intended?"
 open question "Directory walks follow symlinked directories with no cycle guard (main.rs:807-810). Accepted?"
-open question "--help and --version count only as the first argument, so `allium check --version` checks a path named --version. Intended?"
+open question "The global --help and --version count only as the first argument (a subcommand's --help counts anywhere after it), so `allium check --version` checks a path named --version. Intended?"
