@@ -143,6 +143,15 @@ citations are carried here but were not re-read line by line afterwards, except 
 passages it made stale were revised against that commit and each names the decision. A
 second merge, at `14d4cec`, brought the specifications under `specs/`.
 
+On 2026-11-18 three runs of the `deep-research` workflow re-checked the note from the
+web: one over "What was not verified", one over sections 2 to 4, one looking for prior
+art for the open points. Their queries named public projects only, so section 1 was not
+re-checked. Each run put only its 25 highest-ranked claims to a three-reader vote, so
+three grades of evidence follow and "Checks of 2026-11-18" names the grade of every row:
+"re-read" means this session opened the source itself afterwards; "voted" means three
+of the run's readers agreed on the source and this session did not open it; "one
+reader" means a single agent of the run read the source and nothing checked it.
+
 ### 1. How our projects use Allium today
 
 **Fact: none of the four uses the alliumpy wheel.** All four run the upstream CLI at
@@ -263,7 +272,13 @@ facts are in `S01-cli-strategy-spike.md`, "Step 2"):
 - Output is JSON only: `check` and `analyse` print one pretty object per file, back to
   back, not an array. No SARIF, no text format, no severity flag.
 - `check` exits 1 on any error or warning and 0 on `info`; `analyse` exits 1 only on
-  findings; 2 means no input or an unknown command.
+  findings; 2 means no input or an unknown command. Narrowed on 2026-11-18 (voted):
+  both also exit 1 when an input file cannot be read, and print no JSON object for that
+  file, so there can be fewer objects than inputs; 2 is also a missing command and a
+  wrong argument count for `parse`, `plan` and `model`; an unknown flag is taken as a
+  path. Observed with this repository's `target/wheel-smoke/venv/bin/allium`:
+  `allium check --format json` prints "No such file or directory" for `--format` and
+  for `json` and exits 1.
 - `check` and `analyse` build their cross-module context from the set of files they are
   given, and since 3.6.1 import resolution also consults the filesystem (`CHANGELOG.md`).
 - Suppression is an inline comment only (`-- allium-ignore <code>`,
@@ -272,7 +287,11 @@ facts are in `S01-cli-strategy-spike.md`, "Step 2"):
   formatting, diagrams and rule-to-test tracing exist only as Node scripts in the
   extension's source (`extensions/allium/`), which read `allium.config.json` and are
   shipped in no release asset and no npm package. The README's feature table credits
-  the CLI with some of them.
+  the CLI with some of them. On 2026-11-18 (voted): the script is
+  `extensions/allium/src/check.ts`, and that package's `package.json` (name
+  `allium-vscode`) declares a `bin` named `allium-check`. Re-read the same day: the
+  `v3.6.1` release's `.vsix` (13 files) and language-server tarball contain no
+  `check.js`, and `https://registry.npmjs.org/allium-vscode` answers 404.
 
 **Hooks and CI.**
 
@@ -302,7 +321,15 @@ facts are in `S01-cli-strategy-spike.md`, "Step 2"):
 - Patch releases change what passes. The 3.6.1 `CHANGELOG.md` says "two of the changes
   can turn a previously green gate red on upgrade".
 - A `v4` branch, read on the day with no commit recorded, changes the exit semantics so
-  that, in its words, "a well-formed spec produces zero warnings".
+  that, in its words, "a well-formed spec produces zero warnings". Re-read on
+  2026-11-18 at `be689f3`. In `DIAGNOSTIC-FORMAT-PROPOSAL.md` the quoted sentence is
+  about severities (positive results move from warning to a new `info` tier), and the
+  exit rule is a separate line, "`check` and `analyse` now exit 1 on any error or
+  warning". In `crates/allium/src/main.rs` that rule holds on the path for
+  specifications of language version 4, where both commands exit on
+  `d.is_problem()`; the version 3 path in the same file still sets `analyse`'s status
+  from findings alone (`cmd_analyse`). So the change, for a version 4 specification, is
+  to `analyse`, which starts to gate on diagnostics; `check` keeps its rule.
 - The skills (3.16.0) and the CLI (3.6.1) are versioned separately; nothing states which
   skills release goes with which CLI release.
 
@@ -330,6 +357,19 @@ severity filter.
 Three adopters (`OPeyrusse/katan-alysis`, `ravenoak/oh-my-stigmergy` and the
 `johanolofsson72` repositories) rewrote upstream's Node post-edit hook in `sh`.
 `DataDog/datadog-agent` carries a static copy of the skills with no lock and no gate.
+
+The table's five rows were read again on 2026-11-18, each by one reader, at
+`ravenoak/layerforge` `ec4063d`, `Ragazoor/dispatch-tui` `2f521fa`,
+`OPeyrusse/katan-alysis` `961437d`, `rtclauss/hass-config` `93876ff` and
+`ravenoak/oh-my-stigmergy` `da150a9`. What was read agrees with the table: both cells
+of the first two rows, except the second's count of JSON documents; the gate cell of
+the third and fourth rows; and the waiver. The install cells of the last three rows and
+the third row's lock were not read.
+One row is narrowed: layerforge's script does not ignore the exit code entirely, since
+any status above 1 aborts it, and it fails on error-severity diagnostics and on
+findings while accepting warnings. The waiver was re-read by this session: the install
+was `cargo install allium-cli` without `--locked`, and `allium-parser` 3.5.3 arrived
+"with a breaking change to `analyse_with_cross_module`'s arity".
 
 **Inference: the repeated work is the same everywhere, ours included.** An install step
 with a pin and a checksum; a gate that reads the JSON instead of trusting the exit code;
@@ -388,7 +428,10 @@ version from a file the project already has.
   `https://buf.build/docs/reference/cli/buf/config/init/`).
 - Record a manifest of content hashes for the files the tool wrote, refresh a file only
   while its hash still matches, and refuse an edited one without `--force` (Spec Kit,
-  `https://github.com/github/spec-kit/blob/main/docs/upgrade.md`).
+  `https://github.com/github/spec-kit/blob/main/docs/upgrade.md`). Narrowed on
+  2026-11-18 (one reader): the page says an install manifest detects a file edited
+  after install and that `--force` overrides the refusal; it mentions a hash once and
+  does not say the manifest stores content hashes.
 - Compare bodies, not only version stamps, to find stale skills (OpenSpec,
   `https://github.com/Fission-AI/OpenSpec/blob/main/src/core/update.ts`).
 - A command that exits non-zero on drift, for CI (`cruft check`,
@@ -408,14 +451,16 @@ version from a file the project already has.
 - `gh skill install --pin <tag|sha>` exists, in preview since GitHub CLI 2.90.0. It
   records the pin in the installed `SKILL.md` frontmatter, so it edits the skill file,
   and it writes no project lock that was found (re-verified, with that correction).
-- Quint publishes its skills at the repository root so that both installers and the
-  Claude Code marketplace can read one tree
-  (`https://github.com/informalsystems/quint/blob/main/skills/README.md`; not
-  spot-checked).
+- Quint offers one skills tree through three install routes: `gh skill install`, a
+  Claude Code plugin marketplace and an `install.sh` that takes the agent as an
+  argument (`informalsystems/quint` at `07d7a1a`, `skills/README.md`). **Corrected** on
+  2026-11-18: the note said the README explains the layout as one tree for both
+  installers and the marketplace; it lists the routes and says nothing about layout.
 - **Claude Code does not read `.agents/skills/`** per its documentation: the skills page
   lists `.claude/skills/` and plugins only
   (`https://code.claude.com/docs/en/skills.md`, re-verified). Codex, GitHub Copilot,
-  Cursor and Gemini CLI document `.agents/skills/` (read by a subagent, not re-opened).
+  Cursor and Gemini CLI document `.agents/skills/` (read by a subagent, not re-opened;
+  read again on 2026-11-18, one reader per vendor page, each agreeing).
   A bridge under `.claude/skills/` is therefore still needed, which is what our
   repositories and both installers already do.
 - Claude Code plugins: a project's `enabledPlugins` does not install a plugin; each
@@ -425,6 +470,78 @@ version from a file the project already has.
   plugin source exists: a shell command that prints a plugin directory, run at install,
   at update and once per session
   (`https://code.claude.com/docs/en/plugins/marketplace-reference.md`, re-verified).
+
+**Prior art for the open points** (added 2026-11-18; the grade of each line is in
+brackets, as "How to read this note" defines them). These are facts about other
+projects. What they suggest for alliumpy is left to the maintainer.
+
+- **A second command beside a repackaged one.** None of the four wheels examined ships
+  a gate, a `doctor` or a runner of its own. `cmake` declares `ccmake`, `cmake`,
+  `cpack` and `ctest`; `nodejs-wheel` declares `node`, `npm`, `npx` and `corepack`;
+  `shellcheck-py` ships only `shellcheck`
+  (`scikit-build/cmake-python-distributions` `pyproject.toml`;
+  `https://pypi.org/project/nodejs-wheel/`; `https://pypi.org/project/shellcheck-py/`)
+  [voted]. PyPI `pyright` adds `pyright-python` and `pyright-python-langserver`, which
+  point at the same entry points as the upstream names and are not in its README, and
+  it puts its own behaviour behind `PYRIGHT_PYTHON_*` environment variables
+  (`RobertCraigie/pyright-python` at `1aa6dfe`, `setup.py`, `README.md`) [voted].
+  `nodejs-wheel` keeps the commands in one distribution and the binaries in another,
+  `nodejs-wheel-binaries`, pinned with `==` (`https://pypi.org/pypi/nodejs-wheel/json`)
+  [voted]. `ruff`, `typos`, `ninja`, `shfmt-py`, `taplo`, `biome` and `esbuild` were not
+  examined, so "nobody ships a second command" is not established.
+- **Versioning a packaging-only fix.** `actionlint-py` and `shellcheck-py` publish no
+  `.postN`; each appends a fourth numeric segment to upstream's version. actionlint-py's
+  README calls it the "build system version" and it carries across upstream versions
+  (`1.7.7.24` to `1.7.12.24`); shellcheck-py restarts it per upstream version
+  (`https://pypi.org/pypi/actionlint-py/json`, `https://pypi.org/pypi/shellcheck-py/json`)
+  [voted]. PyPI `cmake` published ten `.post1` releases up to 2021-08-01 and has used a
+  fourth segment since 2022-09 (`https://pypi.org/pypi/cmake/json`); PyPI `ninja` used
+  `.post1` to `.post3` from 2017 to 2021 (`https://pypi.org/pypi/ninja/json`) [one
+  reader]. PyPI `pyright` has `.postN` releases among its 209, and its README
+  recommends a dependency bot and gives no specifier advice
+  (`https://pypi.org/pypi/pyright/json`) [voted]. No README read advises `==X.*`.
+  Inference: a fourth segment satisfies neither `==3.6.1` nor invariant 9 as written,
+  whose rule is "`.postN` stripped".
+- **Exit policy of a gate.** ESLint exits 0 on warnings alone, 1 on an error or on more
+  warnings than `--max-warnings`, and 2 on a configuration or internal error
+  (`https://eslint.org/docs/latest/use/command-line-interface`) [voted]. Its accepted
+  findings live in a committed `eslint-suppressions.json`, written by `--suppress-all`;
+  only `error` rules are suppressed, and a stale entry exits 2 until
+  `--prune-suppressions` (`https://eslint.org/docs/latest/use/suppressions`) [voted].
+  `ruff check` exits 0, 1 on any violation and 2 on abnormal termination, with
+  `--exit-zero` to force 0 (`https://docs.astral.sh/ruff/linter/`) [voted]. ShellCheck's
+  `--severity` sets a minimum of `error`, `warning`, `info` or `style`
+  (`koalaman/shellcheck` at `v0.11.0`, `shellcheck.1.md`) [voted]. basedmypy writes a
+  baseline with `--write-baseline` to `.mypy/baseline.json`
+  (`https://kotlinisland.github.io/basedmypy/baseline`) [one reader]. The one change of
+  exit semantics found, ruff 0.0.265's `--fix-only`, was announced by a prose entry in
+  `BREAKING_CHANGES.md` that names the flag restoring the old status (`astral-sh/ruff`)
+  [voted]. clippy, buf, actionlint, markdownlint-cli2 and mypy were not reached.
+- **A hook manifest where the root is not the package.** pre-commit installs a
+  `language: python` hook with `python -mpip install .` at the hook repository's root
+  (`pre-commit/pre-commit`, `pre_commit/languages/python.py`, line 224, last changed
+  at `3e8d0f5`)
+  [re-read], and prek with `uv pip install --project / ... .` (`j178/prek`, default
+  branch on the day, `crates/prek/src/languages/python/python.rs`) [re-read]. The
+  pre-commit maintainer declined a request to install from a subdirectory, "I prefer
+  convention over configuration here", and answered a second ask with "the answer is
+  still no" (`https://github.com/pre-commit/pre-commit/issues/1858`, about a Node
+  hook) [re-read]. typos' root `setup.py` is `pre_commit_placeholder_package` at
+  `0.0.0` (`crate-ci/typos` at `b41eb62`) and ruff-pre-commit's root `pyproject.toml`
+  is `ruff-pre-commit` at `0.0.0` with one `ruff==X` dependency [one reader]. That the
+  dependency then arrives as a wheel is inference: neither file says so.
+- **Pairing skills with a tool version.** The Agent Skills specification has six
+  frontmatter fields and none is a version constraint; a requirement goes in
+  `compatibility`, free text of up to 500 characters
+  (`https://agentskills.io/specification.md`) [one reader]. No project was found that
+  publishes a table pairing a skills release with a CLI release.
+- **Linking a specification to its tests.** Doorstop reports a parent item with no
+  child link as a warning, not an error, and marks a link "suspect" when the parent's
+  fingerprint changes (`https://doorstop.readthedocs.io/en/latest/cli/validation.html`);
+  Sphinx-Needs raises failed checks as Sphinx warnings, fatal only under `-W`, and lets
+  a constraint "break" the build
+  (`https://sphinx-needs.readthedocs.io/en/stable/configuration.html`) [one reader].
+  Quint, OpenSpec, Spec Kit and Kiro were not reached on this question.
 
 ### 5. `just` integration options
 
@@ -450,7 +567,15 @@ libpawdoku pin just 1.58.0 and pachinko 1.59.0 (each `pyproject.toml`).
   (observed). The manual's "Remote Justfiles" section is a workaround: an optional
   import plus a recipe that fetches the file. The maintainer declined the feature in
   `https://github.com/casey/just/issues/1799` and again in
-  `https://github.com/casey/just/issues/3285` (2026-04).
+  `https://github.com/casey/just/issues/3285` (2026-04). Pull request 2917, "Import
+  remote just files via git", was closed unmerged on 2026-03-29 (re-read on
+  2026-11-18). 1.52.0 made the workaround easier: recipes that do not depend on an
+  absent optional module still run (voted).
+- `--global-justfile` was added in 1.27.0, and `set fallback` in 1.6.0, stable since
+  1.11.0 (`CHANGELOG.md`, voted on 2026-11-18). The README at `62784c2a` also documents
+  `--global-fallback-justfile` and `JUST_GLOBAL_FALLBACK_JUSTFILE`, and a search of the
+  changelog for "global" finds no entry for it through 1.59.0 (re-read); the release
+  that carries it was not found.
 - `--justfile`, `--working-directory`, `--global-justfile` and the global fallback
   justfile are per-user or per-invocation. None lets a project say "also load the
   recipes an installed package provides".
@@ -489,8 +614,9 @@ pursuing.
   (`docs/decisions/0015-release-process.md`), and a tag is a release. The wheel on PyPI
   is plain 3.6.1 today (`https://pypi.org/pypi/alliumpy/json`, re-verified). Three
   consequences, the first from the packaging specification
-  (`https://packaging.python.org/en/latest/specifications/version-specifiers/`, of which
-  only part was read verbatim) and the others inference:
+  (`https://packaging.python.org/en/latest/specifications/version-specifiers/`, re-read
+  verbatim on 2026-11-18: "== 1.1 # Not equal, so 1.1.post1 does not match clause" and
+  "== 1.1.* # Same prefix, so 1.1.post1 matches clause") and the others inference:
   - `alliumpy==3.6.1` does not match `3.6.1.post1`; `alliumpy==3.6.1.*` does. A pinned
     consumer never receives a packaging fix until its pin moves.
   - Anything new the wheel carries beyond upstream's behaviour (a second script, a hook
@@ -532,7 +658,10 @@ pursuing.
   `pip install .` at the root. Inference: the root would have to become a placeholder
   that depends on `alliumpy==X`, as typos' root does, or the install would fail or try
   a source build; that adds one more copy of the version for `just version-check` to
-  hold, and the tag exists before the wheel is on PyPI. Not tested.
+  hold, and the tag exists before the wheel is on PyPI. Not tested. Re-read on
+  2026-11-18: the install is `python -mpip install .` at the root under pre-commit and
+  `uv pip install .` under prek, and pre-commit's maintainer has declined installing
+  from a subdirectory (section 4, "Prior art for the open points").
 - **The scoping answers.** "Inside alliumpy" rules out a separate mirror repository
   such as ruff's. "Tool-neutral" rules out making a Claude Code plugin the primary
   skills channel.
@@ -593,27 +722,70 @@ fetched again and says what the survey reported.
 | `astral-sh/ruff-pre-commit` is a mirror whose tags track releases; typos uses a placeholder package | re-verified; typos' own page says "GitHub releases" while its `setup.py` installs the PyPI wheel | the two repositories' `.pre-commit-hooks.yaml`, `mirror.py`, `setup.py` |
 | PyPI `allium` is unrelated; `alliumpy` is at 3.6.1 with no `.postN` | re-verified | `https://pypi.org/pypi/allium/json`, `https://pypi.org/pypi/alliumpy/json` |
 
+### Checks of 2026-11-18
+
+From the three `deep-research` runs and this session's own reads afterwards. The grades
+"re-read", "voted" and "one reader" are defined in "How to read this note". The runs'
+reports are scratch under `ai_tmp/s02-deep-research/` and are not committed.
+
+| Claim | Verdict | Grade | Source |
+| --- | --- | --- | --- |
+| `==3.6.1` does not match `3.6.1.post1`; `==3.6.1.*` does | re-verified, by the specification's own `1.1` and `1.1.post1` example | re-read | `pypa/packaging.python.org` at `f9b2127`, `source/specifications/version-specifiers.rst`, lines 892 to 915 |
+| Whether just pull request 2917 merged | re-verified: it did not; it was closed on 2026-03-29 | re-read | `https://github.com/casey/just/pull/2917` |
+| Which just version added the global fallback justfile | not verified for `--global-fallback-justfile`, which the changelog does not name; `--global-justfile` is 1.27.0 and `set fallback` 1.6.0, stable in 1.11.0 | voted; the absence re-read | `casey/just` at `62784c2a`, `CHANGELOG.md`, `README.md` |
+| just has no remote import | re-verified through 1.59.0 | voted | the same, and issues 1799 and 3285 |
+| `skills update` follows `ref` and not `commit` | re-verified: `update` clones the recorded `ref` and writes that clone's head as the new `commit`; a restore fetches the recorded `commit` | re-read for `update`; voted for the restore | `vercel-labs/skills` at `57217cf`, `src/update.ts`, lines 1192 and 1252; `README.md`, `src/install.ts` |
+| Restoring from the lock is still `experimental_install` | re-verified; `skills install` with no source is an alias | voted | the same, `docs/commands.md`, `src/cli.ts` |
+| Quint's README explains one tree for installers and the marketplace | **corrected**: it lists three install routes and says nothing about layout | re-read | `informalsystems/quint` at `07d7a1a`, `skills/README.md` |
+| Codex, GitHub Copilot, Cursor and Gemini CLI document `.agents/skills/` | not verified; each reader agrees | one reader each | `https://learn.chatgpt.com/docs/build-skills`, `https://docs.github.com/en/copilot/concepts/agents/about-agent-skills`, `https://cursor.com/docs/context/skills`, `https://geminicli.com/docs/cli/skills/` |
+| Renovate: no `prek.toml` manager; `pre-commit` manager off by default | re-verified for the manager: pull request 42254 is open at `f70eac7`, last updated 2026-11-07; the default was re-verified on 2026-11-17 and one reader agrees | re-read for the pull request; one reader for the default | `https://github.com/renovatebot/renovate/pull/42254`, `https://docs.renovatebot.com/modules/manager/pre-commit/` |
+| A Renovate regex manager can track a `uvx --from` pin | not verified: the documentation supports the shape and one Justfile example with the `pypi` datasource exists, for another command form | one reader | `https://docs.renovatebot.com/modules/manager/regex/`; `zoni/obsidian-export`, `.github/renovate.json5` |
+| A `language: python` hook installs the hook repository's root | re-verified | re-read | `pre-commit/pre-commit`, `pre_commit/languages/python.py`, last changed at `3e8d0f5`; `j178/prek`, `crates/prek/src/languages/python/python.rs` |
+| The command's subcommands, JSON shape and exit codes at 3.6.1 | re-verified, narrowed as section 2 now says | voted | `juxt/allium-tools` at `v3.6.1`, `crates/allium/src/main.rs` |
+| Suppression is an inline comment only | re-verified for the parser and the command; the comment must be alone on its line and `all` is a wildcard | voted | the same tag, `crates/allium-parser/src/analysis.rs` |
+| The gating options exist only as unshipped Node scripts | re-verified for the release assets and one npm name; "only" was not searched repository-wide | voted for the script; re-read for the assets | the same tag, `extensions/allium/src/check.ts`; the `v3.6.1` release's `.vsix` and language-server tarball |
+| The 3.6.1 changelog's two statements | re-verified; the resolver's code was not read | voted | the same tag, `CHANGELOG.md` |
+| Upstream's pre-commit hook, Node post-edit hook, seven skills, and no Action | re-verified; the post-edit hook also checks one file alone | voted | `juxt/allium` at `v3.16.0`, `.pre-commit-hooks.yaml`, `hooks/hooks.json`, `hooks/allium-check.mjs`, `.claude-plugin/plugin.json` |
+| `SHA256SUMS.txt` omits the CLI binaries; two empty `sha256` in the formula; the caret parser dependency | re-verified; six of the release's nine assets are CLI archives with no entry, and crates.io records `^3.0.0` | voted | the `v3.6.1` release; `juxt/homebrew-allium` at `a19ad88`; `https://crates.io/api/v1/crates/allium-cli/3.6.1/dependencies` |
+| Nothing is on npm | re-verified as far as the release workflow and nine registry names show | voted | `juxt/allium-tools` at `v3.6.1`, `.github/workflows/release-artifacts.yml` |
+| The `v4` branch's exit semantics | **corrected**, as section 2 now says | re-read | `juxt/allium-tools` at `be689f3`, `DIAGNOSTIC-FORMAT-PROPOSAL.md`, `crates/allium/src/main.rs` |
+| The five third-party gates of section 3 | not verified, except the oh-my-stigmergy waiver, re-verified; the readers agree on the cells section 3 lists, layerforge narrowed | one reader each; the waiver re-read | the commits section 3 names |
+| `buf config init` refuses an existing file; `cruft check` and `lefthook check-install` exit 1 on drift; OpenSpec compares bodies; identify has no `allium` tag | not verified; each reader agrees, and `cruft check` detects a project behind its template, not local edits | one reader each | the URLs of section 4; `Fission-AI/OpenSpec` at `f085c85`; `pre-commit/identify` at `9648508`, `identify/extensions.py` |
+| Spec Kit records a manifest of content hashes | not verified: the page says an install manifest detects edits and `--force` overrides; it mentions a hash once and never says the manifest stores hashes | one reader | `https://github.com/github/spec-kit/blob/main/docs/upgrade.md` |
+
+The second run's log carries two harness notices that an agent's output held text
+shaped like an agent settings file, which the harness neutralised: one from the
+third-party adopter search and one from a `github.com` fetch. The matching passages
+were opened: they quote the header comment of `OPeyrusse/katan-alysis`,
+`.claude/hooks/allium-check.sh`, which says the hook is "Wired as a PostToolUse hook in
+.claude/settings.json". That is a description, and section 3's katan-alysis row is the
+only thing that rests on that read.
+
 ### What was not verified
 
-- **Sections 1 to 4 rest on survey reads that were not repeated.** The quotes and paths
-  are as the surveys reported them; in section 4 only the rows of "Spot checks" were
-  read again. Third-party repositories were read at their default branch with no commit
-  recorded.
+- **Sections 1 to 4 rest on survey reads that were not repeated**, except where "Spot
+  checks" or "Checks of 2026-11-18" says so; a "one reader" row there is one more
+  unchecked read, not a verification. Section 1 was not re-checked at all. The quotes
+  and paths are as the surveys reported them. Third-party repositories were read at
+  their default branch with no commit recorded on 2026-11-17; section 3 now names the
+  commits read on 2026-11-18.
+- Whether any wheel or npm package ships a command of its own beside an unchanged
+  upstream binary: four were examined and eight named ones were not.
 - Live behaviour of Claude Code: plugin loading, the `command` source, skill discovery.
   Everything said about it is from its documentation.
-- `npx skills` and `gh skill` were read, not run. That `skills update` follows `ref`
-  and not `commit`, and that `gh skill`'s inline `skill@version` form does not mark a
-  pin, are inferences from source.
-- Whether `npx skills` carries upstream's `hooks/` directory.
-- A wheel that ships a `.just` file in its `data` directory; whether
-  `https://github.com/casey/just/pull/2917` merged; which just version added the global
-  fallback justfile.
+- `npx skills` and `gh skill` were read, not run. That `gh skill`'s inline
+  `skill@version` form does not mark a pin is an inference from source.
+- Whether `npx skills` carries upstream's `hooks/` directory. Its discovery is keyed on
+  `SKILL.md` and lists no `hooks/` path (one reader, `docs/creating-skills.md`); what
+  `add` copies was not traced.
+- A wheel that ships a `.just` file in its `data` directory; which just release carries
+  `--global-fallback-justfile`.
 - The Renovate regex manager for `uvx --from` pins; ruff-action's resolver source.
-- The `==` and `==X.*` rules for post-releases come from a fetch of the packaging
-  specification that returned the "Version matching" section only in summary; the
-  ordering of post-releases was read verbatim.
 - Whether a `language: python` hook published from this repository's root would install
-  a wheel or attempt a source build.
+  a wheel or attempt a source build. The installer command is now known; the outcome
+  for this repository's root was not tried.
+- Whether the published `allium-cli` 3.6.1 crate packages a `Cargo.lock`, which decides
+  what `cargo install --locked` resolves the parser to.
 - Gate timings in any repository. The size of the third-party adopter population.
 - That the wheel's `allium` gives our four repositories the same results as the release
   binary they run today. Parity is proved over upstream's corpus (`just parity`), not
@@ -642,6 +814,10 @@ fetched again and says what the survey reported.
   §0, whose pins predate what was surveyed.
 - The file was staged (`git add`) before the final `just check`, so that the hooks read
   it; nothing was committed.
+- On 2026-11-18, at the maintainer's request, three `deep-research` workflow runs added
+  the checks and the prior art above. That is beyond steps 1 to 7, and it is not the
+  adversarial review of `CONVENTIONS.md` §14. The ranking of section 7 was left as it
+  was: no correction removed the evidence of an option.
 
 ### Verification
 
@@ -678,6 +854,21 @@ line:
 ```text
 All checks passed and the worktree is unchanged.
 ```
+
+At `db442e9` with uncommitted changes (this file only, staged, carrying the checks of
+2026-11-18): network use was the three workflow runs' web reads and this session's
+read-only `gh api`, `curl` and `gh release download` into `ai_tmp/`, nothing executed
+from them. `git status --short`, then `just check` exit 0, last line:
+
+```text
+M  tickets/S02-adoption-research-spike.md
+All checks passed and the worktree is unchanged.
+```
+
+Two earlier runs of that gate failed in `typos`: on a seven-character commit prefix
+that begins with the letters "b" and "a", and on a third-party repository's name
+written outside a code span. The citation now names the commit that last changed the
+file, the sentence refers to the table's rows instead, and nothing was suppressed.
 
 ## Open points
 
