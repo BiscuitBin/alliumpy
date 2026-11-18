@@ -139,7 +139,8 @@ this note's own conclusion and is labelled. Sections 1 to 4 rest on three read-o
 surveys made on 2026-11-17 by subagents of the session that planned this spike; their
 citations are carried here but were not re-read line by line afterwards, except where
 "Spot checks" says so. Claims about this repository were re-read in the worktree at
-`545e7f2`.
+`545e7f2`. `main` was merged afterwards at `df07064`, which brought decision 0018; the
+passages it made stale were revised against that commit and each names the decision.
 
 ### 1. How our projects use Allium today
 
@@ -502,13 +503,23 @@ pursuing.
   is already in the core).
 - **Invariant 2 and the stub rule.** New Python surface means the stub, a pytest case
   and the wheel smoke move with it (`AGENTS.md`, the Python block).
-- **Decision 0013.** This repository keeps no specification gate and no Allium skills of
-  its own, so nothing built here would be exercised here by daily use. Its reopening
-  condition is "A way to run a specification gate through this repository's own
-  installed wheel, proving the selected executable and retaining an offline,
-  reproducible gate"; a gate script in the wheel is a step towards meeting it.
-  Shipping upstream's skills inside the wheel would reopen it outright, and would tie a
-  skills release (3.16.0) to a CLI release (3.6.1) that upstream versions separately.
+- **Decision 0013.** This repository keeps no specification gate, so a gate built here
+  would not be exercised here by daily use. Its reopening condition is "A way to run a
+  specification gate through this repository's own installed wheel, proving the
+  selected executable and retaining an offline, reproducible gate"; a gate script in
+  the wheel is a step towards meeting it.
+- **Decision 0018** (at `df07064`). It supersedes the skills half of decision 0013: the
+  seven upstream skills are committed unchanged under `.agents/skills/`, linked into
+  `.claude/skills/`, and pinned by commit and content hash in a version 2
+  `skills-lock.json` at `juxt/allium` `7f7f008`. `scripts/validate_agents.py`, owned
+  here, exempts the skills the lock names from the house rules and checks where they
+  are installed; `docs/how-to/maintain-dependencies.md` updates them with
+  `npx skills update`. Two limits the decision states itself: the exemption lists are
+  written out in six configuration files that nothing checks against the lock, and the
+  skills have no Codex bridges. It vendors skills for this repository's agents and says
+  nothing about distributing them: shipping upstream's skills inside the wheel would
+  need a decision of its own, and would tie a skills release (3.16.0) to a CLI release
+  (3.6.1) that upstream versions separately.
 - **Decision 0009.** The package and the command have different names; every snippet
   must carry `--from`.
 - **The root `pyproject.toml` is the tooling project** (`name = "alliumpy-tooling"`, the
@@ -533,9 +544,9 @@ and unmeasured.
 | 1 | **Document the adoption recipe**: the `uvx --from` form, a `repo: local` hook that checks the whole specification set (`pass_filenames: false`), a `setup-uv` CI step, a Renovate regex manager for the pin | every adopter wrote these by hand (sections 1, 3); all parts exist today | S: one how-to page | the handbook manifest | none; but without option 2 the hook inherits upstream's exit codes, so it cannot be the whole answer |
 | 2 | **A second console script in the wheel that gates**: runs `check` and `analyse` over a path, reads the JSON, exits by a stated policy; later an annotation format | the wrapper is rebuilt in the shared package, in knarr and by four third-party adopters; upstream's own version is unshipped Node | M: Python over the vendored command, stub, pytest, smoke, a how-to | invariant 1 (kept, if the script is not `allium`), invariant 9 (`.postN`) | a decision record: the script's name, that it is outside parity, its exit policy, and how it tracks upstream's `v4` exit changes |
 | 3 | **Move our four repositories from the tarball to the wheel**, pinned in their lockfiles | pachinko's decision 0005 reopening condition is met; removes hand-computed checksums, the per-worktree download and the four-target limit | M, outside this repository: the shared package and four repositories | none here | the maintainer's, per repository; whether `bg-run-allium` stays or option 2 replaces it |
-| 4 | **Skills pinned by tag with a checked lock, tool-neutral**: adopt one of knarr's model or `npx skills` with `skills-lock.json` version 2, and move house sentences out of the skill bodies into `AGENTS.md` | three repositories carry edited copies with no checked lock; knarr shows unedited copies with a two-way check work; lock v2 records the commit | M: mostly in the consuming repositories; here, at most a documented procedure or a check in the second script | decision 0013 if anything ships in the wheel | which lock format; whether alliumpy states the skills tag that goes with a wheel version |
+| 4 | **Skills pinned by tag with a checked lock, tool-neutral**: adopt one of knarr's model or `npx skills` with `skills-lock.json` version 2, and move house sentences out of the skill bodies into `AGENTS.md` | three repositories carry edited copies with no checked lock; knarr shows unedited copies with a two-way check work; lock v2 records the commit; since `df07064` this repository does it too, with `npx skills`, lock v2 and its own validator (decision 0018), so there is a worked example to copy | M: mostly in the consuming repositories; here the procedure exists in `docs/how-to/maintain-dependencies.md`, and what is left is making it reusable: the validator is a script in this repository, not in the wheel, and its six exemption lists are kept by hand | a new decision if anything ships in the wheel (decision 0018 covers vendoring only) | whether our other repositories follow this one's choice of `skills-lock.json` version 2; whether alliumpy states the skills tag that goes with a wheel version |
 | 5 | **A hook manifest in this repository** (`.pre-commit-hooks.yaml`, `language: python`, upstream fields only) | one `rev` then pins the checker, which upstream's `system` hook cannot | M: the root project becomes a placeholder; a version copy; a test that the hook installs a wheel and not a source build | the root `pyproject.toml`, invariant 9 | whether the root may double as a placeholder package, or the `repo: local` hook of option 1 is enough |
-| 6 | **Scaffold and drift commands in the second script** (`init` that writes only missing files with a hash manifest; a check that exits non-zero on drift) | rove's adoption touched about 25 files; the safe-rerun patterns are in section 4 | L: templates for ignore files, hooks, CI and recipes; our repositories differ (pixi and uv) | invariant 9; decision 0013 if it writes skills | what the scaffold owns; whether templates serve pixi, uv or both |
+| 6 | **Scaffold and drift commands in the second script** (`init` that writes only missing files with a hash manifest; a check that exits non-zero on drift) | rove's adoption touched about 25 files; the safe-rerun patterns are in section 4 | L: templates for ignore files, hooks, CI and recipes; our repositories differ (pixi and uv) | invariant 9; a new decision if it writes skills (decision 0018 covers vendoring here only) | what the scaffold owns; whether templates serve pixi, uv or both |
 | 7 | **A post-edit hook entry point without Node**, in the second script | three adopters rewrote upstream's `.mjs` in `sh` | S after option 2 | none new | per-agent configuration is not tool-neutral; which agents to document |
 | 8 | **A composite action or reusable workflow in this repository** | upstream ships none | S to M | CI here would need to test it | probably none; option 1's `uvx` step may be enough |
 | 9 | **A vendored `just` module written by the second script** (vehicle (a) of section 5) | just has no native way to ship recipes | M | a floor on the consumer's just version | only if the recipe set outgrows three one-line recipes |
@@ -547,7 +558,8 @@ and unmeasured.
 - A Claude Code plugin backed by a `command` source as the skills channel: scoping
   answer 4, and it matches skills to whatever `allium` is on the user's `PATH`, not to
   the project's pin (inference; not run).
-- Shipping upstream's skills in the wheel: decision 0013, and the two version series.
+- Shipping upstream's skills in the wheel: no decision covers it (decision 0018 vendors
+  them for this repository only), and the two version series.
 - `mod?` into the virtual environment: section 5, vehicle (b).
 - Formatting and rule-to-test tracing: they exist only in upstream's TypeScript and
   belong upstream.
@@ -647,6 +659,15 @@ A  tickets/S02-adoption-research-spike.md
 All checks passed and the worktree is unchanged.
 ```
 
+At `d4ef8e7` (the merge of `main` at `df07064`), untouched: `just check` exit 0, last
+line:
+
+```text
+All checks passed and the worktree is unchanged.
+```
+
+The revisions for decision 0018 were made after that run and gated when staged.
+
 ## Open points
 
 - The name and scope of a second console script, and whether it gates by reading the
@@ -658,8 +679,9 @@ All checks passed and the worktree is unchanged.
   logic should be versioned some other way that invariant 9 allows.
 - Whether this repository may publish a hook manifest from its root, given that the
   root is the tooling project.
-- Which skills lock our repositories standardise on, and whether house edits to skill
-  bodies can move into `AGENTS.md` so that the copies stay byte-identical to upstream.
+- Whether our other repositories standardise on the lock this one chose in decision
+  0018 (`skills-lock.json` version 2), and whether house edits to skill bodies can move
+  into `AGENTS.md` so that the copies stay byte-identical to upstream.
 - Whether alliumpy should state which `juxt/allium` tag goes with a wheel version, when
   upstream states no such pairing.
 - Whether the shared package's `bg-install-allium` and `bg-run-allium` are retired,
