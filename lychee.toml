@@ -3,4 +3,13 @@ max_retries = 2
 max_concurrency = 8
 timeout = 20
 accept = [200, 204, 206, 429]
-exclude_path = [".git", ".pixi", "ai_tmp", "target", ".tools"]
+# The vendored skills skills-lock.json names are third-party, installed unchanged
+# (decision 0018); keep the list in step with the lock.
+exclude_path = [
+  ".git",
+  ".pixi",
+  "ai_tmp",
+  "target",
+  ".tools",
+  '\.(agents|claude)/skills/(allium|distill|elicit|propagate|tend|weed|witness)/',
+]

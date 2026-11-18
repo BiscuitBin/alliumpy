@@ -289,8 +289,11 @@ check-docs:
     prek run --all-files markdownlint-cli2 typos lychee
     bg-validate-docs
 
+# Gate: the agent contract, by this repository's own validator. The skills
+# skills-lock.json names are third-party and exempt from the house rules
+# (decision 0018); the validator still checks where they are installed.
 check-agents:
-    bg-validate-agents
+    python -I scripts/validate_agents.py
 
 check-links-online:
     prek run --all-files --hook-stage manual lychee-online

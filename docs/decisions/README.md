@@ -38,6 +38,7 @@ until evidence supports a decision.
 | [0015](0015-release-process.md) | The release process |
 | [0016](0016-mutation-bench-and-fuzz.md) | Mutation testing, benchmarks and fuzzing |
 | [0017](0017-renovate.md) | Dependency updates through Renovate, except the upstream pin |
+| [0018](0018-vendored-allium-skills.md) | Vendored upstream Allium skills, exempt from the house rules |
 
 T14 wrote 0015, T15 wrote 0016 and T17 wrote 0017. Record 0014 is S01's draft, landed by
 T13.
