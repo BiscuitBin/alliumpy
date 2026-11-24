@@ -15,6 +15,10 @@ are listed here; upstream's own changes belong to upstream's release notes.
   the upstream-bump runbook,
   `docs/how-to/bump-upstream.md`, with `scripts/vendor_cli.py`, which generates the
   vendored command.
+- `alliumpy.check` and `alliumpy.analyse`, which run upstream's command in process and
+  return its reports as immutable `Report`, `FileReport` and `Finding` values with the
+  command's exit status; a panic, or output that is not the command's reports, raises
+  `AlliumError`.
 
 ## [3.6.1] - 2026-11-05
 

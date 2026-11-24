@@ -2,19 +2,20 @@
 -- alliumpy.allium
 
 -- Scope: what the alliumpy wheel adds around upstream's Allium parser and
---   command: the Python parse API, the version identity and the `allium`
---   console script's process behaviour.
+--   command: the Python parse, check and analyse API, the version identity
+--   and the `allium` console script's process behaviour.
 -- Authority: upstream decides behaviour (AGENTS.md invariant 1). This spec
 --   describes the conversion and the process wrapper only; `just check` and
 --   `just parity` test them.
--- Includes: alliumpy.parse and Diagnostic, the version constants, the console
+-- Includes: alliumpy.parse and Diagnostic, alliumpy.check and analyse and
+--   their reports, the version constants, the console
 --   script's signal and descriptor handling, panics, arguments that are not
 --   UTF-8, and stream flushing.
 -- Excludes:
 --   - What the command does with its arguments: allium-cli.allium.
 --   - What the parser accepts and the messages it reports: upstream's language.
 --   - Building, releasing and the quality gates: the handbook and decisions.
--- Evidence: crates/alliumpy-core/src/lib.rs and cli.rs,
+-- Evidence: crates/alliumpy-core/src/lib.rs, cli.rs and report.rs,
 --   crates/alliumpy/src/lib.rs, crates/alliumpy/python/alliumpy/, and the
 --   tests beside them.
 
@@ -77,6 +78,19 @@ entity ParseCall {
     }
 }
 
+-- One call of alliumpy.check or alliumpy.analyse that returned. It ran the
+-- command in process on the command's name followed by the paths, capturing
+-- what the command printed instead of writing it to the process's streams.
+-- evidence: crates/alliumpy-core/src/report.rs; crates/alliumpy/src/lib.rs
+entity ReportCall {
+    program: PythonProgram
+    command: cli/Command
+    paths: List<String>
+    exit_status: cli/ExitStatus
+    files: List<cli/FileReport>
+    stderr: String
+}
+
 -- One run of the console script. evidence: _cli.py:10-32
 entity ConsoleRun {
     process: ConsoleProcess
@@ -133,6 +147,38 @@ rule SourceRefused {
     when: ParseRequested(program, source)
     requires: not is_utf8(source)
     ensures: SourceRefusedError(program: program)
+}
+
+-- check and analyse return what the command printed, as values: one report
+-- per readable file in the command's order, its stderr, and the exit status
+-- allium-cli.allium gives the same arguments. An unreadable file is named on
+-- stderr and has no report; no file found is usage_error, as the command
+-- gives it. evidence: crates/alliumpy-core/src/report.rs:83-132
+rule ReportReturned {
+    when: ReportRequested(program, command, paths)
+    let arguments = report_arguments(command, paths)   -- black box: the command's name, then the paths
+    requires: prints_reports(arguments)                -- black box: stdout holds only per-file reports
+    ensures: ReportCall.created(
+        program: program,
+        command: command,
+        paths: paths,
+        exit_status: command_exit_status(arguments),
+        files: printed_reports(arguments),
+        stderr: printed_stderr(arguments)
+    )
+
+    @guidance
+        -- crates/alliumpy/tests/test_check.py compares every field with the
+        -- JSON the command prints for the same paths.
+}
+
+-- A panic in the command (crashed), or output that is not its reports, such
+-- as the help that `--help` among the paths prints, raises AlliumError with a
+-- fixed message. evidence: crates/alliumpy-core/src/report.rs:46-66, 117-121
+rule ReportRefused {
+    when: ReportRequested(program, command, paths)
+    requires: not prints_reports(report_arguments(command, paths))
+    ensures: AlliumErrorRaised(program: program)
 }
 
 ------------------------------------------------------------
@@ -197,18 +243,26 @@ surface PythonApi {
 
     provides:
         ParseRequested(program, source)
+        ReportRequested(program, command, paths)
 
     @guarantee PublicNames
-        -- alliumpy exports exactly parse, Diagnostic, AlliumError and
-        -- ALLIUM_VERSION. The version string stays in the native module.
+        -- alliumpy exports exactly parse, Diagnostic, AlliumError,
+        -- ALLIUM_VERSION, check, analyse, Report, FileReport and Finding.
+        -- The version string stays in the native module.
 
     @guarantee DiagnosticsAreValues
         -- A Diagnostic is immutable, and compares and hashes by value. Its
         -- severity is the string "error", "warning" or "info", and its repr
         -- shows every field with Python quoting.
 
+    @guarantee ReportsAreValues
+        -- Report, FileReport and Finding are immutable, and compare and hash
+        -- by value. A Finding keeps its type, summary and affected entities,
+        -- and its complete JSON object; its repr shows every field.
+
     @guarantee AlliumErrorIsAValueError
-        -- AlliumError subclasses ValueError and keeps its message.
+        -- AlliumError subclasses ValueError and keeps its message. check and
+        -- analyse raise it; parse never does.
 
     @guarantee PackageVersionTracksUpstream
         -- The package version with any `.postN` stripped equals
@@ -233,9 +287,3 @@ surface ConsoleScript {
         -- `allium-cli` at allium_version.
 }
 
-------------------------------------------------------------
--- Open Questions
-------------------------------------------------------------
-
-open question "AlliumError is exported, but nothing in the package raises it: parse refuses only what the binding cannot convert, with TypeError or UnicodeEncodeError. Is it reserved for a future API, or should it go?"
-open question "The Python API offers parse only: is a cross-file check, with the command's check-set diagnostics, wanted from Python?"

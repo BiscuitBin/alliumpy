@@ -78,6 +78,178 @@ impl Diagnostic {
     }
 }
 
+/// Python's `repr` of a string.
+fn quote(py: Python<'_>, value: &str) -> PyResult<String> {
+    Ok(PyString::new(py, value).repr()?.to_str()?.to_owned())
+}
+
+/// Python's `repr` of a list, given each item's.
+fn list_repr(items: impl IntoIterator<Item = PyResult<String>>) -> PyResult<String> {
+    let items: Vec<String> = items.into_iter().collect::<PyResult<_>>()?;
+    Ok(format!("[{}]", items.join(", ")))
+}
+
+/// One `analyse` finding as upstream's command printed it.
+#[pyclass(frozen, eq, hash, module = "alliumpy._alliumpy")]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+struct Finding {
+    inner: alliumpy_core::report::Finding,
+}
+
+#[pymethods]
+impl Finding {
+    /// The finding's type.
+    #[getter]
+    #[pyo3(name = "type")]
+    fn kind(&self) -> &str {
+        &self.inner.kind
+    }
+
+    /// Upstream's one-line summary.
+    #[getter]
+    fn summary(&self) -> &str {
+        &self.inner.summary
+    }
+
+    /// The entities the finding names.
+    #[getter]
+    fn affected_entities(&self) -> Vec<String> {
+        self.inner.affected_entities.clone()
+    }
+
+    /// The finding's complete JSON object.
+    #[getter]
+    fn json(&self) -> &str {
+        &self.inner.json
+    }
+
+    fn __repr__(&self, py: Python<'_>) -> PyResult<String> {
+        let entities = list_repr(self.inner.affected_entities.iter().map(|e| quote(py, e)))?;
+        Ok(format!(
+            "Finding(type={}, summary={}, affected_entities={}, json={})",
+            quote(py, self.kind())?,
+            quote(py, self.summary())?,
+            entities,
+            quote(py, self.json())?
+        ))
+    }
+}
+
+/// The command's report on one specification file.
+#[pyclass(frozen, eq, hash, module = "alliumpy._alliumpy")]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+struct FileReport {
+    inner: alliumpy_core::report::FileReport,
+}
+
+#[pymethods]
+impl FileReport {
+    /// The path as the command printed it.
+    #[getter]
+    fn spec_file(&self) -> &str {
+        &self.inner.spec_file
+    }
+
+    /// The file's diagnostics in the command's order.
+    #[getter]
+    fn diagnostics(&self) -> Vec<Diagnostic> {
+        self.inner
+            .diagnostics
+            .iter()
+            .map(|inner| Diagnostic {
+                inner: inner.clone(),
+            })
+            .collect()
+    }
+
+    /// The file's findings in the command's order.
+    #[getter]
+    fn findings(&self) -> Vec<Finding> {
+        self.inner
+            .findings
+            .iter()
+            .map(|inner| Finding {
+                inner: inner.clone(),
+            })
+            .collect()
+    }
+
+    fn __repr__(&self, py: Python<'_>) -> PyResult<String> {
+        Ok(format!(
+            "FileReport(spec_file={}, diagnostics={}, findings={})",
+            quote(py, self.spec_file())?,
+            list_repr(self.diagnostics().iter().map(|d| d.__repr__(py)))?,
+            list_repr(self.findings().iter().map(|f| f.__repr__(py)))?
+        ))
+    }
+}
+
+/// What one run of `allium check` or `allium analyse` reported.
+#[pyclass(frozen, eq, hash, module = "alliumpy._alliumpy")]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+struct Report {
+    inner: alliumpy_core::report::Report,
+}
+
+#[pymethods]
+impl Report {
+    /// The command's exit status.
+    #[getter]
+    const fn status(&self) -> i32 {
+        self.inner.status
+    }
+
+    /// One report per file the command read.
+    #[getter]
+    fn files(&self) -> Vec<FileReport> {
+        self.inner
+            .files
+            .iter()
+            .map(|inner| FileReport {
+                inner: inner.clone(),
+            })
+            .collect()
+    }
+
+    /// What the command wrote to stderr.
+    #[getter]
+    fn stderr(&self) -> &str {
+        &self.inner.stderr
+    }
+
+    fn __repr__(&self, py: Python<'_>) -> PyResult<String> {
+        Ok(format!(
+            "Report(status={}, files={}, stderr={})",
+            self.status(),
+            list_repr(self.files().iter().map(|f| f.__repr__(py)))?,
+            quote(py, self.stderr())?
+        ))
+    }
+}
+
+/// Run a report command with the interpreter released, as the command would run.
+fn report(
+    py: Python<'_>,
+    run: fn(&[String]) -> Result<alliumpy_core::report::Report, alliumpy_core::report::ReportError>,
+    paths: Vec<String>,
+) -> PyResult<Report> {
+    py.detach(move || run(&paths))
+        .map(|inner| Report { inner })
+        .map_err(|error| AlliumError::new_err(error.to_string()))
+}
+
+/// Run upstream's `allium check` on `paths`, capturing its reports and status.
+#[pyfunction]
+fn check(py: Python<'_>, paths: Vec<String>) -> PyResult<Report> {
+    report(py, alliumpy_core::report::check, paths)
+}
+
+/// Run upstream's `allium analyse` on `paths`, capturing its reports and status.
+#[pyfunction]
+fn analyse(py: Python<'_>, paths: Vec<String>) -> PyResult<Report> {
+    report(py, alliumpy_core::report::analyse, paths)
+}
+
 /// Parse source with upstream Allium, preserving diagnostic order.
 #[pyfunction]
 fn parse(source: &str) -> Vec<Diagnostic> {
@@ -101,7 +273,12 @@ fn run_cli(args: Vec<OsString>) -> i32 {
 #[pymodule]
 fn _alliumpy(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<Diagnostic>()?;
+    module.add_class::<FileReport>()?;
+    module.add_class::<Finding>()?;
+    module.add_class::<Report>()?;
     module.add_function(wrap_pyfunction!(parse, module)?)?;
+    module.add_function(wrap_pyfunction!(check, module)?)?;
+    module.add_function(wrap_pyfunction!(analyse, module)?)?;
     module.add_function(wrap_pyfunction!(run_cli, module)?)?;
     module.add("AlliumError", module.py().get_type::<AlliumError>())?;
     module.add("ALLIUM_VERSION", alliumpy_core::ALLIUM_VERSION)?;

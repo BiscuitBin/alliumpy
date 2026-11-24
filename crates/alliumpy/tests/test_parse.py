@@ -135,7 +135,17 @@ def test_package_version() -> None:
 
 def test_exports() -> None:
     """Resolve every declared re-export and keep the native version line private."""
-    assert set(alliumpy.__all__) == {"ALLIUM_VERSION", "AlliumError", "Diagnostic", "parse"}
+    assert set(alliumpy.__all__) == {
+        "ALLIUM_VERSION",
+        "AlliumError",
+        "Diagnostic",
+        "parse",
+        "check",
+        "analyse",
+        "Report",
+        "FileReport",
+        "Finding",
+    }
     for name in alliumpy.__all__:
         assert getattr(alliumpy, name) is not None
     assert not hasattr(alliumpy, "ALLIUM_VERSION_STRING")
