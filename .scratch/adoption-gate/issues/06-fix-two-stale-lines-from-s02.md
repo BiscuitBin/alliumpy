@@ -8,10 +8,10 @@ when 0018 superseded part of it; the original sentence stays.
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done. Hand-back: purpose-and-scope now describes the vendored command and the check/analyse API; 0009 carries an "overtaken in part" banner with its sentence kept; no other unpublished claim found in `docs/`; `just check` ended `All checks passed and the worktree is unchanged.`
 
-- [ ] Both statements match the state since 2026-11-05, as the changelog records it.
-- [ ] A search of the handbook finds no other claim that the wheel is unpublished or
+- [x] Both statements match the state since 2026-11-05, as the changelog records it.
+- [x] A search of the handbook finds no other claim that the wheel is unpublished or
       the command incomplete.
-- [ ] `just check-docs` passes and `just check` ends with
+- [x] `just check-docs` passes and `just check` ends with
       `All checks passed and the worktree is unchanged.`
