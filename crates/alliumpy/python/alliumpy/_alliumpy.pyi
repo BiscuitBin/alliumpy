@@ -115,7 +115,10 @@ class Report:
         """Represent every field using Python quoting."""
 
 def check(paths: list[str]) -> Report:
-    """Run upstream's allium check on paths; raise AlliumError if it panics or prints no reports."""
+    """Run upstream's allium check on paths.
+
+    Raise AlliumError if it panics or prints output other than its JSON reports.
+    """
 
 def analyse(paths: list[str]) -> Report:
     """Run upstream's allium analyse on paths; raise AlliumError as check does."""

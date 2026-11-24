@@ -60,9 +60,11 @@ workflow command, `::error`, `::warning` or `::notice` for error, warning and in
 with the file, line and column, and each finding as a file-only `::notice`, or
 `::error` when findings fail the gate. An unreadable file becomes a bare `::error`
 on stdout. Messages and properties are escaped as the workflow-command syntax
-requires. `--format text`, the default, is the output above, with every character
-that is not printable, such as a line break in a file name, written as its backslash
-escape, so no line of it can start a workflow command. Files the command displays
+requires. `--format text`, the default, is the output above, written so the Actions
+runner reads no line of it as a workflow command: every character that is not
+printable, such as a line break in a file name, becomes its backslash escape, as do
+the `[` of the legacy `##[` syntax, which the runner reads anywhere in a line, and the
+first `:` of a line that starts with `::`. Files the command displays
 alike, such as two names that are not UTF-8, keep all their diagnostics and findings.
 
 The gate is outside the parity invariant, which covers the `allium` script alone: its

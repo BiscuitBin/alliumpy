@@ -197,18 +197,22 @@ rule ReportRefused {
 ------------------------------------------------------------
 
 -- The gate runs check, then analyse, on the paths through the Python API. A
--- run that raises AlliumError is no_report; one that finds no file is
--- usage_error, as the command's usage_error. Otherwise the gate fails when a
--- file has a diagnostic at or above the fail_on severity (warning unless
--- chosen) in either report, a finding when fail_on_findings is chosen, or a
--- file could not be read by either run; nothing else fails it. Analyse
--- finding no file is usage_error too, as when a file is removed between
--- runs. The policy is this repository's, outside UpstreamParity, and does not follow the command's
--- language version 4 rule. evidence: _gate.py; crates/alliumpy/tests/test_gate.py
+-- run that raises AlliumError is no_report, and one that finds no file is
+-- usage_error, as the command's; the gate stops at the first such run, so
+-- check's decides when both would. Analyse finding no file after check found
+-- some means a file was removed between the runs. Otherwise the
+-- gate fails when a file has a diagnostic at or above the fail_on severity
+-- (warning unless chosen) in either report, a finding when fail_on_findings
+-- is chosen, or a file either run could not read; nothing else fails it.
+-- The policy is this repository's, outside UpstreamParity, and does not
+-- follow the command's language version 4 rule.
+-- evidence: _gate.py; crates/alliumpy/tests/test_gate.py
 rule GateDecides {
     when: GateInvoked(process, paths, fail_on, fail_on_findings)
-    let reported = prints_reports(report_arguments(check, paths))
-    let found = reports_found(paths)          -- black box: neither run's status is usage_error
+    let check_reported = prints_reports(report_arguments(check, paths))
+    let check_found = reports_found(check, paths)       -- black box: the run's status is not usage_error
+    let analyse_reported = prints_reports(report_arguments(analyse, paths))
+    let analyse_found = reports_found(analyse, paths)
     let failing =
         has_diagnostic_at_or_above(paths, fail_on)
         or (fail_on_findings and has_finding(paths))
@@ -217,8 +221,10 @@ rule GateDecides {
         process: process,
         paths: paths,
         outcome:
-            if not reported: no_report
-            else: if not found: usage_error
+            if not check_reported: no_report
+            else: if not check_found: usage_error
+            else: if not analyse_reported: no_report
+            else: if not analyse_found: usage_error
             else: if failing: failed
             else: passed
     )
@@ -349,8 +355,9 @@ surface GateScript {
         -- With --format github, each diagnostic is one workflow command at
         -- its file, line and column, and each finding one at its file, with
         -- messages and properties escaped. The default output is text, with
-        -- each character that is not printable written as its backslash
-        -- escape, so no text line starts a workflow command.
+        -- each character that is not printable, the [ of ##[ and the first
+        -- : of a leading :: written as backslash escapes, so the runner reads
+        -- no text line as a workflow command.
 
     @guarantee TyperOnlyInTheGate
         -- Importing alliumpy, or running the allium script, never imports

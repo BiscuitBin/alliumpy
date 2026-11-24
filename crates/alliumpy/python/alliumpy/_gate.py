@@ -25,7 +25,7 @@ FAILED = 1
 USAGE = 2
 """Exit status for a usage error, and when no specification is found."""
 NO_REPORT = 3
-"""Exit status when the command could not report: it panicked or printed no reports."""
+"""Exit status when the command could not report: it panicked or printed something else."""
 
 SEVERITIES = ("error", "warning", "info")
 """Upstream's severities, most severe first."""
@@ -96,6 +96,21 @@ def printable(text: str) -> str:
     )
 
 
+def text_line(text: str) -> str:
+    """One line of text output that the GitHub Actions runner cannot read as a command.
+
+    Beyond :func:`printable`, the runner runs ``::command::`` at a line's start after
+    leading whitespace, and the legacy ``##[command]`` anywhere in it; their first
+    ``:`` and their ``[`` are written as backslash escapes.
+    """
+    line = printable(text).replace("##[", "##\\x5b")
+    stripped = line.lstrip()
+    if stripped.startswith("::"):
+        indent = len(line) - len(stripped)
+        line = f"{line[:indent]}\\x3a{line[indent + 1 :]}"
+    return line
+
+
 def escape_data(text: str) -> str:
     """Escape a workflow command's message."""
     return text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
@@ -130,7 +145,7 @@ def diagnostic_line(spec_file: str, d: Diagnostic, output: Format) -> str:
     if output is Format.GITHUB:
         level = ANNOTATION_LEVELS[d.severity]
         return annotation(level, message, file=spec_file, line=d.line, col=d.col)
-    return printable(f"{spec_file}:{d.line}:{d.col}: {d.severity}: {message}")
+    return text_line(f"{spec_file}:{d.line}:{d.col}: {d.severity}: {message}")
 
 
 def finding_line(spec_file: str, f: Finding, output: Format, *, failing: bool) -> str:
@@ -138,7 +153,7 @@ def finding_line(spec_file: str, f: Finding, output: Format, *, failing: bool) -
     message = f"finding {f.type}: {f.summary}"
     if output is Format.GITHUB:
         return annotation("error" if failing else "notice", message, file=spec_file)
-    return printable(f"{spec_file}: {message}")
+    return text_line(f"{spec_file}: {message}")
 
 
 def reports(paths: list[str]) -> tuple[Report, Report]:
@@ -201,7 +216,7 @@ def gate(
         if output is Format.GITHUB:
             typer.echo(annotation("error", line))
         else:
-            typer.echo(printable(f"error: {line}"), err=True)
+            typer.echo(text_line(f"error: {line}"), err=True)
     diagnostics = merged(check_report, analyse_report)
     findings: dict[str, list[Finding]] = {}
     for file in analyse_report.files:

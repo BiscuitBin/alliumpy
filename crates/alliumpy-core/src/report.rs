@@ -7,6 +7,12 @@ use serde::Deserialize;
 use crate::{Diagnostic, Severity};
 
 /// What one run of `allium check` or `allium analyse` reported.
+///
+/// ```
+/// let report = alliumpy_core::report::check(&["missing.allium".to_owned()]).unwrap();
+/// assert_eq!((report.status, report.files.len()), (1, 0));
+/// assert!(report.stderr.starts_with("missing.allium: "));
+/// ```
 #[non_exhaustive]
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Report {
@@ -19,6 +25,15 @@ pub struct Report {
 }
 
 /// The command's report on one specification file.
+///
+/// ```
+/// let path = "../../tests/fixtures/gate/finding.allium".to_owned();
+/// let report = alliumpy_core::report::analyse(&[path.clone()]).unwrap();
+/// let file = &report.files[0];
+/// assert_eq!(file.spec_file, path);
+/// assert_eq!(file.diagnostics[0].message, "Field 'Parcel.note' is declared but not referenced elsewhere.");
+/// assert_eq!(file.findings.len(), 3);
+/// ```
 #[non_exhaustive]
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct FileReport {
@@ -31,6 +46,15 @@ pub struct FileReport {
 }
 
 /// One `analyse` finding.
+///
+/// ```
+/// let path = "../../tests/fixtures/gate/finding.allium".to_owned();
+/// let finding = &alliumpy_core::report::analyse(&[path]).unwrap().files[0].findings[0];
+/// assert_eq!(finding.kind, "dead_transition");
+/// assert!(finding.summary.starts_with("Transition 'pending'"));
+/// assert_eq!(finding.affected_entities, ["Parcel"]);
+/// assert!(finding.json.contains(r#""type":"dead_transition""#));
+/// ```
 #[non_exhaustive]
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Finding {
@@ -45,6 +69,20 @@ pub struct Finding {
 }
 
 /// Why the command's output could not be returned as a [`Report`].
+///
+/// ```
+/// use alliumpy_core::report::{ReportError, check};
+///
+/// assert_eq!(check(&["--help".to_owned()]), Err(ReportError::Malformed));
+/// assert_eq!(
+///     ReportError::Malformed.to_string(),
+///     "the allium command printed output that is not its JSON reports",
+/// );
+/// assert_eq!(
+///     ReportError::Crashed.to_string(),
+///     "the allium command panicked (exit status 101)",
+/// );
+/// ```
 #[non_exhaustive]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum ReportError {

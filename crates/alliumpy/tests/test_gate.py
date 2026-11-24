@@ -93,7 +93,7 @@ def test_usage_errors_are_status_2(capsys: pytest.CaptureFixture[str]) -> None:
 
 
 def test_output_that_is_not_a_report_is_status_3(capsys: pytest.CaptureFixture[str]) -> None:
-    """Exit 3 with the error on stderr when the command prints no reports."""
+    """Exit 3 with the error on stderr when the command prints output other than its reports."""
     status, out, err = run(capsys, "gate", "--", "--help")
     assert (status, out) == (3, "")
     assert err == (
@@ -341,3 +341,56 @@ def test_non_utf8_names_that_display_alike_keep_every_finding(
     status, out, _ = run(capsys, "gate", "--fail-on-findings", str(tmp_path))
     assert status == 1
     assert ", 3 findings," in out
+
+
+# Codex's review of PR #51
+
+
+def test_text_line_escapes_runner_commands() -> None:
+    """Escape a leading ``::`` command, after whitespace too, and ``##[`` anywhere."""
+    assert _gate.text_line("::error::a") == "\\x3a:error::a"
+    assert _gate.text_line("  ::warning::a") == "  \\x3a:warning::a"
+    assert _gate.text_line("a ##[warning]b ###[c") == "a ##\\x5bwarning]b ###\\x5bc"
+    assert _gate.text_line("a::b: c") == "a::b: c"
+
+
+def test_text_output_cannot_run_a_legacy_command(capsys: pytest.CaptureFixture[str]) -> None:
+    """Escape ``##[``, which the runner reads anywhere in a line, in an unreadable file's name."""
+    status, out, err = run(capsys, "gate", "##[warning]forged.allium", OK)
+    assert status == 1
+    assert "##[" not in out + err
+    assert err.startswith("error: ##\\x5bwarning]forged.allium: ")
+
+
+@POSIX_ONLY
+def test_text_output_cannot_start_with_a_command(
+    capsys: pytest.CaptureFixture[str], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Escape a leading ``::`` when a relative path is a workflow command."""
+    name = "::error::forged.allium"
+    try:
+        (tmp_path / name).write_text(Path(BROKEN).read_text(encoding="utf-8"), encoding="utf-8")
+    except OSError:
+        pytest.skip("the file system refuses a colon in a file name")
+    monkeypatch.chdir(tmp_path)
+    status, out, err = run(capsys, "gate", name)
+    assert status == 1
+    assert not [line for line in (out + err).splitlines() if line.lstrip().startswith("::")]
+    assert out.startswith("\\x3a:error::forged.allium:5:9: error: ")
+
+
+PANICKED = "the allium command panicked (exit status 101)"
+
+
+def test_analyse_alone_failing_to_report_is_status_3(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Exit 3 when check reports and analyse does not, printing nothing on stdout."""
+
+    def refuse(_: list[str]) -> Report:
+        raise alliumpy.AlliumError(PANICKED)
+
+    monkeypatch.setattr(_gate, "analyse", refuse)
+    status, out, err = run(capsys, "gate", OK)
+    assert (status, out) == (3, "")
+    assert err == f"alliumpy gate: {PANICKED}\n"
