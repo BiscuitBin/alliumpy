@@ -1,0 +1,5 @@
+-- allium: 3
+-- Gate fixture: allium-cli 3.6.1 check reports one error at 5:1 and nothing else,
+-- exit 1; analyse reports the same error, exit 0.
+-- Original fixture written here; contains no upstream text; no attribution needed.
+?

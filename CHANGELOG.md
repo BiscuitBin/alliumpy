@@ -19,6 +19,13 @@ are listed here; upstream's own changes belong to upstream's release notes.
   return its reports as immutable `Report`, `FileReport` and `Finding` values with the
   command's exit status; a panic, or output that is not the command's reports, raises
   `AlliumError`.
+- The `alliumpy` console script with one subcommand, `alliumpy gate PATHS`, which runs
+  `check` and `analyse`, prints each diagnostic and finding, and exits 1 on any error or
+  warning or an unreadable file (decision 0019). `uvx alliumpy gate specs/` needs no
+  `--from`.
+- Typer, the wheel's first runtime dependency (`typer>=0.29.2,<0.30`), which brings
+  pydantic, rich, shellingham and annotated-doc with their own dependencies; only the
+  gate script imports it.
 
 ## [3.6.1] - 2026-11-05
 

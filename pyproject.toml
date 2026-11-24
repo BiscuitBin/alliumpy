@@ -44,6 +44,10 @@ pytest = "==9.1.1"
 ruff = "==0.17.2"
 # Static type checking and runtime stubtest.
 mypy = "==2.4.0"
+# The wheel's one runtime dependency, for the alliumpy gate script (decision 0019):
+# the copy py-develop, py-test and the offline wheel smoke import. conda-forge's
+# newest on 2026-11-23; the wheel's range in crates/alliumpy/pyproject.toml holds it.
+typer = "==0.29.2"
 
 [tool.pixi.pypi-dependencies]
 biscuit-games-tooling = { git = "https://github.com/steven-cutting/biscuit_games_tooling", tag = "v0.3.0" }

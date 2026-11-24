@@ -102,9 +102,10 @@ jobs:
   # local run smokes the wheel on pixi's Python 3.14, so only this job shows
   # that the abi3-py311 wheel installs and runs on 3.11. Plain shell, no
   # setup action and no `just`, so the proof does not depend on pixi.
-  # Network is allowed here; `--no-index` and `--no-deps` are what keep the
-  # install to the one downloaded file, and `-I` keeps the checkout's
-  # sources off the import path.
+  # Network is allowed here. The wheel installs from the one downloaded file,
+  # with its runtime dependency, Typer, resolved from PyPI (decision 0019), so
+  # this is the one pre-release proof that the declared range installs; `-I`
+  # keeps the checkout's sources off the import path.
   wheel-smoke-py311:
     name: wheel-smoke-py311
     needs: [python]
@@ -124,10 +125,14 @@ jobs:
       - run: |
           python -m venv venv
           venv/bin/python --version
-          venv/bin/pip install --no-index --no-deps dist/*.whl
+          venv/bin/pip install dist/*.whl
           venv/bin/python -I tests/fixtures/smoke/smoke.py
+          venv/bin/python -I tests/fixtures/smoke/dependency.py
           venv/bin/allium --version
           venv/bin/allium check tests/fixtures/smoke/ok.allium
+          venv/bin/alliumpy gate tests/fixtures/smoke/ok.allium
+          status=0; venv/bin/alliumpy gate tests/fixtures/smoke/broken.allium || status=$?
+          test "$status" -eq 1
 
   # Byte-for-byte stdout and exit-code parity with upstream's allium-cli at the
   # pin, and the behaviours beyond the corpus (decision 0014). After python, so

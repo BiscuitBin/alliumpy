@@ -640,6 +640,21 @@
         "decision_vendored_allium_skills"
       ],
       "requires": []
+    },
+    {
+      "path": "decisions/0019-alliumpy-gate-script.md",
+      "title": "Decision 0019: The `alliumpy gate` script, its exit policy and its Typer dependency",
+      "kind": "decision",
+      "audience": [
+        "user",
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_gate_script"
+      ],
+      "requires": []
     }
   ]
 }

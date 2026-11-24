@@ -15,6 +15,11 @@ license = "Apache-2.0"
 # Both texts ship in the wheel's .dist-info/licenses/ (decision 0003). Globs
 # cannot leave this directory, hence the copies here.
 license-files = ["LICENSE", "LICENSE-allium-tools"]
+# The alliumpy gate script's command-line framework, the wheel's one runtime
+# dependency (decision 0019). The caret range of the 0.x pin in the root
+# pyproject.toml, which locks the copy every gate tests; the allium script and the
+# library never import it.
+dependencies = ["typer>=0.29.2,<0.30"]
 classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
@@ -26,6 +31,8 @@ classifiers = [
 
 [project.scripts]
 allium = "alliumpy._cli:main"
+# The specification gate (decision 0019), outside the parity invariant.
+alliumpy = "alliumpy._gate:main"
 
 [project.urls]
 Repository = "https://github.com/BiscuitBin/alliumpy"

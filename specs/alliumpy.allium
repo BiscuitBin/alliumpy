@@ -3,14 +3,15 @@
 
 -- Scope: what the alliumpy wheel adds around upstream's Allium parser and
 --   command: the Python parse, check and analyse API, the version identity
---   and the `allium` console script's process behaviour.
+--   the `allium` console script's process behaviour, and the `alliumpy gate`
+--   script's exit policy.
 -- Authority: upstream decides behaviour (AGENTS.md invariant 1). This spec
 --   describes the conversion and the process wrapper only; `just check` and
 --   `just parity` test them.
 -- Includes: alliumpy.parse and Diagnostic, alliumpy.check and analyse and
 --   their reports, the version constants, the console
 --   script's signal and descriptor handling, panics, arguments that are not
---   UTF-8, and stream flushing.
+--   UTF-8, and stream flushing; the gate script's statuses (decision 0019).
 -- Excludes:
 --   - What the command does with its arguments: allium-cli.allium.
 --   - What the parser accepts and the messages it reports: upstream's language.
@@ -54,6 +55,9 @@ value ParserDiagnostic {
 
 enum SigintAction { terminate | ignore }
 
+-- The gate script's exit statuses (decision 0019): 0, 1, 2 and 3.
+enum GateOutcome { passed | failed | usage_error | no_report }
+
 ------------------------------------------------------------
 -- Entities
 ------------------------------------------------------------
@@ -89,6 +93,13 @@ entity ReportCall {
     exit_status: cli/ExitStatus
     files: List<cli/FileReport>
     stderr: String
+}
+
+-- One run of `alliumpy gate` over paths. evidence: _gate.py
+entity GateRun {
+    process: ConsoleProcess
+    paths: List<String>
+    outcome: GateOutcome
 }
 
 -- One run of the console script. evidence: _cli.py:10-32
@@ -179,6 +190,33 @@ rule ReportRefused {
     when: ReportRequested(program, command, paths)
     requires: not prints_reports(report_arguments(command, paths))
     ensures: AlliumErrorRaised(program: program)
+}
+
+------------------------------------------------------------
+-- Rules: the gate script
+------------------------------------------------------------
+
+-- The gate runs check, then analyse, on the paths through the Python API. A
+-- run that raises AlliumError is no_report; one that finds no file is
+-- usage_error, as the command's usage_error. Otherwise the gate fails when a
+-- file has an error or a warning in either report, or a file could not be
+-- read; info diagnostics and findings never fail it. The policy is this
+-- repository's, outside UpstreamParity, and does not follow the command's
+-- language version 4 rule. evidence: _gate.py; crates/alliumpy/tests/test_gate.py
+rule GateDecides {
+    when: GateInvoked(process, paths)
+    let reported = prints_reports(report_arguments(check, paths))
+    let found = reports_found(paths)          -- black box: check's status is not usage_error
+    let failing = has_error_or_warning(paths) or has_unreadable_file(paths)
+    ensures: GateRun.created(
+        process: process,
+        paths: paths,
+        outcome:
+            if not reported: no_report
+            else: if not found: usage_error
+            else: if failing: failed
+            else: passed
+    )
 }
 
 ------------------------------------------------------------
@@ -285,5 +323,24 @@ surface ConsoleScript {
     @guarantee UpstreamParity
         -- Over the parity corpus, stdout and the exit status equal those of
         -- `allium-cli` at allium_version.
+}
+
+-- The `alliumpy` script. evidence: _gate.py; crates/alliumpy/pyproject.toml
+surface GateScript {
+    facing process: ConsoleProcess
+
+    provides:
+        GateInvoked(process, paths)
+
+    @guarantee GateStatuses
+        -- passed exits 0, failed 1, usage_error 2 (Typer's usage errors
+        -- too) and no_report 3.
+
+    @guarantee EachDiagnosticOnce
+        -- A diagnostic both check and analyse report is printed once.
+
+    @guarantee TyperOnlyInTheGate
+        -- Importing alliumpy, or running the allium script, never imports
+        -- Typer, the wheel's one runtime dependency.
 }
 

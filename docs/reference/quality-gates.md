@@ -59,7 +59,11 @@ rather than status 2 for a usage error. stubtest's allowlist is empty: each entr
 would hide a discrepancy, and a deliberate stub error fails py-stubtest.
 
 The wheel smoke empties dist, requires one real wheel and installs only that artefact
-with offline, no-index and no-deps flags. Python runs with `-I`. The core's small
+with offline, no-index and no-deps flags into a venv that sees the pixi environment's
+site-packages, so the wheel's Typer dependency comes from the lock. Python runs with
+`-I`. `dependency.py` proves the wheel is the venv's own, that its metadata declares
+Typer, and that the pinned copy satisfies the range; the gate script then runs both
+helps, passes the clean fixture and fails the broken one with exactly status 1. The core's small
 coverage denominator makes a single untested branch material. Metrics checks the tool
 version before invoking it; internal module-boundary rules and their positive control
 will arrive with modules, rather than claiming an empty rule set enforces a graph.

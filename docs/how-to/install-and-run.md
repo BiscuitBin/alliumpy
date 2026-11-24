@@ -22,7 +22,8 @@ uvx --from alliumpy allium --version
 ```
 
 Use `--from alliumpy` because the distribution name differs from the command name.
-`uvx alliumpy` would look for a command named `alliumpy`.
+`uvx alliumpy` runs the wheel's other script, `alliumpy`, described under
+[Gate specifications in CI](#gate-specifications-in-ci).
 
 ## Install the command
 
@@ -74,6 +75,26 @@ allium help check
 ```
 
 Upstream language documentation is at <https://github.com/juxt/allium-tools>.
+
+## Gate specifications in CI
+
+`alliumpy gate` runs upstream's `check` and `analyse` on files or directories and exits
+by one policy, so a CI step needs one line and no `--from`:
+
+```sh
+uvx alliumpy gate specs/
+```
+
+It prints each diagnostic once as `file:line:col: severity: message [code]`, each
+`analyse` finding as `file: finding type: summary`, and a closing count. The exit status
+is 0 when every file was read and none has an error or a warning, and 1 when one does or
+a file cannot be read. It is 2 for a usage error or when no `.allium` file is found, and
+3 when the checker could not report. `info` diagnostics and findings are printed but do
+not fail the gate. `alliumpy --help` and `alliumpy gate --help` print usage.
+
+The gate is this repository's, not upstream's, and its policy differs from `allium
+analyse`'s on an error with no finding. [Decision 0019](../decisions/0019-alliumpy-gate-script.md)
+records the policy and the Typer dependency it brings.
 
 ## Related pages
 

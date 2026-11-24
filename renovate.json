@@ -75,6 +75,13 @@
       "dependencyDashboardApproval": true
     },
     {
+      "description": "Typer, the wheel's one runtime dependency (decision 0019): the pixi pin in pyproject.toml, which every gate tests, and the wheel's range in crates/alliumpy/pyproject.toml, one pull request. Matched by name, not datasource: the pixi entry reads conda-forge and the pep621 entry reads PyPI, which can lead conda-forge, so a range proposal can run ahead of the pin until conda-forge catches up; just wheel-smoke fails a range the pinned copy does not satisfy. Held for dashboard approval; a vulnerability-fix pull request skips that approval.",
+      "matchManagers": ["pixi", "pep621"],
+      "matchDepNames": ["typer"],
+      "groupName": "typer",
+      "dependencyDashboardApproval": true
+    },
+    {
       "description": "nextest-version in .config/nextest.toml equals the cargo-nextest pin in pyproject.toml, so both read conda-forge and move in one pull request. Held for dashboard approval; a vulnerability-fix pull request skips that approval.",
       "matchDatasources": ["conda"],
       "matchDepNames": ["cargo-nextest"],
