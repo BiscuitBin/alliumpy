@@ -9,6 +9,13 @@ are listed here; upstream's own changes belong to upstream's release notes.
 
 ## [Unreleased]
 
+## [3.6.1.post1] - 2026-11-23
+
+A packaging-only release of the wheel that wraps allium-tools 3.6.1: the crates, the
+`allium-parser` pin and `allium --version` stay at 3.6.1 (decision 0010). Because
+`3.6.1.post1` is a distinct version, `alliumpy==3.6.1` does not select it, while
+`alliumpy==3.6.1.*` and `alliumpy>=3.6.1` do.
+
 ### Added
 
 - Renovate over every pin except `allium-parser` (`renovate.json`, decision 0017), and
@@ -45,5 +52,6 @@ are listed here; upstream's own changes belong to upstream's release notes.
   all reports outside the gate (decision 0016).
 - The `allium` command is upstream's `allium-cli` 3.6.1, vendored, with stdout and exit-code parity proved by `just parity` (decision 0014).
 
-[Unreleased]: https://github.com/BiscuitBin/alliumpy/compare/v3.6.1...HEAD
+[Unreleased]: https://github.com/BiscuitBin/alliumpy/compare/v3.6.1.post1...HEAD
+[3.6.1.post1]: https://github.com/BiscuitBin/alliumpy/releases/tag/v3.6.1.post1
 [3.6.1]: https://github.com/BiscuitBin/alliumpy/releases/tag/v3.6.1

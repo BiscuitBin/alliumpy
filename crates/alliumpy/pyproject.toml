@@ -7,7 +7,7 @@ name = "alliumpy"
 # Static, not dynamic: Cargo cannot write a PEP 440 post-release, and this
 # repository's packaging fixes are 3.6.1.postN (decision 0010). just
 # version-check holds this equal to the crates' version with .postN stripped.
-version = "3.6.1"
+version = "3.6.1.post1"
 description = "The Allium specification parser and checker for Python, and the allium command for uv users"
 readme = "README.md"
 requires-python = ">=3.11"
