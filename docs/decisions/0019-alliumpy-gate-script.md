@@ -43,10 +43,21 @@ The exit policy is this repository's, decided by the maintainer on 2026-11-23:
 | 2 | A usage error, or no `.allium` file was found. |
 | 3 | The checker could not report: it panicked, or printed something other than its reports. |
 
-`info` diagnostics and `analyse` findings are printed and never fail the gate. An
-unreadable file fails it although the command gives it no report, because the
-command's stderr names it. Typer gives a usage error status 2, as upstream's command
-gives its own.
+`info` diagnostics and `analyse` findings are printed and do not fail the gate by
+default. An unreadable file fails it although the command gives it no report, because
+the command's stderr names it. Typer gives a usage error status 2, as upstream's
+command gives its own.
+
+Two options let an adopter with existing diagnostics choose what fails; the defaults
+are the policy above. `--fail-on error|warning|info`, default `warning`, fails on any
+diagnostic at or above that severity. `--fail-on-findings`, default off, also fails on
+any finding. An unreadable file fails under every choice. There is no baseline file:
+S02 left that open. `--format github` prints each diagnostic as a GitHub Actions
+workflow command, `::error`, `::warning` or `::notice` for error, warning and info,
+with the file, line and column, and each finding as a file-only `::notice`, or
+`::error` when findings fail the gate. An unreadable file becomes a bare `::error`
+on stdout. Messages and properties are escaped as the workflow-command syntax
+requires. `--format text`, the default, is the output above.
 
 The gate is outside the parity invariant, which covers the `allium` script alone: its
 output and its statuses are not upstream's, and `just parity` does not test them.
