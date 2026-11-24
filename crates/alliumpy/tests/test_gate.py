@@ -4,11 +4,12 @@
 import os
 import subprocess
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 import alliumpy
 import pytest
-from alliumpy import _gate
+from alliumpy import Diagnostic, Finding, Report, _gate
 
 ROOT = Path(__file__).resolve().parents[3]
 SMOKE = ROOT / "tests/fixtures/smoke"
@@ -228,3 +229,115 @@ def test_a_legacy_stdout_encoding_does_not_fail_the_gate() -> None:
     )
     assert (result.returncode, result.stderr) == (0, b"")
     assert b"\\u2192" in result.stdout
+
+
+# Copilot's review of PR #51
+
+POSIX_ONLY = pytest.mark.skipif(os.name != "posix", reason="Windows refuses these file names.")
+
+
+def test_printable_escapes_what_would_break_a_line() -> None:
+    """Escape control, separator and surrogate characters; keep printable text."""
+    assert _gate.printable("a\nb\r\t\x1b\x7f\N{LINE SEPARATOR}\udcff \N{RIGHTWARDS ARROW}") == (
+        "a\\nb\\r\\t\\x1b\\x7f\\u2028\\udcff \N{RIGHTWARDS ARROW}"
+    )
+
+
+@POSIX_ONLY
+def test_text_output_cannot_forge_a_workflow_command(
+    capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    """Escape a newline in a file name, so no text line starts a workflow command."""
+    try:
+        forged = tmp_path / "x\n::error::forged.allium"
+        forged.write_text(Path(BROKEN).read_text(encoding="utf-8"), encoding="utf-8")
+    except OSError:
+        pytest.skip("the file system refuses a newline in a file name")
+    status, out, err = run(capsys, "gate", str(tmp_path))
+    assert status == 1
+    lines = (out + err).splitlines()
+    assert not [line for line in lines if line.startswith("::")]
+    assert "x\\n::error::forged.allium:5:9: error: " in out
+
+
+def analyse_on(monkeypatch: pytest.MonkeyPatch, paths: list[str]) -> None:
+    """Make the gate's analyse run on other paths, as when a file changes between runs."""
+    monkeypatch.setattr(_gate, "analyse", lambda _: alliumpy.analyse(paths))
+
+
+def test_a_file_only_analyse_cannot_read_fails(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Fail on a file that check read and analyse could not, naming it once."""
+    missing = str(SMOKE / "missing.allium")
+    analyse_on(monkeypatch, [missing, OK])
+    status, out, err = run(capsys, "gate", OK)
+    assert status == 1
+    assert err.startswith(f"error: {missing}: ")
+    assert len(err.splitlines()) == 1
+    assert out.endswith(" 1 unreadable: failed\n")
+
+
+def test_analyse_finding_no_file_is_status_2(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Exit 2 with analyse's stderr when analyse finds no .allium file though check did."""
+    analyse_on(monkeypatch, [])
+    assert run(capsys, "gate", OK) == (2, "", "No .allium files found.\n")
+
+
+@dataclass(frozen=True)
+class StandInFile:
+    """A file report under a chosen displayed name."""
+
+    spec_file: str
+    diagnostics: list[Diagnostic]
+    findings: list[Finding]
+
+
+@dataclass(frozen=True)
+class StandInReport:
+    """A report whose files share one displayed name."""
+
+    status: int
+    files: list[StandInFile]
+    stderr: str
+
+
+def renamed(report: Report, spec_file: str) -> StandInReport:
+    """The report with every file displayed as spec_file, as upstream prints two non-UTF-8 names."""
+    files = [StandInFile(spec_file, f.diagnostics, f.findings) for f in report.files]
+    return StandInReport(report.status, files, report.stderr)
+
+
+@pytest.mark.parametrize("order", [[FINDING, OK], [OK, FINDING]], ids=["finding-first", "ok-first"])
+def test_files_displayed_alike_keep_every_finding(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch, order: list[str]
+) -> None:
+    """Keep both files' diagnostics and findings when their displayed names collide."""
+    monkeypatch.setattr(_gate, "check", lambda _: renamed(alliumpy.check(order), "same.allium"))
+    monkeypatch.setattr(_gate, "analyse", lambda _: renamed(alliumpy.analyse(order), "same.allium"))
+    status, out, _ = run(capsys, "gate", "--fail-on-findings", "x")
+    assert status == 1
+    assert len([line for line in out.splitlines() if ": finding " in line]) == 3
+    assert ", 3 findings," in out
+
+
+@POSIX_ONLY
+@pytest.mark.parametrize(
+    "names", [(b"\xff", b"\xfe"), (b"\xfe", b"\xff")], ids=["finding-ff", "finding-fe"]
+)
+def test_non_utf8_names_that_display_alike_keep_every_finding(
+    capsys: pytest.CaptureFixture[str], tmp_path: Path, names: tuple[bytes, bytes]
+) -> None:
+    """Count every finding when two non-UTF-8 names both print as U+FFFD."""
+    directory = os.fsencode(tmp_path)
+    try:
+        for name, source in zip(names, (FINDING, OK), strict=True):
+            with Path(os.fsdecode(directory + b"/" + name + b".allium")).open("wb") as file:
+                file.write(Path(source).read_bytes())
+    except OSError:
+        pytest.skip("the file system refuses a file name that is not UTF-8")
+    status, out, _ = run(capsys, "gate", "--fail-on-findings", str(tmp_path))
+    assert status == 1
+    assert ", 3 findings," in out

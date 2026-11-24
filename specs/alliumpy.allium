@@ -201,13 +201,14 @@ rule ReportRefused {
 -- usage_error, as the command's usage_error. Otherwise the gate fails when a
 -- file has a diagnostic at or above the fail_on severity (warning unless
 -- chosen) in either report, a finding when fail_on_findings is chosen, or a
--- file could not be read; nothing else fails it. The policy is this
--- repository's, outside UpstreamParity, and does not follow the command's
+-- file could not be read by either run; nothing else fails it. Analyse
+-- finding no file is usage_error too, as when a file is removed between
+-- runs. The policy is this repository's, outside UpstreamParity, and does not follow the command's
 -- language version 4 rule. evidence: _gate.py; crates/alliumpy/tests/test_gate.py
 rule GateDecides {
     when: GateInvoked(process, paths, fail_on, fail_on_findings)
     let reported = prints_reports(report_arguments(check, paths))
-    let found = reports_found(paths)          -- black box: check's status is not usage_error
+    let found = reports_found(paths)          -- black box: neither run's status is usage_error
     let failing =
         has_diagnostic_at_or_above(paths, fail_on)
         or (fail_on_findings and has_finding(paths))
@@ -347,7 +348,9 @@ surface GateScript {
     @guarantee GithubAnnotations
         -- With --format github, each diagnostic is one workflow command at
         -- its file, line and column, and each finding one at its file, with
-        -- messages and properties escaped. The default output is text.
+        -- messages and properties escaped. The default output is text, with
+        -- each character that is not printable written as its backslash
+        -- escape, so no text line starts a workflow command.
 
     @guarantee TyperOnlyInTheGate
         -- Importing alliumpy, or running the allium script, never imports

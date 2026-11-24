@@ -45,8 +45,10 @@ The exit policy is this repository's, decided by the maintainer on 2026-11-23:
 
 `info` diagnostics and `analyse` findings are printed and do not fail the gate by
 default. An unreadable file fails it although the command gives it no report, because
-the command's stderr names it. Typer gives a usage error status 2, as upstream's
-command gives its own. Like the `allium` script, the gate restores SIGINT's default
+the command's stderr names it; the gate reads both runs' stderr, since a file can become
+unreadable between `check` and `analyse`, and names each such file once. When `analyse`
+finds no `.allium` file that `check` found, the gate prints its stderr and exits 2.
+Typer gives a usage error status 2, as upstream's command gives its own. Like the `allium` script, the gate restores SIGINT's default
 action, so an interrupt ends the run at once instead of exiting 1 as a failed gate.
 
 Two options let an adopter with existing diagnostics choose what fails; the defaults
@@ -58,7 +60,10 @@ workflow command, `::error`, `::warning` or `::notice` for error, warning and in
 with the file, line and column, and each finding as a file-only `::notice`, or
 `::error` when findings fail the gate. An unreadable file becomes a bare `::error`
 on stdout. Messages and properties are escaped as the workflow-command syntax
-requires. `--format text`, the default, is the output above.
+requires. `--format text`, the default, is the output above, with every character
+that is not printable, such as a line break in a file name, written as its backslash
+escape, so no line of it can start a workflow command. Files the command displays
+alike, such as two names that are not UTF-8, keep all their diagnostics and findings.
 
 The gate is outside the parity invariant, which covers the `allium` script alone: its
 output and its statuses are not upstream's, and `just parity` does not test them.

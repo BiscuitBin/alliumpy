@@ -65,18 +65,35 @@ def merged(check_report: Report, analyse_report: Report) -> dict[str, list[Diagn
     """Each file's diagnostics, check's in order, then any of analyse's check lacks.
 
     Both commands report the parser's diagnostics, so one that analyse repeats is
-    printed once; a diagnostic one command reports twice stays twice.
+    printed once; a diagnostic one command reports twice stays twice. Files the
+    commands display alike, such as two names that are not UTF-8, share one entry.
     """
-    files = {file.spec_file: list(file.diagnostics) for file in check_report.files}
+    files: dict[str, list[Diagnostic]] = {}
+    for file in check_report.files:
+        files.setdefault(file.spec_file, []).extend(file.diagnostics)
+    repeated: dict[str, list[Diagnostic]] = {}
     for file in analyse_report.files:
-        diagnostics = files.setdefault(file.spec_file, [])
+        repeated.setdefault(file.spec_file, []).extend(file.diagnostics)
+    for spec_file, analysed in repeated.items():
+        diagnostics = files.setdefault(spec_file, [])
         unmatched = Counter(diagnostics)
-        for d in file.diagnostics:
+        for d in analysed:
             if unmatched[d]:
                 unmatched[d] -= 1
             else:
                 diagnostics.append(d)
     return files
+
+
+def printable(text: str) -> str:
+    """Escape each character that is not printable, so a line stays one line.
+
+    A file name may hold a line break; unescaped, the line after it could start
+    with ``::`` and run as a GitHub Actions workflow command.
+    """
+    return "".join(
+        c if c.isprintable() else c.encode("unicode_escape").decode("ascii") for c in text
+    )
 
 
 def escape_data(text: str) -> str:
@@ -113,7 +130,7 @@ def diagnostic_line(spec_file: str, d: Diagnostic, output: Format) -> str:
     if output is Format.GITHUB:
         level = ANNOTATION_LEVELS[d.severity]
         return annotation(level, message, file=spec_file, line=d.line, col=d.col)
-    return f"{spec_file}:{d.line}:{d.col}: {d.severity}: {message}"
+    return printable(f"{spec_file}:{d.line}:{d.col}: {d.severity}: {message}")
 
 
 def finding_line(spec_file: str, f: Finding, output: Format, *, failing: bool) -> str:
@@ -121,7 +138,7 @@ def finding_line(spec_file: str, f: Finding, output: Format, *, failing: bool) -
     message = f"finding {f.type}: {f.summary}"
     if output is Format.GITHUB:
         return annotation("error" if failing else "notice", message, file=spec_file)
-    return f"{spec_file}: {message}"
+    return printable(f"{spec_file}: {message}")
 
 
 def reports(paths: list[str]) -> tuple[Report, Report]:
@@ -132,6 +149,10 @@ def reports(paths: list[str]) -> tuple[Report, Report]:
             typer.echo(check_report.stderr, err=True, nl=False)
             raise typer.Exit(USAGE)
         analyse_report = analyse(paths)
+        if analyse_report.status == USAGE:
+            # A file removed between the two runs leaves analyse none to read.
+            typer.echo(analyse_report.stderr, err=True, nl=False)
+            raise typer.Exit(USAGE)
     except UnicodeEncodeError:
         # A POSIX path that is not UTF-8 reaches Python surrogate-escaped; upstream
         # reads its arguments as UTF-8 and cannot take it.
@@ -172,14 +193,19 @@ def gate(
     3 the checker could not report.
     """
     check_report, analyse_report = reports(paths)
-    unreadable = check_report.stderr.splitlines()
+    # A file can become unreadable between the runs, so either stderr may name it.
+    unreadable = list(
+        dict.fromkeys(check_report.stderr.splitlines() + analyse_report.stderr.splitlines())
+    )
     for line in unreadable:
         if output is Format.GITHUB:
             typer.echo(annotation("error", line))
         else:
-            typer.echo(f"error: {line}", err=True)
+            typer.echo(printable(f"error: {line}"), err=True)
     diagnostics = merged(check_report, analyse_report)
-    findings = {file.spec_file: file.findings for file in analyse_report.files}
+    findings: dict[str, list[Finding]] = {}
+    for file in analyse_report.files:
+        findings.setdefault(file.spec_file, []).extend(file.findings)
     counts = dict.fromkeys(SEVERITIES, 0)
     for spec_file, file_diagnostics in diagnostics.items():
         for d in file_diagnostics:
