@@ -101,6 +101,14 @@ The gate's policy is a second policy to maintain beside upstream's. A user who r
 `allium analyse`'s status and the gate's will see them differ on an error with no
 finding, by design.
 
+Upstream's checker warns on an external entity that no rule names, in a module with no
+`use` import, although its language reference documents the empty external entity as a
+type placeholder that a consuming specification fills. Under the default policy a
+specification using that pattern fails the gate unless `--fail-on error` is chosen.
+`specs/allium-cli.allium`'s `CommandUser` is one such placeholder, so this repository
+does not gate its own `specs/` yet: the adoption-gate ticket that would was handed
+back to the maintainer on 2026-11-23.
+
 Typer releases 0.x minors that may break, so the range stops below the next minor and
 each minor is a Renovate pull request to review.
 
