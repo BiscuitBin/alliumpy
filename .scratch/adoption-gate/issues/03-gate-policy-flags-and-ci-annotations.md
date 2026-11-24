@@ -8,12 +8,12 @@ file: S02 leaves that open, and it is not in this ticket.
 **Blocked by:** 02: `alliumpy gate`, the tracer bullet (and the maintainer's answer to
 its exit-policy open point)
 
-**Status:** ready-for-agent
+**Status:** done. Hand-back: `--fail-on` (default `warning`, the decided policy), `--fail-on-findings` and `--format github` with escaped workflow commands; fixtures `tests/fixtures/gate/` matched against the reference `allium-cli` 3.6.1; 0019 amended; `just check` ended `All checks passed and the worktree is unchanged.`
 
-- [ ] Each `--fail-on` value has a pytest case over fixtures holding an error, a
+- [x] Each `--fail-on` value has a pytest case over fixtures holding an error, a
       warning, an `info` and an `analyse` finding; the default equals the decided
       policy.
-- [ ] The annotation format produces one well-formed annotation per diagnostic with
+- [x] The annotation format produces one well-formed annotation per diagnostic with
       file, line and column; the default output is unchanged from ticket 02.
-- [ ] The how-to documents both options; `just check` ends with
+- [x] The how-to documents both options; `just check` ends with
       `All checks passed and the worktree is unchanged.`

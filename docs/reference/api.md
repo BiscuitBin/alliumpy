@@ -9,7 +9,7 @@ requires: []
 # API reference
 
 The Python API's canonical native description is
-`crates/alliumpy/python/alliumpy/_alliumpy.pyi`. `__init__.py` re-exports the four names
+`crates/alliumpy/python/alliumpy/_alliumpy.pyi`. `__init__.py` re-exports the nine names
 below in its `__all__`; this page describes the current surface, not the larger upstream
 API. Upstream documentation is at <https://github.com/juxt/allium-tools>.
 
@@ -19,13 +19,31 @@ API. Upstream documentation is at <https://github.com/juxt/allium-tools>.
 | --- | --- |
 | `parse(source: str) -> list[Diagnostic]` | Return upstream parse diagnostics in source order, with locations converted to one-based byte columns and lines. |
 | `Diagnostic` | Immutable, final diagnostic with properties `line: int`, `col: int`, `severity: str`, `message: str`, `code: str \| None`. Severity is error, warning or info, not a Python enum. |
-| `AlliumError(ValueError)` | Importable exception for a failed Allium operation. A Rust error maps its Display text to this message; parse has no fallible path yet. |
+| `AlliumError(ValueError)` | Importable exception for a failed Allium operation. A Rust error maps its Display text to this message; `check` and `analyse` raise it, `parse` never does. |
 | `ALLIUM_VERSION: str` | The upstream release version, currently 3.6.1. |
+| `check(paths: list[str]) -> Report` | Run upstream's `allium check` on the paths, in process, and return what it printed as values: the same files, diagnostics and exit status the command gives the same arguments. |
+| `analyse(paths: list[str]) -> Report` | The same for `allium analyse`, whose files also carry findings. |
+| `Report` | Immutable, final result with `status: int`, `files: list[FileReport]` and `stderr: str`. |
+| `FileReport` | Immutable, final per-file result with `spec_file: str`, `diagnostics: list[Diagnostic]` and `findings: list[Finding]`. |
+| `Finding` | Immutable, final `analyse` finding with `type: str`, `summary: str`, `affected_entities: list[str]` and `json: str`, the finding's complete JSON object with every key the command printed. |
+
+`check` and `analyse` follow the command exactly, because they run it (invariant 1).
+`status` is the command's exit status: `check` gives 1 when any file has an error or a
+warning, `analyse` gives 1 only when a file has a finding, so an error alone leaves it
+0. A file that cannot be read gives 1, is named in `stderr` and has no `FileReport`; a
+directory that cannot be listed is skipped silently; when no `.allium` file is found,
+an empty path list included, the status is 2. A panic in the command (status 101) and
+output that is not the command's JSON reports, such as `--help` among the paths, raise
+`AlliumError` with a fixed message. Each `Diagnostic` in a `FileReport` sits in that
+file, so it carries no file of its own. The command runs with the interpreter's lock
+released.
 
 `Diagnostic` supports value equality, hashing and an exact representation with every
 field in order: `Diagnostic(line=1, col=2, severity='error', message='...', code=None)`.
 The severity, message and code use Python repr quoting. Its properties are read-only;
-parse supplies instances rather than a public field constructor.
+parse supplies instances rather than a public field constructor. `Report`, `FileReport`
+and `Finding` behave the same way, with a representation of every field in the order
+listed above, such as `Report(status=2, files=[], stderr='No .allium files found.\n')`.
 
 The package also defines `__version__` using installed distribution metadata. It includes
 any `.postN` suffix and is outside `__all__`, as a dunder module attribute.
@@ -37,7 +55,8 @@ console shim and stubtest only. It is not re-exported and is not public API.
 `just doc` builds the workspace with every feature, no dependencies and
 `RUSTDOCFLAGS="-D warnings --cfg docsrs"`. Open `target/doc/alliumpy_core/index.html`
 for the core and `target/doc/alliumpy/index.html` for the native wrapper.
-The core exposes parse, Diagnostic, Severity and the two version constants. The binding's
+The core exposes parse, Diagnostic, Severity, the two version constants, the vendored
+command under `cli`, and `report::check` and `report::analyse` with their result types. The binding's
 Rust functions and pyclass are implementation details of the Python surface.
 
 Missing documentation and broken or private intra-doc links fail the relevant gates.

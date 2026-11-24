@@ -8,9 +8,11 @@ requires: []
 
 # Python packaging
 
-One wheel installs the Python parser API and the `allium` console script together.
-Users receive the parser version the command wraps, with no separately resolved command
-package. [Architecture](architecture.md) owns the two-crate implementation;
+One wheel installs the Python parser API and two console scripts together: `allium`,
+upstream's command, and `alliumpy`, the specification gate of
+[decision 0019](../decisions/0019-alliumpy-gate-script.md). Users receive the parser
+version the command wraps, with no separately resolved command package. The wheel has
+one runtime dependency, Typer, which the gate script alone imports. [Architecture](architecture.md) owns the two-crate implementation;
 [decision 0001](../decisions/0001-one-wheel-two-crates.md) records that choice.
 
 ## ABI and platforms

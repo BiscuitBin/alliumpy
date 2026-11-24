@@ -1,0 +1,8 @@
+-- allium: 3
+-- Gate fixture: allium-cli 3.6.1 check reports one warning (allium.definition.unused), exit 1;
+-- analyse reports the same warning and no finding, exit 0.
+-- Original fixture written here; contains no upstream text; no attribution needed.
+
+value Unused {
+    name: String
+}

@@ -42,7 +42,7 @@ stay on the recipe.
 | `crates/alliumpy/Cargo.toml` | cdylib, path dependency on core, pyo3 and the bindings crate's own lint table. |
 | `pyproject.toml` | pixi tooling environment, exact tool pins, supported tooling platforms and ordered gate recipes. No Rust compiler package. |
 | `pixi.lock` | Generated tooling resolution; never hand-edited. |
-| `crates/alliumpy/pyproject.toml` | maturin build backend, static distribution metadata, entry point, module layout, locked builds and trusted-publishing settings; no pixi table. |
+| `crates/alliumpy/pyproject.toml` | maturin build backend, static distribution metadata, the Typer runtime range, both entry points, module layout, locked builds and trusted-publishing settings; no pixi table. |
 | `tools.txt` | Binary-only extra tools, currently cargo-hack and cargo-fuzz. |
 | `tools-source.txt` | Extras whose source build is accepted, currently rustqual. |
 | `rustfmt.toml` | Stable Rust formatting settings and style edition. |
@@ -90,7 +90,10 @@ calls and undocumented suppression are checked. At call sites use
 ### Dependency and version policy
 
 Cargo manifests use full caret ranges except the exact upstream parser pin; the
-lockfile records the actual resolution. The bindings' path dependency version follows
+lockfile records the actual resolution. The wheel's one runtime dependency, Typer,
+follows the same note in Python: a caret range in `crates/alliumpy/pyproject.toml` and
+an exact pin in the root `pyproject.toml`, which `pixi.lock` locks and every gate tests
+([decision 0019](../decisions/0019-alliumpy-gate-script.md)). The bindings' path dependency version follows
 the workspace version. The wheel's static version permits `.postN` while Cargo keeps
 the base upstream version. Version-check reads manifests and the core literal and
 runs the installed command from wheel-smoke; it fails if that environment is missing.

@@ -12,18 +12,18 @@ already takes output handles, which makes this a prefactor for the gate command.
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done. Hand-back: `alliumpy.check`/`analyse` over `alliumpy_core::report`; `just check` ended `All checks passed and the worktree is unchanged.`; `just parity` green against a reference copied from the t13 worktree (`allium 3.6.1`), not rebuilt here.
 
-- [ ] Results for the smoke fixtures equal what `allium check` and `allium analyse`
+- [x] Results for the smoke fixtures equal what `allium check` and `allium analyse`
       print as JSON for the same paths, and the reported status equals the command's
       exit code.
-- [ ] An unreadable file, an unreadable directory and an empty path list behave as the
+- [x] An unreadable file, an unreadable directory and an empty path list behave as the
       command does (an unreadable file exits 1 with no result for it; an unreadable
       directory is skipped silently, so the status is 2 when nothing else is found; an
       empty path list exits 2), surfaced as documented values or `AlliumError`.
-- [ ] The stub, a pytest case, stubtest and the wheel smoke move with the binding; new
+- [x] The stub, a pytest case, stubtest and the wheel smoke move with the binding; new
       core types meet invariant 3; coverage of the core stays at or above 90%.
-- [ ] `just parity` is unchanged and green: the `allium` command's behaviour did not
+- [x] `just parity` is unchanged and green: the `allium` command's behaviour did not
       move.
-- [ ] The packaging specification under `specs/` moves with the new API surface.
-- [ ] `just check` ends with `All checks passed and the worktree is unchanged.`
+- [x] The packaging specification under `specs/` moves with the new API surface.
+- [x] `just check` ends with `All checks passed and the worktree is unchanged.`

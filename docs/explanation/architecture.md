@@ -40,9 +40,12 @@ wheel argument, manifests, versions, ABI coverage and licences.
 
 ## What crosses each boundary
 
-The Python API returns converted diagnostic values in upstream order. Errors reaching
-Python use stable Rust `Display` text as the message of `AlliumError`, a `ValueError`
-subclass. There is no fallible parse path yet. Public core values are
+The Python API returns converted diagnostic values in upstream order. `check` and
+`analyse` run the vendored command in process through `alliumpy_core::report`, which
+captures its output in buffers and converts the JSON it printed, so their results are
+the command's own. Errors reaching Python use stable Rust `Display` text as the message
+of `AlliumError`, a `ValueError` subclass; `check` and `analyse` raise it, and parse
+has no fallible path. Public core values are
 `Send + Sync + 'static`, `Clone` and `Debug`; public structs and enums are
 `#[non_exhaustive]`. Python diagnostics are frozen, comparable and hashable.
 

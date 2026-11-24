@@ -8,6 +8,12 @@ requires: []
 
 # Decision 0009: PyPI name `alliumpy`, console script `allium`
 
+Overtaken in part: `alliumpy` 3.6.1 was published to PyPI on 2026-11-05, as the
+[changelog](../../CHANGELOG.md) records, so "nothing has been published yet" below no
+longer holds. The sentence stays as it was recorded. [Decision
+0019](0019-alliumpy-gate-script.md) adds a second script named `alliumpy`, so `uvx
+alliumpy` now finds the gate; `allium` still needs `--from alliumpy`.
+
 ## Context
 
 The distribution and command need not share a name. The recorded name check on

@@ -352,20 +352,36 @@ wheel:
 # Gate: the wheel installs and works in a fresh virtual environment, offline.
 # Exactly one wheel, which must exist (an unmatched glob is one literal argument);
 # a venv on the pixi interpreter with no download; install
-# from dist/ alone; then import, parse the smoke fixtures, and run the console
-# script's --version and its check on the clean fixture, which must exit 0.
-# Python runs with -I so nothing in the worktree shadows the package.
+# from dist/ alone; then import, parse and check the smoke fixtures, and run the
+# console script's --version and its check on the clean fixture, which must exit 0.
+# Python runs with -I so nothing in the worktree shadows the package. The wheel's one
+# runtime dependency, Typer (decision 0019), comes from the locked pixi environment
+# through --system-site-packages, so the install stays --no-deps and offline. That
+# also puts the pixi environment's packages, and its editable alliumpy's .pth, on
+# the path behind the venv's own, so dependency.py asserts the import is the wheel's,
+# and an undeclared import of another pixi package would go unnoticed here: CI's
+# Python 3.11 job, which installs from PyPI, is where that shows;
+# dependency.py proves the wheel declares Typer, that the pixi copy satisfies the range,
+# and that alliumpy itself is the venv's. Then the gate script: both helps, the clean
+# fixture (exit 0) and the broken one (exactly 1, naming the error's position).
 wheel-smoke: wheel
     #!/bin/sh
     set -eu
     set -- dist/*.whl
     [ "$#" -eq 1 ] && [ -f "$1" ] || { printf 'wheel-smoke: expected one wheel in dist/, found: %s\n' "$*" >&2; exit 1; }
     rm -rf target/wheel-smoke
-    uv venv --python .pixi/envs/default/bin/python --no-python-downloads --offline target/wheel-smoke/venv
+    uv venv --python .pixi/envs/default/bin/python --no-python-downloads --offline --system-site-packages target/wheel-smoke/venv
     uv pip install --python target/wheel-smoke/venv --offline --no-index --no-deps "$1"
     target/wheel-smoke/venv/bin/python -I tests/fixtures/smoke/smoke.py
+    target/wheel-smoke/venv/bin/python -I tests/fixtures/smoke/dependency.py
     target/wheel-smoke/venv/bin/allium --version
     target/wheel-smoke/venv/bin/allium check tests/fixtures/smoke/ok.allium
+    target/wheel-smoke/venv/bin/alliumpy --help >/dev/null
+    target/wheel-smoke/venv/bin/alliumpy gate --help >/dev/null
+    target/wheel-smoke/venv/bin/alliumpy gate tests/fixtures/smoke/ok.allium
+    status=0; out=$(target/wheel-smoke/venv/bin/alliumpy gate tests/fixtures/smoke/broken.allium) || status=$?
+    printf '%s\n' "$out"
+    [ "$status" -eq 1 ] && printf '%s\n' "$out" | grep -q '^tests/fixtures/smoke/broken\.allium:5:9: error: ' || { printf 'wheel-smoke: the gate over broken.allium exited %s, not 1 naming 5:9\n' "$status" >&2; exit 1; }
 
 # Gate: one version, in every place it is written (CONVENTIONS.md §9). Reads
 # the Cargo manifests, the wheel manifest and the console script's own output

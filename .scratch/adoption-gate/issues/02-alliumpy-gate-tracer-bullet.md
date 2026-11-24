@@ -15,25 +15,25 @@ findings alone, so an error with no findings exits 0.
 
 **Blocked by:** 01: Python API returns `check` and `analyse` results
 
-**Status:** ready-for-agent
+**Status:** done. Hand-back: `alliumpy gate` (`_gate.py`) with statuses 0/1/2/3 and the exit policy decided on 2026-11-23, recorded as decided in decision 0019; Typer 0.29.2 locked (closure: pydantic, pydantic-core, rich, shellingham, annotated-doc and their dependencies), Cargo locks unchanged; offline smoke through `--system-site-packages`; `just parity` green; `just check` ended `All checks passed and the worktree is unchanged.`; the CI `wheel-smoke-py311` change is unrun until a push.
 
-- [ ] `alliumpy gate` over a clean fixture exits 0; over a fixture with an error exits
+- [x] `alliumpy gate` over a clean fixture exits 0; over a fixture with an error exits
       non-zero and names file, line and message; `alliumpy --help` and
       `alliumpy gate --help` work.
-- [ ] Usage errors and "no specification found" have their own documented exit status,
+- [x] Usage errors and "no specification found" have their own documented exit status,
       distinct from "the gate failed".
-- [ ] `allium` is byte-for-byte unchanged: `just parity` green.
-- [ ] Typer is declared as a runtime dependency of the wheel and pinned in the pixi
+- [x] `allium` is byte-for-byte unchanged: `just parity` green.
+- [x] Typer is declared as a runtime dependency of the wheel and pinned in the pixi
       lock. `just lock` and `just sync` reach the network and are authorised by this
       ticket.
-- [ ] The wheel smoke stays offline and still runs `alliumpy gate` from an installed
+- [x] The wheel smoke stays offline and still runs `alliumpy gate` from an installed
       wheel. Today it installs with no dependencies, so the ticket states how Typer
       reaches the smoke environment without the network, and the smoke checks that the
       wheel's metadata declares it.
-- [ ] The decision record extends decision 0004's note, written for cargo dependencies
+- [x] The decision record extends decision 0004's note, written for cargo dependencies
       only, to a Python runtime dependency, and Renovate (decision 0017) tracks the new
       pin.
-- [ ] pytest covers the policy; the install-and-run how-to gains the command; the
+- [x] pytest covers the policy; the install-and-run how-to gains the command; the
       packaging specification under `specs/` moves with the new command.
-- [ ] The decision record is drafted and registered; `just check` ends with
+- [x] The decision record is drafted and registered; `just check` ends with
       `All checks passed and the worktree is unchanged.`
