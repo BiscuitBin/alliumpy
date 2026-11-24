@@ -15,6 +15,9 @@ annotations
 - [ ] The release matrix is rehearsed before any tag.
 - [ ] **Stop and ask:** tagging and publishing are each separately authorised; a tag is
       a release.
-- [ ] After publishing: a fresh `uvx alliumpy@3.6.1.post1 gate` and
-      `uvx --from 'alliumpy==3.6.1.post1' allium --version` are quoted in the
-      hand-back.
+- [ ] After publishing, from a directory holding `tests/fixtures/smoke/` and nothing
+      built, and with a fresh uv cache: `uvx alliumpy@3.6.1.post1 gate` over
+      `tests/fixtures/smoke/ok.allium` exits 0; over `tests/fixtures/smoke/broken.allium`
+      it exits with the status ticket 02 gives a failed gate and names the error's file
+      and line; and `uvx --from 'alliumpy==3.6.1.post1' allium --version` prints 3.6.1.
+      Each command is quoted in the hand-back with its exit status.

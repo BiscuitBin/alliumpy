@@ -48,8 +48,9 @@ T13 reuses the id of pachinko's container image, which is not carried (`CONVENTI
 the specification and effects gates this repository does not have, its T10's metrics half
 is folded into T02, and its T16 is folded into T15).
 
-S02 is research outside the bootstrap waves: it lands no tooling, drafts no ticket and
-appears in neither the graph nor the order below.
+S02 is research outside the bootstrap waves: it lands no tooling and appears in neither
+the graph nor the order below. The six draft tickets it led to sit under
+`.scratch/adoption-gate/issues/` as planning records, outside this index.
 
 ## Dependency graph
 

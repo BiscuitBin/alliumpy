@@ -9,7 +9,9 @@ wheel's first runtime dependency, with the decision-0004 note; and a drafted exi
 policy. The exit policy stays an **open point** in the record for the maintainer to
 settle in review (candidates: fail on errors, warnings and findings; or errors only).
 The record also says how the policy follows upstream's `v4` change, where both commands
-exit 1 on any error or warning.
+exit 1 on any error or warning for a specification of language version 4 only; a
+version 3 specification keeps today's rule, under which `analyse` takes its status from
+findings alone, so an error with no findings exits 0.
 
 **Blocked by:** 01: Python API returns `check` and `analyse` results
 

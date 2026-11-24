@@ -82,6 +82,7 @@ apart, and what was not verified is listed.
 | --- | --- | --- |
 | `tickets/S02-adoption-research-spike.md` | ticket | the research note in the hand-back notes |
 | `tickets/README.md` | ticket index | the S02 row and one sentence placing it outside the waves |
+| `.scratch/adoption-gate/issues/` (six files) | planning drafts | six draft tickets, committed at the maintainer's decision of 2026-11-23 (see Deviations) |
 
 No other path. `ai_tmp/` holds the survey reports and is never committed.
 
@@ -173,8 +174,9 @@ does not depend on the package: it copied the runner in (`BiscuitBin/knarr` at
 `d7cf7b4`, `scripts/checks/run_allium.py`, whose header names the `v0.3.0` commit), reads
 the pin from two `tools.txt` lines, and added a `plan` mode.
 
-**Why the wrapper exists.** Upstream's exit codes cannot gate. `BiscuitBin/pachinko` at
-`c7cf2ae`, `docs/decisions/0005-project-managed-allium-cli.md`: "`allium check` exits
+**Why the wrapper exists.** Inference: upstream's exit codes do not express the gate our
+repositories want, so each reads the JSON. `BiscuitBin/pachinko` at `c7cf2ae`,
+`docs/decisions/0005-project-managed-allium-cli.md`: "`allium check` exits
 non-zero on warnings as well as errors but 0 on an `info` diagnostic, and `allium analyse` keys its status on
 findings alone and ignores diagnostics entirely". This repository records the same
 behaviour from upstream's source (`S01-cli-strategy-spike.md`, "Step 2", "Exit codes"),
@@ -341,10 +343,12 @@ copying. Upstream's loop keeps its state in a git-ignored `.allium-loop/` direct
 
 ### 3. How third-party adopters gate on Allium
 
-Adoption is sparse: about 15 to 20 public third-party repositories show real use, from
-GitHub code search on 2026-11-17, which was cut short by rate limits and is approximate.
-Fact: every one found that gates on Allium wrote its own install step and its own
-severity filter.
+Adoption is sparse: about 15 to 20 public third-party repositories show real use. That
+is an estimate (inference) from a GitHub code search on 2026-11-17 that rate limits cut
+short; its queries and results were not kept, so it cannot be repeated as made. Fact,
+for the five repositories in the table below: each installs the command by a step of its
+own, and `ravenoak/layerforge`, `Ragazoor/dispatch-tui` and `OPeyrusse/katan-alysis`
+each filter the result by severity themselves.
 
 | Repository | Install | Gate |
 | --- | --- | --- |
@@ -354,9 +358,14 @@ severity filter.
 | `rtclauss/hass-config` | `curl` of 3.2.3 with a SHA-256 | `scripts/allium_weed_check.py`: a deterministic gate that maps specifications to implementation paths and takes `--changed-from` |
 | `ravenoak/oh-my-stigmergy` | cargo, pinned in a file | its CI broke when a parser patch release changed an API and dropped a syntax (`docs/distillation/waivers/2026-08-21-ci-unblock-allium-locked.md`) |
 
-Three adopters (`OPeyrusse/katan-alysis`, `ravenoak/oh-my-stigmergy` and the
-`johanolofsson72` repositories) rewrote upstream's Node post-edit hook in `sh`.
-`DataDog/datadog-agent` carries a static copy of the skills with no lock and no gate.
+`OPeyrusse/katan-alysis` at `961437d` has its own post-edit hook in `sh` in place of
+upstream's Node one, `.claude/hooks/allium-check.sh`, which checks one edited file and
+blocks on errors only (one reader). The survey of 2026-11-17 also reported an `sh` hook
+in `ravenoak/oh-my-stigmergy` and copies of one in the `johanolofsson72` repositories,
+with no path or repository recorded; neither was verified. `DataDog/datadog-agent`
+carries a static copy of the skills with no lock and no gate
+(`https://github.com/DataDog/datadog-agent/tree/HEAD/.agents/skills/allium`, default
+branch on the day).
 
 The table's five rows were read again on 2026-11-18, each by one reader, at
 `ravenoak/layerforge` `ec4063d`, `Ragazoor/dispatch-tui` `2f521fa`,
@@ -392,7 +401,8 @@ guide shows the same shape for another package
 - A mirror repository: `astral-sh/ruff-pre-commit` holds a manifest whose hooks are
   `language: python` and a placeholder `pyproject.toml` with `dependencies =
   ["ruff==X"]`; a scheduled `mirror.py` reads PyPI, rewrites the pin, commits and tags
-  `vX` (re-verified).
+  `vX` (`https://github.com/astral-sh/ruff-pre-commit/blob/main/mirror.py`, default
+  branch on the day; re-verified).
 - A placeholder package in the tool's own repository: `crate-ci/typos` keeps
   `.pre-commit-hooks.yaml` and a root `setup.py` named `pre_commit_placeholder_package`
   with `install_requires=[f'typos=={TYPOS_VERSION}']` (re-verified).
@@ -413,8 +423,8 @@ custom regex manager with the `pypi` datasource can track a `uvx --from 'alliump
 line (all re-verified; the regex itself was not run). This repository's own
 `renovate.json` already uses custom regex managers for pins no native manager reads.
 
-**CI.** `astral-sh/setup-uv` followed by one `uvx --from` step needs no action of our
-own. GitHub's annotation syntax (`::error file=,line=,col=::message`) and a SARIF upload
+**CI.** Inference: `astral-sh/setup-uv` followed by one `uvx --from` step needs no
+action of our own. GitHub's annotation syntax (`::error file=,line=,col=::message`) and a SARIF upload
 are the two ways to put diagnostics on a pull request
 (`https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands`).
 **Corrected:** `astral-sh/ruff-action` does not read `uv.lock` by default. With no
@@ -461,8 +471,8 @@ version from a file the project already has.
   (`https://code.claude.com/docs/en/skills.md`, re-verified). Codex, GitHub Copilot,
   Cursor and Gemini CLI document `.agents/skills/` (read by a subagent, not re-opened;
   read again on 2026-11-18, one reader per vendor page, each agreeing).
-  A bridge under `.claude/skills/` is therefore still needed, which is what our
-  repositories and both installers already do.
+  Inference: a bridge under `.claude/skills/` is therefore still needed, which is what
+  our repositories and both installers already do.
 - Claude Code plugins: a project's `enabledPlugins` does not install a plugin; each
   user installs it, and with the marketplace neither declared nor known the
   documentation describes no message at all
@@ -479,7 +489,7 @@ projects. What they suggest for alliumpy is left to the maintainer.
   a gate, a `doctor` or a runner of its own. `cmake` declares `ccmake`, `cmake`,
   `cpack` and `ctest`; `nodejs-wheel` declares `node`, `npm`, `npx` and `corepack`;
   `shellcheck-py` ships only `shellcheck`
-  (`scikit-build/cmake-python-distributions` `pyproject.toml`;
+  (`scikit-build/cmake-python-distributions` `pyproject.toml`, last changed at `06c5625`;
   `https://pypi.org/project/nodejs-wheel/`; `https://pypi.org/project/shellcheck-py/`)
   [voted]. PyPI `pyright` adds `pyright-python` and `pyright-python-langserver`, which
   point at the same entry points as the upstream names and are not in its README, and
@@ -521,14 +531,17 @@ projects. What they suggest for alliumpy is left to the maintainer.
   `language: python` hook with `python -mpip install .` at the hook repository's root
   (`pre-commit/pre-commit`, `pre_commit/languages/python.py`, line 224, last changed
   at `3e8d0f5`)
-  [re-read], and prek with `uv pip install --project / ... .` (`j178/prek`, default
-  branch on the day, `crates/prek/src/languages/python/python.rs`) [re-read]. The
+  [re-read], and prek with `uv pip install --project / ... .`
+  (`https://raw.githubusercontent.com/j178/prek/master/crates/prek/src/languages/python/python.rs`,
+  default branch on the day, no commit recorded) [re-read]. The
   pre-commit maintainer declined a request to install from a subdirectory, "I prefer
   convention over configuration here", and answered a second ask with "the answer is
   still no" (`https://github.com/pre-commit/pre-commit/issues/1858`, about a Node
   hook) [re-read]. typos' root `setup.py` is `pre_commit_placeholder_package` at
   `0.0.0` (`crate-ci/typos` at `b41eb62`) and ruff-pre-commit's root `pyproject.toml`
-  is `ruff-pre-commit` at `0.0.0` with one `ruff==X` dependency [one reader]. That the
+  is `ruff-pre-commit` at `0.0.0` with one `ruff==X` dependency
+  (`astral-sh/ruff-pre-commit`, `pyproject.toml` last changed at `ef6cf06`) [one
+  reader]. That the
   dependency then arrives as a wheel is inference: neither file says so.
 - **Pairing skills with a tool version.** The Agent Skills specification has six
   frontmatter fields and none is a version constraint; a requirement goes in
@@ -674,15 +687,15 @@ and unmeasured.
 
 | Rank | Option | Evidence | Cost | Touches | Decision it would need |
 | --- | --- | --- | --- | --- | --- |
-| 1 | **Document the adoption recipe**: the `uvx --from` form, a `repo: local` hook that checks the whole specification set (`pass_filenames: false`), a `setup-uv` CI step, a Renovate regex manager for the pin | every adopter wrote these by hand (sections 1, 3); all parts exist today | S: one how-to page | the handbook manifest | none; but without option 2 the hook inherits upstream's exit codes, so it cannot be the whole answer |
+| 1 | **Document the adoption recipe**: the `uvx --from` form, a `repo: local` hook that checks the whole specification set (`pass_filenames: false`), a `setup-uv` CI step, a Renovate regex manager for the pin | every adopter wrote these by hand (sections 1, 3); all parts exist today | S: one how-to page | the handbook manifest; decision 0009, since every snippet carries `--from`; no invariant | none; but without option 2 the hook inherits upstream's exit codes, so it cannot be the whole answer |
 | 2 | **A second console script in the wheel that gates**: runs `check` and `analyse` over a path, reads the JSON, exits by a stated policy; later an annotation format | the wrapper is rebuilt in the shared package, in knarr and by four third-party adopters; upstream's own version is unshipped Node | M: Python over the vendored command, stub, pytest, smoke, a how-to | invariant 1 (kept, if the script is not `allium`), invariant 9 (`.postN`) | a decision record: the script's name, that it is outside parity, its exit policy, and how it tracks upstream's `v4` exit changes |
 | 3 | **Move our four repositories from the tarball to the wheel**, pinned in their lockfiles | pachinko's decision 0005 reopening condition is met; removes hand-computed checksums, the per-worktree download and the four-target limit | M, outside this repository: the shared package and four repositories | none here | the maintainer's, per repository; whether `bg-run-allium` stays or option 2 replaces it |
-| 4 | **Skills pinned by tag with a checked lock, tool-neutral**: adopt one of knarr's model or `npx skills` with `skills-lock.json` version 2, and move house sentences out of the skill bodies into `AGENTS.md` | three repositories carry edited copies with no checked lock; knarr shows unedited copies with a two-way check work; lock v2 records the commit; since `df07064` this repository does it too, with `npx skills`, lock v2 and its own validator (decision 0018), so there is a worked example to copy | M: mostly in the consuming repositories; here the procedure exists in `docs/how-to/maintain-dependencies.md`, and what is left is making it reusable: the validator is a script in this repository, not in the wheel, and its six exemption lists are kept by hand | a new decision if anything ships in the wheel (decision 0018 covers vendoring only) | whether our other repositories follow this one's choice of `skills-lock.json` version 2; whether alliumpy states the skills tag that goes with a wheel version |
+| 4 | **Skills pinned by tag with a checked lock, tool-neutral**: adopt one of knarr's model or `npx skills` with `skills-lock.json` version 2, and move house sentences out of the skill bodies into `AGENTS.md` | three repositories carry edited copies with no checked lock; knarr shows unedited copies with a two-way check work; lock v2 records the commit; since `df07064` this repository vendors with `npx skills` and lock v2 (decision 0018), a worked example of the install; its validator checks only that each skill the lock names is installed and linked, not the lock's commit or hashes (`scripts/validate_agents.py`, `_vendored_names` and `_check_vendored`), so the checked half is knarr's | M: mostly in the consuming repositories; here the procedure exists in `docs/how-to/maintain-dependencies.md`, and what is left is making it reusable: the validator is a script in this repository, not in the wheel, its six exemption lists are kept by hand, and it would need a hash check to match knarr's | a new decision if anything ships in the wheel (decision 0018 covers vendoring only) | whether our other repositories follow this one's choice of `skills-lock.json` version 2; whether alliumpy states the skills tag that goes with a wheel version |
 | 5 | **A hook manifest in this repository** (`.pre-commit-hooks.yaml`, `language: python`, upstream fields only) | one `rev` then pins the checker, which upstream's `system` hook cannot | M: the root project becomes a placeholder; a version copy; a test that the hook installs a wheel and not a source build | the root `pyproject.toml`, invariant 9 | whether the root may double as a placeholder package, or the `repo: local` hook of option 1 is enough |
 | 6 | **Scaffold and drift commands in the second script** (`init` that writes only missing files with a hash manifest; a check that exits non-zero on drift) | rove's adoption touched about 25 files; the safe-rerun patterns are in section 4 | L: templates for ignore files, hooks, CI and recipes; our repositories differ (pixi and uv) | invariant 9; a new decision if it writes skills (decision 0018 covers vendoring here only) | what the scaffold owns; whether templates serve pixi, uv or both |
-| 7 | **A post-edit hook entry point without Node**, in the second script | three adopters rewrote upstream's `.mjs` in `sh` | S after option 2 | none new | per-agent configuration is not tool-neutral; which agents to document |
-| 8 | **A composite action or reusable workflow in this repository** | upstream ships none | S to M | CI here would need to test it | probably none; option 1's `uvx` step may be enough |
-| 9 | **A vendored `just` module written by the second script** (vehicle (a) of section 5) | just has no native way to ship recipes | M | a floor on the consumer's just version | only if the recipe set outgrows three one-line recipes |
+| 7 | **A post-edit hook entry point without Node**, in the second script | one adopter's `sh` replacement for upstream's `.mjs` is cited, and two more were reported (section 3) | S after option 2 | none new | per-agent configuration is not tool-neutral; which agents to document |
+| 8 | **A composite action or reusable workflow in this repository** | upstream ships none | S to M | none; CI here would need to test it | whether a published action is wanted at all, or option 1's `uvx` step is enough |
+| 9 | **A vendored `just` module written by the second script** (vehicle (a) of section 5) | just has no native way to ship recipes | M | invariant 9, as option 6, since the generator ships in the wheel; a floor of just 1.51.0 on the consumer | whether the wheel owns a recipe generator, worth asking only if the recipe set outgrows three one-line recipes |
 
 **Not recommended, with the reason.**
 
@@ -719,7 +732,7 @@ fetched again and says what the survey reported.
 | Claude Code does not read `.agents/skills/` | re-verified from documentation only | `https://code.claude.com/docs/en/skills.md` |
 | Renovate: `pre-commit` manager off by default; no `prek.toml` manager; a regex manager can use the `pypi` datasource | re-verified; the regex was not run | `renovatebot/renovate`, `lib/modules/manager/pre-commit/readme.md`, `lib/modules/manager/custom/regex/readme.md`; `https://github.com/renovatebot/renovate/pull/42254` |
 | `astral-sh/ruff-action` reads its version from the project's lockfile | **corrected**: `pyproject.toml` by default; `uv.lock` only through `version-file` | `https://raw.githubusercontent.com/astral-sh/ruff-action/main/README.md` |
-| `astral-sh/ruff-pre-commit` is a mirror whose tags track releases; typos uses a placeholder package | re-verified; typos' own page says "GitHub releases" while its `setup.py` installs the PyPI wheel | the two repositories' `.pre-commit-hooks.yaml`, `mirror.py`, `setup.py` |
+| `astral-sh/ruff-pre-commit` is a mirror whose tags track releases; typos uses a placeholder package | re-verified; typos' own page says "GitHub releases" while its `setup.py` installs the PyPI wheel | the two repositories' `.pre-commit-hooks.yaml`, `mirror.py`, `setup.py`, at their default branches on the day (`https://github.com/astral-sh/ruff-pre-commit/blob/main/mirror.py`) |
 | PyPI `allium` is unrelated; `alliumpy` is at 3.6.1 with no `.postN` | re-verified | `https://pypi.org/pypi/allium/json`, `https://pypi.org/pypi/alliumpy/json` |
 
 ### Checks of 2026-11-18
@@ -739,8 +752,8 @@ reports are scratch under `ai_tmp/s02-deep-research/` and are not committed.
 | Quint's README explains one tree for installers and the marketplace | **corrected**: it lists three install routes and says nothing about layout | re-read | `informalsystems/quint` at `07d7a1a`, `skills/README.md` |
 | Codex, GitHub Copilot, Cursor and Gemini CLI document `.agents/skills/` | not verified; each reader agrees | one reader each | `https://learn.chatgpt.com/docs/build-skills`, `https://docs.github.com/en/copilot/concepts/agents/about-agent-skills`, `https://cursor.com/docs/context/skills`, `https://geminicli.com/docs/cli/skills/` |
 | Renovate: no `prek.toml` manager; `pre-commit` manager off by default | re-verified for the manager: pull request 42254 is open at `f70eac7`, last updated 2026-11-07; the default was re-verified on 2026-11-17 and one reader agrees | re-read for the pull request; one reader for the default | `https://github.com/renovatebot/renovate/pull/42254`, `https://docs.renovatebot.com/modules/manager/pre-commit/` |
-| A Renovate regex manager can track a `uvx --from` pin | not verified: the documentation supports the shape and one Justfile example with the `pypi` datasource exists, for another command form | one reader | `https://docs.renovatebot.com/modules/manager/regex/`; `zoni/obsidian-export`, `.github/renovate.json5` |
-| A `language: python` hook installs the hook repository's root | re-verified | re-read | `pre-commit/pre-commit`, `pre_commit/languages/python.py`, last changed at `3e8d0f5`; `j178/prek`, `crates/prek/src/languages/python/python.rs` |
+| A Renovate regex manager can track a `uvx --from` pin | not verified: the documentation supports the shape and one Justfile example with the `pypi` datasource exists, for another command form | one reader | `https://docs.renovatebot.com/modules/manager/regex/`; `https://raw.githubusercontent.com/zoni/obsidian-export/main/.github/renovate.json5`, commit not recorded |
+| A `language: python` hook installs the hook repository's root | re-verified | re-read | `pre-commit/pre-commit`, `pre_commit/languages/python.py`, last changed at `3e8d0f5`; `https://raw.githubusercontent.com/j178/prek/master/crates/prek/src/languages/python/python.rs`, default branch on the day |
 | The command's subcommands, JSON shape and exit codes at 3.6.1 | re-verified, narrowed as section 2 now says | voted | `juxt/allium-tools` at `v3.6.1`, `crates/allium/src/main.rs` |
 | Suppression is an inline comment only | re-verified for the parser and the command; the comment must be alone on its line and `all` is a wildcard | voted | the same tag, `crates/allium-parser/src/analysis.rs` |
 | The gating options exist only as unshipped Node scripts | re-verified for the release assets and one npm name; "only" was not searched repository-wide | voted for the script; re-read for the assets | the same tag, `extensions/allium/src/check.ts`; the `v3.6.1` release's `.vsix` and language-server tarball |
@@ -794,7 +807,8 @@ only thing that rests on that read.
 ### Handed back
 
 - **To the maintainer.** The choice among the options of section 7, and the open points
-  below. This spike drafts no ticket and no decision record by design.
+  below. This spike drafts no decision record. The six draft tickets under
+  `.scratch/adoption-gate/issues/` settle none of the open points (see Deviations).
 - **To the maintainer.** Two stale lines found in passing, neither fixed here:
   `docs/project/purpose-and-scope.md` still says the script answers `--version` only
   until T13, and decision 0009 says "nothing has been published yet"; the wheel has been
@@ -804,7 +818,10 @@ only thing that rests on that read.
 
 - `status: open`. `tickets/README.md` defines a spike as done when its recommendation,
   drafted record and drafted ticket body are in its notes and reviewed. This spike has
-  no drafts by design, and no adversarial review (`CONVENTIONS.md` §14) has run.
+  no drafted record, its draft tickets sit outside its notes (an entry below),
+  and the one adversarial review (`CONVENTIONS.md` §14), recorded under "Adversarial
+  review" below, ran at the maintainer's request and not at a checkpoint this ticket
+  marks.
 - The branch is `spike-prek-and-more`, the worktree's own name, not `ticket/<id>-<slug>`
   (`CONVENTIONS.md` §11).
 - The surveys of steps 2 to 4 ran before this ticket existed, in the session that
@@ -818,6 +835,20 @@ only thing that rests on that read.
   the checks and the prior art above. That is beyond steps 1 to 7, and it is not the
   adversarial review of `CONVENTIONS.md` §14. The ranking of section 7 was left as it
   was: no correction removed the evidence of an option.
+- On 2026-11-23 the maintainer decided to commit six draft tickets under
+  `.scratch/adoption-gate/issues/` on this branch as planning records (`5c75e43`).
+  The second non-goal excludes drafted tickets, Files touched named only this file and
+  the index, and the acceptance criteria expect `git status --short` to list only this
+  file. The drafts are not part of this note. Where one names a choice that "Open
+  points" leaves open (the second script's name, Typer as a runtime dependency, a
+  `3.6.1.post1` release), it settles nothing: the maintainer's answer, and the decision
+  records the drafts ask for, do.
+- Context allows a third-party repository read on 2026-11-17 to be cited at its default
+  branch on the day, with no commit. The first acceptance criterion asks for a path at
+  a commit or a URL, so such a citation falls short of it. Any third-party path cited
+  with no commit is one of those reads; the ones the review of 2026-11-23 named now give
+  a URL or say "default branch on the day" or "commit not recorded". Section 3 names the
+  commits read on 2026-11-18, and two hook reports in section 3 rest on the survey alone.
 
 ### Verification
 
@@ -869,6 +900,71 @@ Two earlier runs of that gate failed in `typos`: on a seven-character commit pre
 that begins with the letters "b" and "a", and on a third-party repository's name
 written outside a code span. The citation now names the commit that last changed the
 file, the sentence refers to the table's rows instead, and nothing was suppressed.
+
+At `5c75e43` (the six draft tickets, committed), untouched: `just check` exit 0, last
+line, then `git status --short`, empty:
+
+```text
+All checks passed and the worktree is unchanged.
+```
+
+The fixes of the adversarial review below were made after that run. That quote
+covers `5c75e43` only; the run after the fixes follows the review record.
+
+### Adversarial review
+
+One checkpoint, `S02-1`, on 2026-11-23, at the maintainer's request, over
+`git diff main...HEAD` at `5c75e43` (this file, the index and the six draft tickets).
+Network use: the reviewers' model API calls only; the triage read nothing over the
+network.
+
+- **Harness and model.** Phase 1: Codex (`codex-cli` 0.169.1) with `-m gpt-6-astra`,
+  `-s read-only`, the harness the executing agent (Claude Code) is not; one reviewer per
+  lens. Phase 2 and phase 3: two fresh-context Claude Code subagents on
+  `claude-opus-5-5`, one per lens, neither a reviewer nor the executing agent; each
+  applied its own lens's fixes, one writer at a time.
+- **Findings.** Conformance: 0 high, 4 medium, 2 low. Breakage: 0 high, 3 medium,
+  1 low. B1 duplicates C4.
+- **Verdicts.** All valid; none invalid and none handed back.
+  - C1 (medium): the six drafts were outside Files touched and the second non-goal,
+    and three places said no ticket was drafted. Applied: a Files touched row, the three
+    statements corrected and a Deviations entry.
+  - C2 (medium): no quoted gate run covered `5c75e43`. Applied: the record above and
+    the run below.
+  - C3 (medium): third-party claims without a commit or URL. Applied: URLs or commits
+    recovered from the survey reports; the two hook reports with no source are marked
+    not verified; the "every adopter" claim narrowed to the table; a Deviations entry for
+    citations at a default branch.
+  - C4 with B1 (medium): option 4 called this repository's validator a checked lock,
+    but `scripts/validate_agents.py` reads only the lock's skill names. Applied: option
+    4's evidence and cost cells say what it checks.
+  - C5 (low): three deductions were not labelled. Applied: "Inference:" on each.
+  - C6 (low): options 1, 8 and 9 lacked an invariant, a decision or both. Applied: each
+    cell names one, or "none".
+  - B2 (medium): draft 02 dropped the qualifier that upstream's `v4` exit rule applies
+    to language-version-4 specifications only. Applied in draft 02.
+  - B3 (medium): draft 05's post-publication check named no path and no expected
+    status. Applied: it runs the gate over the smoke fixtures `ok.allium` and
+    `broken.allium` with an expected status for each.
+  - B4 (low): draft 01 said an unreadable path exits 1, but an unreadable directory is
+    skipped. Applied: draft 01 states the file, directory and empty-list cases apart.
+- **Rounds.** No high-severity finding was valid, so no second round ran.
+- **Handed back.** Nothing.
+
+The raw findings and verdicts are under `ai_tmp/review/S02-1/` and are not committed.
+Each triager ran `just check-docs` after its fixes, exit 0.
+
+At `5c75e43` with uncommitted changes (the review's fixes and this record up to this
+paragraph, staged): `git status --short`, then `just check` exit 0, last line:
+
+```text
+M  .scratch/adoption-gate/issues/01-python-api-check-and-analyse-results.md
+M  .scratch/adoption-gate/issues/02-alliumpy-gate-tracer-bullet.md
+M  .scratch/adoption-gate/issues/05-release-3.6.1.post1-carrying-the-gate.md
+M  tickets/README.md
+M  tickets/S02-adoption-research-spike.md
+All checks passed and the worktree is unchanged.
+```
 
 ## Open points
 

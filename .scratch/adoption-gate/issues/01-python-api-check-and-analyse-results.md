@@ -17,8 +17,10 @@ already takes output handles, which makes this a prefactor for the gate command.
 - [ ] Results for the smoke fixtures equal what `allium check` and `allium analyse`
       print as JSON for the same paths, and the reported status equals the command's
       exit code.
-- [ ] An unreadable path and an empty path list behave as the command does (exit 1 with
-      no result for the file; exit 2), surfaced as documented values or `AlliumError`.
+- [ ] An unreadable file, an unreadable directory and an empty path list behave as the
+      command does (an unreadable file exits 1 with no result for it; an unreadable
+      directory is skipped silently, so the status is 2 when nothing else is found; an
+      empty path list exits 2), surfaced as documented values or `AlliumError`.
 - [ ] The stub, a pytest case, stubtest and the wheel smoke move with the binding; new
       core types meet invariant 3; coverage of the core stays at or above 90%.
 - [ ] `just parity` is unchanged and green: the `allium` command's behaviour did not
