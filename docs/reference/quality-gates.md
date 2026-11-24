@@ -87,7 +87,7 @@ own environment cannot find shellcheck. Review multi-line workflow shell explici
 CI runs six gate jobs: `rust`, `python`, `wheel-smoke-py311`, `coverage`, `deny` and
 `documents`. The aggregate `check` job fails if any dependency fails, is cancelled or
 skipped. The Python job uploads the Linux wheel and the Python 3.11 job installs that
-same artefact. The Rust job runs test where the local aggregate runs test-doc and
+same artefact, with its Typer dependency from PyPI, and runs both scripts. The Rust job runs test where the local aggregate runs test-doc and
 coverage, and runs `fuzz-build` after `clippy`, so a fuzz target that no longer builds
 names itself in the step list without waiting for the weekly run.
 

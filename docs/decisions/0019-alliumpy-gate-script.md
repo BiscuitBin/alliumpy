@@ -40,13 +40,14 @@ The exit policy is this repository's, decided by the maintainer on 2026-11-23:
 | --- | --- |
 | 0 | Every file was read and no file has an error or a warning. |
 | 1 | The gate failed: a file has an error or a warning, or a file cannot be read. |
-| 2 | A usage error, or no `.allium` file was found. |
+| 2 | A usage error, a path that is not UTF-8, or no `.allium` file was found. |
 | 3 | The checker could not report: it panicked, or printed something other than its reports. |
 
 `info` diagnostics and `analyse` findings are printed and do not fail the gate by
 default. An unreadable file fails it although the command gives it no report, because
 the command's stderr names it. Typer gives a usage error status 2, as upstream's
-command gives its own.
+command gives its own. Like the `allium` script, the gate restores SIGINT's default
+action, so an interrupt ends the run at once instead of exiting 1 as a failed gate.
 
 Two options let an adopter with existing diagnostics choose what fails; the defaults
 are the policy above. `--fail-on error|warning|info`, default `warning`, fails on any

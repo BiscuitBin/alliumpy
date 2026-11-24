@@ -6,7 +6,9 @@ covers the ``allium`` script only. Typer is imported here and nowhere else, so t
 library and the ``allium`` script never load it.
 """
 
+import signal
 import sys
+from collections import Counter
 from collections.abc import Sequence
 from enum import StrEnum
 from typing import Annotated
@@ -59,12 +61,20 @@ def root() -> None:
 
 
 def merged(check_report: Report, analyse_report: Report) -> dict[str, list[Diagnostic]]:
-    """Each file's diagnostics from both commands, each once, check's first."""
-    files: dict[str, list[Diagnostic]] = {}
-    for report in (check_report, analyse_report):
-        for file in report.files:
-            seen = files.setdefault(file.spec_file, [])
-            seen.extend(d for d in file.diagnostics if d not in seen)
+    """Each file's diagnostics, check's in order, then any of analyse's check lacks.
+
+    Both commands report the parser's diagnostics, so one that analyse repeats is
+    printed once; a diagnostic one command reports twice stays twice.
+    """
+    files = {file.spec_file: list(file.diagnostics) for file in check_report.files}
+    for file in analyse_report.files:
+        diagnostics = files.setdefault(file.spec_file, [])
+        unmatched = Counter(diagnostics)
+        for d in file.diagnostics:
+            if unmatched[d]:
+                unmatched[d] -= 1
+            else:
+                diagnostics.append(d)
     return files
 
 
@@ -116,13 +126,19 @@ def finding_line(spec_file: str, f: Finding, output: Format, *, failing: bool) -
 def reports(paths: list[str]) -> tuple[Report, Report]:
     """Check's and analyse's reports, or exit as the gate's statuses say."""
     try:
-        check_report, analyse_report = check(paths), analyse(paths)
+        check_report = check(paths)
+        if check_report.status == USAGE:
+            typer.echo(check_report.stderr, err=True, nl=False)
+            raise typer.Exit(USAGE)
+        analyse_report = analyse(paths)
+    except UnicodeEncodeError:
+        # A POSIX path that is not UTF-8 reaches Python surrogate-escaped; upstream
+        # reads its arguments as UTF-8 and cannot take it.
+        typer.echo("alliumpy gate: a path is not valid UTF-8", err=True)
+        raise typer.Exit(USAGE) from None
     except AlliumError as error:
         typer.echo(f"alliumpy gate: {error}", err=True)
         raise typer.Exit(NO_REPORT) from None
-    if check_report.status == USAGE:
-        typer.echo(check_report.stderr, err=True, nl=False)
-        raise typer.Exit(USAGE)
     return check_report, analyse_report
 
 
@@ -151,7 +167,7 @@ def gate(
     Exit status:
     0 passed;
     1 a diagnostic at or above --fail-on, a finding under --fail-on-findings, or an unreadable file;
-    2 a usage error, or no .allium file found;
+    2 a usage error, a path that is not UTF-8, or no .allium file found;
     3 the checker could not report.
     """
     check_report, analyse_report = reports(paths)
@@ -185,9 +201,9 @@ def gate(
     raise typer.Exit(FAILED if failed else PASSED)
 
 
-def main(argv: Sequence[str] | None = None) -> int:
-    """Run the ``alliumpy`` command on ``argv`` (default: this process's) and return its status."""
-    args = list(sys.argv[1:] if argv is None else argv)
+def run(argv: Sequence[str]) -> int:
+    """Run the ``alliumpy`` command on ``argv`` and return its exit status."""
+    args = list(argv)
     try:
         app(args=args, prog_name="alliumpy")
     except SystemExit as exit_:
@@ -195,3 +211,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             return PASSED
         return exit_.code if isinstance(exit_.code, int) else FAILED
     return PASSED
+
+
+def main() -> int:
+    """Console entry point: run on this process's arguments and return the exit status."""
+    # As _cli.py does: the checker runs with the interpreter released, so Python's
+    # handler would wait for it and then exit 1, which reads as a failed gate. An
+    # inherited SIG_IGN stays ignored.
+    if signal.getsignal(signal.SIGINT) is not signal.SIG_IGN:
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+    return run(sys.argv[1:])

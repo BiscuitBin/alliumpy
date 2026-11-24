@@ -338,7 +338,8 @@ surface GateScript {
 
     @guarantee GateStatuses
         -- passed exits 0, failed 1, usage_error 2 (Typer's usage errors
-        -- too) and no_report 3.
+        -- and a path that is not UTF-8 too) and no_report 3. An interrupt
+        -- ends the run at once, as for the allium script.
 
     @guarantee EachDiagnosticOnce
         -- A diagnostic both check and analyse report is printed once.

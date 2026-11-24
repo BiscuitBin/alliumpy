@@ -90,13 +90,17 @@ def test_status_follows_each_commands_rule() -> None:
 
 @pytest.mark.skipif(os.name != "posix", reason="directory permissions are POSIX")
 def test_an_unreadable_directory_is_skipped(tmp_path: Path) -> None:
-    """Skip a directory the command cannot list, so nothing is found."""
+    """Skip a directory the command cannot list, though it holds a specification."""
+    (tmp_path / "ok.allium").write_bytes((SMOKE / "ok.allium").read_bytes())
     tmp_path.chmod(0)
     try:
+        enforced = not os.access(tmp_path, os.R_OK)
         report = alliumpy.check([str(tmp_path)])
     finally:
         tmp_path.chmod(0o700)
-    assert (report.status, report.files) == (2, [])
+    if not enforced:
+        pytest.skip("permissions are not enforced for this user, such as root")
+    assert (report.status, report.files, report.stderr) == (2, [], "No .allium files found.\n")
 
 
 def test_help_raises_allium_error() -> None:

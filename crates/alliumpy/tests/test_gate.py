@@ -6,6 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+import alliumpy
 import pytest
 from alliumpy import _gate
 
@@ -19,7 +20,7 @@ EDGE_CASES = str(CORPUS / "crates/allium-parser/tests/fixtures/comprehensive-edg
 
 def run(capsys: pytest.CaptureFixture[str], *argv: str) -> tuple[int, str, str]:
     """Run the script on argv; return its status, stdout and stderr."""
-    status = _gate.main(list(argv))
+    status = _gate.run(argv)
     out, err = capsys.readouterr()
     return status, out, err
 
@@ -195,3 +196,20 @@ def test_annotations_escape_workflow_command_syntax() -> None:
         "::warning file=x%2Cy%3Az.allium,line=1,col=2::a%25b%0D%0Ac"
     )
     assert _gate.annotation("notice", "m") == "::notice::m"
+
+
+def test_a_path_that_is_not_utf8_is_a_usage_error(capsys: pytest.CaptureFixture[str]) -> None:
+    """Exit 2, not the failed gate's 1, on a surrogate-escaped POSIX path."""
+    assert run(capsys, "gate", "\udcff.allium") == (
+        2,
+        "",
+        "alliumpy gate: a path is not valid UTF-8\n",
+    )
+
+
+def test_analyses_repeat_of_a_diagnostic_is_printed_once() -> None:
+    """Drop the copy of a check diagnostic that analyse repeats, keeping check's order."""
+    checked = alliumpy.check([BROKEN])
+    assert _gate.merged(checked, alliumpy.analyse([BROKEN])) == {
+        BROKEN: list(checked.files[0].diagnostics)
+    }

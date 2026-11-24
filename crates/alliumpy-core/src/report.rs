@@ -322,13 +322,24 @@ mod tests {
     #[test]
     fn an_unreadable_directory_is_skipped() {
         use std::os::unix::fs::PermissionsExt;
+        // A specification inside, so the status shows the directory was not listed.
         let dir = std::env::temp_dir().join(format!("alliumpy-report-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
+        std::fs::copy(OK, dir.join("ok.allium")).unwrap();
         std::fs::set_permissions(&dir, std::fs::Permissions::from_mode(0o000)).unwrap();
+        // Root lists the directory regardless, so the test has nothing to prove there.
+        let enforced = std::fs::read_dir(&dir).is_err();
         let report = check(&[dir.display().to_string()]);
         std::fs::set_permissions(&dir, std::fs::Permissions::from_mode(0o700)).unwrap();
-        std::fs::remove_dir(&dir).unwrap();
-        assert_eq!(report.unwrap().status, 2);
+        std::fs::remove_dir_all(&dir).unwrap();
+        if !enforced {
+            return;
+        }
+        let report = report.unwrap();
+        assert_eq!(
+            (report.status, report.files, report.stderr.as_str()),
+            (2, Vec::new(), "No .allium files found.\n")
+        );
     }
 
     #[test]

@@ -57,22 +57,16 @@ impl Diagnostic {
     }
 
     fn __repr__(&self, py: Python<'_>) -> PyResult<String> {
-        let severity = PyString::new(py, self.severity()).repr()?;
-        let message = PyString::new(py, self.message()).repr()?;
-        let code = self
-            .code()
-            .map(|s| PyString::new(py, s).repr())
-            .transpose()?;
-        let code = match code.as_ref() {
-            Some(value) => value.to_str()?,
-            None => "None",
+        let code = match self.code() {
+            Some(code) => quote(py, code)?,
+            None => "None".to_owned(),
         };
         Ok(format!(
             "Diagnostic(line={}, col={}, severity={}, message={}, code={})",
             self.line(),
             self.col(),
-            severity,
-            message,
+            quote(py, self.severity())?,
+            quote(py, self.message())?,
             code
         ))
     }

@@ -88,7 +88,7 @@ uvx alliumpy gate specs/
 It prints each diagnostic once as `file:line:col: severity: message [code]`, each
 `analyse` finding as `file: finding type: summary`, and a closing count. The exit status
 is 0 when every file was read and none has an error or a warning, and 1 when one does or
-a file cannot be read. It is 2 for a usage error or when no `.allium` file is found, and
+a file cannot be read. It is 2 for a usage error, a path that is not UTF-8, or when no `.allium` file is found, and
 3 when the checker could not report. `info` diagnostics and findings are printed but do
 not fail the gate. `alliumpy --help` and `alliumpy gate --help` print usage.
 

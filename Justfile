@@ -356,7 +356,11 @@ wheel:
 # console script's --version and its check on the clean fixture, which must exit 0.
 # Python runs with -I so nothing in the worktree shadows the package. The wheel's one
 # runtime dependency, Typer (decision 0019), comes from the locked pixi environment
-# through --system-site-packages, so the install stays --no-deps and offline;
+# through --system-site-packages, so the install stays --no-deps and offline. That
+# also puts the pixi environment's packages, and its editable alliumpy's .pth, on
+# the path behind the venv's own, so dependency.py asserts the import is the wheel's,
+# and an undeclared import of another pixi package would go unnoticed here: CI's
+# Python 3.11 job, which installs from PyPI, is where that shows;
 # dependency.py proves the wheel declares Typer, that the pixi copy satisfies the range,
 # and that alliumpy itself is the venv's. Then the gate script: both helps, the clean
 # fixture (exit 0) and the broken one (exactly 1, naming the error's position).
