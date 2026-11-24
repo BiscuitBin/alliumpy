@@ -6,6 +6,7 @@ covers the ``allium`` script only. Typer is imported here and nowhere else, so t
 library and the ``allium`` script never load it.
 """
 
+import io
 import signal
 import sys
 from collections import Counter
@@ -220,4 +221,10 @@ def main() -> int:
     # inherited SIG_IGN stays ignored.
     if signal.getsignal(signal.SIGINT) is not signal.SIG_IGN:
         signal.signal(signal.SIGINT, signal.SIG_DFL)
+    # Upstream's messages are UTF-8 and can hold characters such as an arrow that a
+    # legacy console encoding, cp1252 on a Windows runner, lacks; escaping them keeps
+    # a passing gate from crashing with status 1.
+    for stream in (sys.stdout, sys.stderr):
+        if isinstance(stream, io.TextIOWrapper):
+            stream.reconfigure(errors="backslashreplace")
     return run(sys.argv[1:])

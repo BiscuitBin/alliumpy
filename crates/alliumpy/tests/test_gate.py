@@ -213,3 +213,18 @@ def test_analyses_repeat_of_a_diagnostic_is_printed_once() -> None:
     assert _gate.merged(checked, alliumpy.analyse([BROKEN])) == {
         BROKEN: list(checked.files[0].diagnostics)
     }
+
+
+def test_a_legacy_stdout_encoding_does_not_fail_the_gate() -> None:
+    """Pass a clean file whose finding's arrow cp1252 lacks, as on a Windows runner."""
+    code = (
+        "import sys; from alliumpy._gate import main; "
+        "sys.argv = ['alliumpy', 'gate', sys.argv[1]]; sys.exit(main())"
+    )
+    env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
+    env["PYTHONIOENCODING"] = "cp1252"
+    result = subprocess.run(  # noqa: S603 - Fixed interpreter and code.
+        [sys.executable, "-P", "-c", code, FINDING], env=env, capture_output=True, check=False
+    )
+    assert (result.returncode, result.stderr) == (0, b"")
+    assert b"\\u2192" in result.stdout
