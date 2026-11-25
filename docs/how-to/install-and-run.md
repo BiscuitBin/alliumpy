@@ -88,16 +88,17 @@ uvx alliumpy gate specs/
 It prints each diagnostic once as `file:line:col: severity: message [code]`, each
 `analyse` finding as `file: finding type: summary`, and a closing count. A character
 that is not printable, such as a line break in a file name, is printed as its backslash
-escape, as is anything GitHub Actions would read as a workflow command. The exit status is 0 when every file was read and none has an error or a warning, and 1 when one does or
-a file cannot be read. It is 2 for a usage error, a path that is not UTF-8, or when no `.allium` file is found, and
+escape, as is anything GitHub Actions would read as a workflow command. The exit status is 0 when every file and directory was read and none has an error or a
+warning, and 1 when one does or a file or directory cannot be read: the command skips a
+directory it cannot list without a word, so the gate checks for one itself. It is 2 for a usage error, a path that is not UTF-8, or when no `.allium` file is found, and
 3 when the checker could not report. `info` diagnostics and findings are printed but do
 not fail the gate. `alliumpy --help` and `alliumpy gate --help` print usage.
 
 Two options choose what fails. `--fail-on error`, `--fail-on warning` (the default) or
 `--fail-on info` fails on any diagnostic at or above that severity, so a repository
 with existing warnings can adopt the gate on errors first. `--fail-on-findings` also
-fails on any `analyse` finding. A file that cannot be read fails the gate whatever the
-options say.
+fails on any `analyse` finding. A file or directory that cannot be read fails the gate
+whatever the options say.
 
 In GitHub Actions, `--format github` prints each diagnostic as an annotation on its file,
 line and column, and each finding as an annotation on its file:

@@ -4,6 +4,8 @@
 import os
 import subprocess
 import sys
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -320,7 +322,16 @@ def test_files_displayed_alike_keep_every_finding(
     status, out, _ = run(capsys, "gate", "--fail-on-findings", "x")
     assert status == 1
     assert len([line for line in out.splitlines() if ": finding " in line]) == 3
+    assert "alliumpy gate: 2 files, " in out
     assert ", 3 findings," in out
+
+
+def test_files_displayed_alike_keep_a_diagnostic_each_reports() -> None:
+    """Print a diagnostic once per file when two files displayed alike both report it."""
+    checked = renamed(alliumpy.check([BROKEN, BROKEN]), "same.allium")
+    analysed = renamed(alliumpy.analyse([BROKEN, BROKEN]), "same.allium")
+    diagnostic = alliumpy.check([BROKEN]).files[0].diagnostics[0]
+    assert _gate.merged(checked, analysed) == {"same.allium": [diagnostic, diagnostic]}  # type: ignore[arg-type]
 
 
 @POSIX_ONLY
@@ -394,3 +405,89 @@ def test_analyse_alone_failing_to_report_is_status_3(
     status, out, err = run(capsys, "gate", OK)
     assert (status, out) == (3, "")
     assert err == f"alliumpy gate: {PANICKED}\n"
+
+
+# Directories upstream skips silently
+
+CHMOD_ENFORCED = pytest.mark.skipif(
+    os.name != "posix" or os.geteuid() == 0, reason="Needs POSIX permissions that bind."
+)
+
+
+@contextmanager
+def mode(directory: Path, bits: int) -> Iterator[None]:
+    """Give directory the permission bits for the block, then make it removable again."""
+    directory.chmod(bits)
+    try:
+        yield
+    finally:
+        directory.chmod(0o755)
+
+
+def specs(root: Path, broken_under: str) -> Path:
+    """A clean spec at root and a broken one in the subdirectory broken_under."""
+    (root / "ok.allium").write_text(Path(OK).read_text(encoding="utf-8"), encoding="utf-8")
+    directory = root / broken_under
+    directory.mkdir(parents=True)
+    (directory / "broken.allium").write_text(
+        Path(BROKEN).read_text(encoding="utf-8"), encoding="utf-8"
+    )
+    return directory
+
+
+@CHMOD_ENFORCED
+def test_a_directory_that_cannot_be_listed_fails(
+    capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    """Fail, naming it, on a subdirectory upstream skips because it cannot list it."""
+    sub = specs(tmp_path, "sub")
+    with mode(sub, 0o000):
+        status, out, err = run(capsys, "gate", str(tmp_path))
+    assert status == 1
+    assert err.startswith(f"error: {sub}: cannot be searched for .allium files: ")
+    assert out.endswith(
+        ": 1 files, 0 errors, 0 warnings, 0 info, 0 findings, 1 unreadable: failed\n"
+    )
+
+
+@CHMOD_ENFORCED
+def test_a_directory_whose_parent_cannot_be_searched_fails(
+    capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    """Fail on a subdirectory of a readable parent that cannot be searched."""
+    sub = specs(tmp_path, "parent/sub")
+    with mode(sub.parent, 0o444):
+        status, _, err = run(capsys, "gate", str(tmp_path))
+    assert status == 1
+    assert err.startswith(f"error: {sub}: cannot be searched for .allium files: ")
+
+
+@CHMOD_ENFORCED
+@pytest.mark.parametrize("output", ["text", "github"])
+def test_a_lone_directory_that_cannot_be_listed_fails_rather_than_finding_nothing(
+    capsys: pytest.CaptureFixture[str], tmp_path: Path, output: str
+) -> None:
+    """Exit 1 naming the directory, not 2 for no specification found, when it is all there is."""
+    sub = specs(tmp_path, "sub")
+    with mode(sub, 0o000):
+        status, out, err = run(capsys, "gate", "--format", output, str(sub))
+    assert status == 1
+    named = f"{sub}: cannot be searched for .allium files: "
+    assert (out if output == "github" else err).startswith(
+        f"::error::{named}" if output == "github" else f"error: {named}"
+    )
+    assert out.endswith(
+        ": 0 files, 0 errors, 0 warnings, 0 info, 0 findings, 1 unreadable: failed\n"
+    )
+
+
+@POSIX_ONLY
+def test_a_cycle_of_links_passes_as_the_command_stops_there(
+    capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    """Pass a directory linked into itself, which the command searches until the link limit."""
+    (tmp_path / "ok.allium").write_text(Path(OK).read_text(encoding="utf-8"), encoding="utf-8")
+    (tmp_path / "loop").symlink_to(".")
+    status, out, err = run(capsys, "gate", str(tmp_path))
+    assert (status, err) == (0, "")
+    assert out.endswith(" 0 unreadable: passed\n")

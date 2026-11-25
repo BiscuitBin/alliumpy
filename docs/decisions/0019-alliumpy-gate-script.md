@@ -38,8 +38,8 @@ The exit policy is this repository's, decided by the maintainer on 2026-11-23:
 
 | Status | Meaning |
 | --- | --- |
-| 0 | Every file was read and no file has an error or a warning. |
-| 1 | The gate failed: a file has an error or a warning, or a file cannot be read. |
+| 0 | Every file and directory was read and no file has an error or a warning. |
+| 1 | The gate failed: a file has an error or a warning, or a file or directory cannot be read. |
 | 2 | A usage error, a path that is not UTF-8, or no `.allium` file was found. |
 | 3 | The checker could not report: it panicked, or printed something other than its reports. |
 
@@ -48,6 +48,18 @@ default. An unreadable file fails it although the command gives it no report, be
 the command's stderr names it; the gate reads both runs' stderr, since a file can become
 unreadable between `check` and `analyse`, and names each such file once. When `analyse`
 finds no `.allium` file that `check` found, the gate prints its stderr and exits 2.
+
+The command skips a directory it cannot list, or cannot tell is one, without a word, so
+a specification inside it would go unchecked. The gate therefore walks the paths as the
+command does, following symbolic links to directories, and names each directory it
+cannot search as an unreadable one, which fails the gate. A directory linked into itself
+is no failure: the command and the gate both stop at the system's link limit, having
+searched it by a shorter path. When that directory is all
+there is, the gate exits 1 naming it, not 2 for no `.allium` file found: the directory
+is there and could not be read, a failure rather than an absence; the maintainer
+confirmed this on 2026-11-25. An empty directory still exits 2. The closing count's files
+are the reports `check` printed, so two files whose names print alike count as two.
+
 Typer gives a usage error status 2, as upstream's command gives its own. Like the `allium` script, the gate restores SIGINT's default
 action, so an interrupt ends the run at once instead of exiting 1 as a failed gate.
 

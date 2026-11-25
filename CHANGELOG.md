@@ -28,7 +28,7 @@ A packaging-only release of the wheel that wraps allium-tools 3.6.1: the crates,
   `AlliumError`.
 - The `alliumpy` console script with one subcommand, `alliumpy gate PATHS`, which runs
   `check` and `analyse`, prints each diagnostic and finding, and exits 1 on any error or
-  warning or an unreadable file (decision 0019). `uvx alliumpy gate specs/` needs no
+  warning or an unreadable file or directory (decision 0019). `uvx alliumpy gate specs/` needs no
   `--from`. `--fail-on error|warning|info` and `--fail-on-findings` choose what fails,
   and `--format github` prints GitHub Actions annotations.
 - Typer, the wheel's first runtime dependency (`typer>=0.29.2,<0.30`), which brings
