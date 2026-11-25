@@ -24,10 +24,6 @@
 -- External Entities
 ------------------------------------------------------------
 
--- The person or program running `allium`. A placeholder: alliumpy.allium's
--- ConsoleProcess plays it.
-external entity CommandUser {}
-
 -- A path the command was given or found. The filesystem governs it. There is
 -- one for every path, whether or not a file is there, so a lookup by path
 -- always matches; `readable` says whether the command can read it.
@@ -107,6 +103,13 @@ enum StandardStream { stdin | stdout | stderr }
 ------------------------------------------------------------
 -- Entities
 ------------------------------------------------------------
+
+-- The person or program running `allium`; alliumpy.allium's ConsoleProcess
+-- plays it. Neither this command nor any spec governs it, so it is external in
+-- truth. It is declared internal by the maintainer's choice of 2026-11-25
+-- (decision 0020): upstream's checker warns on an empty external entity that no
+-- rule names, and the gate over specs/ fails on warnings.
+entity CommandUser {}
 
 -- One run of the command. Its arguments exclude the program name.
 entity Invocation {

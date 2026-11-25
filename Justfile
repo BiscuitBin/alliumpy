@@ -389,6 +389,21 @@ wheel-smoke: wheel
 version-check:
     python -I scripts/version_check.py
 
+# Gate: the distilled specifications under specs/ pass `alliumpy gate` at its
+# default policy, run from the venv wheel-smoke left, offline (decision 0020).
+# It names the executable and its version first, so a run proves which command
+# gated. The positive control, a fixture with one warning and no error, must
+# fail the same policy naming that warning.
+specs-gate:
+    #!/bin/sh
+    set -eu
+    gate=target/wheel-smoke/venv/bin/alliumpy
+    [ -x "$gate" ] || { printf '%s\n' 'specs-gate: run just wheel-smoke first (the console script is missing)' >&2; exit 1; }
+    printf 'specs-gate: %s (%s)\n' "$gate" "$(target/wheel-smoke/venv/bin/allium --version)"
+    status=0; out=$("$gate" gate tests/fixtures/gate/warning.allium) || status=$?
+    [ "$status" -eq 1 ] && printf '%s\n' "$out" | grep -q ': warning: .*\[allium\.definition\.unused\]$' || { printf '%s\n' "$out" "specs-gate: the positive control exited $status, not 1 naming allium.definition.unused" >&2; exit 1; }
+    "$gate" gate specs/
+
 # ------------------------------------------------------------------ parity ---
 
 # The reference allium: upstream's own CLI, built from crates.io at the version

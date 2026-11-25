@@ -655,6 +655,20 @@
         "decision_gate_script"
       ],
       "requires": []
+    },
+    {
+      "path": "decisions/0020-gate-specs-through-the-wheel.md",
+      "title": "Decision 0020: This repository's `specs/` gated through its own wheel",
+      "kind": "decision",
+      "audience": [
+        "contributor",
+        "maintainer",
+        "agent"
+      ],
+      "canonical_for": [
+        "decision_specs_gate"
+      ],
+      "requires": []
     }
   ]
 }

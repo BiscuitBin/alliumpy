@@ -33,14 +33,15 @@ read-only; an ignored path is outside the snapshot.
 | 17 | `py-stubtest` | The built native API agrees with the stub and reviewed allowlist. |
 | 18 | `wheel-smoke` | One freshly built release wheel installs and works offline in an isolated venv. |
 | 19 | `version-check` | The suffix-stripped wheel version, root workspace version, each workspace member crate's version as cargo resolves it, upstream pin, core constant and installed version output agree, and the whole output equals `ALLIUM_VERSION_STRING`. |
-| 20 | `check-docs` | The documentation contract, spelling, Markdown and local links pass. |
-| 21 | `check-agents` | The canonical instructions, adapters, skills and bridges satisfy their contract. |
-| 22 | `snapshots-check` | All core snapshots match and no committed snapshot is unreferenced; locks are checked first and tests run offline. |
+| 20 | `specs-gate` | The distilled specifications under `specs/` pass `alliumpy gate` at its default policy, run offline from the venv wheel-smoke left and named with its version, and a warning-only positive control fails it. |
+| 21 | `check-docs` | The documentation contract, spelling, Markdown and local links pass. |
+| 22 | `check-agents` | The canonical instructions, adapters, skills and bridges satisfy their contract. |
+| 23 | `snapshots-check` | All core snapshots match and no committed snapshot is unreferenced; locks are checked first and tests run offline. |
 
 `parity` sits outside this list because its reference needs the network to build; the
 `parity` CI job runs it, and [Testing](testing.md#command-parity) says what it proves.
 
-After these twenty-two gates, `check-clean` compares the worktree with the starting
+After these twenty-three gates, `check-clean` compares the worktree with the starting
 snapshot. A green dirty baseline means the checks changed nothing; hand-back additionally
 requires a committed clean worktree. Gates 4 and 5 also run inside lint deliberately,
 so a failure has a named place in the aggregate list.

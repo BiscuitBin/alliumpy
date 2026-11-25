@@ -40,6 +40,7 @@ until evidence supports a decision.
 | [0017](0017-renovate.md) | Dependency updates through Renovate, except the upstream pin |
 | [0018](0018-vendored-allium-skills.md) | Vendored upstream Allium skills, exempt from the house rules |
 | [0019](0019-alliumpy-gate-script.md) | The `alliumpy gate` script, its exit policy and its Typer dependency |
+| [0020](0020-gate-specs-through-the-wheel.md) | This repository's `specs/` gated through its own wheel |
 
 T14 wrote 0015, T15 wrote 0016 and T17 wrote 0017. Record 0014 is S01's draft, landed by
 T13.

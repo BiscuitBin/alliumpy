@@ -125,9 +125,9 @@ Upstream's checker warns on an external entity that no rule names, in a module w
 `use` import, although its language reference documents the empty external entity as a
 type placeholder that a consuming specification fills. Under the default policy a
 specification using that pattern fails the gate unless `--fail-on error` is chosen.
-`specs/allium-cli.allium`'s `CommandUser` is one such placeholder, so this repository
-does not gate its own `specs/` yet: the adoption-gate ticket that would was handed
-back to the maintainer on 2026-11-23.
+`specs/allium-cli.allium`'s `CommandUser` was one such placeholder; it is declared an
+internal entity instead, and this repository gates its own `specs/` under the default
+policy ([decision 0020](0020-gate-specs-through-the-wheel.md)).
 
 Typer releases 0.x minors that may break, so the range stops below the next minor and
 each minor is a Renovate pull request to review.

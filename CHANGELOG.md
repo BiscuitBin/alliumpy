@@ -9,6 +9,11 @@ are listed here; upstream's own changes belong to upstream's release notes.
 
 ## [Unreleased]
 
+### Added
+
+- `just specs-gate`, part of `just check`, which gates this repository's own `specs/`
+  with `alliumpy gate` from the wheel `wheel-smoke` built, offline (decision 0020).
+
 ## [3.6.1.post1] - 2026-11-25
 
 A packaging-only release of the wheel that wraps allium-tools 3.6.1: the crates, the
