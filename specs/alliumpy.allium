@@ -200,10 +200,13 @@ rule ReportRefused {
 -- run that raises AlliumError is no_report, and one that finds no file is
 -- usage_error, as the command's; the gate stops at the first such run, so
 -- check's decides when both would. Analyse finding no file after check found
--- some means a file was removed between the runs. Otherwise the
--- gate fails when a file has a diagnostic at or above the fail_on severity
--- (warning unless chosen) in either report, a finding when fail_on_findings
--- is chosen, or a file either run could not read; nothing else fails it.
+-- some means a file was removed between the runs. The command skips a
+-- directory it cannot search silently, so the gate walks the paths itself:
+-- such a directory fails the gate, and when check finds no file because of
+-- one the outcome is failed, not usage_error. Otherwise the gate fails when
+-- a file has a diagnostic at or above the fail_on severity (warning unless
+-- chosen) in either report, a finding when fail_on_findings is chosen, or a
+-- file either run could not read; nothing else fails it.
 -- The policy is this repository's, outside UpstreamParity, and does not
 -- follow the command's language version 4 rule.
 -- evidence: _gate.py; crates/alliumpy/tests/test_gate.py
@@ -213,15 +216,18 @@ rule GateDecides {
     let check_found = reports_found(check, paths)       -- black box: the run's status is not usage_error
     let analyse_reported = prints_reports(report_arguments(analyse, paths))
     let analyse_found = reports_found(analyse, paths)
+    let unsearched = has_unsearchable_directory(paths)   -- black box: the gate's own walk
     let failing =
         has_diagnostic_at_or_above(paths, fail_on)
         or (fail_on_findings and has_finding(paths))
         or has_unreadable_file(paths)
+        or unsearched
     ensures: GateRun.created(
         process: process,
         paths: paths,
         outcome:
             if not check_reported: no_report
+            else: if not check_found and unsearched: failed
             else: if not check_found: usage_error
             else: if not analyse_reported: no_report
             else: if not analyse_found: usage_error

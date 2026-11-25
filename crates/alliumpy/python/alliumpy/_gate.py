@@ -7,11 +7,13 @@ library and the ``allium`` script never load it.
 """
 
 import io
+import os
 import signal
 import sys
-from collections import Counter
+from collections import Counter, deque
 from collections.abc import Sequence
 from enum import StrEnum
+from pathlib import Path
 from typing import Annotated
 
 import typer
@@ -156,11 +158,51 @@ def finding_line(spec_file: str, f: Finding, output: Format, *, failing: bool) -
     return text_line(f"{spec_file}: {message}")
 
 
-def reports(paths: list[str]) -> tuple[Report, Report]:
-    """Check's and analyse's reports, or exit as the gate's statuses say."""
+def unsearchable(paths: list[str]) -> list[str]:
+    """Each directory under paths that cannot be searched, as ``directory: reason``.
+
+    Upstream's command skips a directory it cannot list, or cannot tell is one,
+    without a word, so a specification inside would go unchecked. This walks the
+    tree as upstream does, following symbolic links to directories, and names
+    each. An entry upstream reads as a file, such as an ``.allium`` file it cannot
+    stat, is left to the command, which names it if it cannot be read.
+    """
+    found: list[str] = []
+    pending = deque(path for path in paths if Path(path).is_dir())
+    while pending:
+        directory = pending.popleft()
+        try:
+            with os.scandir(directory) as entries:
+                for entry in entries:
+                    try:
+                        if entry.is_dir():
+                            pending.append(entry.path)
+                    except OSError as error:
+                        if Path(entry.name).suffix != ".allium":
+                            found.append(not_searched(entry.path, error))
+        except FileNotFoundError:
+            continue
+        except OSError as error:
+            found.append(not_searched(directory, error))
+    return found
+
+
+def not_searched(path: str, error: OSError) -> str:
+    """Name a directory the gate could not search, and why."""
+    return f"{path}: cannot be searched for .allium files: {error.strerror or error}"
+
+
+def reports(paths: list[str], *, nothing_found_fails: bool) -> tuple[Report, Report] | None:
+    """Check's and analyse's reports, or exit as the gate's statuses say.
+
+    None when check found no ``.allium`` file but a directory could not be
+    searched: the gate then fails on that directory rather than finding nothing.
+    """
     try:
         check_report = check(paths)
         if check_report.status == USAGE:
+            if nothing_found_fails:
+                return None
             typer.echo(check_report.stderr, err=True, nl=False)
             raise typer.Exit(USAGE)
         analyse_report = analyse(paths)
@@ -203,23 +245,26 @@ def gate(
 
     Exit status:
     0 passed;
-    1 a diagnostic at or above --fail-on, a finding under --fail-on-findings, or an unreadable file;
+    1 a diagnostic at or above --fail-on, a finding under --fail-on-findings,
+    or a file or directory that cannot be read;
     2 a usage error, a path that is not UTF-8, or no .allium file found;
     3 the checker could not report.
     """
-    check_report, analyse_report = reports(paths)
+    unsearched = unsearchable(paths)
+    results = reports(paths, nothing_found_fails=bool(unsearched))
+    ran = results or ()
     # A file can become unreadable between the runs, so either stderr may name it.
     unreadable = list(
-        dict.fromkeys(check_report.stderr.splitlines() + analyse_report.stderr.splitlines())
+        dict.fromkeys(unsearched + [line for report in ran for line in report.stderr.splitlines()])
     )
     for line in unreadable:
         if output is Format.GITHUB:
             typer.echo(annotation("error", line))
         else:
             typer.echo(text_line(f"error: {line}"), err=True)
-    diagnostics = merged(check_report, analyse_report)
+    diagnostics = merged(*results) if results else {}
     findings: dict[str, list[Finding]] = {}
-    for file in analyse_report.files:
+    for file in results[1].files if results else []:
         findings.setdefault(file.spec_file, []).extend(file.findings)
     counts = dict.fromkeys(SEVERITIES, 0)
     for spec_file, file_diagnostics in diagnostics.items():
@@ -236,7 +281,8 @@ def gate(
         or (fail_on_findings and found > 0)
     )
     typer.echo(
-        f"alliumpy gate: {len(diagnostics)} files, {counts['error']} errors, "
+        f"alliumpy gate: {len(results[0].files) if results else 0} files, "
+        f"{counts['error']} errors, "
         f"{counts['warning']} warnings, {counts['info']} info, {found} findings, "
         f"{len(unreadable)} unreadable: {'failed' if failed else 'passed'}"
     )
