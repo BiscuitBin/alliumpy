@@ -56,8 +56,8 @@ cannot search as an unreadable one, which fails the gate. A directory linked int
 is no failure: the command and the gate both stop at the system's link limit, having
 searched it by a shorter path. When that directory is all
 there is, the gate exits 1 naming it, not 2 for no `.allium` file found: the directory
-is there and could not be read, a failure rather than an absence. An empty directory
-still exits 2. The closing count's files
+is there and could not be read, a failure rather than an absence; the maintainer
+confirmed this on 2026-11-25. An empty directory still exits 2. The closing count's files
 are the reports `check` printed, so two files whose names print alike count as two.
 
 Typer gives a usage error status 2, as upstream's command gives its own. Like the `allium` script, the gate restores SIGINT's default
