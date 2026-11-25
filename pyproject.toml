@@ -75,6 +75,7 @@ recipes = [
   "py-stubtest",
   "wheel-smoke",
   "version-check",
+  "specs-gate",
   "check-docs",
   "check-agents",
   "snapshots-check",

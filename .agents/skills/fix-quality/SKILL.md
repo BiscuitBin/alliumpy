@@ -56,6 +56,12 @@ description: Diagnose and repair a failing quality gate at its root instead of s
    - `version-check` — five copies of one version disagree; the message names the two.
      A bare `allium-parser` bump is a release (decision 0010), with the wheel's
      packaging-only `.postN` stripped for comparison.
+   - `specs-gate` — a missing venv means `just wheel-smoke` has not run, and an import
+     from outside the venv names the stray copy. A diagnostic under `specs/` is fixed in
+     that specification, never waived. When the positive control fails, read its exit
+     status and output first: a missing fixture, a moved position or a changed
+     diagnostic code from an upstream bump each fail it as well as a loosened default
+     policy does (decision 0020).
    - `check-docs` — frontmatter disagreement with `docs/manifest.yml` is often list
      order; the comparison is order-sensitive. Repair the owning page and its entry.
    - `check-agents` — check inventory, required guidance and exact bridge content and

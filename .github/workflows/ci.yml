@@ -87,6 +87,7 @@ jobs:
       - run: just py-stubtest
       - run: just wheel-smoke
       - run: just version-check
+      - run: just specs-gate
       # The wheel wheel-smoke built and smoked, for wheel-smoke-py311. The
       # recipe empties dist/ first, so exactly one wheel is uploaded.
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

@@ -9,7 +9,9 @@ requires: []
 # Decision 0013: No specification gate and no Allium skills in this repository
 
 Superseded in part by [decision 0018](0018-vendored-allium-skills.md), which vendors the
-Allium skills. The specification gate stays out as recorded here.
+Allium skills, and by [decision 0020](0020-gate-specs-through-the-wheel.md), which gates
+`specs/` through this repository's own wheel, the way this record's reopening condition
+names. No independently installed checker comes in.
 
 ## Context
 
@@ -44,3 +46,4 @@ the selected executable and retaining an offline, reproducible gate.
 - [Security model](../explanation/security-model.md)
 - [Purpose and scope](../project/purpose-and-scope.md)
 - [Decision 0018](0018-vendored-allium-skills.md)
+- [Decision 0020](0020-gate-specs-through-the-wheel.md)

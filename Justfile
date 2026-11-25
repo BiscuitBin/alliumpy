@@ -146,7 +146,7 @@ test:
 test-doc:
     cargo test --doc --workspace --exclude alliumpy --all-features --locked
 
-# Gate 22: snapshots match, and every .snap file is referenced by a test.
+# Gate 23: snapshots match, and every .snap file is referenced by a test.
 # Run the whole suite so the orphan check sees every reference. --check and
 # INSTA_UPDATE=no fail mismatches without writing pending files.
 # cargo-insta 1.48.0 forwards trailing options as test arguments, so nextest
@@ -388,6 +388,29 @@ wheel-smoke: wheel
 # from the venv wheel-smoke left; fails if that venv is missing.
 version-check:
     python -I scripts/version_check.py
+
+# Gate: the distilled specifications under specs/ pass `alliumpy gate` at its
+# default policy, run from the venv wheel-smoke left, offline (decision 0020).
+# The venv's interpreter runs isolated (-I), so PYTHONPATH, the working directory
+# and user site-packages cannot supply the package; the recipe fails unless the
+# package and its extension import from inside the venv, then names them and the
+# command's version, so a run proves which code gated. Standalone, it gates
+# whatever wheel the last wheel-smoke installed; in just check and CI that is
+# this tree's. The positive control, a fixture with one warning and no error,
+# must fail the same policy on exactly that warning.
+specs-gate:
+    #!/bin/sh
+    set -eu
+    py=target/wheel-smoke/venv/bin/python
+    [ -x "$py" ] || { printf '%s\n' 'specs-gate: run just wheel-smoke first (the smoke venv is missing)' >&2; exit 1; }
+    where=$("$py" -I -c 'import sys; from pathlib import Path; import alliumpy, alliumpy._alliumpy as ext; root = Path(sys.prefix).resolve(); bad = [m.__file__ for m in (alliumpy, ext) if not Path(m.__file__).resolve().is_relative_to(root)]; sys.exit(f"specs-gate: imported from outside the smoke venv: {bad}") if bad else print(Path(ext.__file__).resolve())')
+    version=$("$py" -I -c 'import sys; from alliumpy._cli import main; sys.exit(main())' --version)
+    [ -n "$version" ] || { printf '%s\n' 'specs-gate: allium --version printed nothing' >&2; exit 1; }
+    printf 'specs-gate: %s (%s)\n' "$where" "$version"
+    gate() { "$py" -I -c 'import sys; from alliumpy._gate import main; sys.exit(main())' gate "$@"; }
+    status=0; out=$(gate tests/fixtures/gate/warning.allium) || status=$?
+    [ "$status" -eq 1 ] && printf '%s\n' "$out" | grep -qx 'tests/fixtures/gate/warning\.allium:6:7: warning: .* \[allium\.definition\.unused\]' && printf '%s\n' "$out" | grep -qx 'alliumpy gate: 1 files, 0 errors, 1 warnings, 0 info, 0 findings, 0 unreadable: failed' || { printf '%s\n' "$out" "specs-gate: the positive control exited $status, not 1 on exactly its one warning" >&2; exit 1; }
+    gate specs/
 
 # ------------------------------------------------------------------ parity ---
 

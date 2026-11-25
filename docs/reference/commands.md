@@ -89,6 +89,7 @@ and `fuzz-build` are reports or proofs a person runs, never part of `check`.
 | `wheel` | Empty dist and build a locked release wheel for this platform. |
 | `wheel-smoke` | Build the wheel, require exactly one, install offline into a fresh venv, run isolated Python smoke, the console version and `allium check` on the clean fixture. |
 | `version-check` | Compare version copies, each member crate's version included, with the installed wheel-smoke command, and its whole `--version` output with `ALLIUM_VERSION_STRING` and, when built at the pin, the parity reference's; a missing smoke venv fails. |
+| `specs-gate` | With the wheel-smoke venv's interpreter isolated, require `alliumpy` and its extension to import from the venv and name them with the command's version, require the warning-only positive control to fail on exactly its warning, then gate `specs/` at the default policy; a missing smoke venv fails. |
 
 ## Parity
 
@@ -101,7 +102,7 @@ and `fuzz-build` are reports or proofs a person runs, never part of `check`.
 
 | Recipe | Purpose |
 | --- | --- |
-| `check` | Run the twenty-two configured gates in order with worktree snapshots, then check-clean. |
+| `check` | Run the twenty-three configured gates in order with worktree snapshots, then check-clean. |
 | `check-clean` | Require a clean worktree, or equality with a supplied baseline. |
 
 ## Related pages

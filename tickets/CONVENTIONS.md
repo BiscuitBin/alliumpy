@@ -534,9 +534,10 @@ P `Justfile` at `bf51e0d`, with exactly these changes:
 17. `py-stubtest`
 18. `wheel-smoke`
 19. `version-check`
-20. `check-docs`
-21. `check-agents`
-22. `snapshots-check`
+20. `specs-gate`, added by decision 0020 after the bootstrap
+21. `check-docs`
+22. `check-agents`
+23. `snapshots-check`
 
 `test`, `build`, `audit`, `site`, `py-develop`, `wheel` and `check-links-online` are
 outside `check` (`wheel` runs inside `wheel-smoke`). Wave 2 adds recipes outside `check`
