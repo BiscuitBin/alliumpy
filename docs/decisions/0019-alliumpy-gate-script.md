@@ -52,7 +52,9 @@ finds no `.allium` file that `check` found, the gate prints its stderr and exits
 The command skips a directory it cannot list, or cannot tell is one, without a word, so
 a specification inside it would go unchecked. The gate therefore walks the paths as the
 command does, following symbolic links to directories, and names each directory it
-cannot search as an unreadable one, which fails the gate. When that directory is all
+cannot search as an unreadable one, which fails the gate. A directory linked into itself
+is no failure: the command and the gate both stop at the system's link limit, having
+searched it by a shorter path. When that directory is all
 there is, the gate exits 1 naming it, not 2 for no `.allium` file found: the directory
 is there and could not be read, a failure rather than an absence. An empty directory
 still exits 2. The closing count's files

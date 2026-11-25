@@ -479,3 +479,15 @@ def test_a_lone_directory_that_cannot_be_listed_fails_rather_than_finding_nothin
     assert out.endswith(
         ": 0 files, 0 errors, 0 warnings, 0 info, 0 findings, 1 unreadable: failed\n"
     )
+
+
+@POSIX_ONLY
+def test_a_cycle_of_links_passes_as_the_command_stops_there(
+    capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    """Pass a directory linked into itself, which the command searches until the link limit."""
+    (tmp_path / "ok.allium").write_text(Path(OK).read_text(encoding="utf-8"), encoding="utf-8")
+    (tmp_path / "loop").symlink_to(".")
+    status, out, err = run(capsys, "gate", str(tmp_path))
+    assert (status, err) == (0, "")
+    assert out.endswith(" 0 unreadable: passed\n")

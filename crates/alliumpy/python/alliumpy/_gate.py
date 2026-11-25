@@ -6,6 +6,7 @@ covers the ``allium`` script only. Typer is imported here and nowhere else, so t
 library and the ``allium`` script never load it.
 """
 
+import errno
 import io
 import os
 import signal
@@ -33,6 +34,8 @@ SEVERITIES = ("error", "warning", "info")
 """Upstream's severities, most severe first."""
 ANNOTATION_LEVELS = {"error": "error", "warning": "warning", "info": "notice"}
 """The GitHub workflow command each severity becomes."""
+LINK_LIMITS = frozenset({errno.ELOOP, errno.ENAMETOOLONG})
+"""Errors at the end of a symbolic-link cycle, where the command stops searching too."""
 
 
 class FailOn(StrEnum):
@@ -165,7 +168,9 @@ def unsearchable(paths: list[str]) -> list[str]:
     without a word, so a specification inside would go unchecked. This walks the
     tree as upstream does, following symbolic links to directories, and names
     each. An entry upstream reads as a file, such as an ``.allium`` file it cannot
-    stat, is left to the command, which names it if it cannot be read.
+    stat, is left to the command, which names it if it cannot be read. A cycle of
+    links ends at the system's link or name limit, where the command stops as well,
+    having searched every directory in it by a shorter path, so that is no failure.
     """
     found: list[str] = []
     pending = deque(path for path in paths if Path(path).is_dir())
@@ -178,12 +183,13 @@ def unsearchable(paths: list[str]) -> list[str]:
                         if entry.is_dir():
                             pending.append(entry.path)
                     except OSError as error:
-                        if Path(entry.name).suffix != ".allium":
+                        if error.errno not in LINK_LIMITS and Path(entry.name).suffix != ".allium":
                             found.append(not_searched(entry.path, error))
         except FileNotFoundError:
             continue
         except OSError as error:
-            found.append(not_searched(directory, error))
+            if error.errno not in LINK_LIMITS:
+                found.append(not_searched(directory, error))
     return found
 
 
