@@ -7,23 +7,45 @@ crates, the parser pin and `allium --version` still at 3.6.1 (invariant 9).
 **Blocked by:** 02: `alliumpy gate`, the tracer bullet; 03: Gate policy flags and CI
 annotations
 
-**Status:** prepared, stopped before release (2026-11-23). Hand-back: `[project] version`
-is `3.6.1.post1` and the changelog's `[3.6.1.post1] - 2026-11-23` entry records the
-command, Typer and `==3.6.1` against `==3.6.1.*`; `just version-check` printed `all 7
-versions agree: 3.6.1`; a local sdist carries `report.rs`, `_gate.py` and
-`Requires-Dist: typer>=0.29.2,<0.30`; `just check` ended `All checks passed and the
-worktree is unchanged.`. Not done, each awaiting its own authorisation: the pre-flight
-reads (`gh api`, PyPI), the `release/v3.6.1.post1` branch from `main` (this work is on
-`spike-prek-and-more`), push and pull request, the rehearsal, the tag, the publish and
-the post-publish `uvx` proof. The changelog date needs re-dating if the merge lands later.
+**Status:** released (2026-11-25). Hand-back: `release/v3.6.1.post1` (PR #53, merged as
+`6c73109`) dated the changelog entry 2026-11-25. The rehearsal, run 45541962562
+dispatched on `main` at `6c73109` with `publish=false`, built 7 `cp311-abi3` wheels,
+7 `cp314t` wheels and one sdist; its `release` job's guards and attestation passed and
+`Publish to PyPI` and `Create the GitHub Release` were skipped. The annotated tag
+`v3.6.1.post1` on `6c73109` started run 45551293035; after the maintainer approved the
+`release` environment, it published to PyPI and created the GitHub Release. PyPI's file
+list is the rehearsal's 15 files. Earlier hand-back (2026-11-23): `just version-check`
+printed `all 7 versions agree: 3.6.1`, a local sdist carried `report.rs`, `_gate.py`
+and `Requires-Dist: typer>=0.29.2,<0.30`, and `just check` ended `All checks passed and
+the worktree is unchanged.`.
+
+Post-publish proof, on 2026-11-25, from a temporary directory holding only
+`tests/fixtures/smoke/`, with `UV_CACHE_DIR` a fresh `mktemp -d`:
+
+```text
+$ uvx -v --from "alliumpy==3.6.1.post1" allium --version 2> uvx.log
+allium 3.6.1 (language versions: 1, 2, 3)
+exit 0            (uvx.log names pypi.org on 26 lines)
+$ uvx --from "alliumpy==3.6.1.post1" allium check tests/fixtures/smoke/ok.allium
+exit 0
+$ uvx --from "alliumpy==3.6.1.post1" allium check tests/fixtures/smoke/broken.allium
+exit 1
+$ uvx "alliumpy@3.6.1.post1" gate tests/fixtures/smoke/ok.allium
+alliumpy gate: 1 files, 0 errors, 0 warnings, 0 info, 0 findings, 0 unreadable: passed
+exit 0
+$ uvx "alliumpy@3.6.1.post1" gate tests/fixtures/smoke/broken.allium
+tests/fixtures/smoke/broken.allium:5:9: error: expected declaration (...), found '?'
+alliumpy gate: 1 files, 1 errors, 0 warnings, 0 info, 0 findings, 0 unreadable: failed
+exit 1
+```
 
 - [x] `just version-check` passes with the wheel at `3.6.1.post1`; the changelog
       records the new command, the new Typer dependency and that `alliumpy==3.6.1` does
       not match the post-release while `==3.6.1.*` does.
-- [ ] The release matrix is rehearsed before any tag.
-- [ ] **Stop and ask:** tagging and publishing are each separately authorised; a tag is
+- [x] The release matrix is rehearsed before any tag.
+- [x] **Stop and ask:** tagging and publishing are each separately authorised; a tag is
       a release.
-- [ ] After publishing, from a directory holding `tests/fixtures/smoke/` and nothing
+- [x] After publishing, from a directory holding `tests/fixtures/smoke/` and nothing
       built, and with a fresh uv cache: `uvx alliumpy@3.6.1.post1 gate` over
       `tests/fixtures/smoke/ok.allium` exits 0; over `tests/fixtures/smoke/broken.allium`
       it exits with the status ticket 02 gives a failed gate and names the error's file
