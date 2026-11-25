@@ -3,7 +3,27 @@
 
 from importlib.metadata import version
 
-from ._alliumpy import ALLIUM_VERSION, AlliumError, Diagnostic, parse
+from ._alliumpy import (
+    ALLIUM_VERSION,
+    AlliumError,
+    Diagnostic,
+    FileReport,
+    Finding,
+    Report,
+    analyse,
+    check,
+    parse,
+)
 
 __version__ = version("alliumpy")
-__all__ = ["parse", "Diagnostic", "AlliumError", "ALLIUM_VERSION"]  # noqa: RUF022 - Order fixed by CONVENTIONS §9.
+__all__ = [  # noqa: RUF022 - Order fixed by CONVENTIONS §9, new names appended.
+    "parse",
+    "Diagnostic",
+    "AlliumError",
+    "ALLIUM_VERSION",
+    "check",
+    "analyse",
+    "Report",
+    "FileReport",
+    "Finding",
+]

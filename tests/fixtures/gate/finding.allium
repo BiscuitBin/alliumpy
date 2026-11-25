@@ -1,0 +1,37 @@
+-- allium: 3
+-- Gate fixture: allium-cli 3.6.1 check reports one info (Parcel.note unused), exit 0;
+-- analyse adds three findings (dead_transition, deadlock, missing_producer), exit 1.
+-- Original fixture written here; contains no upstream text; no attribution needed.
+
+entity Parcel {
+    paid: Boolean
+    note: String
+    status: pending | shipped
+
+    transitions status {
+        pending -> shipped
+        terminal: shipped
+    }
+}
+
+entity Clerk {}
+
+surface Counter {
+    facing clerk: Clerk
+
+    provides:
+        ParcelAccepted(clerk)
+        ShipRequested(clerk, parcel)
+}
+
+rule AcceptParcel {
+    when: ParcelAccepted(clerk)
+    ensures: Parcel.created(status: pending)
+}
+
+rule ShipParcel {
+    when: ShipRequested(clerk, parcel)
+    requires: parcel.status = pending
+    requires: parcel.paid = true
+    ensures: parcel.status = shipped
+}

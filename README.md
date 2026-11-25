@@ -16,6 +16,12 @@ Run once with uv:
 uvx --from alliumpy allium check <path>
 ```
 
+Gate specifications in CI, failing on any error or warning:
+
+```console
+uvx alliumpy gate <path>
+```
+
 Install the command persistently:
 
 ```console

@@ -155,10 +155,15 @@ uvx -v --from "alliumpy==$version" allium --version 2> uvx.log; echo "exit $?"
 grep -n pypi.org uvx.log
 uvx --from "alliumpy==$version" allium check tests/fixtures/smoke/ok.allium; echo "exit $?"
 uvx --from "alliumpy==$version" allium check tests/fixtures/smoke/broken.allium; echo "exit $?"
+uvx "alliumpy@$version" gate tests/fixtures/smoke/ok.allium; echo "exit $?"
+uvx "alliumpy@$version" gate tests/fixtures/smoke/broken.allium; echo "exit $?"
 ```
 
 The first prints the version line and `exit 0`, and `uvx.log` names `pypi.org`; the
-checks print `exit 0` and `exit 1`. Then list the published files, with the download
+checks print `exit 0` and `exit 1`. The two gate runs, which also prove that the
+release's Typer dependency resolves from PyPI, print `exit 0` and `exit 1`, the second
+naming `tests/fixtures/smoke/broken.allium:5:9` ([decision
+0019](../decisions/0019-alliumpy-gate-script.md)). Then list the published files, with the download
 checked before the filter reads it:
 
 ```sh

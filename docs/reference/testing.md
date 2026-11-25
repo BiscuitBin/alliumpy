@@ -42,11 +42,14 @@ deliberate runtime/stub mismatch must fail. mypy checks declared types; it does 
 ## Installed wheel smoke
 
 `just wheel-smoke` empties dist and builds the release wheel, requires exactly one real
-wheel, creates a fresh venv on pixi's interpreter with no Python download, and installs
-with `--offline --no-index --no-deps`. Isolated Python (`-I`) imports that installation,
-parses the clean and broken smoke fixtures and checks versions. The installed console
-script must print upstream's version string and exit 0 from `allium check` on the clean
-fixture.
+wheel, creates a fresh venv on pixi's interpreter with no Python download and with the
+pixi environment's site-packages visible, and installs with `--offline --no-index
+--no-deps`; the wheel's Typer dependency comes from the pixi lock. Isolated Python (`-I`)
+imports that installation, parses and checks the clean and broken smoke fixtures and
+checks versions, and `dependency.py` checks the declared Typer range against the pinned
+copy. The installed `allium` script must print upstream's version string and exit 0
+from `allium check` on the clean fixture; `alliumpy gate` must exit 0 on it and exactly 1
+on the broken one.
 A release build on every gate is the cost of testing the artefact that will ship.
 
 ## Coverage

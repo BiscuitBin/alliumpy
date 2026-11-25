@@ -39,6 +39,7 @@ snapshot.
 | T15 | Mutation testing, benchmarks and fuzzing over `alliumpy-core` | `T15-mutants-bench-fuzz.md` | T11 | T12, T13, T14 | open |
 | T17 | Renovate over every pin except the upstream crate; the upstream-bump runbook | `T17-renovate.md` | T14, T15 | none | done |
 | T18 | Verification gaps: the checks the wave-0 and wave-1 hand-backs did not run | `T18-verification-gaps.md` | T11 | T12, T13, T14, T15, T17 | done |
+| S02 | Spike: research on making Allium easier to adopt | `S02-adoption-research-spike.md` | T14 | none | open |
 
 The ids follow pachinko's where the ticket is the same kind of work, so that the two
 repositories stay comparable, and fill the gaps pachinko left: T03 and S01 are new here;
@@ -46,6 +47,10 @@ T13 reuses the id of pachinko's container image, which is not carried (`CONVENTI
 §1 decision 5); T04, T06, T08, T09, T10 and T16 are unused (pachinko's T06 and T10 are
 the specification and effects gates this repository does not have, its T10's metrics half
 is folded into T02, and its T16 is folded into T15).
+
+S02 is research outside the bootstrap waves: it lands no tooling and appears in neither
+the graph nor the order below. The six draft tickets it led to sit under
+`.scratch/adoption-gate/issues/` as planning records, outside this index.
 
 ## Dependency graph
 

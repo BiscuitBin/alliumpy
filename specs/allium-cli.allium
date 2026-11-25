@@ -28,14 +28,17 @@
 -- ConsoleProcess plays it.
 external entity CommandUser {}
 
--- A path the command was given or found. The filesystem governs it.
+-- A path the command was given or found. The filesystem governs it. There is
+-- one for every path, whether or not a file is there, so a lookup by path
+-- always matches; `readable` says whether the command can read it.
 external entity SpecFile {
     path: String          -- as given or as discovery produced it, not canonicalised
     readable: Boolean
 }
 
 -- The parser's result for one spec file. The parser is error-tolerant, so a
--- readable file always yields a module, possibly a partial one.
+-- readable file always yields a module, possibly a partial one, and a lookup
+-- by spec_file matches it.
 -- evidence: 259-278, 663-676
 external entity Module {
     spec_file: SpecFile
@@ -308,7 +311,7 @@ rule SingleFileUnreadable {
     requires: invocation.leading in {"parse", "plan", "model"}
     requires: not invocation.wants_subcommand_help
     requires: invocation.operands.count = 1
-    let file = spec_file(invocation.operands.first)
+    let file = SpecFile{path: invocation.operands.first}
     requires: not file.readable
     ensures: Emission.created(invocation: invocation, stream: stderr, content: read_error(file))
     ensures:
@@ -329,9 +332,9 @@ rule SingleFileReported {
     requires: invocation.leading in {"parse", "plan", "model"}
     requires: not invocation.wants_subcommand_help
     requires: invocation.operands.count = 1
-    let file = spec_file(invocation.operands.first)
+    let file = SpecFile{path: invocation.operands.first}
     requires: file.readable
-    let module = parse(file)
+    let module = Module{spec_file: file}
     ensures:
         if invocation.leading = "plan":
             PlanRequested(module: module)
