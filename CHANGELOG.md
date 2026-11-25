@@ -9,7 +9,7 @@ are listed here; upstream's own changes belong to upstream's release notes.
 
 ## [Unreleased]
 
-## [3.6.1.post1] - 2026-11-23
+## [3.6.1.post1] - 2026-11-25
 
 A packaging-only release of the wheel that wraps allium-tools 3.6.1: the crates, the
 `allium-parser` pin and `allium --version` stay at 3.6.1 (decision 0010). Because
