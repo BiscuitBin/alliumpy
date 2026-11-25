@@ -31,12 +31,15 @@ with `--fail-on error`, or to wait for upstream to change the warning.
 ## Decision
 
 Add `just specs-gate` to `just check`, after `version-check`, and to the CI `python` job.
-It runs `alliumpy gate specs/` at the default policy (any error or warning fails) from
-the venv `wheel-smoke` left, offline, and fails if that venv is missing. It prints the
-executable's path and `allium --version` first, so each run names the command that
-gated. Its positive control, `tests/fixtures/gate/warning.allium`, has one warning and no
-error, and the recipe fails unless the gate fails it naming that warning's code; a
-policy loosened to errors only would let the control pass, and the recipe would fail.
+It runs `alliumpy gate specs/` at the default policy from the venv `wheel-smoke` left,
+offline, and fails if that venv is missing. It runs the venv's interpreter isolated
+(`-I`), so `PYTHONPATH`, the working directory and user site-packages cannot supply the
+package, and it fails unless `alliumpy` and its native extension both import from
+inside the venv. It prints the extension's path and `allium --version` first, so each
+run names the code that gated. Its positive control, `tests/fixtures/gate/warning.allium`,
+has one warning and no error, and the recipe fails unless the gate fails it on exactly
+that warning, at its position, with a summary of one warning and no error; a policy
+loosened to errors only would let the control pass, and the recipe would fail.
 
 Declare `CommandUser` an internal `entity`, the maintainer's choice of 2026-11-25, with a
 comment that says it is external in truth. No diagnostic under `specs/` is waived, and
@@ -48,20 +51,27 @@ to check specifications: the gate is this repository's own wheel.
 ## Consequences
 
 The specifications can no longer drift into a state upstream's checker rejects without
-`just check` saying so. They still gate no behaviour: the gate proves that they parse
-and pass upstream's checks, not that they describe the code truly. Upstream and
+`just check` saying so. They still gate no behaviour. A pass proves that upstream's
+`check` and `analyse` both read every file, that neither reports an error or a warning,
+and that no file was unreadable; `analyse`'s findings are printed but fail nothing under
+the default policy. It does not prove that the specifications describe the code truly. Upstream and
 `just parity` stay the authority on what the command does, and decision 0013's point
 stands that this repository tests packaging, not the language.
 
 `CommandUser` misstates governance in one line: the specification says nothing else
-about it, and the comment beside it records why. Upstream changing the warning, or
+about it, and the comment beside it records why. The misstatement reaches tools as well
+as readers: `allium model` reports it as internal, and nothing in its output carries the
+comment. Upstream changing the warning, or
 documenting how a placeholder should be declared, would let it go back to `external`.
 
 An upstream bump that adds a warning fails `just check` on `specs/` as well as wherever
 else it lands. That is the gate working: the specification is fixed in the same bump.
 
-The gate's result depends on the wheel built in the same run, so it moves with each
-change to the vendored command, and `just check` has one more recipe after `wheel-smoke`.
+Inside `just check` and CI the gate's result depends on the wheel built in the same run,
+so it moves with each change to the vendored command, and `just check` has one more
+recipe after `wheel-smoke`. Run alone, `just specs-gate` gates whatever wheel the last
+`wheel-smoke` installed, as `version-check` reads it: after a change, run `just
+wheel-smoke` first.
 
 ## What would reopen this
 

@@ -29,7 +29,8 @@ on every update.
 ## Decision
 
 Commit the Allium skills that `skills-lock.json` names, as the tool installs them. This
-supersedes the skills half of decision 0013. The specification gate stays out.
+supersedes the skills half of decision 0013. The specification gate stayed out until
+[decision 0020](0020-gate-specs-through-the-wheel.md) brought it in through the wheel.
 
 Exempt the vendored skills from the style and content gates: ruff, markdownlint, typos,
 lychee and EditorConfig, and every rewriting hook behind `just fix`. Each tool's
@@ -60,12 +61,13 @@ copy does not reach this repository.
 ## What would reopen this
 
 A tool that derives every exemption from `skills-lock.json`. Upstream skills that meet
-the house rules. A need for the specification gate itself, which decision 0013 still
-governs.
+the house rules. A need for the specification gate itself, which decision 0013
+governed and [decision 0020](0020-gate-specs-through-the-wheel.md) now does.
 
 ## Related pages
 
 - [Decision 0013](0013-no-spec-gate-no-allium-skills.md)
+- [Decision 0020](0020-gate-specs-through-the-wheel.md)
 - [Agent contract](../reference/agent-contract.md)
 - [Install and run](../how-to/install-and-run.md)
 - [Maintain dependencies](../how-to/maintain-dependencies.md)

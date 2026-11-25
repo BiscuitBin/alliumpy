@@ -33,7 +33,7 @@ read-only; an ignored path is outside the snapshot.
 | 17 | `py-stubtest` | The built native API agrees with the stub and reviewed allowlist. |
 | 18 | `wheel-smoke` | One freshly built release wheel installs and works offline in an isolated venv. |
 | 19 | `version-check` | The suffix-stripped wheel version, root workspace version, each workspace member crate's version as cargo resolves it, upstream pin, core constant and installed version output agree, and the whole output equals `ALLIUM_VERSION_STRING`. |
-| 20 | `specs-gate` | The distilled specifications under `specs/` pass `alliumpy gate` at its default policy, run offline from the venv wheel-smoke left and named with its version, and a warning-only positive control fails it. |
+| 20 | `specs-gate` | The distilled specifications under `specs/` pass `alliumpy gate` at its default policy, run offline and isolated from the venv wheel-smoke left with the package proved to import from it, and a warning-only positive control fails it on exactly its warning. |
 | 21 | `check-docs` | The documentation contract, spelling, Markdown and local links pass. |
 | 22 | `check-agents` | The canonical instructions, adapters, skills and bridges satisfy their contract. |
 | 23 | `snapshots-check` | All core snapshots match and no committed snapshot is unreferenced; locks are checked first and tests run offline. |
