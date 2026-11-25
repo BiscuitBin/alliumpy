@@ -1,7 +1,7 @@
 ---
 id: S02
 title: "Spike: research on making Allium easier to adopt"
-status: open
+status: done
 depends_on: [T14]
 parallel_with: []
 branch: spike-prek-and-more
@@ -814,14 +814,42 @@ only thing that rests on that read.
   until T13, and decision 0009 says "nothing has been published yet"; the wheel has been
   on PyPI since 2026-11-05 (`CHANGELOG.md`).
 
+### Outcome
+
+Recorded on 2026-11-25, after the spike's notes above were written.
+
+- **Chosen.** The maintainer chose option 2, a second console script that gates, on
+  2026-11-23, and the six draft tickets under `.scratch/adoption-gate/issues/` carried
+  it. `alliumpy gate`, with `alliumpy.check` and `alliumpy.analyse` beneath it, is
+  recorded in [decision 0019](../docs/decisions/0019-alliumpy-gate-script.md) and
+  shipped in `3.6.1.post1`, published to PyPI on 2026-11-25 from tag `v3.6.1.post1`
+  (draft 05 quotes the proof). Drafts 01, 02, 03, 05 and 06 are done; draft 04, the
+  gate over this repository's own `specs/`, is carried forward in its own file.
+- **The two stale lines handed back above** were fixed by draft 06.
+- **Open points answered.** Decision 0019 settles the script's name and scope (`alliumpy
+  gate`, reading the vendored command's reports through the core) and the exit policy:
+  statuses 0 to 3, errors and warnings fail by default, findings only under
+  `--fail-on-findings`, no baseline, and the version 4 exit change named as what would
+  reopen it. The release question was answered by practice rather than a record:
+  `3.6.1.post1` shipped the gate as a packaging-only `.postN` under decision 0010 and
+  invariant 9.
+- **Open points carried forward**, each still the maintainer's: a hook manifest at this
+  repository's root; whether our other repositories standardise on `skills-lock.json`
+  version 2 and move house edits into `AGENTS.md`; whether alliumpy states a
+  `juxt/allium` tag for each wheel version; the future of `bg-install-allium` and
+  `bg-run-allium`; and a deterministic specification-to-test link. Options 1 and 3 to 9
+  of section 7 are not started.
+
 ### Deviations
 
-- `status: open`. `tickets/README.md` defines a spike as done when its recommendation,
+- `status: done`, by the maintainer's decision of 2026-11-25. `tickets/README.md` defines a spike as done when its recommendation,
   drafted record and drafted ticket body are in its notes and reviewed. This spike has
   no drafted record, its draft tickets sit outside its notes (an entry below),
   and the one adversarial review (`CONVENTIONS.md` §14), recorded under "Adversarial
   review" below, ran at the maintainer's request and not at a checkpoint this ticket
-  marks.
+  marks. The record the spike led to, decision 0019, was written and reviewed with the
+  gate itself rather than drafted here, and "Outcome" above records which open points
+  it answered and which are carried forward.
 - The branch is `spike-prek-and-more`, the worktree's own name, not `ticket/<id>-<slug>`
   (`CONVENTIONS.md` §11).
 - The surveys of steps 2 to 4 ran before this ticket existed, in the session that
